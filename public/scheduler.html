@@ -1347,6 +1347,8 @@ function esc(v){return(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 function patchStudent(sid,field,val){
   if(!SS[sid])return;
   SS[sid][field]=val;
+  saveState();
+  renderPool();
   // Highlight row briefly to confirm
   const row=qs('strow-'+sid);
   if(row){row.style.background='#EAF3DE';setTimeout(()=>row.style.background='',800);}
@@ -1357,18 +1359,26 @@ function deleteStudent(sid){
   if(!confirm('Remove '+s.n+' from the system?\nThis also removes them from the schedule.'))return;
   rmFromSched(sid);
   delete SS[sid];
+  saveState();
   renderStudentsTable();
+  renderPool();renderSched();
+  toast(s.n+' removed');
 }
 
 function addNewStudentRow(){
   const id='sx'+Date.now();
   SS[id]={id,n:'New Student',t:'',br:'Shuhada',a:'',la:0,ln:0,visits:0,sessionsPerWeek:1};
+  saveState();
   renderStudentsTable();
-  // Scroll to bottom and focus the new row's name field
-  const tbody=qs('students-tbody');
-  tbody.lastElementChild?.scrollIntoView({block:'center'});
-  tbody.lastElementChild?.querySelector('.st-inp')?.focus();
-  tbody.lastElementChild?.classList.add('new-row');
+  // Find the ACTUAL new row by id (sorting may put it anywhere in the list)
+  const newRow=qs('strow-'+id);
+  if(newRow){
+    newRow.scrollIntoView({block:'center',behavior:'smooth'});
+    newRow.classList.add('new-row');
+    const firstInp=newRow.querySelector('.st-inp');
+    if(firstInp){firstInp.focus();firstInp.select();}
+  }
+  toast('New student added — fill in the details');
 }
 
 // Tab/Enter navigation between cells
@@ -1459,7 +1469,10 @@ function doAdd(){
   if(!t||!n||!a||isNaN(la)||isNaN(ln)){toast('Fill all fields');return;}
   const id=editId||'sx'+Date.now();
   SS[id]={id,n,br,t,la,ln,a,visits,sessionsPerWeek};
-  closeAdd();renderPool();saveState();toast(`${n} ${editId?'updated':'added to pool'}`);
+  closeAdd();renderPool();saveState();
+  // Refresh the students table if it's open
+  if(qs('studentsmodal').style.display==='flex')renderStudentsTable();
+  toast(`${n} ${editId?'updated':'added to pool'}`);
 }
 function editStudent(sid){
   const s=SS[sid];if(!s)return;
