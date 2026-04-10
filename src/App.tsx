@@ -1,15 +1,11 @@
+import { useEffect } from 'react'
+
 function App() {
-  return (
-    <iframe
-      src="/scheduler.html"
-      style={{
-        width: "100%",
-        height: "100vh",
-        border: "none"
-      }}
-      title="Scheduler"
-    />
-  )
+  useEffect(() => {
+    window.location.href = '/scheduler.html'
+  }, [])
+
+  return <p>Loading scheduler...</p>
 }
 
 export default App
