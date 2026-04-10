@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BeCurious — Live Schedule Builder</title>
+<style>
+:root{--purple:#6A5FA8;--purple-lt:#EEEDFE;--purple-dk:#3C3489;--teal:#0F6E56;--teal-lt:#E1F5EE;--orange:#E87C50;--orange-lt:#FEF3ED;--red:#A32D2D;--red-lt:#FCEBEB;--amber:#854F0B;--amber-lt:#FAEEDA;--bg:#F0EDE5;--card:#fff;--border:#E5E0D5;--text:#2C2C2A;--text2:#5A5650;--text3:#8A8680}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.hdr{background:var(--purple);color:#fff;padding:8px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
+.hdr-title{font-size:15px;font-weight:700}
+.hdr-sub{font-size:9px;opacity:.7;margin-top:1px}
+.hdr-stats{display:flex;gap:6px;margin-left:auto}
+.hstat{background:rgba(255,255,255,.15);padding:2px 8px;border-radius:5px;text-align:center;font-size:9px}
+.hstat b{display:block;font-size:13px;font-weight:600}
+.hbtn{padding:4px 10px;border-radius:5px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:10px;cursor:pointer;white-space:nowrap}
+.hbtn:hover{background:rgba(255,255,255,.2)}
+.hbtn.green{background:rgba(52,211,153,.25);border-color:rgba(52,211,153,.5)}
+.hbtn.amber{background:rgba(251,191,36,.2);border-color:rgba(251,191,36,.4)}
+#save-ind{font-size:9px;color:rgba(255,255,255,.6);margin-left:2px}
+.layout{display:flex;flex:1;overflow:hidden}
+.pool{width:215px;flex-shrink:0;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.pool-hdr{padding:7px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.pool-hdr h3{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px}
+.psearch{width:100%;padding:3px 7px;border:1px solid var(--border);border-radius:5px;font-size:10px;outline:none}
+.psearch:focus{border-color:var(--purple)}
+.pfilter{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap}
+.pf{font-size:9px;padding:2px 5px;border-radius:8px;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text2)}
+.pf.on{background:var(--purple);color:#fff;border-color:var(--purple)}
+.pool-body{overflow-y:auto;padding:5px}
+.pool-sect{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;padding:5px 8px 3px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.pool-sect span{background:var(--orange);color:#fff;font-size:8px;padding:1px 5px;border-radius:8px}
+.pool-empty{text-align:center;color:var(--text3);font-size:10px;padding:14px 5px}
+/* Smart panel */
+.active-info{background:linear-gradient(135deg,#059669,#0F6E56);color:#fff;border-radius:6px;padding:7px 9px;margin-bottom:6px;font-size:10px;line-height:1.5}
+.ai-label{font-size:8px;opacity:.8;margin-bottom:1px}
+.ai-car{font-size:11px;font-weight:700}
+.ai-from{font-size:9px;opacity:.75}
+.sort-row{display:flex;gap:3px;margin-bottom:5px}
+.sb{flex:1;font-size:8px;padding:3px 1px;border-radius:4px;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text2);text-align:center;line-height:1.3}
+.sb.on{background:var(--purple);color:#fff;border-color:var(--purple)}
+.sb.son{background:#059669;color:#fff;border-color:#059669}
+.teacher-dd{width:100%;padding:3px 7px;border:1px solid var(--border);border-radius:5px;font-size:10px;outline:none;margin-bottom:5px;color:var(--text)}
+/* Session cards */
+.sc{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:6px 8px;margin-bottom:4px;cursor:grab;user-select:none;border-left:3px solid var(--purple);transition:box-shadow .1s;position:relative}
+.sc:hover{box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.sc.dragging{opacity:.3}
+.sc.pick-card{border-left-color:var(--orange);background:var(--orange-lt)}
+.sc .t{font-size:9px;font-weight:700;display:flex;align-items:center;gap:3px;flex-wrap:wrap}
+.sc .n{font-size:11px;font-weight:600;margin:1px 0}
+.sc .a{font-size:9px;color:var(--text3);line-height:1.3}
+.sc .tags{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap}
+.tag{font-size:8px;padding:1px 4px;border-radius:3px;font-weight:500}
+.tag-br{background:var(--purple-lt);color:var(--purple-dk)}
+.tag-far{background:var(--amber-lt);color:var(--amber)}
+.tag-vfar{background:var(--red-lt);color:var(--red)}
+.tag-v{font-size:8px;background:#E0F2FE;color:#0369A1;padding:1px 4px;border-radius:3px;font-weight:600}
+.dist-label{font-size:8px;background:var(--teal-lt);color:var(--teal);padding:1px 4px;border-radius:3px;font-weight:600;margin-left:auto}
+.suggest-star{font-size:8px;background:#059669;color:#fff;padding:1px 4px;border-radius:3px;font-weight:700}
+/* Main schedule */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.daytabs{display:flex;border-bottom:1px solid var(--border);background:var(--card);flex-shrink:0}
+.dt{padding:7px 14px;font-size:11px;font-weight:500;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.dt.on{color:var(--purple);border-bottom-color:var(--purple);font-weight:600}
+.dt.sun{color:var(--red)}
+.sched-outer{flex:1;overflow:auto;padding:10px}
+.cargrid{display:flex;gap:8px;min-height:100%}
+.carcol{flex:1;display:flex;flex-direction:column;min-width:180px}
+.carhdr{background:var(--purple);color:#fff;padding:6px 8px;border-radius:7px 7px 0 0;font-size:10px;font-weight:600;text-align:center;cursor:pointer}
+.carhdr:hover{background:var(--purple-dk)}
+.carhdr small{display:block;opacity:.7;font-size:8px;font-weight:400;margin-top:1px}
+.carslots{background:rgba(0,0,0,.02);border:1px solid var(--border);border-top:none;border-radius:0 0 7px 7px;padding:5px;flex:1;display:flex;flex-direction:column;gap:4px;min-height:300px}
+.carslots.dover{background:var(--purple-lt);border-color:var(--purple)}
+/* Slots */
+.slot-wrap{position:relative;flex-shrink:0}
+.time-gutter{font-size:8px;color:var(--text3);padding:1px 0 0 2px;margin-bottom:1px;font-weight:500}
+.slot{border:1.5px dashed var(--border);border-radius:6px;min-height:60px;transition:border-color .1s,background .1s;cursor:pointer}
+.slot.filled{border-style:solid;border-color:var(--border);background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.slot.paired{border-style:solid;border-color:var(--teal);background:#f0fff8}
+.slot.pickup-slot{border-style:solid;border-color:var(--orange);background:var(--orange-lt)}
+.slot.doverslot{border-color:var(--purple);background:var(--purple-lt);border-style:solid}
+.slot.doverslot.canpair{border-color:var(--teal);background:var(--teal-lt)}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,.4)}50%{box-shadow:0 0 0 5px rgba(52,211,153,.1)}}
+.slot.active-slot{border:2px solid #34D399;animation:pulse 2s infinite}
+.slot.active-slot .slot-empty{color:#059669;font-weight:600}
+.slot-empty{display:flex;align-items:center;justify-content:center;height:100%;min-height:60px;color:var(--text3);font-size:9px;padding:4px}
+/* Journey line */
+.journey{font-size:8px;font-weight:600;padding:3px 8px;display:flex;align-items:center;gap:3px;color:var(--text2);border-bottom:1px solid var(--border);background:var(--bg);flex-wrap:wrap}
+.journey.drop-j{border-left:3px solid var(--purple)}
+.journey.pick-j{border-left:3px solid var(--orange);background:#FFF8F4}
+.j-from{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.j-arr{color:var(--text3);flex-shrink:0}
+.j-to{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+/* Slot session content */
+.ss{padding:5px 7px;position:relative}
+.ss .t{font-size:9px;font-weight:700}
+.ss .n{font-size:11px;font-weight:600}
+.ss .a{font-size:9px;color:var(--text2);line-height:1.3;margin-top:1px}
+.ss .m{font-size:8px;color:var(--text3);margin-top:2px}
+.ss .rm{position:absolute;top:3px;right:4px;background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;line-height:1;padding:1px 3px;z-index:2}
+.ss .rm:hover{color:var(--red)}
+/* Auto-pickup section within a drop card */
+.auto-pick{border-top:1.5px dashed var(--orange);margin:0 7px 5px;padding:4px 0 0}
+.ap-row{display:flex;align-items:center;gap:5px;font-size:9px}
+.ap-badge{background:var(--orange);color:#fff;font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px;white-space:nowrap}
+.ap-name{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ap-time{color:var(--orange);font-weight:600;font-size:8px;white-space:nowrap}
+.ap-move{font-size:8px;color:var(--text3);cursor:pointer;padding:1px 3px;border:1px solid var(--border);border-radius:3px;white-space:nowrap}
+.ap-move:hover{border-color:var(--orange);color:var(--orange)}
+/* DD */
+.dd-hdr{padding:3px 7px 0;display:flex;align-items:center;gap:4px}
+.dd-badge{background:var(--teal);color:#fff;font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px}
+.dd-km{font-size:8px;color:var(--teal)}
+.dd-sep{border-top:1px dashed var(--teal);margin:2px 7px}
+/* Legend */
+.legend{background:var(--card);border-top:1px solid var(--border);padding:4px 12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex-shrink:0}
+.leg{display:flex;align-items:center;gap:3px;font-size:9px;color:var(--text2)}
+.legdot{width:7px;height:7px;border-radius:2px;flex-shrink:0}
+/* Modals */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:flex;align-items:center;justify-content:center}
+.mbox{background:#fff;border-radius:10px;padding:16px;width:400px;max-width:92vw;max-height:90vh;overflow-y:auto}
+.mbox h3{font-size:14px;font-weight:600;margin-bottom:10px}
+.frow{margin-bottom:7px}
+.frow label{display:block;font-size:10px;font-weight:500;color:var(--text2);margin-bottom:2px}
+.frow input,.frow select{width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px;outline:none;color:var(--text)}
+.frow input:focus,.frow select:focus{border-color:var(--purple)}
+.frow2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.mbtns{display:flex;gap:6px;justify-content:flex-end;margin-top:10px}
+.btn{padding:5px 12px;border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text)}
+.btn:hover{background:var(--bg)}
+.btnp{background:var(--purple);color:#fff;border-color:var(--purple)}
+.btnp:hover{background:var(--purple-dk)}
+/* Export */
+.exp-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0}
+.exp-stat{background:var(--bg);border-radius:6px;padding:7px;text-align:center}
+.exp-stat b{display:block;font-size:16px;font-weight:600}
+.exp-stat small{font-size:9px;color:var(--text3)}
+.exp-option{border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:7px;cursor:pointer;transition:border-color .15s,background .15s;display:flex;gap:10px;align-items:flex-start}
+.exp-option:hover{border-color:var(--purple);background:var(--purple-lt)}
+.exp-icon{font-size:20px;flex-shrink:0}
+.exp-option h4{font-size:11px;font-weight:600;margin-bottom:3px}
+.exp-option p{font-size:10px;color:var(--text2);line-height:1.4}
+.exp-how{background:var(--bg);border-radius:6px;padding:9px;font-size:10px;color:var(--text2);line-height:1.7;margin-bottom:10px}
+.step{display:flex;gap:5px;margin-top:4px;align-items:flex-start}
+.step-num{background:var(--purple);color:#fff;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0;margin-top:2px}
+/* Cars manager */
+.car-list-item{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px}
+.car-list-item:last-child{border:none}
+.car-list-item input{flex:1;padding:3px 6px;border:1px solid var(--border);border-radius:4px;font-size:10px;outline:none}
+.car-list-item input:focus{border-color:var(--purple)}
+.car-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:1px 3px}
+.car-del:hover{color:var(--red)}
+/* Sunday */
+.sunday-msg{background:var(--red-lt);border:1px solid var(--red);border-radius:8px;padding:20px;margin:12px;color:var(--red);text-align:center}
+.sunday-msg h3{font-size:13px;font-weight:600;margin-bottom:8px}
+.sunday-msg p{font-size:11px;line-height:1.7}
+/* Toast */
+.toast{position:fixed;bottom:14px;right:14px;background:#2C2C2A;color:#fff;padding:7px 13px;border-radius:7px;font-size:11px;z-index:200;animation:fi .2s;max-width:260px}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1}}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+/* Slot actions */
+.slot-actions{display:flex;gap:4px;padding:3px 7px 4px;border-top:1px solid var(--border);align-items:center;flex-wrap:wrap}
+.sa-btn{font-size:8px;padding:1px 6px;border-radius:3px;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text2)}
+.sa-btn:hover{border-color:var(--purple);color:var(--purple)}
+.sa-btn.grp-on{background:#FEF3CD;border-color:#D97706;color:#92400E;font-weight:700}
+/* Group slot */
+.grp-banner{background:#FEF3CD;border-bottom:1px solid #D97706;padding:3px 8px;font-size:9px;color:#92400E;font-weight:600;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.grp-loc{font-weight:400;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.slot.group-slot{border-style:solid;border-color:#D97706;background:#FFFBEB;box-shadow:0 1px 3px rgba(217,119,6,.12)}
+.grp-hdr{background:#FEF3CD;border-bottom:1px solid #FDE68A;padding:5px 8px;display:flex;align-items:center;gap:6px}
+.grp-count-pill{font-size:8px;font-weight:700;color:#92400E;background:#FDE68A;padding:1px 7px;border-radius:10px}
+.grp-child-row{display:flex;align-items:center;gap:5px;padding:4px 8px;border-bottom:0.5px solid #FEF3CD}
+.grp-child-row:last-of-type{border:none}
+.grp-child-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.grp-child-t{font-size:9px;font-weight:600;color:var(--text2);flex-shrink:0;max-width:55px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grp-child-n{flex:1;font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grp-child-rm{background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:0 2px;flex-shrink:0;line-height:1}
+.grp-child-rm:hover{color:var(--red)}
+.grp-edit-btn{font-size:8px;cursor:pointer;background:none;border:1px solid #D97706;border-radius:3px;color:#92400E;padding:1px 6px;margin-left:auto;flex-shrink:0}
+.grp-edit-btn:hover{background:#FDE68A}
+.grp-drop-zone{margin:4px 8px 5px;border:1.5px dashed #D97706;border-radius:5px;padding:7px;text-align:center;font-size:9px;color:#D97706;font-weight:600}
+.grp-drop-zone.doverg{background:#FEF3CD;border-style:solid}
+/* Warning flag - JS popup instead of CSS hover (avoids column clipping) */
+.warn-flag{display:inline-flex;align-items:center;cursor:pointer;font-size:13px;line-height:1;border:none;background:none;padding:0}
+/* Fixed global tooltip - rendered via JS, always on screen */
+#warn-popup{position:fixed;background:#1E1E1E;color:#fff;font-size:10px;padding:9px 11px;border-radius:7px;width:220px;z-index:999;line-height:1.6;white-space:pre-wrap;box-shadow:0 4px 16px rgba(0,0,0,.35);display:none;pointer-events:none}
+/* Sessions counter on pool card */
+.sess-pill{display:inline-flex;align-items:center;gap:3px;border-radius:10px;font-size:8px;font-weight:700;padding:2px 7px;flex-shrink:0}
+.sess-pill.done{background:#EAF3DE;color:#3B6D11}
+.sess-pill.partial{background:#FEF3CD;color:#92400E}
+.sess-pill.zero{background:var(--red-lt);color:var(--red)}
+.sess-progress{width:100%;height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:4px}
+.sess-bar{height:100%;border-radius:2px;transition:width .3s}
+/* Edit inline */
+.slot-toprow{display:flex;align-items:center;gap:4px;padding:2px 7px 0}
+.edit-ico{font-size:10px;cursor:pointer;color:var(--text3);flex-shrink:0;background:none;border:none;padding:0}
+.edit-ico:hover{color:var(--purple)}
+/* Editable table */
+.st-row{border-bottom:1px solid var(--border);transition:background .1s}
+.st-row:hover{background:#FAFAF8}
+.st-row.new-row{background:var(--purple-lt)}
+.st-cell{padding:0;border-right:1px solid var(--border)}
+.st-cell:last-child{border-right:none}
+.st-inp{width:100%;padding:6px 8px;border:none;outline:none;font-size:11px;background:transparent;font-family:inherit;color:var(--text)}
+.st-inp:focus{background:var(--purple-lt);box-shadow:inset 0 0 0 2px var(--purple)}
+.st-inp.num{text-align:center}
+.st-sel{width:100%;padding:6px 6px;border:none;outline:none;font-size:11px;background:transparent;font-family:inherit;color:var(--text);cursor:pointer}
+.st-sel:focus{background:var(--purple-lt)}
+.st-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:4px 8px;width:100%;height:100%}
+.st-del:hover{color:var(--red)}
+.sched-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:3px}
+</style>
+<body>
+<div class="hdr">
+  <div><div class="hdr-title">BeCurious Schedule Builder</div><div class="hdr-sub">Drag to schedule · Drop on filled slot = double-drop · Click slot = set active</div></div>
+  <div class="hdr-stats">
+    <div class="hstat"><b id="st-s">0</b>Dropped</div>
+    <div class="hstat"><b id="st-p">0</b>Pool</div>
+    <div class="hstat"><b id="st-pk">0</b>Pickups</div>
+    <div class="hstat"><b id="st-u">0%</b>Done</div>
+  </div>
+  <span id="save-ind">Auto-saved</span>
+  <button class="hbtn amber" onclick="importState()">⬆ Import JSON</button>
+  <button class="hbtn green" onclick="showExport()">⬇ Export</button>
+  <button class="hbtn" onclick="showCarsModal()">🚗 Cars</button>
+  <button class="hbtn" onclick="showStudentsTable()">📋 Students</button>
+  <button class="hbtn" onclick="doReset()" style="opacity:.7">↺ Reset</button>
+</div>
+
+<div class="layout">
+  <div class="pool" style="display:flex;flex-direction:column">
+    <div class="pool-hdr">
+      <h3>Unscheduled sessions</h3>
+      <input class="psearch" id="psearch" placeholder="Search..." oninput="renderPool()">
+      <div class="pfilter">
+        <button class="pf on" onclick="setB('All',this)">All</button>
+        <button class="pf" onclick="setB('Shuhada',this)">Shuhada</button>
+        <button class="pf" onclick="setB('Salam',this)">Salam</button>
+        <button class="pf" onclick="setB('Salwa',this)">Salwa</button>
+      </div>
+    </div>
+    <div style="padding:5px 8px;border-bottom:1px solid var(--border);flex-shrink:0">
+      <div class="active-info" id="active-info" style="display:none"></div>
+      <div class="sort-row" id="sort-row" style="display:none">
+        <button class="sb on" id="sb-c" onclick="setSort('closest')">Closest<br>stop</button>
+        <button class="sb" id="sb-t" onclick="setSort('teacher')">By<br>teacher</button>
+        <button class="sb" id="sb-s" onclick="setSort('suggest')">Suggest<br>best</button>
+      </div>
+      <select class="teacher-dd" id="teacher-dd" style="display:none" onchange="renderPool()"></select>
+    </div>
+    <div class="pool-body" id="pool-body" style="flex:1" ondragover="ev(event)" ondrop="dropToPool(event)"></div>
+    <div class="pool-sect" id="pick-hdr" style="display:none">Pending pick-ups <span id="pick-count">0</span></div>
+    <div class="pool-body" id="pick-body" style="display:none;max-height:180px;flex-shrink:0" ondragover="ev(event)" ondrop="dropToPool(event)"></div>
+  </div>
+
+  <div class="main">
+    <div class="daytabs">
+      <div class="dt sun" onclick="gd('Sun')">Sunday — Admin</div>
+      <div class="dt on" onclick="gd('Mon')">Monday</div>
+      <div class="dt" onclick="gd('Tue')">Tuesday</div>
+      <div class="dt" onclick="gd('Wed')">Wednesday</div>
+      <div class="dt" onclick="gd('Thu')">Thursday · Far</div>
+    </div>
+    <div class="sched-outer" id="sched-outer"><div class="cargrid" id="cargrid"></div></div>
+    <div class="legend">
+      <span style="font-size:9px;color:var(--text3);font-weight:500">Legend:</span>
+      <div class="leg"><div class="legdot" style="background:var(--teal)"></div>Double-drop</div>
+      <div class="leg"><div class="legdot" style="background:var(--orange)"></div>Pick-up</div>
+      <div class="leg"><div class="legdot" style="background:var(--amber)"></div>Far &gt;10km</div>
+      <div class="leg"><div class="legdot" style="background:#34D399"></div>Active slot</div>
+      <span style="font-size:9px;color:var(--text3)">· Click slot to set active · Drag pick-up card to move to another car</span>
+    </div>
+  </div>
+</div>
+
+<!-- GLOBAL WARN POPUP -->
+<div id="warn-popup"></div>
+
+<!-- ADD STUDENT -->
+<div class="modal" id="addmodal" style="display:none">
+  <div class="mbox">
+    <h3 id="add-title">Add / Edit student</h3>
+    <div class="frow"><label>Branch</label><select id="fb"><option>Shuhada</option><option>Salam</option><option>Salwa</option></select></div>
+    <div class="frow2">
+      <div class="frow"><label>Teacher</label><input id="ft" placeholder="Teacher name"></div>
+      <div class="frow"><label>Student</label><input id="fs" placeholder="Student name"></div>
+    </div>
+    <div class="frow"><label>Full address</label><input id="fa" placeholder="Area, Block, Street, House"></div>
+    <div class="frow2">
+      <div class="frow"><label>Latitude (Kuwait Finder)</label><input id="flat" type="number" step="any" placeholder="29.268171"></div>
+      <div class="frow"><label>Longitude</label><input id="flng" type="number" step="any" placeholder="48.030910"></div>
+    </div>
+    <div class="frow2">
+      <div class="frow"><label>Sessions per week</label><input id="fspw" type="number" min="1" max="7" value="1" placeholder="1"></div>
+      <div class="frow"><label>Total visits so far</label><input id="fvisits" type="number" min="0" value="0" placeholder="0"></div>
+    </div>
+    <input type="hidden" id="fedit-id">
+    <div class="mbtns">
+      <button class="btn" onclick="closeAdd()">Cancel</button>
+      <button class="btn btnp" onclick="doAdd()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CARS MANAGER -->
+<div class="modal" id="carsmodal" style="display:none">
+  <div class="mbox" style="width:440px">
+    <h3>Manage cars &amp; drivers</h3>
+    <div id="car-list"></div>
+    <button class="btn btnp" onclick="addCar()" style="width:100%;margin-top:8px;text-align:center">+ Add car</button>
+    <div class="mbtns"><button class="btn" onclick="closeCarsModal()">Close &amp; apply</button></div>
+  </div>
+</div>
+
+<!-- STUDENTS TABLE MODAL -->
+<div class="modal" id="studentsmodal" style="display:none;align-items:flex-start;padding:20px">
+  <div style="background:#fff;border-radius:12px;width:100%;max-width:1100px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.2)">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <div>
+        <div style="font-size:15px;font-weight:700">Student roster</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:1px">Click any cell to edit · Tab to move · Changes save automatically</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:7px;align-items:center">
+        <input id="st-search" placeholder="Search name or teacher..." style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:11px;outline:none;width:200px">
+        <select id="st-filter-br" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:11px;outline:none">
+          <option value="">All branches</option>
+          <option>Shuhada</option><option>Salam</option><option>Salwa</option>
+        </select>
+        <button onclick="addNewStudentRow()" style="padding:5px 13px;border-radius:6px;background:var(--purple);color:#fff;border:none;font-size:11px;font-weight:600;cursor:pointer">+ Add student</button>
+        <button onclick="closeStudentsModal()" style="padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:transparent;font-size:11px;cursor:pointer">Close</button>
+      </div>
+    </div>
+    <div style="overflow:auto;flex:1">
+      <table id="students-table" style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead>
+          <tr style="background:var(--bg);position:sticky;top:0;z-index:2">
+            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="sortStudents('n')">Name ⇅</th>
+            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="sortStudents('t')">Teacher ⇅</th>
+            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Branch</th>
+            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Address</th>
+            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Latitude</th>
+            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Longitude</th>
+            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Sess/wk</th>
+            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Visits</th>
+            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Scheduled</th>
+            <th style="padding:8px 6px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Del</th>
+          </tr>
+        </thead>
+        <tbody id="students-tbody"></tbody>
+      </table>
+    </div>
+    <div style="padding:8px 18px;border-top:1px solid var(--border);font-size:10px;color:var(--text3);display:flex;align-items:center;gap:12px;flex-shrink:0">
+      <span id="st-count"></span>
+      <span>· Changes auto-apply to schedule</span>
+      <button onclick="exportStudentsCSV()" style="margin-left:auto;padding:4px 12px;border-radius:5px;border:1px solid var(--border);background:transparent;font-size:10px;cursor:pointer">Export student list CSV</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT -->
+<div class="modal" id="exportmodal" style="display:none">
+  <div class="mbox" style="width:440px">
+    <h3>Export schedule</h3>
+    <div class="exp-summary">
+      <div class="exp-stat"><b id="exp-done" style="color:var(--teal)">0</b><small>Scheduled</small></div>
+      <div class="exp-stat"><b id="exp-pool" style="color:var(--amber)">0</b><small>In pool</small></div>
+      <div class="exp-stat"><b id="exp-dd" style="color:var(--teal)">0</b><small>Double-drops</small></div>
+      <div class="exp-stat"><b id="exp-tot">0</b><small>Total</small></div>
+    </div>
+    <div class="exp-option" onclick="exportJSON()">
+      <div class="exp-icon">💾</div>
+      <div><h4>Save progress (JSON)</h4><p>Saves full schedule state. Import this file later to continue editing — on any device, by any team member.</p></div>
+    </div>
+    <div class="exp-option" onclick="downloadCSV()">
+      <div class="exp-icon">📥</div>
+      <div><h4>Export to Google Sheets (CSV)</h4><p>Approved final schedule. Import into Google Sheets and share the link with drivers and coordinators.</p></div>
+    </div>
+    <div class="exp-option" onclick="copyForSheets()">
+      <div class="exp-icon">📋</div>
+      <div><h4>Copy for direct paste</h4><p>Open Google Sheets → click A1 → paste. Instant.</p></div>
+    </div>
+    <div class="mbtns"><button class="btn" onclick="closeExport()">Close</button></div>
+    <details style="margin-top:10px">
+      <summary style="font-size:10px;font-weight:600;color:var(--text2);cursor:pointer;padding:4px 0">💡 Suggested upgrades for next round</summary>
+      <div style="font-size:9px;color:var(--text2);line-height:1.7;margin-top:8px;background:var(--bg);border-radius:6px;padding:10px">
+        <b>High impact:</b><br>
+        1. <b>Firebase real-time sync</b> — replace localStorage with a cloud database so all coordinators see the same schedule simultaneously. ~1 developer day.<br>
+        2. <b>WhatsApp driver dispatch</b> — auto-generate a WhatsApp message for each driver summarising their day: stops, times, student names. One tap sends it.<br>
+        3. <b>Weekly visit tracker</b> — dashboard showing each child's total visits this month vs. contracted visits. Flag children who haven't been visited.<br>
+        4. <b>Teacher workload view</b> — bar chart of sessions per teacher per week. Immediately shows who is overloaded or underutilised.<br><br>
+        <b>Medium impact:</b><br>
+        5. <b>Parent confirmation toggle</b> — mark each session as "parent confirmed / not home / rescheduled" during the day from a phone-friendly view.<br>
+        6. <b>Recurring schedule copy</b> — copy a full week's schedule to next week with one click, then adjust exceptions.<br>
+        7. <b>Kuwait traffic time-of-day model</b> — adjust travel times based on whether the slot is before or after 10am rush and before or after 3pm school pickup.<br><br>
+        <b>Lower priority but useful:</b><br>
+        8. Colour-coded branch heatmap on the student map showing coverage gaps.<br>
+        9. Printable daily driver sheet (A4 PDF per car).<br>
+        10. Substitution mode — if a teacher is absent, quickly reassign her students to another teacher for the day without touching the main schedule.
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- GROUP LOCATION MODAL -->
+<div class="modal" id="grpmodal" style="display:none">
+  <div class="mbox grp-modal-inner" style="width:360px">
+    <h3>Group session location</h3>
+    <p style="font-size:10px;color:var(--text2);margin-bottom:8px;line-height:1.5">Enter the group location (e.g. a host family's home). The child's original home address is ignored — the driver goes to this location instead.</p>
+    <label>Group location name / address</label>
+    <input id="grp-addr" placeholder="e.g. Almeer house, Alsurra, B2, St13, H4">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+      <div><label>Latitude (Kuwait Finder)</label><input id="grp-lat" type="number" step="any" placeholder="29.308455"></div>
+      <div><label>Longitude</label><input id="grp-lng" type="number" step="any" placeholder="48.016416"></div>
+    </div>
+    <input type="hidden" id="grp-d"><input type="hidden" id="grp-cid"><input type="hidden" id="grp-si">
+    <div class="mbtns">
+      <button class="btn" onclick="clearGroup()">Remove group</button>
+      <button class="btn" onclick="qs('grpmodal').style.display='none'">Cancel</button>
+      <button class="btn btnp" onclick="saveGroup()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== CONSTANTS =====
+const BP={Shuhada:[29.268183,48.027942],Salam:[29.297843,48.013185],Salwa:[29.295487,48.069256]};
+const TC={'Varti':'#6A5FA8','Safaa':'#0891B2','Nilma':'#0F6E56','Farah':'#EA580C','Maritel':'#DB2777','Siba':'#2563EB','Fatma':'#D97706','Mariya':'#7C3AED','Wafaa':'#047857','Hadeel':'#16A34A','Ann':'#DC2626','Nargis':'#1D4ED8','Soha':'#B45309','Saira/Aswini':'#78350F','Mehjabeen':'#991B1B','Mehjabeen/Manju':'#6D28D9','Khadija':'#0E7490','Mariam':'#4D7C0F','Sharifa':'#92400E','Maliha':'#1E40AF','Sofia':'#9D174D'};
+const RAW=[['s1','Deeme alknadiri','Shuhada','Varti',29.268171,48.03091,'Shuhada, B4, St417, H33'],['s2','Dhari alkandari','Shuhada','Safaa',29.238145,48.053435,'Aladan, B2, St20, H4'],['s3','Abdulaziz Alsabti','Shuhada','Nilma',29.277549,47.998353,'Zahra, B5, St507, H16'],['s4','Haya AlOsaimi','Shuhada','Nilma',29.284271,48.001844,'Zahra, B20, St218, H18'],['s5','Ahmad Fathallah','Shuhada','Nilma',29.273805,48.034902,'Shuhada, B2, St205, H30'],['s6','Riyadh Alsaleh','Shuhada','Nilma',29.258834,48.06685,'Sabah Alsalem, B4, St5, H2'],['s7','Faisal Almeer','Shuhada','Nilma',29.308455,48.016416,'Alsurra, B2, St13, H4'],['s8','Jumanah Kareemi','Shuhada','Farah',29.233393,48.057133,'Aladan, B2, St42, H22'],['s9','Elaf alabdulelah','Shuhada','Farah',29.20406,48.063561,'Alqurain, B3, St8, H50'],['s10','Mona Alkandari','Shuhada','Farah',29.103605,48.069772,'N.Ahmadi, B15, St11, H5'],['s11','Ali alqoud','Shuhada','Farah',29.288286,48.070924,'Mishref, B1, St6, H32'],['s12','Mariam Bo Abbas','Shuhada','Farah',29.251472,48.052584,'Sabah Alsalem, B10, St1, H36'],['s13','Yaqoub Alhelal','Shuhada','Maritel',29.282841,47.993845,'Huteen, B3, St305, H22'],['s14','Hashim Algharaballi','Shuhada','Maritel',29.269133,48.025974,'Shuhada, B4, St410, H162'],['s15','Abdulmohsen Albassam','Shuhada','Maritel',29.286147,48.061443,'Mishref, B2, St3, H11'],['s16','Omar albaloul','Shuhada','Maritel',29.282697,48.024805,'Huteen, B3, St10, H44'],['s17','Mariam Al jumaie','Shuhada','Maritel',29.30068,47.887253,'AlAndalus, B3, St105, H52'],['s18','Ghaliah Boareki','Shuhada','Siba',29.279562,48.016506,'Huteen, B4, St415, HA8'],['s19','Hamad Fahad','Shuhada','Siba',29.242323,48.056733,'Sabah Alsalem, B13, St2, H21'],['s20','Fay Alrashed','Shuhada','Siba',29.199257,48.066797,'AlQurain, B3, St34, H41'],['s21','Saeed Almeer','Shuhada','Siba',29.308455,48.016416,'Alsurra, B2, St13, H4'],['s22','Fatimah Almahmeed','Shuhada','Fatma',29.310042,48.059533,'Rumaithiya, B1, St10, H15'],['s23','Khaled Abul','Shuhada','Fatma',29.277782,48.038307,'Abdullah Mubarak, B3, St311, H30'],['s24','Yousef Hussain','Shuhada','Fatma',29.250717,48.079723,'Sabah Alsalem, B7, St1, H26'],['s25','Sarah salem','Shuhada','Fatma',29.271061,47.878396,'Sabah Alnasser, B1, St102, H14'],['s26','Fatima Alsaffar','Shuhada','Mariya',29.270632,48.029082,'Shuhada, B4, St414, H1'],['s27','Mohammad Alali','Shuhada','Mariya',29.26662,48.02322,'Shuhada, B3, St306, H66'],['s28','Yousef Alhashash','Shuhada','Mariya',29.233181,48.054958,'Aladan, B2, St35, H10'],['s29','Ahmed Alsaqer','Shuhada','Mariya',29.269811,48.067818,'Mishref, B5, St15, H12'],['s30','Abdullah AlKhashti','Shuhada','Mariya',29.239612,47.916652,'Abdullah Almubarak, B2, St203, H2'],['s31','Turki alnami','Shuhada','Mariya',29.272517,48.02512,'Shuhada, B5, St512, H37'],['s32','Dalia Bouqamaz','Shuhada','Mariya',29.283217,47.991817,'Zahraa, B3, St301, H14'],['s33','Omar Fahad','Shuhada','Wafaa',29.242323,48.056733,'Sabah Alsalem, B13, St2, H21'],['s34','Khaled alkandari','Shuhada','Wafaa',29.103605,48.069772,'N.Ahmadi, B15, St11, H5'],['s35','Joudi altahous','Salam','Hadeel',29.282301,48.029976,'Hiteen, B3, St11, H99'],['s36','Moudhi almanee','Salam','Hadeel',29.270021,47.994088,'Alzahraa, B8, St810, H12'],['s37','Deema alqataan','Salam','Ann',29.286605,48.067622,'Mishref, B1, St50, H2B'],['s38','Abdalkareem alawadhai','Salam','Ann',29.292142,48.001628,'Alsideeq, B3, St305, H15'],['s39','Shaikha Almotawa','Salam','Ann',29.299692,48.019934,'Alsalam, B2, St211, H72'],['s40','Yousef Alrayes','Salam','Ann',29.301208,48.00294,'Alsalam, B1, St113, H12'],['s41','Abdulmohsen Alwuhaib','Salam','Ann',29.33677,47.964828,'Kifan, B1, Alquds St, H49A'],['s42','Dhai alshami','Salam','Ann',29.290442,48.006513,'Alsalam, B7, St717, H1'],['s43','Abdalmohsen ahmad','Salam','Ann',29.231194,48.084124,'Aladdan, B7, St9, H12'],['s44','Zaid alqassar','Salam','Ann',29.301951,48.041589,'Bayan, B3, St2, H5'],['s45','Alia albaker','Salam','Ann',29.291962,48.023897,'Salam, B5, St519, H10'],['s46','Yousef alrudaini','Salam','Nargis',29.293657,48.014559,'Alsalam, B4, St411, H7'],['s47','Bader Al Ali','Salam','Soha',29.292123,48.01024,'Alsalam, B6, St611, H37'],['s48','Zaina Alrukhayes','Salam','Soha',29.292554,48.021254,'Alsalam, B5, St507, H19'],['s49','Jassim almansouri','Salam','Soha',29.291189,47.890544,'Alardeya, B4, St4, H46'],['s50','Soud alhuwaidi','Salam','Saira/Aswini',29.29337,48.00731,'Alsalam, B7, St714, H3'],['s51','Omar shamsaldeen','Salam','Saira/Aswini',29.307967,48.042629,'Bayan, B2, St3, H25A'],['s52','Hamad alfoudri','Salam','Saira/Aswini',29.29179,48.015429,'Alsalam, B6, St603, H9'],['s53','Dhayi al shareifi','Salam','Saira/Aswini',29.291183,48.025481,'Alsalam, B5, St512, H23'],['s54','Dalal alsabah','Salam','Mehjabeen',29.307077,47.995242,'Qortouba, B2, St1, H35'],['s55','Yaqoub Alshatti','Salam','Mehjabeen',29.206705,48.099997,'Aboftera, B4, St242, H390'],['s56','Abdallah alhashmi','Salam','Mehjabeen/Manju',29.316523,47.853691,'Sulaibkhat, B2, St102, H4B'],['s57','Alzain al shamroukh','Salam','Mehjabeen/Manju',29.28501,48.021473,'Heteen, B1, St119, H28'],['s58','Abdulaziz alsaleem','Salam','Mehjabeen/Manju',29.211743,48.05994,'Alqusoor, B7, St25, H25'],['s59','Abdulmohsen Altahous','Salam','Mehjabeen/Manju',29.282301,48.029976,'Hiteen, B3, St11, H99'],['s60','Waleed algarabaili','Salam','Khadija',29.336969,47.965856,'Kifan, B1, St16, H46'],['s61','Abdalrahman alroudhan','Salam','Khadija',29.299736,48.006709,'Alsalam, B1, St129, H11'],['s62','Hamad alawadhi','Salam','Khadija',29.292142,48.001628,'Alsideeq, B3, St305, H15'],['s63','Fatima Alomeri','Salam','Mariam',29.285832,48.015943,'Hitteen, B2, St209, H12'],['s64','Fay Mohammad Alqoud','Salam','Mariam',29.235195,48.085796,'Almasayel, B5, St512, H95'],['s65','Danah al fozan','Salam','Mariam',29.336305,47.997013,'Alrawdha, B4, H40'],['s66','Nour alhajri','Salam','Sharifa',29.206954,48.068747,'Alqreen, B3, St4, H54'],['s67','Zaina al fahad','Salam','Sharifa',29.301567,48.002748,'Salam, B1, St112, H36'],['s68','Yousef Albaghli','Salam','Sharifa',29.302696,48.020289,'Alsalam, B2, St214, H49'],['s69','Hamad Alnaham','Salam','Maliha',29.294908,48.02159,'Alsalam, B2, St203, H19'],['s70','Rasha Algheith','Salam','Maliha',29.289509,48.016182,'Alsalam, B6, St606, H14'],['s71','Sayed behbahani','Salam','Maliha',29.20113,48.10021,'Boftera, B2, St132, H4'],['s72','Bader Alkhabbaz','Salam','Maliha',29.233227,48.077179,'Aladdan, B6, St10, H25'],['s73','Maryam alsaleem','Salam','Maliha',29.211743,48.05994,'Alqusoor, B7, St25, H25'],['s74','Jouri Alsbaei','Salam','Maliha',29.288865,47.993801,'Alsideeq, B6, St602, H15'],['s75','Layan Alawadhi','Salwa','Sofia',29.296988,48.069798,'Salwa, B6, St7, H8'],['s76','Jaber Almarri','Salwa','Sofia',29.29015,48.052485,'Bayan, B12, St1, H28'],['s77','Bader Aldarmi','Salwa','Sofia',29.307314,47.791623,'Alqayrwan, B3, St317, H21'],['s78','Rana Alhailaa','Salwa','Sofia',29.29664,48.072534,'Salwa, B6, St8, H23'],['s79','Mubarak Alshemri','Salwa','Sofia',29.237897,48.083171,'Aladdan, B7, St16, H14']];
+const DAYS=['Mon','Tue','Wed','Thu'];
+const MAX_SL=14; // slots per car per day
+const SAVE_KEY='bc_v3';
+
+// ===== STATE =====
+let SS={},SCHED={},CARS=[],curDay='Mon',curBr='All',curSort='closest';
+let dragId=null,dragType='drop',activeSlot=null;
+
+// ===== HELPERS =====
+function hv(a,b,c,d){const R=6371,p=Math.PI/180,da=(c-a)*p,db=(d-b)*p;return+(2*R*Math.asin(Math.sqrt(Math.sin(da/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(db/2)**2))).toFixed(2);}
+function tm(km){return Math.max(10,Math.round(km/25*60));}
+function ts(m){return`${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;}
+function sl(a){if(!a)return'?';const p=a.split(',').map(x=>x.trim());return p.length>=2?`${p[0]}, ${p[1]}`:p[0];}
+function carBranch(cid){return(CARS.find(c=>c.id===cid)||{branch:'Shuhada'}).branch;}
+function brCoords(br){return BP[br]||[29.268183,48.027942];}
+function dbBr(s,br){const[la,ln]=brCoords(br||s.br||'Shuhada');return hv(la,ln,s.la,s.ln);}
+function qs(id){return document.getElementById(id);}
+
+// Next occupied slot position AFTER si — used to route pickup destination
+function nextSlotPos(d,cid,si){
+  const slots=SCHED[d]?.[cid]||[];
+  for(let i=si+1;i<slots.length;i++){
+    const sl_=slots[i];if(!sl_)continue;
+    if(sl_.t==='s'&&SS[sl_.id]){const s=SS[sl_.id];return{la:sl_.grp?.la??s.la,ln:sl_.grp?.ln??s.ln,a:sl_.grp?.addr??s.a,isBase:false};}
+    if(sl_.t==='d'&&SS[sl_.ids?.[0]]){const s=SS[sl_.ids[0]];return{la:sl_.grp?.la??s.la,ln:sl_.grp?.ln??s.ln,a:sl_.grp?.addr??s.a,isBase:false};}
+    if(sl_.t==='pick'&&SS[sl_.id]){const s=SS[sl_.id];return{la:s.la,ln:s.ln,a:s.a,isBase:false};}
+  }
+  const br=carBranch(cid);const[la,ln]=brCoords(br);
+  return{la,ln,a:br+' branch',isBase:true};
+}
+
+// True if this slot is the last non-empty slot in its car on this day
+function isLastSlot(d,cid,si){
+  const slots=SCHED[d]?.[cid]||[];
+  for(let i=si+1;i<slots.length;i++){if(slots[i])return false;}
+  return true;
+}
+
+// ===== WARNINGS =====
+function slotWarnings(d,cid,si){
+  const sl_=SCHED[d]?.[cid]?.[si];if(!sl_)return[];
+  const warns=[];
+  const startMin=slotStartMin(d,cid,si);
+
+  if(sl_.t==='pick'){
+    const info=findDropInfo(sl_.id);
+    if(info){
+      const readyMin=info.startMin+65;
+      if(startMin<readyMin)warns.push(`⚠ Early pickup: teacher session ends ${ts(readyMin)} but pickup scheduled at ${ts(startMin)} (${readyMin-startMin}min too early)`);
+    }
+    // Pickup with no corresponding drop on any day
+    if(!findDropInfo(sl_.id))warns.push('⚠ No drop-off found for this teacher on any day — orphaned pickup');
+  }
+
+  if(sl_.t==='s'||sl_.t==='d'){
+    const ids=sl_.t==='s'?[sl_.id]:sl_.ids||[];
+    ids.forEach(id=>{
+      const s=SS[id];if(!s)return;
+      const dist=dbBr(s,carBranch(cid));
+      if(dist>20)warns.push(`⚠ Very far student: ${s.n} is ${dist.toFixed(0)}km from branch — verify coordinates`);
+      if(!findPickSlot(id))warns.push(`⚠ No pickup scheduled for ${s.t} (${s.n}) — teacher will be stranded`);
+    });
+  }
+
+  if(sl_.t==='s'){
+    const s=SS[sl_.id];if(s){
+      const prev=lastPos(d,cid,si);
+      const travelMin=tm(hv(prev.la,prev.ln,(sl_.grp?.la??s.la),(sl_.grp?.ln??s.ln)));
+      if(travelMin>40&&!prev.isBase)warns.push(`⚠ Long drive: ${travelMin}min from previous stop — consider reordering`);
+    }
+  }
+
+  if(sl_.t==='d'){
+    const inter=sl_.inter||0;
+    if(inter>20)warns.push(`⚠ Double-drop gap: ${inter}min between the two homes — driver may wait too long`);
+  }
+
+  return warns;
+}
+
+function warnHtml(d,cid,si){
+  const w=slotWarnings(d,cid,si);
+  if(!w.length)return'';
+  const txt=w.join('\n\n').replace(/'/g,'&#39;').replace(/"/g,'&quot;');
+  return`<button class="warn-flag" onclick="event.stopPropagation();showWarnPopup(event,'${txt}')" title="Scheduling warning">🚩</button>`;
+}
+
+function showWarnPopup(e,txt){
+  e.stopPropagation();
+  const pop=qs('warn-popup');
+  pop.textContent=txt.replace(/&#39;/g,"'").replace(/&quot;/g,'"');
+  pop.style.display='block';
+  const r=e.target.getBoundingClientRect();
+  const pw=220,ph=120;
+  let left=r.left;let top=r.bottom+6;
+  if(left+pw>window.innerWidth-10)left=window.innerWidth-pw-10;
+  if(top+ph>window.innerHeight-10)top=r.top-ph-6;
+  pop.style.left=left+'px';pop.style.top=top+'px';
+}
+document.addEventListener('click',()=>{const p=qs('warn-popup');if(p)p.style.display='none';});
+
+// ===== GROUP MODE =====
+function openGroup(d,cid,si){
+  const sl_=SCHED[d]?.[cid]?.[si];
+  qs('grp-d').value=d;qs('grp-cid').value=cid;qs('grp-si').value=si;
+  if(sl_?.grp){
+    // Existing group — pre-fill with saved group location
+    qs('grp-addr').value=sl_.grp.addr;
+    qs('grp-lat').value=sl_.grp.la;
+    qs('grp-lng').value=sl_.grp.ln;
+  } else {
+    // No group yet — auto-fill with the child's own home as starting point
+    const sid=sl_?.id||(sl_?.ids?.[0]);
+    const s=sid?SS[sid]:null;
+    qs('grp-addr').value=s?s.a:'';
+    qs('grp-lat').value=s?s.la:'';
+    qs('grp-lng').value=s?s.ln:'';
+  }
+  qs('grpmodal').style.display='flex';
+}
+function saveGroup(){
+  const d=qs('grp-d').value,cid=+qs('grp-cid').value,si=+qs('grp-si').value;
+  const addr=qs('grp-addr').value.trim(),la=parseFloat(qs('grp-lat').value),ln=parseFloat(qs('grp-lng').value);
+  if(!addr||isNaN(la)||isNaN(ln)){toast('Fill all group location fields');return;}
+  const sl_=SCHED[d]?.[cid]?.[si];
+  if(!sl_){toast('No slot to apply group to');return;}
+  const grp={addr,la,ln};
+  if(sl_.t==='s'){
+    // Convert single-child slot to group slot
+    SCHED[d][cid][si]={t:'g',ids:[sl_.id],grp};
+  } else if(sl_.t==='g'){
+    // Just update group location
+    sl_.grp=grp;
+  } else {
+    // For d type: keep as-is, just store grp for location override
+    sl_.grp=grp;
+  }
+  qs('grpmodal').style.display='none';renderSched();saveState();toast('Group location set — drop more children onto this slot (up to 7)');
+}
+function clearGroup(){
+  const d=qs('grp-d').value,cid=+qs('grp-cid').value,si=+qs('grp-si').value;
+  if(SCHED[d]?.[cid]?.[si])delete SCHED[d][cid][si].grp;
+  qs('grpmodal').style.display='none';renderSched();saveState();toast('Group location removed');
+}
+
+// ===== INIT =====
+function defaultCars(){return[
+  {id:1,label:'Car 1',branch:'Shuhada',driver:''},
+  {id:2,label:'Car 2',branch:'Shuhada',driver:''},
+  {id:3,label:'Car 3',branch:'Salam',driver:''},
+  {id:4,label:'Car 4',branch:'Salam/Salwa',driver:''},
+];}
+function blankSched(){
+  const s={};
+  DAYS.forEach(d=>{s[d]={};CARS.forEach(car=>s[d][car.id]=Array(MAX_SL).fill(null));});
+  return s;
+}
+function ensureSchedCoverage(){
+  DAYS.forEach(d=>{
+    if(!SCHED[d])SCHED[d]={};
+    CARS.forEach(car=>{
+      if(!SCHED[d][car.id])SCHED[d][car.id]=Array(MAX_SL).fill(null);
+      while(SCHED[d][car.id].length<MAX_SL)SCHED[d][car.id].push(null);
+    });
+  });
+}
+function init(){
+  CARS=defaultCars();
+  SS={};RAW.forEach(([id,n,br,t,la,ln,a])=>SS[id]={id,n,br,t,la,ln,a,visits:0});
+  SCHED=blankSched();activeSlot=null;
+}
+
+// ===== PERSISTENCE =====
+function saveState(){
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify({SS,SCHED,CARS,v:3}));
+  const el=qs('save-ind');if(el){el.textContent='Saved ✓';el.style.color='#34D399';setTimeout(()=>{el.textContent='Auto-saved';el.style.color='rgba(255,255,255,.5)';},1800);}
+  }catch(e){}
+}
+function tryLoadState(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw)return false;
+    const data=JSON.parse(raw);
+    if(!data.v||data.v<3)return false;
+    SS=data.SS||{};
+    CARS=data.CARS&&data.CARS.length?data.CARS:defaultCars();
+    const raw_s=data.SCHED||{};
+    SCHED={};
+    DAYS.forEach(d=>{SCHED[d]={};CARS.forEach(car=>{
+      const arr=raw_s[d]?.[car.id]||[];
+      SCHED[d][car.id]=arr.length>=MAX_SL?arr:[...arr,...Array(MAX_SL-arr.length).fill(null)];
+    });});
+    return true;
+  }catch(e){return false;}
+}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify({SS,SCHED,CARS,v:3},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download=`BeCurious_${curDay}_${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);
+  toast('JSON saved — share this file to continue editing on any device');closeExport();
+}
+function importState(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.json';
+  inp.onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=ev=>{try{
+      const data=JSON.parse(ev.target.result);
+      SS=data.SS||{};
+      CARS=data.CARS&&data.CARS.length?data.CARS:defaultCars();
+      SCHED={};
+      DAYS.forEach(d=>{SCHED[d]={};CARS.forEach(car=>{
+        const arr=data.SCHED?.[d]?.[car.id]||[];
+        SCHED[d][car.id]=arr.length>=MAX_SL?arr:[...arr,...Array(MAX_SL-arr.length).fill(null)];
+      });});
+      activeSlot=null;renderCars();renderSched();renderPool();saveState();toast('Imported ✓ Schedule loaded');
+    }catch(err){toast('Import failed — invalid JSON file');}};
+    r.readAsText(f);
+  };inp.click();
+}
+
+// ===== TIMING =====
+// Last occupied position before slot si in car cid on day d
+function lastPos(d,cid,si){
+  const slots=SCHED[d]?.[cid]||[];
+  for(let i=si-1;i>=0;i--){
+    const s=slots[i];if(!s)continue;
+    if(s.t==='s'&&SS[s.id])return SS[s.id];
+    if(s.t==='d'&&SS[s.ids?.[1]])return SS[s.ids[1]]; // second teacher is last drop location
+    if(s.t==='pick'&&SS[s.id])return SS[s.id];
+  }
+  // Return branch as pseudo-student
+  const br=carBranch(cid);const[la,ln]=brCoords(br);
+  return{la,ln,a:br+' branch',isBase:true};
+}
+
+function slotStartMin(d,cid,si){
+  let m=600;
+  const slots=SCHED[d]?.[cid]||[];
+  for(let i=0;i<si;i++){
+    const sl_=slots[i];if(!sl_)continue;m+=slotDur(sl_,d,cid,i);
+  }
+  return m;
+}
+
+function slotDur(sl_,d,cid,si){
+  if(!sl_)return 0;
+  const prev=lastPos(d,cid,si);
+  if(sl_.t==='s'){
+    const s=SS[sl_.id];if(!s)return 75;
+    return tm(hv(prev.la,prev.ln,s.la,s.ln))+65;
+  }
+  if(sl_.t==='d'){
+    const s1=SS[sl_.ids?.[0]],s2=SS[sl_.ids?.[1]];if(!s1)return 75;
+    const travel1=tm(hv(prev.la,prev.ln,s1.la,s1.ln));
+    const interMin=sl_.inter||tm(hv(s1.la,s1.ln,s2?.la||s1.la,s2?.ln||s1.ln));
+    // Duration: travel to first + inter-home + 65 (parallel sessions done by then)
+    return travel1+interMin+65;
+  }
+  if(sl_.t==='pick'){
+    const s=SS[sl_.id];if(!s)return 20;
+    return tm(hv(prev.la,prev.ln,s.la,s.ln))+8;
+  }
+  return 0;
+}
+
+// Find drop start time for a student id
+function findDropInfo(sid){
+  for(const d of DAYS)for(const car of CARS){
+    const slots=SCHED[d]?.[car.id]||[];
+    for(let si=0;si<slots.length;si++){
+      const sl_=slots[si];if(!sl_)continue;
+      if((sl_.t==='s'&&sl_.id===sid)||(sl_.t==='d'&&sl_.ids?.includes(sid))||(sl_.t==='g'&&sl_.ids?.includes(sid)))
+        return{d,cid:car.id,si,startMin:slotStartMin(d,car.id,si)};
+    }
+  }
+  return null;
+}
+
+// Find pickup slot for a student
+function findPickSlot(sid){
+  for(const d of DAYS)for(const car of CARS){
+    const slots=SCHED[d]?.[car.id]||[];
+    for(let si=0;si<slots.length;si++){
+      const sl_=slots[si];
+      if(sl_&&sl_.t==='pick'&&sl_.id===sid)return{d,cid:car.id,si};
+    }
+  }
+  return null;
+}
+
+// ===== POOL TRACKING (sessions-per-week aware) =====
+function countScheduled(sid){
+  let n=0;
+  DAYS.forEach(d=>CARS.forEach(car=>(SCHED[d]?.[car.id]||[]).forEach(sl_=>{
+    if(!sl_)return;
+    if(sl_.t==='s'&&sl_.id===sid)n++;
+    if(sl_.t==='d'&&sl_.ids?.includes(sid))n++;
+    if(sl_.t==='g'&&sl_.ids?.includes(sid))n++;
+  })));
+  return n;
+}
+function droppedSids(){
+  const s=new Set();
+  DAYS.forEach(d=>CARS.forEach(car=>(SCHED[d]?.[car.id]||[]).forEach(sl_=>{
+    if(!sl_)return;
+    if(sl_.t==='s')s.add(sl_.id);
+    if(sl_.t==='d')sl_.ids?.forEach(i=>s.add(i));
+    if(sl_.t==='g')sl_.ids?.forEach(i=>s.add(i));
+  })));
+  return s;
+}
+function pickedSids(){
+  const s=new Set();
+  DAYS.forEach(d=>CARS.forEach(car=>(SCHED[d]?.[car.id]||[]).forEach(sl_=>{
+    if(sl_&&sl_.t==='pick')s.add(sl_.id);
+  })));
+  return s;
+}
+// Returns array of {student, scheduled, total} for students with remaining slots
+function poolEntries(){
+  return Object.values(SS).map(s=>{
+    const total=s.sessionsPerWeek||1;
+    const scheduled=countScheduled(s.id);
+    return{s,scheduled,total,remaining:total-scheduled};
+  }).filter(e=>e.remaining>0);
+}
+function poolSids(){return poolEntries().map(e=>e.s.id);}
+function pendingPickSids(){const d=droppedSids(),p=pickedSids();return[...d].filter(id=>!p.has(id));}
+
+// ===== STATS =====
+function stats(){
+  let sc=0,dd=0,pk=0;
+  DAYS.forEach(d=>CARS.forEach(car=>(SCHED[d]?.[car.id]||[]).forEach(sl_=>{
+    if(!sl_)return;
+    if(sl_.t==='s')sc++;if(sl_.t==='d'){sc+=2;dd++;}if(sl_.t==='pick')pk++;
+  })));
+  const tot=Object.values(SS).reduce((s,x)=>s+(x.sessionsPerWeek||1),0);
+  qs('st-s').textContent=sc;
+  qs('st-p').textContent=poolEntries().length;
+  qs('st-pk').textContent=pk;
+  qs('st-u').textContent=Math.round(sc/Math.max(1,tot)*100)+'%';
+}
+
+// ===== RENDER POOL =====
+function distFromActive(s){
+  if(!activeSlot)return dbBr(s,s.br);
+  const p=lastPos(activeSlot.d,activeSlot.cid,activeSlot.si);
+  return hv(p.la,p.ln,s.la,s.ln);
+}
+
+function renderPool(){
+  const q=(qs('psearch').value||'').toLowerCase();
+  let entries=poolEntries();
+  if(curBr!=='All')entries=entries.filter(e=>e.s.br===curBr);
+  if(q)entries=entries.filter(e=>e.s.n.toLowerCase().includes(q)||e.s.t.toLowerCase().includes(q));
+
+  const hasActive=activeSlot&&curDay!=='Sun';
+  qs('active-info').style.display=hasActive?'block':'none';
+  qs('sort-row').style.display=hasActive?'flex':'none';
+  if(hasActive){
+    const p=lastPos(activeSlot.d,activeSlot.cid,activeSlot.si);
+    const carObj=CARS.find(c=>c.id===activeSlot.cid)||{label:'Car'};
+    qs('active-info').innerHTML=`<div class="ai-label">Active slot</div>
+      <div class="ai-car">${carObj.label} · ${activeSlot.d} · Slot ${activeSlot.si+1}</div>
+      <div class="ai-from">From: ${p.isBase?p.a:sl(p.a)}</div>`;
+    const tdd=qs('teacher-dd');
+    tdd.style.display=curSort==='teacher'?'block':'none';
+    const teachers=[...new Set(entries.map(e=>e.s.t))].sort();
+    const cur=tdd.value;
+    tdd.innerHTML='<option value="">All teachers</option>'+teachers.map(t=>`<option${t===cur?' selected':''}>${t}</option>`).join('');
+    if(curSort==='closest'||curSort==='suggest')
+      entries=entries.map(e=>({...e,_d:distFromActive(e.s)})).sort((a,b)=>a._d-b._d);
+    else if(curSort==='teacher'){const tv=tdd.value;if(tv)entries=entries.filter(e=>e.s.t===tv);}
+  } else{qs('teacher-dd').style.display='none';}
+
+  const el=qs('pool-body');
+  el.innerHTML=entries.length?entries.map((e,i)=>{
+    const distN=hasActive&&(curSort==='closest'||curSort==='suggest')?(e._d??distFromActive(e.s)):undefined;
+    const isSug=curSort==='suggest'&&hasActive&&i<3;
+    return dropCard(e.s,e.scheduled,e.total,distN,isSug);
+  }).join(''):'<div class="pool-empty">All sessions scheduled!</div>';
+  el.querySelectorAll('[draggable]').forEach(el=>el.addEventListener('dragstart',dsDrop));
+
+  // Pending pickups
+  const pend=pendingPickSids();
+  qs('pick-hdr').style.display=pend.length?'flex':'none';
+  qs('pick-body').style.display=pend.length?'block':'none';
+  if(pend.length){
+    qs('pick-count').textContent=pend.length;
+    const nowMin=hasActive?slotStartMin(activeSlot.d,activeSlot.cid,activeSlot.si):600;
+    let picks=pend.map(sid=>{
+      const s=SS[sid];if(!s)return null;
+      const info=findDropInfo(sid);
+      const readyMin=info?info.startMin+65:600;
+      const distP=hasActive?hv(lastPos(activeSlot.d,activeSlot.cid,activeSlot.si).la,lastPos(activeSlot.d,activeSlot.cid,activeSlot.si).ln,s.la,s.ln):null;
+      const score=distP!==null?(distP*8+(readyMin<=nowMin?-80:readyMin-nowMin)):9999;
+      return{sid,s,readyMin,distP,score};
+    }).filter(Boolean);
+    if(curSort==='suggest')picks.sort((a,b)=>a.score-b.score);
+    else picks.sort((a,b)=>a.readyMin-b.readyMin);
+    qs('pick-body').innerHTML=picks.map(({sid,s,readyMin,distP},i)=>{
+      const col=TC[s.t]||'#E87C50';
+      const ready=readyMin<=(hasActive?slotStartMin(activeSlot.d,activeSlot.cid,activeSlot.si):600);
+      const badge=ready?`<span style="background:#DC2626;color:#fff;font-size:8px;padding:1px 4px;border-radius:3px">READY</span>`:`<span class="tag-far tag" style="font-size:8px">Ready ${ts(readyMin)}</span>`;
+      const suggest=curSort==='suggest'&&i<3?'<span class="suggest-star">★</span>':'';
+      const distL=distP!==null?`<span class="dist-label">${distP.toFixed(1)}km</span>`:'';
+      return`<div class="sc pick-card" draggable="true" data-sid="${sid}" data-dtype="pick" style="border-left-color:${col}">
+        <div class="t" style="color:${col}">▲ Pick-up · ${s.t}${suggest}${distL}</div>
+        <div class="n">${s.n}</div>
+        <div class="a">${sl(s.a)}</div>
+        <div class="tags">${badge}</div>
+      </div>`;
+    }).join('');
+    qs('pick-body').querySelectorAll('[draggable]').forEach(el=>el.addEventListener('dragstart',dsPick));
+  }
+  stats();
+}
+
+function dropCard(s,scheduled,total,distN,isSug){
+  const distBr=dbBr(s,s.br);const col=TC[s.t]||'#6A5FA8';
+  const ft=distBr>15?'tag-vfar':distBr>10?'tag-far':'';
+  const fl=distBr>15?distBr.toFixed(0)+'km VERY FAR':distBr>10?distBr.toFixed(0)+'km FAR':'';
+  const distL=distN!==undefined?`<span class="dist-label">${distN.toFixed(1)}km next</span>`:'';
+  const sug=isSug?'<span class="suggest-star">★</span>':'';
+  const border=isSug?'border:2px solid #059669':'';
+  // Session progress pill
+  const pillCls=scheduled===0?'zero':scheduled>=total?'done':'partial';
+  const pct=total>1?Math.round(scheduled/total*100):null;
+  const pillLabel=total>1?`${scheduled}/${total} this week`:`${scheduled===0?'Not yet':'✓'} scheduled`;
+  const pillHtml=`<span class="sess-pill ${pillCls}">${total>1?`${scheduled}/${total}`:scheduled===0?'0/1':'✓ 1/1'}</span>`;
+  const barHtml=total>1?`<div class="sess-progress"><div class="sess-bar" style="width:${pct}%;background:${pillCls==='done'?'#3B6D11':pillCls==='partial'?'#D97706':'#DC2626'}"></div></div>`:'';
+  return`<div class="sc" draggable="true" data-sid="${s.id}" data-dtype="drop" style="border-left-color:${col};${border}">
+    <div class="t" style="color:${col};display:flex;align-items:center;gap:4px;flex-wrap:wrap">▼ ${s.t}${sug}${distL}<span style="margin-left:auto">${pillHtml}</span></div>
+    <div class="n">${s.n}</div>
+    <div class="a">${s.a}</div>
+    ${barHtml}
+    <div class="tags"><span class="tag tag-br">${s.br}</span>${fl?`<span class="tag ${ft}">${fl}</span>`:''}${s.visits?`<span class="tag-v">${s.visits}v</span>`:''}</div>
+  </div>`;
+}
+
+// ===== RENDER SCHEDULE =====
+function renderCars(){
+  const grid=qs('cargrid');
+  const d=curDay;
+  if(d==='Sun'){
+    grid.parentElement.innerHTML='<div class="sunday-msg"><h3>Sunday — Buffer &amp; Admin</h3><p>No car trips today.<br>Review completed visits · Collect feedback · Update missing coordinates<br>Brief teachers · Prepare next week</p></div>';
+    return;
+  }
+  grid.innerHTML='';
+  CARS.forEach(car=>{
+    const col=document.createElement('div');col.className='carcol';
+    const slots=SCHED[d]?.[car.id]||[];
+    const driverStr=car.driver?` · ${car.driver}`:'';
+    col.innerHTML=`<div class="carhdr" onclick="editCar(${car.id})" title="Click to edit car details">${car.label}<small>${car.branch}${driverStr}</small></div>
+      <div class="carslots" id="cs-${car.id}" data-cid="${car.id}" ondragover="ev(event)" ondrop="dropCar(event,this)" ondragleave="this.classList.remove('dover')" ondragenter="this.classList.add('dover')">
+        ${slots.map((_,si)=>renderSlot(d,car.id,si)).join('')}
+      </div>`;
+    grid.appendChild(col);
+  });
+  grid.querySelectorAll('[draggable]').forEach(el=>{
+    const t=el.dataset.dtype;
+    el.addEventListener('dragstart',t==='pick'?dsPick:dsDrop);
+  });
+}
+
+function renderSched(){
+  if(curDay==='Sun'){
+    const outer=qs('sched-outer');
+    outer.innerHTML='<div class="sunday-msg"><h3>Sunday — Buffer &amp; Admin</h3><p>No car trips today.<br>Review completed visits · Collect feedback · Update missing coordinates<br>Brief teachers · Prepare next week</p></div>';
+    return;
+  }
+  // Rebuild grid
+  const outer=qs('sched-outer');
+  if(!outer.querySelector('.cargrid')){
+    outer.innerHTML='<div class="cargrid" id="cargrid"></div>';
+  }
+  renderCars();
+  stats();
+}
+
+function renderSlot(d,cid,si){
+  const sl_=SCHED[d]?.[cid]?.[si];
+  const startMin=slotStartMin(d,cid,si);
+  const isActive=activeSlot&&activeSlot.d===d&&activeSlot.cid===cid&&activeSlot.si===si;
+  const timeStr=ts(startMin);
+  const base=`id="sl-${d}-${cid}-${si}" data-d="${d}" data-cid="${cid}" data-si="${si}"`;
+  const handlers=`onclick="slotClick(event,'${d}',${cid},${si})" ondragover="slotOver(event,this)" ondragleave="slotLeave(this)" ondrop="slotDrop(event,this)"`;
+
+  if(!sl_){
+    return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
+      <div class="slot${isActive?' active-slot':''}" ${base} ${handlers}>
+        <div class="slot-empty">${isActive?'▸ drop here':'drop here'}</div>
+      </div></div>`;
+  }
+
+  const warns=warnHtml(d,cid,si);
+  const isLast=isLastSlot(d,cid,si);
+
+  if(sl_.t==='s'){
+    const s=SS[sl_.id];if(!s)return'';
+    const col=TC[s.t]||'#6A5FA8';
+    const effLa=sl_.grp?.la??s.la, effLn=sl_.grp?.ln??s.ln, effAddr=sl_.grp?.addr??s.a;
+    const dist=dbBr(s,carBranch(cid));
+    const ft=dist>15?'tag-vfar':dist>10?'tag-far':'';
+    const fl=dist>15?dist.toFixed(0)+'km VERY FAR':dist>10?dist.toFixed(0)+'km FAR':'';
+    const prev=lastPos(d,cid,si);
+    const travelMin=tm(hv(prev.la,prev.ln,effLa,effLn));
+    const fromLabel=prev.isBase?prev.a:sl(prev.a);
+    const toLabel=sl_.grp?`${sl(sl_.grp.addr)} (Group)`:sl(s.a);
+    const pickTime=ts(startMin+65);
+    const pickSlot=findPickSlot(sl_.id);
+    // After pickup: where does driver go next?
+    const pickNext=nextSlotPos(d,cid,si);
+    const pickToLabel=isLast?carBranch(cid)+' branch':(pickNext.isBase?pickNext.a:sl(pickNext.a));
+    const grpCls=sl_.grp?'grp-on':'';
+    const pickHtml=`<div class="auto-pick">
+      <div class="ap-row">
+        <span class="ap-badge">▲ ${pickTime}</span>
+        <span class="ap-name">${s.n}</span>
+        ${pickSlot?`<span style="font-size:8px;color:var(--teal)">→ ${CARS.find(c=>c.id===pickSlot.cid)?.label||'Car'} → ${pickToLabel}</span>`
+          :`<div class="sc pick-card" draggable="true" data-sid="${sl_.id}" data-dtype="pick" style="display:inline-flex;align-items:center;gap:4px;padding:2px 5px;cursor:grab;border-radius:4px;margin-left:auto;font-size:8px;border-left:2px solid var(--orange)"><span style="color:var(--orange);font-weight:700">Drag to assign →</span></div>`}
+      </div></div>`;
+    return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
+      <div class="slot filled${isActive?' active-slot':''}" ${base} ${handlers}>
+        ${sl_.grp?`<div class="grp-banner">🏠 Group: <span class="grp-loc">${sl(sl_.grp.addr)}</span></div>`:''}
+        <div class="journey drop-j"><span class="j-from">${fromLabel}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
+        <div class="slot-toprow">${warns}<button class="edit-ico" onclick="event.stopPropagation();editStudent('${s.id}')" title="Edit student">✏</button></div>
+        <div class="ss" draggable="true" data-sid="${s.id}" data-dtype="drop" style="border-left:3px solid ${col};padding-top:2px">
+          <div class="t" style="color:${col}">▼ ${s.t}</div>
+          <div class="n">${s.n}</div>
+          <div class="a">${s.a}</div>
+          <div class="m">${timeStr} · ${travelMin}min drive · ${dist}km${fl?` · <span class="tag ${ft}" style="font-size:7px;padding:0 3px">${fl}</span>`:''}</div>
+          <button class="rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})">×</button>
+        </div>
+        ${pickHtml}
+        <div class="slot-actions">
+          <button class="sa-btn ${grpCls}" onclick="event.stopPropagation();openGroup('${d}',${cid},${si})" title="Set group location">🏠 ${sl_.grp?'Group on':'Group'}</button>
+          ${s.visits?`<span class="tag-v" style="font-size:8px">${s.visits}v</span>`:''}
+        </div>
+      </div></div>`;
+  }
+
+  if(sl_.t==='d'){
+    const[s1,s2]=[SS[sl_.ids?.[0]],SS[sl_.ids?.[1]]];if(!s1||!s2)return'';
+    const[c1,c2]=[TC[s1.t]||'#6A5FA8',TC[s2.t]||'#6A5FA8'];
+    const prev=lastPos(d,cid,si);
+    const eff1La=sl_.grp?.la??s1.la, eff1Ln=sl_.grp?.ln??s1.ln;
+    const eff2La=sl_.grp?.la??s2.la, eff2Ln=sl_.grp?.ln??s2.ln;
+    const travel1=tm(hv(prev.la,prev.ln,eff1La,eff1Ln));
+    const interMin=sl_.grp?0:(sl_.inter||tm(hv(s1.la,s1.ln,s2.la,s2.ln)));
+    const time2=ts(startMin+travel1+(sl_.grp?0:interMin));
+    const fromLabel=prev.isBase?prev.a:sl(prev.a);
+    const toLabel=sl_.grp?`${sl(sl_.grp.addr)} (Group)`:sl(s1.a);
+    const pickTime1=ts(startMin+travel1+65);
+    const pickTime2=ts(startMin+travel1+(sl_.grp?0:interMin)+65);
+    const pick1=findPickSlot(sl_.ids[0]);const pick2=findPickSlot(sl_.ids[1]);
+    const pickNext=nextSlotPos(d,cid,si);
+    const pickToLabel=isLast?carBranch(cid)+' branch':sl(pickNext.a);
+    const pickRow=(s,pickT,pickSl,idx)=>`<div class="auto-pick"><div class="ap-row">
+      <span class="ap-badge">▲ ${pickT}</span><span class="ap-name">${s.n}</span>
+      ${pickSl?`<span style="font-size:8px;color:var(--teal)">→ ${CARS.find(c=>c.id===pickSl.cid)?.label||'Car'} → ${pickToLabel}</span>`
+        :`<div class="sc pick-card" draggable="true" data-sid="${sl_.ids[idx]}" data-dtype="pick" style="display:inline-flex;align-items:center;gap:3px;padding:2px 5px;cursor:grab;border-radius:4px;margin-left:auto;font-size:8px;border-left:2px solid var(--orange)"><span style="color:var(--orange);font-weight:700">Drag →</span></div>`}
+    </div></div>`;
+    const grpCls=sl_.grp?'grp-on':'';
+    return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
+      <div class="slot paired${isActive?' active-slot':''}" ${base} ${handlers}>
+        ${sl_.grp?`<div class="grp-banner">🏠 Group: <span class="grp-loc">${sl(sl_.grp.addr)}</span> — both teachers same location</div>`:''}
+        <div class="journey drop-j"><span class="j-from">${fromLabel}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
+        <div class="slot-toprow">${warns}</div>
+        <div class="dd-hdr"><span class="dd-badge">DOUBLE-DROP</span><span class="dd-km">${sl_.grp?'Same location (group)':sl_.km?.toFixed(1)+'km apart · '+interMin+'min between homes'}</span></div>
+        <div class="ss" draggable="true" data-sid="${s1.id}" data-dtype="drop" style="border-left:3px solid ${c1};margin:3px 6px 0">
+          <div class="t" style="color:${c1}">▼ ${s1.t} · ${timeStr}</div>
+          <div class="n">${s1.n}</div><div class="a">${s1.a}</div>
+          <button class="rm" onclick="event.stopPropagation();unpair('${d}',${cid},${si},0)">×</button>
+        </div>
+        <div class="dd-sep"></div>
+        <div class="ss" draggable="true" data-sid="${s2.id}" data-dtype="drop" style="border-left:3px solid ${c2};margin:0 6px 2px">
+          <div class="t" style="color:${c2}">▼ ${s2.t} · <b>${time2}</b>${sl_.grp?'':` (+${interMin}min)`}</div>
+          <div class="n">${s2.n}</div><div class="a">${s2.a}</div>
+          <button class="rm" onclick="event.stopPropagation();unpair('${d}',${cid},${si},1)">×</button>
+        </div>
+        ${pickRow(s1,pickTime1,pick1,0)}${pickRow(s2,pickTime2,pick2,1)}
+        <div class="slot-actions">
+          <button class="sa-btn ${grpCls}" onclick="event.stopPropagation();openGroup('${d}',${cid},${si})" title="Both teachers at same group location">🏠 ${sl_.grp?'Group on':'Group'}</button>
+        </div>
+      </div></div>`;
+  }
+
+  if(sl_.t==='pick'){
+    const s=SS[sl_.id];if(!s)return'';
+    const col=TC[s.t]||'#E87C50';
+    const prev=lastPos(d,cid,si);
+    const travelMin=tm(hv(prev.la,prev.ln,s.la,s.ln));
+    const fromLabel=prev.isBase?prev.a:sl(prev.a);
+    const info=findDropInfo(sl_.id);
+    const readyMin=info?info.startMin+65:600;
+    const onTime=startMin>=readyMin;
+    // Destination after pickup: next slot or branch
+    const after=nextSlotPos(d,cid,si);
+    const toLabel=after.isBase?after.a:sl(after.a);
+    return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
+      <div class="slot pickup-slot${isActive?' active-slot':''}" ${base} ${handlers}>
+        <div class="journey pick-j"><span class="j-from">${sl(s.a)}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
+        <div class="slot-toprow">${warns}<button class="edit-ico" onclick="event.stopPropagation();editStudent('${s.id}')" title="Edit student">✏</button></div>
+        <div class="ss" draggable="true" data-sid="${s.id}" data-dtype="pick" style="border-left:3px solid ${col};padding-top:2px">
+          <div class="t" style="color:${col}">▲ Pick-up · ${s.t}</div>
+          <div class="n">${s.n}</div>
+          <div class="a">${sl(s.a)} → ${toLabel}</div>
+          <div class="m">${timeStr} · ${travelMin}min drive · ${onTime?'✓ On time':`⚠ Ready at ${ts(readyMin)}`}</div>
+          <button class="rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})">×</button>
+        </div>
+      </div></div>`;
+  }
+
+  if(sl_.t==='g'){
+    const children=(sl_.ids||[]).map(id=>SS[id]).filter(Boolean);
+    const grpAddr=sl_.grp?.addr||'';
+    const grpLa=sl_.grp?.la??0,grpLn=sl_.grp?.ln??0;
+    const prev=lastPos(d,cid,si);
+    const travelMin=sl_.grp?tm(hv(prev.la,prev.ln,grpLa,grpLn)):0;
+    const fromLabel=prev.isBase?prev.a:sl(prev.a);
+    const toLabel=grpAddr?sl(grpAddr):'Set location above';
+    const pickTime=ts(startMin+65);
+    const pickNext=nextSlotPos(d,cid,si);
+    const pickToLabel=isLast?carBranch(cid)+' branch':sl(pickNext.a);
+    const canAdd=sl_.ids.length<7;
+    const childRows=children.map((ch,idx)=>`<div class="grp-child-row">
+      <div class="grp-child-dot" style="background:${TC[ch.t]||'#6A5FA8'}"></div>
+      <span class="grp-child-t">${ch.t.split('/')[0].substring(0,9)}</span>
+      <span class="grp-child-n">${ch.n}</span>
+      <button class="grp-child-rm" onclick="event.stopPropagation();removeFromGroup('${d}',${cid},${si},${idx})">&#215;</button>
+    </div>`).join('');
+    const dropZone=canAdd
+      ?`<div class="grp-drop-zone" ondragover="grpOver(event,this)" ondragleave="grpLeave(this)" ondrop="grpDrop(event,this,'${d}',${cid},${si})">+ Drop child here &bull; ${sl_.ids.length}/7</div>`
+      :`<div style="text-align:center;font-size:8px;color:#D97706;padding:3px 8px;font-weight:700;border-top:1px dashed #FDE68A">Group full &mdash; 7/7</div>`;
+    const pickRows=children.map(ch=>{
+      const ps=findPickSlot(ch.id);
+      return`<div class="auto-pick"><div class="ap-row">
+        <span class="ap-badge">&#9650; ${pickTime}</span>
+        <span class="ap-name">${ch.n}</span>
+        ${ps
+          ?`<span style="font-size:8px;color:var(--teal)">&#8594; ${CARS.find(c=>c.id===ps.cid)?.label||'Car'} &#8594; ${pickToLabel}</span>`
+          :`<div class="sc pick-card" draggable="true" data-sid="${ch.id}" data-dtype="pick" style="display:inline-flex;align-items:center;gap:3px;padding:2px 5px;cursor:grab;border-radius:4px;margin-left:auto;font-size:8px;border-left:2px solid var(--orange)"><span style="color:var(--orange);font-weight:700">Drag &#8594;</span></div>`}
+      </div></div>`;
+    }).join('');
+    return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
+      <div class="slot group-slot${isActive?' active-slot':''}" ${base} ${handlers}>
+        <div class="grp-hdr">
+          <span style="font-size:9px;font-weight:700;color:#92400E">&#127968; GROUP</span>
+          <span class="grp-count-pill">${sl_.ids.length}/7 children</span>
+          <span style="font-size:8px;color:#92400E;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 4px">${grpAddr?sl(grpAddr):'No location set'}</span>
+          <button class="grp-edit-btn" onclick="event.stopPropagation();openGroup('${d}',${cid},${si})">Edit location</button>
+          <button class="grp-child-rm" style="margin-left:3px;font-size:11px" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})" title="Remove entire group slot">&#10005;</button>
+        </div>
+        <div class="journey drop-j">
+          <span class="j-from">${fromLabel}</span>
+          <span class="j-arr">&#8594;</span>
+          <span class="j-to">${toLabel}</span>
+        </div>
+        <div style="font-size:8px;color:var(--text3);padding:1px 8px 3px">${travelMin}min drive &bull; all children at same location</div>
+        <div class="slot-toprow">${warns}</div>
+        ${childRows}
+        ${dropZone}
+        ${pickRows}
+      </div></div>`;
+  }
+
+  return'';
+}
+
+// ===== DRAG & DROP =====
+function dsDrop(e){
+  dragId=this.dataset.sid||e.currentTarget.dataset.sid;dragType='drop';
+  e.dataTransfer.setData('dtype','drop');e.dataTransfer.effectAllowed='move';
+  setTimeout(()=>e.currentTarget.classList.add('dragging'),0);
+}
+function dsPick(e){
+  dragId=this.dataset.sid||e.currentTarget.dataset.sid;dragType='pick';
+  e.dataTransfer.setData('dtype','pick');e.dataTransfer.effectAllowed='move';
+  setTimeout(()=>e.currentTarget.classList.add('dragging'),0);
+}
+function ev(e){e.preventDefault();}
+
+function dropCar(e,el){
+  e.preventDefault();el.classList.remove('dover');if(!dragId)return;
+  const cid=+el.dataset.cid;const slots=SCHED[curDay]?.[cid]||[];
+  const ei=slots.findIndex(s=>!s);if(ei<0){toast('No empty slots on this car');dragId=null;return;}
+  if(dragType==='pick')placePickup(dragId,curDay,cid,ei);else placeIn(dragId,curDay,cid,ei);
+  dragId=null;
+}
+function dropToPool(e){
+  e.preventDefault();if(!dragId)return;
+  rmFromSched(dragId);dragId=null;
+}
+
+function slotOver(e,el){
+  e.preventDefault();e.stopPropagation();el.classList.add('doverslot');
+  if(dragType==='drop'&&dragId&&el.dataset.si!==undefined){
+    const sl_=SCHED[el.dataset.d]?.[+el.dataset.cid]?.[+el.dataset.si];
+    if(sl_&&sl_.t==='s'&&sl_.id!==dragId){
+      const s1=SS[sl_.id],s2=SS[dragId];
+      if(s1&&s2&&hv(s1.la,s1.ln,s2.la,s2.ln)<=3.5)el.classList.add('canpair');
+    }
+    // Group slot with space
+    if(sl_&&sl_.t==='g'&&sl_.ids?.length<7&&!sl_.ids?.includes(dragId))el.classList.add('canpair');
+  }
+}
+function slotLeave(el){el.classList.remove('doverslot','canpair');}
+
+function slotDrop(e,el){
+  e.preventDefault();e.stopPropagation();
+  el.classList.remove('doverslot','canpair');if(!dragId)return;
+  const d=el.dataset.d,cid=+el.dataset.cid,si=+el.dataset.si;
+  const ex=SCHED[d]?.[cid]?.[si];
+  const dt=e.dataTransfer.getData('dtype')||dragType;
+  if(dt==='pick'){
+    if(!ex)placePickup(dragId,d,cid,si);
+    else toast('Drop pick-up on an empty slot');
+  } else {
+    if(!ex)placeIn(dragId,d,cid,si);
+    else if(ex.t==='s'&&ex.id!==dragId)tryPair(dragId,ex.id,d,cid,si);
+    else if(ex.t==='d')toast('Slot already paired — convert to group mode first if needed');
+    else if(ex.t==='g')addToGroup(dragId,d,cid,si);
+  }
+  dragId=null;
+}
+
+function slotClick(e,d,cid,si){
+  e.stopPropagation();setActive(d,cid,si);
+}
+
+function setActive(d,cid,si){activeSlot={d,cid,si};renderSched();renderPool();}
+
+function advance(d,cid,fromSi){
+  const slots=SCHED[d]?.[cid]||[];
+  const next=slots.findIndex((s,i)=>i>fromSi&&!s);
+  if(next>=0)setActive(d,cid,next);else{activeSlot=null;renderSched();renderPool();}
+}
+
+// ===== MUTATIONS =====
+function placeIn(sid,d,cid,si){
+  rmFromSched(sid);
+  SCHED[d][cid][si]={t:'s',id:sid};
+  // Auto-insert pickup in next empty slot of same car
+  const slots=SCHED[d][cid];
+  const next=slots.findIndex((s,i)=>i>si&&!s);
+  if(next>=0){slots[next]={t:'pick',id:sid};}
+  advance(d,cid,si);renderSched();renderPool();saveState();
+}
+
+function placePickup(sid,d,cid,si){
+  // Remove existing pick slot for this sid
+  DAYS.forEach(dy=>CARS.forEach(car=>{
+    const s=SCHED[dy]?.[car.id];if(!s)return;
+    s.forEach((sl_,i)=>{if(sl_&&sl_.t==='pick'&&sl_.id===sid)s[i]=null;});
+  }));
+  SCHED[d][cid][si]={t:'pick',id:sid};
+  advance(d,cid,si);renderSched();renderPool();saveState();
+}
+
+function tryPair(sid1,sid2,d,cid,si){
+  const s1=SS[sid1],s2=SS[sid2];if(!s1||!s2)return;
+  const dist=hv(s1.la,s1.ln,s2.la,s2.ln);
+  if(dist>3.5){toast(`${dist.toFixed(1)}km apart — too far to double-drop (max 3.5km)`);return;}
+  const inter=tm(dist);
+  rmFromSched(sid1);
+  SCHED[d][cid][si]={t:'d',ids:[sid2,sid1],km:dist,inter};
+  toast(`Double-drop! ${s1.t} + ${s2.t} · ${dist.toFixed(1)}km · ${inter}min between homes · ${s2.t} drops ${inter}min later`);
+  advance(d,cid,si);renderSched();renderPool();saveState();
+}
+
+function rmFromSched(sid){
+  DAYS.forEach(d=>CARS.forEach(car=>{
+    const s=SCHED[d]?.[car.id];if(!s)return;
+    s.forEach((sl_,i)=>{
+      if(!sl_)return;
+      if(sl_.t==='s'&&sl_.id===sid)s[i]=null;
+      if(sl_.t==='d'&&sl_.ids?.includes(sid)){
+        const other=sl_.ids.find(x=>x!==sid);
+        s[i]=other?{t:'s',id:other}:null;
+      }
+      if(sl_.t==='g'&&sl_.ids?.includes(sid)){
+        sl_.ids=sl_.ids.filter(x=>x!==sid);
+        if(sl_.ids.length===0)s[i]=null;
+      }
+      if(sl_.t==='pick'&&sl_.id===sid)s[i]=null;
+    });
+  }));
+}
+
+function rmSlot(d,cid,si){
+  const sl_=SCHED[d]?.[cid]?.[si];
+  SCHED[d][cid][si]=null;
+  if(sl_?.t==='s')rmPickSlots([sl_.id]);
+  if(sl_?.t==='d')rmPickSlots(sl_.ids||[]);
+  if(sl_?.t==='g')rmPickSlots(sl_.ids||[]);
+  renderSched();renderPool();saveState();
+}
+function rmPickSlots(sids){
+  DAYS.forEach(d=>CARS.forEach(car=>{
+    const s=SCHED[d]?.[car.id];if(!s)return;
+    s.forEach((sl_,i)=>{if(sl_&&sl_.t==='pick'&&sids.includes(sl_.id))s[i]=null;});
+  }));
+}
+
+function unpair(d,cid,si,idx){
+  const sl_=SCHED[d]?.[cid]?.[si];if(!sl_||sl_.t!=='d')return;
+  const removed=sl_.ids[idx];const kept=sl_.ids[1-idx];
+  SCHED[d][cid][si]={t:'s',id:kept};
+  rmPickSlots([removed]);
+  renderSched();renderPool();saveState();toast('Session returned to pool');
+}
+
+// ===== GROUP SLOT MUTATIONS =====
+function addToGroup(sid,d,cid,si){
+  const sl_=SCHED[d]?.[cid]?.[si];
+  if(!sl_||sl_.t!=='g'){toast('Not a group slot');return;}
+  if(sl_.ids.length>=7){toast('Group is full (7/7)');return;}
+  if(sl_.ids.includes(sid)){toast('Child already in this group');return;}
+  rmFromSched(sid); // remove from elsewhere first
+  sl_.ids.push(sid);
+  // Auto-add pickup for this child
+  const slots=SCHED[d][cid];
+  const pickNext=slots.findIndex((s,i)=>i>si&&!s);
+  if(pickNext>=0)slots[pickNext]={t:'pick',id:sid};
+  renderSched();renderPool();saveState();
+  toast(`${SS[sid]?.n||'Child'} added to group (${sl_.ids.length}/7)`);
+}
+
+function removeFromGroup(d,cid,si,idx){
+  const sl_=SCHED[d]?.[cid]?.[si];
+  if(!sl_||sl_.t!=='g')return;
+  const removed=sl_.ids[idx];
+  sl_.ids.splice(idx,1);
+  if(sl_.ids.length===0)SCHED[d][cid][si]=null;
+  rmPickSlots([removed]);
+  renderSched();renderPool();saveState();toast('Child returned to pool');
+}
+
+// Drag over group drop zone
+function grpOver(e,el){e.preventDefault();el.classList.add('doverg');}
+function grpLeave(el){el.classList.remove('doverg');}
+function grpDrop(e,el,d,cid,si){
+  e.preventDefault();e.stopPropagation();el.classList.remove('doverg');
+  if(!dragId||dragType!=='drop')return;
+  addToGroup(dragId,d,cid,si);dragId=null;
+}
+
+// ===== STUDENTS TABLE =====
+let stSortKey='n', stSortDir=1;
+
+function showStudentsTable(){
+  stSortKey='n';stSortDir=1;
+  renderStudentsTable();
+  qs('studentsmodal').style.display='flex';
+  qs('st-search').value='';
+  qs('st-filter-br').value='';
+}
+function closeStudentsModal(){
+  qs('studentsmodal').style.display='none';
+  renderPool();renderSched();saveState();
+}
+
+function sortStudents(key){
+  if(stSortKey===key)stSortDir*=-1; else{stSortKey=key;stSortDir=1;}
+  renderStudentsTable();
+}
+
+function renderStudentsTable(){
+  const q=(qs('st-search').value||'').toLowerCase();
+  const br=qs('st-filter-br').value;
+  let rows=Object.values(SS).filter(s=>{
+    if(br&&s.br!==br)return false;
+    if(q&&!s.n.toLowerCase().includes(q)&&!s.t.toLowerCase().includes(q))return false;
+    return true;
+  });
+  rows.sort((a,b)=>{
+    const av=(a[stSortKey]||'').toString().toLowerCase();
+    const bv=(b[stSortKey]||'').toString().toLowerCase();
+    return av<bv?-stSortDir:av>bv?stSortDir:0;
+  });
+  qs('st-count').textContent=`${rows.length} of ${Object.keys(SS).length} students`;
+  const tbody=qs('students-tbody');
+  tbody.innerHTML=rows.map(s=>{
+    const sched=countScheduled(s.id);
+    const total=s.sessionsPerWeek||1;
+    const pct=Math.round(sched/total*100);
+    const dotCol=sched===0?'#DC2626':sched>=total?'#3B6D11':'#D97706';
+    const col=TC[s.t]||'#6A5FA8';
+    return`<tr class="st-row" id="strow-${s.id}">
+      <td class="st-cell"><input class="st-inp" value="${esc(s.n)}" onchange="patchStudent('${s.id}','n',this.value)" onkeydown="stNav(event,this)"></td>
+      <td class="st-cell"><input class="st-inp" value="${esc(s.t)}" onchange="patchStudent('${s.id}','t',this.value)" style="color:${col};font-weight:600" onkeydown="stNav(event,this)"></td>
+      <td class="st-cell">
+        <select class="st-sel" onchange="patchStudent('${s.id}','br',this.value)">
+          <option${s.br==='Shuhada'?' selected':''}>Shuhada</option>
+          <option${s.br==='Salam'?' selected':''}>Salam</option>
+          <option${s.br==='Salwa'?' selected':''}>Salwa</option>
+        </select>
+      </td>
+      <td class="st-cell"><input class="st-inp" value="${esc(s.a)}" onchange="patchStudent('${s.id}','a',this.value)" style="min-width:160px" onkeydown="stNav(event,this)"></td>
+      <td class="st-cell"><input class="st-inp num" value="${s.la||''}" type="number" step="any" onchange="patchStudent('${s.id}','la',parseFloat(this.value))" style="width:90px" onkeydown="stNav(event,this)"></td>
+      <td class="st-cell"><input class="st-inp num" value="${s.ln||''}" type="number" step="any" onchange="patchStudent('${s.id}','ln',parseFloat(this.value))" style="width:90px" onkeydown="stNav(event,this)"></td>
+      <td class="st-cell"><input class="st-inp num" value="${s.sessionsPerWeek||1}" type="number" min="1" max="7" onchange="patchStudent('${s.id}','sessionsPerWeek',+this.value)" style="width:52px" onkeydown="stNav(event,this)"></td>
+      <td class="st-cell"><input class="st-inp num" value="${s.visits||0}" type="number" min="0" onchange="patchStudent('${s.id}','visits',+this.value)" style="width:52px" onkeydown="stNav(event,this)"></td>
+      <td class="st-cell" style="text-align:center;padding:6px 8px;white-space:nowrap">
+        <span class="sched-dot" style="background:${dotCol}"></span>${sched}/${total}
+        ${total>1?`<div style="width:40px;height:3px;background:var(--border);border-radius:2px;margin:3px auto 0;overflow:hidden"><div style="width:${pct}%;height:100%;background:${dotCol};border-radius:2px"></div></div>`:''}
+      </td>
+      <td class="st-cell" style="text-align:center"><button class="st-del" onclick="deleteStudent('${s.id}')" title="Delete student">&#10005;</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function esc(v){return(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+
+function patchStudent(sid,field,val){
+  if(!SS[sid])return;
+  SS[sid][field]=val;
+  // Highlight row briefly to confirm
+  const row=qs('strow-'+sid);
+  if(row){row.style.background='#EAF3DE';setTimeout(()=>row.style.background='',800);}
+}
+
+function deleteStudent(sid){
+  const s=SS[sid];if(!s)return;
+  if(!confirm('Remove '+s.n+' from the system?\nThis also removes them from the schedule.'))return;
+  rmFromSched(sid);
+  delete SS[sid];
+  renderStudentsTable();
+}
+
+function addNewStudentRow(){
+  const id='sx'+Date.now();
+  SS[id]={id,n:'New Student',t:'',br:'Shuhada',a:'',la:0,ln:0,visits:0,sessionsPerWeek:1};
+  renderStudentsTable();
+  // Scroll to bottom and focus the new row's name field
+  const tbody=qs('students-tbody');
+  tbody.lastElementChild?.scrollIntoView({block:'center'});
+  tbody.lastElementChild?.querySelector('.st-inp')?.focus();
+  tbody.lastElementChild?.classList.add('new-row');
+}
+
+// Tab/Enter navigation between cells
+function stNav(e,inp){
+  if(e.key==='Enter'||e.key==='Tab'){
+    e.preventDefault();
+    const allInps=[...qs('students-tbody').querySelectorAll('.st-inp,.st-sel')];
+    const idx=allInps.indexOf(inp);
+    const next=allInps[idx+(e.shiftKey?-1:1)];
+    if(next)next.focus();
+  }
+}
+
+function exportStudentsCSV(){
+  const rows=[['ID','Name','Teacher','Branch','Address','Latitude','Longitude','Sessions/week','Visits']];
+  Object.values(SS).sort((a,b)=>a.n.localeCompare(b.n)).forEach(s=>{
+    rows.push([s.id,s.n,s.t,s.br,s.a,s.la,s.ln,s.sessionsPerWeek||1,s.visits||0]);
+  });
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download='BeCurious_Students.csv';a.click();URL.revokeObjectURL(url);
+  toast('Student list exported');
+}
+
+qs('st-search')?.addEventListener('input',renderStudentsTable);
+qs('st-filter-br')?.addEventListener('change',renderStudentsTable);
+
+// ===== SORT / FILTER =====
+function setSort(m){
+  curSort=m;
+  qs('sb-c').classList.toggle('on',m==='closest');
+  qs('sb-t').classList.toggle('on',m==='teacher');
+  qs('sb-s').classList.toggle('son',m==='suggest');
+  qs('sb-s').classList.toggle('on',false);
+  qs('teacher-dd').style.display=m==='teacher'?'block':'none';
+  renderPool();
+}
+
+function gd(d){curDay=d;document.querySelectorAll('.dt').forEach((el,i)=>el.classList.toggle('on',['Sun','Mon','Tue','Wed','Thu'][i]===d));renderSched();renderPool();}
+function setB(b,btn){curBr=b;document.querySelectorAll('.pf').forEach(el=>el.classList.remove('on'));btn.classList.add('on');renderPool();}
+
+// ===== CARS MANAGER =====
+function showCarsModal(){renderCarList();qs('carsmodal').style.display='flex';}
+function closeCarsModal(){qs('carsmodal').style.display='none';renderSched();renderPool();saveState();}
+
+function renderCarList(){
+  const list=qs('car-list');
+  list.innerHTML=CARS.map(car=>`<div class="car-list-item">
+    <span style="font-size:10px;color:var(--text3);width:20px">${car.id}</span>
+    <input value="${car.label}" placeholder="Car name" onchange="updateCar(${car.id},'label',this.value)" style="flex:1">
+    <input value="${car.branch}" placeholder="Branch" onchange="updateCar(${car.id},'branch',this.value)" style="width:80px">
+    <input value="${car.driver}" placeholder="Driver name" onchange="updateCar(${car.id},'driver',this.value)" style="flex:1">
+    <button class="car-del" onclick="delCar(${car.id})" title="Remove car">×</button>
+  </div>`).join('');
+}
+function updateCar(id,field,val){const c=CARS.find(c=>c.id===id);if(c){c[field]=val;}}
+function addCar(){
+  const id=Math.max(0,...CARS.map(c=>c.id))+1;
+  const car={id,label:`Car ${id}`,branch:'Salam',driver:''};
+  CARS.push(car);
+  DAYS.forEach(d=>{if(!SCHED[d])SCHED[d]={};SCHED[d][id]=Array(MAX_SL).fill(null);});
+  renderCarList();
+}
+function delCar(id){
+  if(CARS.length<=1){toast('Need at least one car');return;}
+  if(!confirm(`Remove ${CARS.find(c=>c.id===id)?.label}? All sessions in this car will be lost.`))return;
+  CARS=CARS.filter(c=>c.id!==id);
+  DAYS.forEach(d=>{delete SCHED[d]?.[id];});
+  renderCarList();
+}
+function editCar(id){showCarsModal();}
+
+// ===== ADD STUDENT =====
+function showAdd(){
+  qs('add-title').textContent='Add new student';
+  qs('fedit-id').value='';qs('ft').value='';qs('fs').value='';qs('fa').value='';
+  qs('flat').value='';qs('flng').value='';qs('fvisits').value='0';qs('fspw').value='1';
+  qs('fb').value='Shuhada';qs('addmodal').style.display='flex';
+}
+function closeAdd(){qs('addmodal').style.display='none';}
+function doAdd(){
+  const br=qs('fb').value,t=qs('ft').value.trim(),n=qs('fs').value.trim(),a=qs('fa').value.trim();
+  const la=parseFloat(qs('flat').value),ln=parseFloat(qs('flng').value);
+  const visits=parseInt(qs('fvisits').value)||0;
+  const sessionsPerWeek=Math.max(1,parseInt(qs('fspw').value)||1);
+  const editId=qs('fedit-id').value;
+  if(!t||!n||!a||isNaN(la)||isNaN(ln)){toast('Fill all fields');return;}
+  const id=editId||'sx'+Date.now();
+  SS[id]={id,n,br,t,la,ln,a,visits,sessionsPerWeek};
+  closeAdd();renderPool();saveState();toast(`${n} ${editId?'updated':'added to pool'}`);
+}
+function editStudent(sid){
+  const s=SS[sid];if(!s)return;
+  qs('add-title').textContent='Edit student';
+  qs('fedit-id').value=sid;qs('fb').value=s.br;qs('ft').value=s.t;qs('fs').value=s.n;
+  qs('fa').value=s.a;qs('flat').value=s.la;qs('flng').value=s.ln;
+  qs('fvisits').value=s.visits||0;qs('fspw').value=s.sessionsPerWeek||1;
+  qs('addmodal').style.display='flex';
+}
+
+// ===== EXPORT =====
+function showExport(){
+  const sc=Object.keys(SS).length-poolSids().length;const pool=poolSids().length;
+  let dd=0;DAYS.forEach(d=>CARS.forEach(car=>(SCHED[d]?.[car.id]||[]).forEach(sl_=>{if(sl_&&sl_.t==='d')dd++;})));
+  qs('exp-done').textContent=sc;qs('exp-pool').textContent=pool;qs('exp-dd').textContent=dd;qs('exp-tot').textContent=Object.keys(SS).length;
+  qs('exportmodal').style.display='flex';
+}
+function closeExport(){qs('exportmodal').style.display='none';}
+
+function buildCSV(){
+  const rows=[['BeCurious Home Visit Schedule'],['Generated:',new Date().toLocaleString('en-GB'),'','','','','',''],[''],
+    ['Day','Car','Driver','Slot','Time','Type','Teacher','Student','Address','Branch','Km from branch','Drive (min)','Visits','Notes']];
+  DAYS.forEach(d=>{CARS.forEach(car=>{
+    const slots=SCHED[d]?.[car.id]||[];
+    slots.forEach((sl_,si)=>{
+      if(!sl_)return;
+      const t=ts(slotStartMin(d,car.id,si));
+      if(sl_.t==='s'){
+        const s=SS[sl_.id];if(!s)return;
+        rows.push([d,car.label,car.driver,si+1,t,'DROP',s.t,s.n,s.a,s.br,dbBr(s,carBranch(car.id)).toFixed(1),tm(dbBr(s,carBranch(car.id))),s.visits||0,'']);
+      }
+      if(sl_.t==='d'){
+        [sl_.ids[0],sl_.ids[1]].forEach((sid,idx)=>{
+          const s=SS[sid];if(!s)return;
+          const inter=sl_.inter||0;
+          const t2=ts(slotStartMin(d,car.id,si)+(idx===1?inter:0));
+          rows.push([d,car.label,car.driver,si+1,t2,`DOUBLE-DROP (${idx+1}/2)`,s.t,s.n,s.a,s.br,dbBr(s,carBranch(car.id)).toFixed(1),tm(dbBr(s,carBranch(car.id))),s.visits||0,`Paired · ${sl_.km?.toFixed(1)}km between homes`]);
+        });
+      }
+      if(sl_.t==='pick'){
+        const s=SS[sl_.id];if(!s)return;
+        rows.push([d,car.label,car.driver,si+1,t,'PICK-UP',s.t,s.n,sl(s.a)+' → '+carBranch(car.id)+' branch',s.br,'','',s.visits||0,'']);
+      }
+    });
+  });});
+  rows.push([''],['UNSCHEDULED'],['Teacher','Student','Address','Branch','Visits']);
+  poolSids().forEach(id=>{const s=SS[id];if(s)rows.push([s.t,s.n,s.a,s.br,s.visits||0]);});
+  return rows;
+}
+function downloadCSV(){
+  const csv=buildCSV().map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download=`BeCurious_Schedule_${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url);
+  toast('CSV downloaded — import into Google Sheets');closeExport();
+}
+function copyForSheets(){
+  const tsv=buildCSV().map(r=>r.join('\t')).join('\n');
+  navigator.clipboard.writeText(tsv).then(()=>{toast('Copied! Paste into Google Sheets (A1)');closeExport();}).catch(()=>toast('Copy failed — use CSV download'));
+}
+
+// ===== RESET =====
+function doReset(){
+  if(!confirm('Reset entire schedule? All sessions return to pool.'))return;
+  SCHED=blankSched();activeSlot=null;renderSched();renderPool();saveState();
+}
+
+// ===== TOAST =====
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3500);}
+
+// ===== START =====
+init();
+if(!tryLoadState()){/* fresh start */}
+else ensureSchedCoverage();
+renderSched();renderPool();
+</script>
+</body>
+</html>
