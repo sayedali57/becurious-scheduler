@@ -211,7 +211,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .st-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:4px 8px;width:100%;height:100%}
 .st-del:hover{color:var(--red)}
 .sched-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:3px}
+#last-edit{font-size:9px;color:rgba(255,255,255,.6);margin-left:6px;white-space:nowrap}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <body>
 <div class="hdr">
   <div><div class="hdr-title">BeCurious Schedule Builder</div><div class="hdr-sub">Drag to schedule · Drop on filled slot = double-drop · Click slot = set active</div></div>
@@ -221,7 +223,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
     <div class="hstat"><b id="st-pk">0</b>Pickups</div>
     <div class="hstat"><b id="st-u">0%</b>Done</div>
   </div>
-  <span id="save-ind">Auto-saved</span>
+  <span id="save-ind">Connecting…</span>
+  <span id="last-edit"></span>
   <button class="hbtn amber" onclick="importState()">⬆ Import JSON</button>
   <button class="hbtn green" onclick="showExport()">⬇ Export</button>
   <button class="hbtn" onclick="showCarsModal()">🚗 Cars</button>
@@ -432,9 +435,28 @@ const DAYS=['Mon','Tue','Wed','Thu'];
 const MAX_SL=14; // slots per car per day
 const SAVE_KEY='bc_v3';
 
+// ===== SUPABASE (shared multi-user state) =====
+const SUPA_URL='https://mzrklddpdliltwrrackj.supabase.co';
+const SUPA_KEY='sb_publishable_QhVNl-SuiLxU2695vu1TqQ_rKhN3cp9';
+const SUPA_ROW_ID='main';
+const supa=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(SUPA_URL,SUPA_KEY):null;
+
+// Who is using this browser — prompted on first use, stored locally
+function getUserName(){
+  let n=localStorage.getItem('bc_user');
+  if(!n){
+    n=(prompt('Your name? (so other coordinators see who edited)')||'').trim();
+    if(!n)n='Unknown';
+    localStorage.setItem('bc_user',n);
+  }
+  return n;
+}
+
 // ===== STATE =====
 let SS={},SCHED={},CARS=[],curDay='Mon',curBr='All',curSort='closest';
 let dragId=null,dragType='drop',activeSlot=null;
+// Supabase sync state
+let supaOnline=false,applyingRemote=false,lastSyncFp='',saveTimer=null;
 
 // ===== HELPERS =====
 function hv(a,b,c,d){const R=6371,p=Math.PI/180,da=(c-a)*p,db=(d-b)*p;return+(2*R*Math.asin(Math.sqrt(Math.sin(da/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(db/2)**2))).toFixed(2);}
@@ -600,12 +622,53 @@ function init(){
   SCHED=blankSched();activeSlot=null;
 }
 
-// ===== PERSISTENCE =====
-function saveState(){
-  try{localStorage.setItem(SAVE_KEY,JSON.stringify({SS,SCHED,CARS,v:3}));
-  const el=qs('save-ind');if(el){el.textContent='Saved ✓';el.style.color='#34D399';setTimeout(()=>{el.textContent='Auto-saved';el.style.color='rgba(255,255,255,.5)';},1800);}
-  }catch(e){}
+// ===== PERSISTENCE (Supabase shared + localStorage fallback) =====
+function setSyncIndicator(status){
+  const el=qs('save-ind');if(!el)return;
+  if(status==='saving'){el.textContent='⟳ Saving…';el.style.color='rgba(255,255,255,.75)';}
+  else if(status==='synced'){el.textContent='✓ Synced';el.style.color='#34D399';}
+  else if(status==='offline'){el.textContent='⚠ Offline (local only)';el.style.color='#FBBF24';}
+  else if(status==='connecting'){el.textContent='Connecting…';el.style.color='rgba(255,255,255,.6)';}
 }
+function setLastEdit(name,when){
+  const el=qs('last-edit');if(!el)return;
+  if(!name){el.textContent='';return;}
+  const t=when?new Date(when).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'';
+  el.textContent=`· last edit: ${name}${t?' at '+t:''}`;
+}
+
+function saveState(){
+  // Always save locally (offline fallback, instant)
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify({SS,SCHED,CARS,v:3}));}catch(e){}
+  // Don't echo remote updates back to Supabase
+  if(applyingRemote)return;
+  // Debounce pushes so a burst of edits only triggers one network call
+  setSyncIndicator('saving');
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(pushToSupabase,400);
+}
+
+async function pushToSupabase(){
+  if(!supa){setSyncIndicator('offline');return;}
+  try{
+    const payload={SS,SCHED,CARS,v:3};
+    const fp=JSON.stringify(payload);
+    if(fp===lastSyncFp){setSyncIndicator('synced');return;}
+    const {error}=await supa.from('scheduler_state').update({
+      data:payload,updated_by:getUserName(),updated_at:new Date().toISOString()
+    }).eq('id',SUPA_ROW_ID);
+    if(error)throw error;
+    lastSyncFp=fp;
+    supaOnline=true;
+    setSyncIndicator('synced');
+    setLastEdit(getUserName(),new Date().toISOString());
+  }catch(e){
+    console.error('Supabase push failed:',e);
+    supaOnline=false;
+    setSyncIndicator('offline');
+  }
+}
+
 function tryLoadState(){
   try{
     const raw=localStorage.getItem(SAVE_KEY);
@@ -622,6 +685,65 @@ function tryLoadState(){
     });});
     return true;
   }catch(e){return false;}
+}
+
+function applyRemoteData(payload,updatedBy,updatedAt){
+  if(!payload||typeof payload!=='object')return false;
+  // Empty/seed row — nothing to apply
+  if(!payload.SS||Object.keys(payload.SS).length===0)return false;
+  applyingRemote=true;
+  try{
+    SS=payload.SS||{};
+    CARS=(payload.CARS&&payload.CARS.length)?payload.CARS:defaultCars();
+    const raw_s=payload.SCHED||{};
+    SCHED={};
+    DAYS.forEach(d=>{SCHED[d]={};CARS.forEach(car=>{
+      const arr=raw_s[d]?.[car.id]||[];
+      SCHED[d][car.id]=arr.length>=MAX_SL?arr:[...arr,...Array(MAX_SL-arr.length).fill(null)];
+    });});
+    lastSyncFp=JSON.stringify({SS,SCHED,CARS,v:3});
+    setLastEdit(updatedBy,updatedAt);
+    return true;
+  }finally{
+    applyingRemote=false;
+  }
+}
+
+async function bootLoadFromSupabase(){
+  if(!supa)return false;
+  try{
+    const {data,error}=await supa.from('scheduler_state')
+      .select('data,updated_by,updated_at').eq('id',SUPA_ROW_ID).single();
+    if(error)throw error;
+    supaOnline=true;
+    if(data&&data.data&&applyRemoteData(data.data,data.updated_by,data.updated_at))return true;
+    return false;
+  }catch(e){
+    console.error('Supabase boot load failed:',e);
+    supaOnline=false;
+    return false;
+  }
+}
+
+function subscribeRealtime(){
+  if(!supa)return;
+  supa.channel('scheduler_state_changes')
+    .on('postgres_changes',
+      {event:'UPDATE',schema:'public',table:'scheduler_state',filter:'id=eq.'+SUPA_ROW_ID},
+      (pl)=>{
+        const newData=pl.new&&pl.new.data;
+        if(!newData)return;
+        const fp=JSON.stringify({SS:newData.SS,SCHED:newData.SCHED,CARS:newData.CARS,v:3});
+        // Ignore our own echo
+        if(fp===lastSyncFp)return;
+        if(applyRemoteData(newData,pl.new.updated_by,pl.new.updated_at)){
+          ensureSchedCoverage();
+          renderSched();renderPool();
+          const who=pl.new.updated_by||'someone';
+          if(who!==getUserName())toast(`Updated by ${who}`);
+        }
+      })
+    .subscribe();
 }
 function exportJSON(){
   const blob=new Blob([JSON.stringify({SS,SCHED,CARS,v:3},null,2)],{type:'application/json'});
@@ -1545,9 +1667,25 @@ function toast(msg){const t=document.createElement('div');t.className='toast';t.
 
 // ===== START =====
 init();
-if(!tryLoadState()){/* fresh start */}
-else ensureSchedCoverage();
-renderSched();renderPool();
+setSyncIndicator('connecting');
+(async()=>{
+  const fromSupa=await bootLoadFromSupabase();
+  if(!fromSupa){
+    // Nothing useful in Supabase yet — use localStorage or the seeded RAW data
+    if(tryLoadState())ensureSchedCoverage();
+    // If we ARE online (row just exists but is empty), push our current state up
+    // so the next coordinator to load sees the same data.
+    if(supaOnline){
+      lastSyncFp='';
+      await pushToSupabase();
+    }
+  }else{
+    ensureSchedCoverage();
+  }
+  renderSched();renderPool();
+  setSyncIndicator(supaOnline?'synced':'offline');
+  if(supaOnline)subscribeRealtime();
+})();
 </script>
 </body>
 </html>
