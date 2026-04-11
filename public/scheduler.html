@@ -231,6 +231,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
   <button class="hbtn green" onclick="autoScheduleWeek()" title="Automatically place every pool student into car slots — minimizes drive time and groups by teacher">⚡ Auto-schedule</button>
   <button class="hbtn" onclick="showReportsModal()">📊 Reports</button>
   <button class="hbtn" onclick="showTeachersModal()">👩‍🏫 Teachers</button>
+  <button class="hbtn" onclick="showSettingsModal()">⚙ Settings</button>
   <button class="hbtn" onclick="showCarsModal()">🚗 Cars</button>
   <button class="hbtn" onclick="showStudentsTable()">📋 Students</button>
   <button class="hbtn amber" onclick="importState()">⬆ Import</button>
@@ -305,7 +306,15 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
       <div class="frow"><label>Sessions per week</label><input id="fspw" type="number" min="1" max="7" value="1" placeholder="1"></div>
       <div class="frow"><label>Total visits so far</label><input id="fvisits" type="number" min="0" value="0" placeholder="0"></div>
     </div>
-    <div class="frow"><label>Parent WhatsApp (with country code, e.g. 96599887766)</label><input id="fparent" placeholder="Optional — enables parent notifications"></div>
+    <div class="frow2">
+      <div class="frow"><label>Session type</label>
+        <select id="fstype">
+          <option value="1on1">1-on-1 (own slot)</option>
+          <option value="group">Group (share slot with same teacher)</option>
+        </select>
+      </div>
+      <div class="frow"><label>Parent WhatsApp (with country code)</label><input id="fparent" placeholder="Optional — e.g. 96599887766"></div>
+    </div>
     <input type="hidden" id="fedit-id">
     <div class="mbtns">
       <button class="btn" onclick="closeAdd()">Cancel</button>
@@ -354,6 +363,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Latitude</th>
             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Longitude</th>
             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Parent WhatsApp</th>
+            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap" title="1on1 = own slot · Group = shares slot with same teacher">Type</th>
             <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Sess/wk</th>
             <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Visits</th>
             <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Scheduled</th>
@@ -473,6 +483,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .att-btn.on-noshow{background:#FEF3C7;border-color:#D97706;color:#92400E;font-weight:700}
 .att-row{display:flex;align-items:center;gap:3px;padding:3px 7px 4px;font-size:9px;color:var(--text3);border-top:1px solid var(--border);flex-wrap:wrap}
 .att-row b{font-size:8px;font-weight:700;margin-right:3px;color:var(--text3);text-transform:uppercase}
+.set-section{border:1px solid var(--border);border-radius:8px;padding:10px 12px 6px;margin-bottom:10px;background:#FAFAFA}
+.set-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:8px}
+.set-help{display:block;font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4}
 </style>
 
 <!-- AUTO-SCHEDULE CONFIRM MODAL -->
@@ -483,15 +496,61 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
     <div style="background:var(--bg);border-radius:6px;padding:10px;font-size:10px;color:var(--text2);line-height:1.7;margin-bottom:10px">
       <b>How it works:</b><br>
       1. Only <i>pool</i> students (those not yet fully scheduled) are placed — existing schedule is kept.<br>
-      2. Each student is assigned to the closest car (by branch) on a day the teacher is available.<br>
-      3. Teacher daily limits (Max/day) are respected — over-limit students stay in the pool.<br>
+      2. Each student is assigned to the closest car on a day the teacher is available, respecting Max/day and same-day rules from <b>⚙ Settings</b>.<br>
+      3. <b>1-on-1</b> students get their own slot. <b>Group</b> students are batched with other group-type students who share the same teacher (up to the group-size limit in Settings).<br>
       4. Students of the same teacher are chained consecutively to reduce handoff drives.<br>
-      5. Auto pickup slots are added after each drop.
+      5. Auto pickup slots are added after each drop (if enabled in Settings).
     </div>
     <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="auto-clear"> Clear the existing schedule first (start from scratch)</label></div>
     <div class="mbtns">
       <button class="btn" onclick="qs('automodal').style.display='none'">Cancel</button>
       <button class="btn btnp" onclick="runAutoSchedule()">⚡ Run auto-schedule</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="modal" id="settingsmodal" style="display:none;align-items:flex-start;padding:20px">
+  <div class="mbox" style="width:560px;max-height:90vh;overflow:auto">
+    <h3>⚙ Scheduling settings</h3>
+    <p style="font-size:11px;color:var(--text2);margin-bottom:12px;line-height:1.5">These rules are used by the <b>schedule view</b> and the <b>auto-scheduler</b>. Changes apply immediately and are saved for everyone on the team.</p>
+
+    <div class="set-section">
+      <div class="set-section-title">Session timing</div>
+      <div class="frow2">
+        <div class="frow"><label>Session length (minutes)</label><input id="set-sessionMin" type="number" min="15" max="180" step="5"><small class="set-help">How long each tutoring session lasts.</small></div>
+        <div class="frow"><label>Handover buffer (minutes)</label><input id="set-bufferMin" type="number" min="0" max="30" step="1"><small class="set-help">Extra minutes added to every drop for setup / walking the child to the door.</small></div>
+      </div>
+      <div class="frow2">
+        <div class="frow"><label>First car departure</label><input id="set-dayStart" type="time"><small class="set-help">When the first car leaves the branch.</small></div>
+        <div class="frow"><label>Max slots per car per day</label><input id="set-maxSlots" type="number" min="4" max="24"><small class="set-help">How many visits one car can do in a day.</small></div>
+      </div>
+    </div>
+
+    <div class="set-section">
+      <div class="set-section-title">Groups &amp; 1-on-1</div>
+      <div class="frow2">
+        <div class="frow"><label>Max students per group slot</label><input id="set-maxGroup" type="number" min="2" max="8"><small class="set-help">How many "group" type students the auto-scheduler will batch into one shared slot.</small></div>
+        <div class="frow"><label>Default teacher max/day</label><input id="set-teacherMax" type="number" min="1" max="12"><small class="set-help">Per-day limit applied when a new teacher record is auto-created.</small></div>
+      </div>
+    </div>
+
+    <div class="set-section">
+      <div class="set-section-title">Auto-schedule rules</div>
+      <div class="frow2">
+        <div class="frow"><label>Same-teacher chaining strength</label><input id="set-chainBonus" type="number" min="0" max="500" step="10"><small class="set-help">Higher = auto-schedule tries harder to put same-teacher students back-to-back. 0 = ignore teacher, pure distance.</small></div>
+        <div class="frow"></div>
+      </div>
+      <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="set-sameBranch"> Only place a student into a car for their own branch</label></div>
+      <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="set-autoPickup"> Insert a pickup slot after every drop</label></div>
+      <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="set-preventDouble"> Never schedule the same student twice on the same day</label></div>
+    </div>
+
+    <div class="mbtns" style="gap:6px">
+      <button class="btn" onclick="resetSettings()" title="Restore all settings to defaults" style="opacity:.7">↺ Reset to defaults</button>
+      <div style="flex:1"></div>
+      <button class="btn" onclick="closeSettingsModal()">Cancel</button>
+      <button class="btn btnp" onclick="saveSettingsModal()">Save</button>
     </div>
   </div>
 </div>
@@ -579,8 +638,44 @@ const BP={Shuhada:[29.268183,48.027942],Salam:[29.297843,48.013185],Salwa:[29.29
 const TC={'Varti':'#6A5FA8','Safaa':'#0891B2','Nilma':'#0F6E56','Farah':'#EA580C','Maritel':'#DB2777','Siba':'#2563EB','Fatma':'#D97706','Mariya':'#7C3AED','Wafaa':'#047857','Hadeel':'#16A34A','Ann':'#DC2626','Nargis':'#1D4ED8','Soha':'#B45309','Saira/Aswini':'#78350F','Mehjabeen':'#991B1B','Mehjabeen/Manju':'#6D28D9','Khadija':'#0E7490','Mariam':'#4D7C0F','Sharifa':'#92400E','Maliha':'#1E40AF','Sofia':'#9D174D'};
 const RAW=[['s1','Deeme alknadiri','Shuhada','Varti',29.268171,48.03091,'Shuhada, B4, St417, H33'],['s2','Dhari alkandari','Shuhada','Safaa',29.238145,48.053435,'Aladan, B2, St20, H4'],['s3','Abdulaziz Alsabti','Shuhada','Nilma',29.277549,47.998353,'Zahra, B5, St507, H16'],['s4','Haya AlOsaimi','Shuhada','Nilma',29.284271,48.001844,'Zahra, B20, St218, H18'],['s5','Ahmad Fathallah','Shuhada','Nilma',29.273805,48.034902,'Shuhada, B2, St205, H30'],['s6','Riyadh Alsaleh','Shuhada','Nilma',29.258834,48.06685,'Sabah Alsalem, B4, St5, H2'],['s7','Faisal Almeer','Shuhada','Nilma',29.308455,48.016416,'Alsurra, B2, St13, H4'],['s8','Jumanah Kareemi','Shuhada','Farah',29.233393,48.057133,'Aladan, B2, St42, H22'],['s9','Elaf alabdulelah','Shuhada','Farah',29.20406,48.063561,'Alqurain, B3, St8, H50'],['s10','Mona Alkandari','Shuhada','Farah',29.103605,48.069772,'N.Ahmadi, B15, St11, H5'],['s11','Ali alqoud','Shuhada','Farah',29.288286,48.070924,'Mishref, B1, St6, H32'],['s12','Mariam Bo Abbas','Shuhada','Farah',29.251472,48.052584,'Sabah Alsalem, B10, St1, H36'],['s13','Yaqoub Alhelal','Shuhada','Maritel',29.282841,47.993845,'Huteen, B3, St305, H22'],['s14','Hashim Algharaballi','Shuhada','Maritel',29.269133,48.025974,'Shuhada, B4, St410, H162'],['s15','Abdulmohsen Albassam','Shuhada','Maritel',29.286147,48.061443,'Mishref, B2, St3, H11'],['s16','Omar albaloul','Shuhada','Maritel',29.282697,48.024805,'Huteen, B3, St10, H44'],['s17','Mariam Al jumaie','Shuhada','Maritel',29.30068,47.887253,'AlAndalus, B3, St105, H52'],['s18','Ghaliah Boareki','Shuhada','Siba',29.279562,48.016506,'Huteen, B4, St415, HA8'],['s19','Hamad Fahad','Shuhada','Siba',29.242323,48.056733,'Sabah Alsalem, B13, St2, H21'],['s20','Fay Alrashed','Shuhada','Siba',29.199257,48.066797,'AlQurain, B3, St34, H41'],['s21','Saeed Almeer','Shuhada','Siba',29.308455,48.016416,'Alsurra, B2, St13, H4'],['s22','Fatimah Almahmeed','Shuhada','Fatma',29.310042,48.059533,'Rumaithiya, B1, St10, H15'],['s23','Khaled Abul','Shuhada','Fatma',29.277782,48.038307,'Abdullah Mubarak, B3, St311, H30'],['s24','Yousef Hussain','Shuhada','Fatma',29.250717,48.079723,'Sabah Alsalem, B7, St1, H26'],['s25','Sarah salem','Shuhada','Fatma',29.271061,47.878396,'Sabah Alnasser, B1, St102, H14'],['s26','Fatima Alsaffar','Shuhada','Mariya',29.270632,48.029082,'Shuhada, B4, St414, H1'],['s27','Mohammad Alali','Shuhada','Mariya',29.26662,48.02322,'Shuhada, B3, St306, H66'],['s28','Yousef Alhashash','Shuhada','Mariya',29.233181,48.054958,'Aladan, B2, St35, H10'],['s29','Ahmed Alsaqer','Shuhada','Mariya',29.269811,48.067818,'Mishref, B5, St15, H12'],['s30','Abdullah AlKhashti','Shuhada','Mariya',29.239612,47.916652,'Abdullah Almubarak, B2, St203, H2'],['s31','Turki alnami','Shuhada','Mariya',29.272517,48.02512,'Shuhada, B5, St512, H37'],['s32','Dalia Bouqamaz','Shuhada','Mariya',29.283217,47.991817,'Zahraa, B3, St301, H14'],['s33','Omar Fahad','Shuhada','Wafaa',29.242323,48.056733,'Sabah Alsalem, B13, St2, H21'],['s34','Khaled alkandari','Shuhada','Wafaa',29.103605,48.069772,'N.Ahmadi, B15, St11, H5'],['s35','Joudi altahous','Salam','Hadeel',29.282301,48.029976,'Hiteen, B3, St11, H99'],['s36','Moudhi almanee','Salam','Hadeel',29.270021,47.994088,'Alzahraa, B8, St810, H12'],['s37','Deema alqataan','Salam','Ann',29.286605,48.067622,'Mishref, B1, St50, H2B'],['s38','Abdalkareem alawadhai','Salam','Ann',29.292142,48.001628,'Alsideeq, B3, St305, H15'],['s39','Shaikha Almotawa','Salam','Ann',29.299692,48.019934,'Alsalam, B2, St211, H72'],['s40','Yousef Alrayes','Salam','Ann',29.301208,48.00294,'Alsalam, B1, St113, H12'],['s41','Abdulmohsen Alwuhaib','Salam','Ann',29.33677,47.964828,'Kifan, B1, Alquds St, H49A'],['s42','Dhai alshami','Salam','Ann',29.290442,48.006513,'Alsalam, B7, St717, H1'],['s43','Abdalmohsen ahmad','Salam','Ann',29.231194,48.084124,'Aladdan, B7, St9, H12'],['s44','Zaid alqassar','Salam','Ann',29.301951,48.041589,'Bayan, B3, St2, H5'],['s45','Alia albaker','Salam','Ann',29.291962,48.023897,'Salam, B5, St519, H10'],['s46','Yousef alrudaini','Salam','Nargis',29.293657,48.014559,'Alsalam, B4, St411, H7'],['s47','Bader Al Ali','Salam','Soha',29.292123,48.01024,'Alsalam, B6, St611, H37'],['s48','Zaina Alrukhayes','Salam','Soha',29.292554,48.021254,'Alsalam, B5, St507, H19'],['s49','Jassim almansouri','Salam','Soha',29.291189,47.890544,'Alardeya, B4, St4, H46'],['s50','Soud alhuwaidi','Salam','Saira/Aswini',29.29337,48.00731,'Alsalam, B7, St714, H3'],['s51','Omar shamsaldeen','Salam','Saira/Aswini',29.307967,48.042629,'Bayan, B2, St3, H25A'],['s52','Hamad alfoudri','Salam','Saira/Aswini',29.29179,48.015429,'Alsalam, B6, St603, H9'],['s53','Dhayi al shareifi','Salam','Saira/Aswini',29.291183,48.025481,'Alsalam, B5, St512, H23'],['s54','Dalal alsabah','Salam','Mehjabeen',29.307077,47.995242,'Qortouba, B2, St1, H35'],['s55','Yaqoub Alshatti','Salam','Mehjabeen',29.206705,48.099997,'Aboftera, B4, St242, H390'],['s56','Abdallah alhashmi','Salam','Mehjabeen/Manju',29.316523,47.853691,'Sulaibkhat, B2, St102, H4B'],['s57','Alzain al shamroukh','Salam','Mehjabeen/Manju',29.28501,48.021473,'Heteen, B1, St119, H28'],['s58','Abdulaziz alsaleem','Salam','Mehjabeen/Manju',29.211743,48.05994,'Alqusoor, B7, St25, H25'],['s59','Abdulmohsen Altahous','Salam','Mehjabeen/Manju',29.282301,48.029976,'Hiteen, B3, St11, H99'],['s60','Waleed algarabaili','Salam','Khadija',29.336969,47.965856,'Kifan, B1, St16, H46'],['s61','Abdalrahman alroudhan','Salam','Khadija',29.299736,48.006709,'Alsalam, B1, St129, H11'],['s62','Hamad alawadhi','Salam','Khadija',29.292142,48.001628,'Alsideeq, B3, St305, H15'],['s63','Fatima Alomeri','Salam','Mariam',29.285832,48.015943,'Hitteen, B2, St209, H12'],['s64','Fay Mohammad Alqoud','Salam','Mariam',29.235195,48.085796,'Almasayel, B5, St512, H95'],['s65','Danah al fozan','Salam','Mariam',29.336305,47.997013,'Alrawdha, B4, H40'],['s66','Nour alhajri','Salam','Sharifa',29.206954,48.068747,'Alqreen, B3, St4, H54'],['s67','Zaina al fahad','Salam','Sharifa',29.301567,48.002748,'Salam, B1, St112, H36'],['s68','Yousef Albaghli','Salam','Sharifa',29.302696,48.020289,'Alsalam, B2, St214, H49'],['s69','Hamad Alnaham','Salam','Maliha',29.294908,48.02159,'Alsalam, B2, St203, H19'],['s70','Rasha Algheith','Salam','Maliha',29.289509,48.016182,'Alsalam, B6, St606, H14'],['s71','Sayed behbahani','Salam','Maliha',29.20113,48.10021,'Boftera, B2, St132, H4'],['s72','Bader Alkhabbaz','Salam','Maliha',29.233227,48.077179,'Aladdan, B6, St10, H25'],['s73','Maryam alsaleem','Salam','Maliha',29.211743,48.05994,'Alqusoor, B7, St25, H25'],['s74','Jouri Alsbaei','Salam','Maliha',29.288865,47.993801,'Alsideeq, B6, St602, H15'],['s75','Layan Alawadhi','Salwa','Sofia',29.296988,48.069798,'Salwa, B6, St7, H8'],['s76','Jaber Almarri','Salwa','Sofia',29.29015,48.052485,'Bayan, B12, St1, H28'],['s77','Bader Aldarmi','Salwa','Sofia',29.307314,47.791623,'Alqayrwan, B3, St317, H21'],['s78','Rana Alhailaa','Salwa','Sofia',29.29664,48.072534,'Salwa, B6, St8, H23'],['s79','Mubarak Alshemri','Salwa','Sofia',29.237897,48.083171,'Aladdan, B7, St16, H14']];
 const DAYS=['Mon','Tue','Wed','Thu'];
-const MAX_SL=14; // slots per car per day
+let MAX_SL=14; // slots per car per day — overridden from SETTINGS.maxSlotsPerCar at load time
 const SAVE_KEY='bc_v3';
+
+// ===== SETTINGS (user-tunable rules for scheduling + auto-schedule) =====
+const DEFAULT_SETTINGS={
+  sessionMin:60,        // Session length in minutes
+  bufferMin:5,          // Extra minutes added to each drop (setup/handover time)
+  dayStartMin:600,      // First car departure, minutes-of-day (600 = 10:00)
+  maxSlotsPerCar:14,    // Max visit slots per car per day
+  maxGroupSize:4,       // Max students auto-batched into one group slot
+  teacherDefaultMax:6,  // Default per-day max for new teacher records
+  chainBonusKm:100,     // How strongly auto-schedule prefers same-teacher chains (higher = stronger)
+  sameBranchOnly:1,     // 1 = only place a student into a car whose branch matches theirs
+  autoPickup:1,         // 1 = auto-insert a pickup slot after every drop in auto-schedule
+  preventSameDayDouble:1// 1 = never place the same student twice on the same day
+};
+let SETTINGS={...DEFAULT_SETTINGS};
+function applySettings(){
+  // Any SETTINGS change that affects derived constants goes here
+  const n=parseInt(SETTINGS.maxSlotsPerCar);
+  MAX_SL=(n&&n>0&&n<50)?n:14;
+}
+function migrateSettings(obj){
+  // Fold an incoming settings object into the live SETTINGS, keeping defaults for anything missing
+  if(!obj||typeof obj!=='object'){SETTINGS={...DEFAULT_SETTINGS};applySettings();return;}
+  SETTINGS={...DEFAULT_SETTINGS,...obj};
+  // Coerce numeric fields
+  ['sessionMin','bufferMin','dayStartMin','maxSlotsPerCar','maxGroupSize','teacherDefaultMax','chainBonusKm'].forEach(k=>{
+    const v=parseInt(SETTINGS[k]);
+    if(!isNaN(v))SETTINGS[k]=v;
+    else SETTINGS[k]=DEFAULT_SETTINGS[k];
+  });
+  // Coerce flag fields
+  ['sameBranchOnly','autoPickup','preventSameDayDouble'].forEach(k=>{
+    SETTINGS[k]=SETTINGS[k]?1:0;
+  });
+  applySettings();
+}
 
 // ===== SUPABASE (shared multi-user state) =====
 const SUPA_URL='https://mzrklddpdliltwrrackj.supabase.co';
@@ -803,11 +898,20 @@ function ensureSchedCoverage(){
   });
 }
 function init(){
+  SETTINGS={...DEFAULT_SETTINGS};applySettings();
   CARS=defaultCars();
-  SS={};RAW.forEach(([id,n,br,t,la,ln,a])=>SS[id]={id,n,br,t,la,ln,a,visits:0,parentPhone:'',sessionsPerWeek:1});
+  SS={};RAW.forEach(([id,n,br,t,la,ln,a])=>SS[id]={id,n,br,t,la,ln,a,visits:0,parentPhone:'',sessionsPerWeek:1,sessionType:'1on1'});
   SCHED=blankSched();activeSlot=null;
   TEACHERS={};ATTEND={};
   deriveTeachersFromStudents();
+}
+// Ensure any newly introduced per-student fields exist on loaded records
+function migrateStudents(){
+  Object.values(SS).forEach(s=>{
+    if(s.parentPhone==null)s.parentPhone='';
+    if(s.sessionsPerWeek==null)s.sessionsPerWeek=1;
+    if(s.sessionType==null||(s.sessionType!=='1on1'&&s.sessionType!=='group'))s.sessionType='1on1';
+  });
 }
 // Create teacher records for any teacher name appearing on a student
 // but not yet present in TEACHERS. Existing records are left alone.
@@ -841,7 +945,7 @@ function setLastEdit(name,when){
 
 function saveState(){
   // Always save locally (offline fallback, instant)
-  try{localStorage.setItem(SAVE_KEY,JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,v:4}));}catch(e){}
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,v:5}));}catch(e){}
   // Don't echo remote updates back to Supabase
   if(applyingRemote)return;
   // Debounce pushes so a burst of edits only triggers one network call
@@ -853,7 +957,7 @@ function saveState(){
 async function pushToSupabase(){
   if(!supa){setSyncIndicator('offline');return;}
   try{
-    const payload={SS,SCHED,CARS,TEACHERS,ATTEND,v:4};
+    const payload={SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,v:5};
     const fp=JSON.stringify(payload);
     if(fp===lastSyncFp){setSyncIndicator('synced');return;}
     const {error}=await supa.from('scheduler_state').update({
@@ -878,8 +982,8 @@ function tryLoadState(){
     const data=JSON.parse(raw);
     if(!data.v||data.v<3)return false;
     SS=data.SS||{};
-    // Ensure parentPhone exists on all students (v3 -> v4 migration)
-    Object.values(SS).forEach(s=>{if(s.parentPhone==null)s.parentPhone='';});
+    migrateStudents();
+    migrateSettings(data.SETTINGS);
     CARS=data.CARS&&data.CARS.length?data.CARS:defaultCars();
     TEACHERS=data.TEACHERS&&typeof data.TEACHERS==='object'?data.TEACHERS:{};
     ATTEND=data.ATTEND&&typeof data.ATTEND==='object'?data.ATTEND:{};
@@ -901,7 +1005,8 @@ function applyRemoteData(payload,updatedBy,updatedAt){
   applyingRemote=true;
   try{
     SS=payload.SS||{};
-    Object.values(SS).forEach(s=>{if(s.parentPhone==null)s.parentPhone='';});
+    migrateStudents();
+    migrateSettings(payload.SETTINGS);
     CARS=(payload.CARS&&payload.CARS.length)?payload.CARS:defaultCars();
     TEACHERS=payload.TEACHERS&&typeof payload.TEACHERS==='object'?payload.TEACHERS:{};
     ATTEND=payload.ATTEND&&typeof payload.ATTEND==='object'?payload.ATTEND:{};
@@ -912,7 +1017,7 @@ function applyRemoteData(payload,updatedBy,updatedAt){
       const arr=raw_s[d]?.[car.id]||[];
       SCHED[d][car.id]=arr.length>=MAX_SL?arr:[...arr,...Array(MAX_SL-arr.length).fill(null)];
     });});
-    lastSyncFp=JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,v:4});
+    lastSyncFp=JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,v:5});
     setLastEdit(updatedBy,updatedAt);
     return true;
   }finally{
@@ -944,7 +1049,7 @@ function subscribeRealtime(){
       (pl)=>{
         const newData=pl.new&&pl.new.data;
         if(!newData)return;
-        const fp=JSON.stringify({SS:newData.SS,SCHED:newData.SCHED,CARS:newData.CARS,TEACHERS:newData.TEACHERS||{},ATTEND:newData.ATTEND||{},v:4});
+        const fp=JSON.stringify({SS:newData.SS,SCHED:newData.SCHED,CARS:newData.CARS,TEACHERS:newData.TEACHERS||{},ATTEND:newData.ATTEND||{},SETTINGS:newData.SETTINGS||DEFAULT_SETTINGS,v:5});
         // Ignore our own echo
         if(fp===lastSyncFp)return;
         if(applyRemoteData(newData,pl.new.updated_by,pl.new.updated_at)){
@@ -957,7 +1062,7 @@ function subscribeRealtime(){
     .subscribe();
 }
 function exportJSON(){
-  const blob=new Blob([JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,v:4},null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,v:5},null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);const a=document.createElement('a');
   a.href=url;a.download=`BeCurious_${curDay}_${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);
   toast('JSON saved — share this file to continue editing on any device');closeExport();
@@ -970,7 +1075,8 @@ function importState(){
     r.onload=ev=>{try{
       const data=JSON.parse(ev.target.result);
       SS=data.SS||{};
-      Object.values(SS).forEach(s=>{if(s.parentPhone==null)s.parentPhone='';});
+      migrateStudents();
+      migrateSettings(data.SETTINGS);
       CARS=data.CARS&&data.CARS.length?data.CARS:defaultCars();
       TEACHERS=data.TEACHERS&&typeof data.TEACHERS==='object'?data.TEACHERS:{};
       ATTEND=data.ATTEND&&typeof data.ATTEND==='object'?data.ATTEND:{};
@@ -1002,7 +1108,7 @@ function lastPos(d,cid,si){
 }
 
 function slotStartMin(d,cid,si){
-  let m=600;
+  let m=SETTINGS.dayStartMin||600;
   const slots=SCHED[d]?.[cid]||[];
   for(let i=0;i<si;i++){
     const sl_=slots[i];if(!sl_)continue;m+=slotDur(sl_,d,cid,i);
@@ -1010,19 +1116,31 @@ function slotStartMin(d,cid,si){
   return m;
 }
 
+function sessionBlockMin(){
+  // Total time per session = session length + handover buffer
+  return (parseInt(SETTINGS.sessionMin)||60)+(parseInt(SETTINGS.bufferMin)||0);
+}
+
 function slotDur(sl_,d,cid,si){
   if(!sl_)return 0;
   const prev=lastPos(d,cid,si);
+  const block=sessionBlockMin();
   if(sl_.t==='s'){
-    const s=SS[sl_.id];if(!s)return 75;
-    return tm(hv(prev.la,prev.ln,s.la,s.ln))+65;
+    const s=SS[sl_.id];if(!s)return block+15;
+    return tm(hv(prev.la,prev.ln,s.la,s.ln))+block;
   }
   if(sl_.t==='d'){
-    const s1=SS[sl_.ids?.[0]],s2=SS[sl_.ids?.[1]];if(!s1)return 75;
+    const s1=SS[sl_.ids?.[0]],s2=SS[sl_.ids?.[1]];if(!s1)return block+15;
     const travel1=tm(hv(prev.la,prev.ln,s1.la,s1.ln));
     const interMin=sl_.inter||tm(hv(s1.la,s1.ln,s2?.la||s1.la,s2?.ln||s1.ln));
-    // Duration: travel to first + inter-home + 65 (parallel sessions done by then)
-    return travel1+interMin+65;
+    // Duration: travel to first + inter-home + block (parallel sessions done by then)
+    return travel1+interMin+block;
+  }
+  if(sl_.t==='g'){
+    // Group slot: travel to first student + one session block (children share the slot)
+    const first=SS[sl_.ids?.[0]];if(!first)return block+15;
+    const la=sl_.grp?.la??first.la, ln=sl_.grp?.ln??first.ln;
+    return tm(hv(prev.la,prev.ln,la,ln))+block;
   }
   if(sl_.t==='pick'){
     const s=SS[sl_.id];if(!s)return 20;
@@ -1672,6 +1790,12 @@ function renderStudentsTable(){
       <td class="st-cell"><input class="st-inp num" value="${s.la||''}" type="number" step="any" onchange="patchStudent('${s.id}','la',parseFloat(this.value))" style="width:90px" onkeydown="stNav(event,this)"></td>
       <td class="st-cell"><input class="st-inp num" value="${s.ln||''}" type="number" step="any" onchange="patchStudent('${s.id}','ln',parseFloat(this.value))" style="width:90px" onkeydown="stNav(event,this)"></td>
       <td class="st-cell"><input class="st-inp" value="${esc(s.parentPhone||'')}" onchange="patchStudent('${s.id}','parentPhone',this.value)" placeholder="96599…" style="min-width:110px" onkeydown="stNav(event,this)"></td>
+      <td class="st-cell" style="text-align:center">
+        <select class="st-sel" onchange="patchStudent('${s.id}','sessionType',this.value)" style="width:82px">
+          <option value="1on1"${(s.sessionType||'1on1')==='1on1'?' selected':''}>1-on-1</option>
+          <option value="group"${s.sessionType==='group'?' selected':''}>Group</option>
+        </select>
+      </td>
       <td class="st-cell"><input class="st-inp num" value="${s.sessionsPerWeek||1}" type="number" min="1" max="7" onchange="patchStudent('${s.id}','sessionsPerWeek',+this.value)" style="width:52px" onkeydown="stNav(event,this)"></td>
       <td class="st-cell"><input class="st-inp num" value="${s.visits||0}" type="number" min="0" onchange="patchStudent('${s.id}','visits',+this.value)" style="width:52px" onkeydown="stNav(event,this)"></td>
       <td class="st-cell" style="text-align:center;padding:6px 8px;white-space:nowrap">
@@ -1951,10 +2075,10 @@ function confirmImport(){
   ok.forEach(r=>{
     const d=r.data;
     const id='sx'+Date.now()+'_'+Math.floor(Math.random()*10000);
-    SS[id]={id,n:d.n,t:d.t,br:d.br,a:d.a,la:d.la,ln:d.ln,visits:0,sessionsPerWeek:d.spw,parentPhone:''};
+    SS[id]={id,n:d.n,t:d.t,br:d.br,a:d.a,la:d.la,ln:d.ln,visits:0,sessionsPerWeek:d.spw,parentPhone:'',sessionType:(d.stype==='group'?'group':'1on1')};
     // Auto-create teacher record for any new teacher seen in import
     if(d.t&&!TEACHERS[d.t]){
-      TEACHERS[d.t]={name:d.t,phone:'',branch:d.br,days:{Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:6,active:1,note:''};
+      TEACHERS[d.t]={name:d.t,phone:'',branch:d.br,days:{Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:SETTINGS.teacherDefaultMax||6,active:1,note:''};
     }
     added++;
   });
@@ -2018,7 +2142,7 @@ function showAdd(){
   qs('add-title').textContent='Add new student';
   qs('fedit-id').value='';qs('ft').value='';qs('fs').value='';qs('fa').value='';
   qs('flat').value='';qs('flng').value='';qs('fvisits').value='0';qs('fspw').value='1';
-  qs('fparent').value='';
+  qs('fparent').value='';qs('fstype').value='1on1';
   qs('fb').value='Shuhada';qs('addmodal').style.display='flex';
 }
 function closeAdd(){qs('addmodal').style.display='none';}
@@ -2028,14 +2152,15 @@ function doAdd(){
   const visits=parseInt(qs('fvisits').value)||0;
   const sessionsPerWeek=Math.max(1,parseInt(qs('fspw').value)||1);
   const parentPhone=(qs('fparent').value||'').trim();
+  const sessionType=qs('fstype').value==='group'?'group':'1on1';
   const editId=qs('fedit-id').value;
   if(!t||!n||!a||isNaN(la)||isNaN(ln)){toast('Fill all fields');return;}
   const id=editId||'sx'+Date.now();
   const prev=SS[id]||{};
-  SS[id]={...prev,id,n,br,t,la,ln,a,visits,sessionsPerWeek,parentPhone};
+  SS[id]={...prev,id,n,br,t,la,ln,a,visits,sessionsPerWeek,parentPhone,sessionType};
   // Ensure teacher record exists
   if(t&&!TEACHERS[t]){
-    TEACHERS[t]={name:t,phone:'',branch:br,days:{Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:6,active:1,note:''};
+    TEACHERS[t]={name:t,phone:'',branch:br,days:{Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:SETTINGS.teacherDefaultMax||6,active:1,note:''};
   }
   closeAdd();renderPool();saveState();
   // Refresh the students table if it's open
@@ -2049,6 +2174,7 @@ function editStudent(sid){
   qs('fa').value=s.a;qs('flat').value=s.la;qs('flng').value=s.ln;
   qs('fvisits').value=s.visits||0;qs('fspw').value=s.sessionsPerWeek||1;
   qs('fparent').value=s.parentPhone||'';
+  qs('fstype').value=(s.sessionType==='group')?'group':'1on1';
   qs('addmodal').style.display='flex';
 }
 
@@ -2655,6 +2781,59 @@ function sendAllParentMessages(){
   });
 }
 
+// ===== SETTINGS MODAL =====
+function showSettingsModal(){
+  // Hydrate form fields from SETTINGS
+  qs('set-sessionMin').value=SETTINGS.sessionMin;
+  qs('set-bufferMin').value=SETTINGS.bufferMin;
+  qs('set-dayStart').value=ts(SETTINGS.dayStartMin);
+  qs('set-maxSlots').value=SETTINGS.maxSlotsPerCar;
+  qs('set-maxGroup').value=SETTINGS.maxGroupSize;
+  qs('set-teacherMax').value=SETTINGS.teacherDefaultMax;
+  qs('set-chainBonus').value=SETTINGS.chainBonusKm;
+  qs('set-sameBranch').checked=!!SETTINGS.sameBranchOnly;
+  qs('set-autoPickup').checked=!!SETTINGS.autoPickup;
+  qs('set-preventDouble').checked=!!SETTINGS.preventSameDayDouble;
+  qs('settingsmodal').style.display='flex';
+}
+function closeSettingsModal(){qs('settingsmodal').style.display='none';}
+function resetSettings(){
+  if(!confirm('Restore every setting to its default?'))return;
+  SETTINGS={...DEFAULT_SETTINGS};applySettings();
+  showSettingsModal();
+  toast('Defaults loaded — press Save to apply');
+}
+function parseTimeToMin(str){
+  if(!str)return 600;
+  const m=/^(\d{1,2}):(\d{2})$/.exec(str.trim());
+  if(!m)return 600;
+  return Math.max(0,Math.min(23*60+59,parseInt(m[1])*60+parseInt(m[2])));
+}
+function saveSettingsModal(){
+  const next={
+    sessionMin:parseInt(qs('set-sessionMin').value)||60,
+    bufferMin:parseInt(qs('set-bufferMin').value)||0,
+    dayStartMin:parseTimeToMin(qs('set-dayStart').value),
+    maxSlotsPerCar:parseInt(qs('set-maxSlots').value)||14,
+    maxGroupSize:parseInt(qs('set-maxGroup').value)||4,
+    teacherDefaultMax:parseInt(qs('set-teacherMax').value)||6,
+    chainBonusKm:parseInt(qs('set-chainBonus').value)||100,
+    sameBranchOnly:qs('set-sameBranch').checked?1:0,
+    autoPickup:qs('set-autoPickup').checked?1:0,
+    preventSameDayDouble:qs('set-preventDouble').checked?1:0,
+  };
+  // Validation: clamp to sane ranges
+  if(next.sessionMin<15||next.sessionMin>180){toast('Session length must be 15–180 minutes');return;}
+  if(next.bufferMin<0||next.bufferMin>30){toast('Buffer must be 0–30 minutes');return;}
+  if(next.maxSlotsPerCar<4||next.maxSlotsPerCar>24){toast('Slots per car must be 4–24');return;}
+  if(next.maxGroupSize<2||next.maxGroupSize>8){toast('Max group size must be 2–8');return;}
+  migrateSettings(next);
+  ensureSchedCoverage(); // MAX_SL may have changed
+  closeSettingsModal();
+  renderSched();saveState();
+  toast('Settings saved');
+}
+
 // ===== AUTO-SCHEDULE THE WEEK =====
 function autoScheduleWeek(){
   const pool=poolEntries();
@@ -2668,18 +2847,32 @@ function runAutoSchedule(){
   if(clearFirst){SCHED=blankSched();ensureSchedCoverage();}
   deriveTeachersFromStudents();
 
-  // For each pool student, we need to place `remaining` slots across the week.
-  // Strategy: iterate each day in order, each car in order. At each step:
-  //   1. Candidate pool = students who still need a session AND whose teacher
-  //      is active AND available on this day AND under the teacher's per-day limit.
-  //   2. Of the candidates, prefer students already assigned to the teacher that
-  //      was the PREVIOUS drop on this car (same-teacher chaining). Within that
-  //      tie-breaker, pick the student closest to the last position.
-  //   3. Drop student, add auto-pickup in the next empty slot, advance position.
+  // Strategy
+  // -------
+  // For each day × car, greedily fill empty slots. At each empty slot:
+  //   1. Build a candidate list of pool students who CAN go in this slot:
+  //      - still have remaining sessions this week
+  //      - not already scheduled on this day (if preventSameDayDouble is on)
+  //      - teacher is active + available + under per-day limit
+  //      - student branch matches the car's branch (if sameBranchOnly is on)
+  //   2. Score each candidate by:   chain_bonus + distance_from_current_pos
+  //      (chain_bonus is negative when the student shares a teacher with the
+  //      previous drop, pulling them to the front of the sort)
+  //   3. Place the best candidate as either:
+  //      - a '1on1' slot (t:'s'), or
+  //      - a 'group' slot (t:'g') — then grab up to maxGroupSize-1 more students
+  //        with the SAME teacher that are closest to this drop, and batch them in.
+  //   4. Insert an auto-pickup slot after the drop (if enabled).
 
-  // Track per-day per-teacher count (for maxPerDay limits)
+  const chainBonus=-(parseInt(SETTINGS.chainBonusKm)||0);
+  const maxGroupSize=Math.max(2,parseInt(SETTINGS.maxGroupSize)||4);
+  const sameBranchOnly=!!SETTINGS.sameBranchOnly;
+  const autoPickup=!!SETTINGS.autoPickup;
+  const preventDouble=!!SETTINGS.preventSameDayDouble;
+
+  // Track per-day per-teacher count (for maxPerDay limits).
+  // Prime with existing scheduled counts so auto-schedule respects manual edits.
   const teacherDayCount={};
-  // Prime with existing scheduled counts
   DAYS.forEach(d=>{teacherDayCount[d]={};CARS.forEach(car=>{
     (SCHED[d]?.[car.id]||[]).forEach(sl_=>{
       if(!sl_||sl_.t==='pick')return;
@@ -2690,7 +2883,17 @@ function runAutoSchedule(){
     });
   });});
 
-  // Remaining to place per student
+  // Per-day sets of students already placed (for preventSameDayDouble).
+  // Primed from existing SCHED so manually-placed students aren't double-booked.
+  const onDay={};
+  DAYS.forEach(d=>{onDay[d]=new Set();CARS.forEach(car=>{
+    (SCHED[d]?.[car.id]||[]).forEach(sl_=>{
+      if(!sl_||sl_.t==='pick')return;
+      slotStudentIds(sl_).forEach(sid=>onDay[d].add(sid));
+    });
+  });});
+
+  // Remaining to place per student (sessionsPerWeek - already-scheduled)
   const remain={};
   poolEntries().forEach(e=>{remain[e.s.id]=e.remaining;});
 
@@ -2698,20 +2901,42 @@ function runAutoSchedule(){
     const t=TEACHERS[tname];
     if(t&&!t.active)return false;
     if(t&&t.days&&!t.days[day])return false;
-    const max=(t&&t.maxPerDay)||6;
+    const max=(t&&t.maxPerDay)||(SETTINGS.teacherDefaultMax||6);
     const used=teacherDayCount[day][tname]||0;
     return used<max;
   }
+  function carServesBranch(car,s){
+    const carBr=(car.branch||'').split('/');
+    if(!sameBranchOnly)return true;
+    return carBr.includes(s.br);
+  }
+  function candidateFor(day,car,pos,lastTeacher){
+    return Object.keys(remain).filter(sid=>{
+      if(remain[sid]<=0)return false;
+      const s=SS[sid];if(!s)return false;
+      if(preventDouble&&onDay[day].has(sid))return false;
+      if(!carServesBranch(car,s))return false;
+      if(!teacherCanTake(s.t,day))return false;
+      return true;
+    }).sort((a,b)=>{
+      const sa=SS[a],sb=SS[b];
+      const chA=(lastTeacher&&sa.t===lastTeacher)?chainBonus:0;
+      const chB=(lastTeacher&&sb.t===lastTeacher)?chainBonus:0;
+      const dA=hv(pos.la,pos.ln,sa.la,sa.ln);
+      const dB=hv(pos.la,pos.ln,sb.la,sb.ln);
+      return (chA+dA)-(chB+dB);
+    });
+  }
 
-  let placed=0, skippedNoAvail=0;
+  let placed=0;
 
   DAYS.forEach(day=>{
     CARS.forEach(car=>{
       const slots=SCHED[day][car.id];
-      // Find the first empty slot
+      // Start position = car's home branch (default)
       let pos={la:brCoords((car.branch||'Shuhada').split('/')[0])[0], ln:brCoords((car.branch||'Shuhada').split('/')[0])[1], isBase:true};
       let lastTeacher=null;
-      // Walk existing slots to find last drop position + teacher
+      // Walk existing slots to find the last drop's position + teacher
       for(let si=slots.length-1;si>=0;si--){
         const sl_=slots[si];
         if(sl_&&(sl_.t==='s'||sl_.t==='d'||sl_.t==='g')){
@@ -2726,50 +2951,73 @@ function runAutoSchedule(){
       // Greedily fill empty slots
       for(let si=0;si<slots.length;si++){
         if(slots[si])continue;
-        // Gather candidates
-        const cands=Object.keys(remain).filter(sid=>{
-          if(remain[sid]<=0)return false;
-          const s=SS[sid];if(!s)return false;
-          // Only place in car that serves the student's branch (or Salam/Salwa flex)
-          const carBr=(car.branch||'').split('/');
-          if(!carBr.includes(s.br)&&!(carBr.length>1))return false;
-          // Respect teacher availability
-          if(!teacherCanTake(s.t,day))return false;
-          return true;
-        });
-        if(!cands.length){
-          // No candidates for this car — leave remaining slots empty
-          break;
-        }
-        // Score: same-teacher-chain bonus + distance
-        cands.sort((a,b)=>{
-          const sa=SS[a],sb=SS[b];
-          const chainA=(lastTeacher&&sa.t===lastTeacher)?-100:0;
-          const chainB=(lastTeacher&&sb.t===lastTeacher)?-100:0;
-          const dA=hv(pos.la,pos.ln,sa.la,sa.ln);
-          const dB=hv(pos.la,pos.ln,sb.la,sb.ln);
-          return (chainA+dA)-(chainB+dB);
-        });
+        const cands=candidateFor(day,car,pos,lastTeacher);
+        if(!cands.length)break; // no-one can ride in this car today — stop filling
+
         const pickSid=cands[0];
         const pickS=SS[pickSid];
-        // Place drop in this slot
-        slots[si]={t:'s',id:pickSid};
-        remain[pickSid]--;
-        teacherDayCount[day][pickS.t]=(teacherDayCount[day][pickS.t]||0)+1;
+
+        if((pickS.sessionType||'1on1')==='group'){
+          // ----- GROUP SLOT -----
+          // Start with the picked student, then add up to (maxGroupSize-1) MORE
+          // group-type students from this car's candidates who share the same teacher,
+          // ordered by distance from the anchor drop.
+          const ids=[pickSid];
+          remain[pickSid]--;
+          onDay[day].add(pickSid);
+          teacherDayCount[day][pickS.t]=(teacherDayCount[day][pickS.t]||0)+1;
+
+          const groupmates=cands
+            .filter(sid=>sid!==pickSid
+              && (SS[sid].sessionType||'1on1')==='group'
+              && SS[sid].t===pickS.t
+              && remain[sid]>0
+              && teacherCanTake(SS[sid].t,day)
+              && (!preventDouble||!onDay[day].has(sid))
+              && carServesBranch(car,SS[sid]))
+            .sort((a,b)=>hv(pickS.la,pickS.ln,SS[a].la,SS[a].ln)-hv(pickS.la,pickS.ln,SS[b].la,SS[b].ln));
+          for(const sid of groupmates){
+            if(ids.length>=maxGroupSize)break;
+            ids.push(sid);
+            remain[sid]--;
+            onDay[day].add(sid);
+            teacherDayCount[day][pickS.t]=(teacherDayCount[day][pickS.t]||0)+1;
+          }
+          slots[si]={t:'g',ids};
+          placed+=ids.length;
+        } else {
+          // ----- 1-on-1 SLOT -----
+          slots[si]={t:'s',id:pickSid};
+          remain[pickSid]--;
+          onDay[day].add(pickSid);
+          teacherDayCount[day][pickS.t]=(teacherDayCount[day][pickS.t]||0)+1;
+          placed++;
+        }
+
+        // Advance drive position + teacher pointer to the newly-placed drop
         lastTeacher=pickS.t;
         pos={la:pickS.la,ln:pickS.ln,isBase:false};
-        placed++;
-        // Add pickup in the next empty slot (same car, same day) if available
-        const pickNext=slots.findIndex((x,k)=>k>si&&!x);
-        if(pickNext>=0){slots[pickNext]={t:'pick',id:pickSid};si=pickNext;} // skip past the pickup slot
+
+        // Optionally insert a pickup slot after this drop
+        if(autoPickup){
+          const pickNext=slots.findIndex((x,k)=>k>si&&!x);
+          if(pickNext>=0){
+            // For group slots the driver will pick everyone up at the same address;
+            // we only need one pickup marker — use the anchor student.
+            slots[pickNext]={t:'pick',id:pickSid};
+            si=pickNext; // skip past the pickup so we don't try to fill it
+          }
+        }
       }
     });
   });
 
-  // Students that still have remaining slots = couldn't be placed
+  // Students that still have remaining sessions = couldn't be placed
   const unplaced=Object.entries(remain).filter(([,n])=>n>0).length;
   renderSched();renderPool();saveState();
-  toast(`Auto-schedule done — ${placed} session(s) placed${unplaced?`, ${unplaced} student(s) couldn't be placed (check teacher availability)`:''}`);
+  let msg=`Auto-schedule done — ${placed} session(s) placed`;
+  if(unplaced)msg+=`, ${unplaced} still in pool (check teacher availability / branches / day limits)`;
+  toast(msg);
 }
 
 // ===== RESET =====
