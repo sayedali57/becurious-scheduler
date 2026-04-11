@@ -267,11 +267,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 
   <div class="main">
     <div class="daytabs">
-      <div class="dt sun" onclick="gd('Sun')">Sunday — Admin</div>
-      <div class="dt on" onclick="gd('Mon')">Monday</div>
-      <div class="dt" onclick="gd('Tue')">Tuesday</div>
-      <div class="dt" onclick="gd('Wed')">Wednesday</div>
-      <div class="dt" onclick="gd('Thu')">Thursday · Far</div>
+      <div class="dt sun" data-day="Sun" onclick="gd('Sun')">Sunday — Admin</div>
+      <div class="dt on" data-day="Mon" onclick="gd('Mon')">Monday</div>
+      <div class="dt" data-day="Tue" onclick="gd('Tue')">Tuesday</div>
+      <div class="dt" data-day="Wed" onclick="gd('Wed')">Wednesday</div>
+      <div class="dt" data-day="Thu" onclick="gd('Thu')">Thursday · Far</div>
     </div>
     <div class="sched-outer" id="sched-outer"><div class="cargrid" id="cargrid"></div></div>
     <div class="legend">
@@ -490,21 +490,35 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 
 <!-- AUTO-SCHEDULE CONFIRM MODAL -->
 <div class="modal" id="automodal" style="display:none">
-  <div class="mbox" style="width:480px">
-    <h3>⚡ Auto-schedule the week</h3>
-    <p style="font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.6">This will automatically place <b id="auto-pool-count">0</b> unscheduled student session(s) into car slots across Mon–Thu, minimizing drive time and grouping students by teacher where possible.</p>
+  <div class="mbox" style="width:480px;border:2px solid #DC2626;box-shadow:0 10px 40px rgba(220,38,38,.25)">
+    <div style="background:#DC2626;color:#fff;margin:-20px -20px 14px;padding:14px 20px;border-radius:10px 10px 0 0;display:flex;align-items:center;gap:10px">
+      <div style="font-size:20px">⚠️</div>
+      <div>
+        <div style="font-size:15px;font-weight:700">Auto-schedule the week</div>
+        <div style="font-size:10px;opacity:.9;margin-top:2px">This rebuilds the schedule — read carefully before continuing.</div>
+      </div>
+    </div>
+    <p style="font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.6">This will automatically place <b id="auto-pool-count">0</b> unscheduled student session(s) into car slots, minimizing drive time and grouping students by teacher where possible.</p>
+    <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:6px;padding:10px;font-size:10px;color:#991B1B;line-height:1.7;margin-bottom:10px">
+      <b>⚠ Warning:</b> If you tick <b>"Clear the existing schedule first"</b>, the <b>entire current week is wiped</b> before placement. This <u>cannot be undone</u>. Only use this if you really want to start from scratch.
+    </div>
     <div style="background:var(--bg);border-radius:6px;padding:10px;font-size:10px;color:var(--text2);line-height:1.7;margin-bottom:10px">
       <b>How it works:</b><br>
-      1. Only <i>pool</i> students (those not yet fully scheduled) are placed — existing schedule is kept.<br>
+      1. Only <i>pool</i> students (those not yet fully scheduled) are placed — existing schedule is kept unless you tick the box below.<br>
       2. Each student is assigned to the closest car on a day the teacher is available, respecting Max/day and same-day rules from <b>⚙ Settings</b>.<br>
       3. <b>1-on-1</b> students get their own slot. <b>Group</b> students are batched with other group-type students who share the same teacher (up to the group-size limit in Settings).<br>
       4. Students of the same teacher are chained consecutively to reduce handoff drives.<br>
       5. Auto pickup slots are added after each drop (if enabled in Settings).
     </div>
-    <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="auto-clear"> Clear the existing schedule first (start from scratch)</label></div>
+    <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;color:#991B1B"><input type="checkbox" id="auto-clear"> <b>Clear the existing schedule first</b> (start from scratch — cannot be undone)</label></div>
+    <div class="frow" id="auto-pin-row" style="display:none">
+      <label>Enter the auto-schedule PIN to continue</label>
+      <input id="auto-pin-input" type="password" autocomplete="off" placeholder="PIN">
+      <small class="set-help">You can change or remove this PIN in <b>⚙ Settings → Auto-schedule safety</b>.</small>
+    </div>
     <div class="mbtns">
       <button class="btn" onclick="qs('automodal').style.display='none'">Cancel</button>
-      <button class="btn btnp" onclick="runAutoSchedule()">⚡ Run auto-schedule</button>
+      <button class="btn" style="background:#DC2626;color:#fff;border-color:#DC2626;font-weight:700" onclick="runAutoSchedule()">⚡ Yes, run auto-schedule</button>
     </div>
   </div>
 </div>
@@ -544,6 +558,17 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
       <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="set-sameBranch"> Only place a student into a car for their own branch</label></div>
       <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="set-autoPickup"> Insert a pickup slot after every drop</label></div>
       <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="set-preventDouble"> Never schedule the same student twice on the same day</label></div>
+    </div>
+
+    <div class="set-section">
+      <div class="set-section-title">Schedule days</div>
+      <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="set-sunActive"> Use <b style="margin:0 3px">Sunday</b> as a real scheduling day <span style="color:var(--text3)">(off = Sunday stays as the admin / buffer day)</span></label></div>
+      <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="set-thuActive"> Use <b style="margin:0 3px">Thursday</b> (off = hide the Thursday tab entirely, e.g. no far-branch day this week)</label></div>
+    </div>
+
+    <div class="set-section">
+      <div class="set-section-title">Auto-schedule safety</div>
+      <div class="frow"><label>Auto-schedule PIN <span style="color:var(--text3);font-weight:400">(optional)</span></label><input id="set-autoPin" type="text" maxlength="12" autocomplete="off" placeholder="leave empty for no PIN"><small class="set-help">When set, anyone pressing <b>Auto-schedule</b> must type this PIN before the week is rebuilt. Prevents accidental clicks from wiping the schedule. Leave blank to disable.</small></div>
     </div>
 
     <div class="mbtns" style="gap:6px">
@@ -637,7 +662,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 const BP={Shuhada:[29.268183,48.027942],Salam:[29.297843,48.013185],Salwa:[29.295487,48.069256]};
 const TC={'Varti':'#6A5FA8','Safaa':'#0891B2','Nilma':'#0F6E56','Farah':'#EA580C','Maritel':'#DB2777','Siba':'#2563EB','Fatma':'#D97706','Mariya':'#7C3AED','Wafaa':'#047857','Hadeel':'#16A34A','Ann':'#DC2626','Nargis':'#1D4ED8','Soha':'#B45309','Saira/Aswini':'#78350F','Mehjabeen':'#991B1B','Mehjabeen/Manju':'#6D28D9','Khadija':'#0E7490','Mariam':'#4D7C0F','Sharifa':'#92400E','Maliha':'#1E40AF','Sofia':'#9D174D'};
 const RAW=[['s1','Deeme alknadiri','Shuhada','Varti',29.268171,48.03091,'Shuhada, B4, St417, H33'],['s2','Dhari alkandari','Shuhada','Safaa',29.238145,48.053435,'Aladan, B2, St20, H4'],['s3','Abdulaziz Alsabti','Shuhada','Nilma',29.277549,47.998353,'Zahra, B5, St507, H16'],['s4','Haya AlOsaimi','Shuhada','Nilma',29.284271,48.001844,'Zahra, B20, St218, H18'],['s5','Ahmad Fathallah','Shuhada','Nilma',29.273805,48.034902,'Shuhada, B2, St205, H30'],['s6','Riyadh Alsaleh','Shuhada','Nilma',29.258834,48.06685,'Sabah Alsalem, B4, St5, H2'],['s7','Faisal Almeer','Shuhada','Nilma',29.308455,48.016416,'Alsurra, B2, St13, H4'],['s8','Jumanah Kareemi','Shuhada','Farah',29.233393,48.057133,'Aladan, B2, St42, H22'],['s9','Elaf alabdulelah','Shuhada','Farah',29.20406,48.063561,'Alqurain, B3, St8, H50'],['s10','Mona Alkandari','Shuhada','Farah',29.103605,48.069772,'N.Ahmadi, B15, St11, H5'],['s11','Ali alqoud','Shuhada','Farah',29.288286,48.070924,'Mishref, B1, St6, H32'],['s12','Mariam Bo Abbas','Shuhada','Farah',29.251472,48.052584,'Sabah Alsalem, B10, St1, H36'],['s13','Yaqoub Alhelal','Shuhada','Maritel',29.282841,47.993845,'Huteen, B3, St305, H22'],['s14','Hashim Algharaballi','Shuhada','Maritel',29.269133,48.025974,'Shuhada, B4, St410, H162'],['s15','Abdulmohsen Albassam','Shuhada','Maritel',29.286147,48.061443,'Mishref, B2, St3, H11'],['s16','Omar albaloul','Shuhada','Maritel',29.282697,48.024805,'Huteen, B3, St10, H44'],['s17','Mariam Al jumaie','Shuhada','Maritel',29.30068,47.887253,'AlAndalus, B3, St105, H52'],['s18','Ghaliah Boareki','Shuhada','Siba',29.279562,48.016506,'Huteen, B4, St415, HA8'],['s19','Hamad Fahad','Shuhada','Siba',29.242323,48.056733,'Sabah Alsalem, B13, St2, H21'],['s20','Fay Alrashed','Shuhada','Siba',29.199257,48.066797,'AlQurain, B3, St34, H41'],['s21','Saeed Almeer','Shuhada','Siba',29.308455,48.016416,'Alsurra, B2, St13, H4'],['s22','Fatimah Almahmeed','Shuhada','Fatma',29.310042,48.059533,'Rumaithiya, B1, St10, H15'],['s23','Khaled Abul','Shuhada','Fatma',29.277782,48.038307,'Abdullah Mubarak, B3, St311, H30'],['s24','Yousef Hussain','Shuhada','Fatma',29.250717,48.079723,'Sabah Alsalem, B7, St1, H26'],['s25','Sarah salem','Shuhada','Fatma',29.271061,47.878396,'Sabah Alnasser, B1, St102, H14'],['s26','Fatima Alsaffar','Shuhada','Mariya',29.270632,48.029082,'Shuhada, B4, St414, H1'],['s27','Mohammad Alali','Shuhada','Mariya',29.26662,48.02322,'Shuhada, B3, St306, H66'],['s28','Yousef Alhashash','Shuhada','Mariya',29.233181,48.054958,'Aladan, B2, St35, H10'],['s29','Ahmed Alsaqer','Shuhada','Mariya',29.269811,48.067818,'Mishref, B5, St15, H12'],['s30','Abdullah AlKhashti','Shuhada','Mariya',29.239612,47.916652,'Abdullah Almubarak, B2, St203, H2'],['s31','Turki alnami','Shuhada','Mariya',29.272517,48.02512,'Shuhada, B5, St512, H37'],['s32','Dalia Bouqamaz','Shuhada','Mariya',29.283217,47.991817,'Zahraa, B3, St301, H14'],['s33','Omar Fahad','Shuhada','Wafaa',29.242323,48.056733,'Sabah Alsalem, B13, St2, H21'],['s34','Khaled alkandari','Shuhada','Wafaa',29.103605,48.069772,'N.Ahmadi, B15, St11, H5'],['s35','Joudi altahous','Salam','Hadeel',29.282301,48.029976,'Hiteen, B3, St11, H99'],['s36','Moudhi almanee','Salam','Hadeel',29.270021,47.994088,'Alzahraa, B8, St810, H12'],['s37','Deema alqataan','Salam','Ann',29.286605,48.067622,'Mishref, B1, St50, H2B'],['s38','Abdalkareem alawadhai','Salam','Ann',29.292142,48.001628,'Alsideeq, B3, St305, H15'],['s39','Shaikha Almotawa','Salam','Ann',29.299692,48.019934,'Alsalam, B2, St211, H72'],['s40','Yousef Alrayes','Salam','Ann',29.301208,48.00294,'Alsalam, B1, St113, H12'],['s41','Abdulmohsen Alwuhaib','Salam','Ann',29.33677,47.964828,'Kifan, B1, Alquds St, H49A'],['s42','Dhai alshami','Salam','Ann',29.290442,48.006513,'Alsalam, B7, St717, H1'],['s43','Abdalmohsen ahmad','Salam','Ann',29.231194,48.084124,'Aladdan, B7, St9, H12'],['s44','Zaid alqassar','Salam','Ann',29.301951,48.041589,'Bayan, B3, St2, H5'],['s45','Alia albaker','Salam','Ann',29.291962,48.023897,'Salam, B5, St519, H10'],['s46','Yousef alrudaini','Salam','Nargis',29.293657,48.014559,'Alsalam, B4, St411, H7'],['s47','Bader Al Ali','Salam','Soha',29.292123,48.01024,'Alsalam, B6, St611, H37'],['s48','Zaina Alrukhayes','Salam','Soha',29.292554,48.021254,'Alsalam, B5, St507, H19'],['s49','Jassim almansouri','Salam','Soha',29.291189,47.890544,'Alardeya, B4, St4, H46'],['s50','Soud alhuwaidi','Salam','Saira/Aswini',29.29337,48.00731,'Alsalam, B7, St714, H3'],['s51','Omar shamsaldeen','Salam','Saira/Aswini',29.307967,48.042629,'Bayan, B2, St3, H25A'],['s52','Hamad alfoudri','Salam','Saira/Aswini',29.29179,48.015429,'Alsalam, B6, St603, H9'],['s53','Dhayi al shareifi','Salam','Saira/Aswini',29.291183,48.025481,'Alsalam, B5, St512, H23'],['s54','Dalal alsabah','Salam','Mehjabeen',29.307077,47.995242,'Qortouba, B2, St1, H35'],['s55','Yaqoub Alshatti','Salam','Mehjabeen',29.206705,48.099997,'Aboftera, B4, St242, H390'],['s56','Abdallah alhashmi','Salam','Mehjabeen/Manju',29.316523,47.853691,'Sulaibkhat, B2, St102, H4B'],['s57','Alzain al shamroukh','Salam','Mehjabeen/Manju',29.28501,48.021473,'Heteen, B1, St119, H28'],['s58','Abdulaziz alsaleem','Salam','Mehjabeen/Manju',29.211743,48.05994,'Alqusoor, B7, St25, H25'],['s59','Abdulmohsen Altahous','Salam','Mehjabeen/Manju',29.282301,48.029976,'Hiteen, B3, St11, H99'],['s60','Waleed algarabaili','Salam','Khadija',29.336969,47.965856,'Kifan, B1, St16, H46'],['s61','Abdalrahman alroudhan','Salam','Khadija',29.299736,48.006709,'Alsalam, B1, St129, H11'],['s62','Hamad alawadhi','Salam','Khadija',29.292142,48.001628,'Alsideeq, B3, St305, H15'],['s63','Fatima Alomeri','Salam','Mariam',29.285832,48.015943,'Hitteen, B2, St209, H12'],['s64','Fay Mohammad Alqoud','Salam','Mariam',29.235195,48.085796,'Almasayel, B5, St512, H95'],['s65','Danah al fozan','Salam','Mariam',29.336305,47.997013,'Alrawdha, B4, H40'],['s66','Nour alhajri','Salam','Sharifa',29.206954,48.068747,'Alqreen, B3, St4, H54'],['s67','Zaina al fahad','Salam','Sharifa',29.301567,48.002748,'Salam, B1, St112, H36'],['s68','Yousef Albaghli','Salam','Sharifa',29.302696,48.020289,'Alsalam, B2, St214, H49'],['s69','Hamad Alnaham','Salam','Maliha',29.294908,48.02159,'Alsalam, B2, St203, H19'],['s70','Rasha Algheith','Salam','Maliha',29.289509,48.016182,'Alsalam, B6, St606, H14'],['s71','Sayed behbahani','Salam','Maliha',29.20113,48.10021,'Boftera, B2, St132, H4'],['s72','Bader Alkhabbaz','Salam','Maliha',29.233227,48.077179,'Aladdan, B6, St10, H25'],['s73','Maryam alsaleem','Salam','Maliha',29.211743,48.05994,'Alqusoor, B7, St25, H25'],['s74','Jouri Alsbaei','Salam','Maliha',29.288865,47.993801,'Alsideeq, B6, St602, H15'],['s75','Layan Alawadhi','Salwa','Sofia',29.296988,48.069798,'Salwa, B6, St7, H8'],['s76','Jaber Almarri','Salwa','Sofia',29.29015,48.052485,'Bayan, B12, St1, H28'],['s77','Bader Aldarmi','Salwa','Sofia',29.307314,47.791623,'Alqayrwan, B3, St317, H21'],['s78','Rana Alhailaa','Salwa','Sofia',29.29664,48.072534,'Salwa, B6, St8, H23'],['s79','Mubarak Alshemri','Salwa','Sofia',29.237897,48.083171,'Aladdan, B7, St16, H14']];
-const DAYS=['Mon','Tue','Wed','Thu'];
+// DAYS is the FULL set of days the data structures support. Sunday is always
+// in the structure so we can toggle it on/off without losing data; the schedule
+// view and auto-schedule use activeDays() below to honor the user's settings.
+const DAYS=['Sun','Mon','Tue','Wed','Thu'];
 let MAX_SL=14; // slots per car per day — overridden from SETTINGS.maxSlotsPerCar at load time
 const SAVE_KEY='bc_v3';
 
@@ -652,8 +680,21 @@ const DEFAULT_SETTINGS={
   chainBonusKm:100,     // How strongly auto-schedule prefers same-teacher chains (higher = stronger)
   sameBranchOnly:1,     // 1 = only place a student into a car whose branch matches theirs
   autoPickup:1,         // 1 = auto-insert a pickup slot after every drop in auto-schedule
-  preventSameDayDouble:1// 1 = never place the same student twice on the same day
+  preventSameDayDouble:1,// 1 = never place the same student twice on the same day
+  sundayActive:0,       // 1 = Sunday is a real scheduling day (not just the admin screen)
+  thursdayActive:1,     // 1 = Thursday is a scheduling day; 0 hides the Thursday tab entirely
+  autoSchedulePin:''    // If non-empty, user must type this PIN before auto-schedule runs
 };
+function activeDays(){
+  // Returns only the days that are currently enabled for scheduling.
+  // Sunday defaults OFF (admin day); Thursday defaults ON.
+  return DAYS.filter(d=>{
+    if(d==='Sun')return !!SETTINGS.sundayActive;
+    if(d==='Thu')return !!SETTINGS.thursdayActive;
+    return true;
+  });
+}
+function isDayActive(d){return activeDays().includes(d);}
 let SETTINGS={...DEFAULT_SETTINGS};
 function applySettings(){
   // Any SETTINGS change that affects derived constants goes here
@@ -671,9 +712,11 @@ function migrateSettings(obj){
     else SETTINGS[k]=DEFAULT_SETTINGS[k];
   });
   // Coerce flag fields
-  ['sameBranchOnly','autoPickup','preventSameDayDouble'].forEach(k=>{
+  ['sameBranchOnly','autoPickup','preventSameDayDouble','sundayActive','thursdayActive'].forEach(k=>{
     SETTINGS[k]=SETTINGS[k]?1:0;
   });
+  // PIN is a string
+  SETTINGS.autoSchedulePin=(SETTINGS.autoSchedulePin==null?'':String(SETTINGS.autoSchedulePin)).trim();
   applySettings();
 }
 
@@ -916,12 +959,16 @@ function migrateStudents(){
 // Create teacher records for any teacher name appearing on a student
 // but not yet present in TEACHERS. Existing records are left alone.
 function deriveTeachersFromStudents(){
+  // Back-fill Sunday availability on teacher records saved before Sunday was a valid day
+  Object.values(TEACHERS).forEach(t=>{
+    if(t&&t.days&&t.days.Sun==null)t.days.Sun=0;
+  });
   Object.values(SS).forEach(s=>{
     if(!s.t)return;
     if(!TEACHERS[s.t]){
       TEACHERS[s.t]={
         name:s.t, phone:'', branch:s.br||'Shuhada',
-        days:{Mon:1,Tue:1,Wed:1,Thu:1},
+        days:{Sun:0,Mon:1,Tue:1,Wed:1,Thu:1},
         maxPerDay:6, active:1, note:''
       };
     }
@@ -1328,8 +1375,9 @@ function dropCard(s,scheduled,total,distN,isSug){
 function renderCars(){
   const grid=qs('cargrid');
   const d=curDay;
-  if(d==='Sun'){
-    grid.parentElement.innerHTML='<div class="sunday-msg"><h3>Sunday — Buffer &amp; Admin</h3><p>No car trips today.<br>Review completed visits · Collect feedback · Update missing coordinates<br>Brief teachers · Prepare next week</p></div>';
+  // Sunday is the admin/buffer screen UNLESS the user has enabled Sunday as a real scheduling day
+  if(d==='Sun'&&!SETTINGS.sundayActive){
+    grid.parentElement.innerHTML='<div class="sunday-msg"><h3>Sunday — Buffer &amp; Admin</h3><p>No car trips today.<br>Review completed visits · Collect feedback · Update missing coordinates<br>Brief teachers · Prepare next week<br><small style="opacity:.7;margin-top:8px;display:inline-block">(Turn Sunday on in ⚙ Settings to schedule car trips on Sunday.)</small></p></div>';
     return;
   }
   grid.innerHTML='';
@@ -1350,10 +1398,18 @@ function renderCars(){
 }
 
 function renderSched(){
-  if(curDay==='Sun'){
+  // Keep the day tabs in sync with which days are active
+  renderDayTabs();
+  // Sunday admin screen (only when Sunday-as-scheduling-day is OFF)
+  if(curDay==='Sun'&&!SETTINGS.sundayActive){
     const outer=qs('sched-outer');
-    outer.innerHTML='<div class="sunday-msg"><h3>Sunday — Buffer &amp; Admin</h3><p>No car trips today.<br>Review completed visits · Collect feedback · Update missing coordinates<br>Brief teachers · Prepare next week</p></div>';
+    outer.innerHTML='<div class="sunday-msg"><h3>Sunday — Buffer &amp; Admin</h3><p>No car trips today.<br>Review completed visits · Collect feedback · Update missing coordinates<br>Brief teachers · Prepare next week<br><small style="opacity:.7;margin-top:8px;display:inline-block">(Turn Sunday on in ⚙ Settings to schedule car trips on Sunday.)</small></p></div>';
     return;
+  }
+  // If the current tab is no longer active, jump to the first active day
+  if(!isDayActive(curDay)){
+    const first=activeDays()[0]||'Mon';
+    curDay=first;
   }
   // Rebuild grid
   const outer=qs('sched-outer');
@@ -1815,7 +1871,7 @@ function patchStudent(sid,field,val){
   SS[sid][field]=val;
   // If the teacher name changed and the new name isn't in TEACHERS, create a default record
   if(field==='t'&&val&&!TEACHERS[val]){
-    TEACHERS[val]={name:val,phone:'',branch:SS[sid].br||'Shuhada',days:{Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:6,active:1,note:''};
+    TEACHERS[val]={name:val,phone:'',branch:SS[sid].br||'Shuhada',days:{Sun:0,Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:6,active:1,note:''};
   }
   saveState();
   renderPool();
@@ -2078,7 +2134,7 @@ function confirmImport(){
     SS[id]={id,n:d.n,t:d.t,br:d.br,a:d.a,la:d.la,ln:d.ln,visits:0,sessionsPerWeek:d.spw,parentPhone:'',sessionType:(d.stype==='group'?'group':'1on1')};
     // Auto-create teacher record for any new teacher seen in import
     if(d.t&&!TEACHERS[d.t]){
-      TEACHERS[d.t]={name:d.t,phone:'',branch:d.br,days:{Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:SETTINGS.teacherDefaultMax||6,active:1,note:''};
+      TEACHERS[d.t]={name:d.t,phone:'',branch:d.br,days:{Sun:0,Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:SETTINGS.teacherDefaultMax||6,active:1,note:''};
     }
     added++;
   });
@@ -2103,7 +2159,31 @@ function setSort(m){
   renderPool();
 }
 
-function gd(d){curDay=d;document.querySelectorAll('.dt').forEach((el,i)=>el.classList.toggle('on',['Sun','Mon','Tue','Wed','Thu'][i]===d));renderSched();renderPool();}
+function gd(d){
+  // Reject clicks on days that are currently hidden/disabled
+  if(d==='Sun'&&!SETTINGS.sundayActive){curDay='Sun';renderSched();return;}
+  if(d==='Thu'&&!SETTINGS.thursdayActive){toast('Thursday is turned off in Settings');return;}
+  curDay=d;
+  renderDayTabs();
+  renderSched();renderPool();
+}
+function renderDayTabs(){
+  // Hide Thursday if it's disabled; show the Sunday tab differently depending on
+  // whether Sunday is an admin day or a real scheduling day.
+  document.querySelectorAll('.dt').forEach(el=>{
+    const d=el.dataset.day||el.getAttribute('data-day');
+    if(!d)return;
+    if(d==='Thu'&&!SETTINGS.thursdayActive){el.style.display='none';return;}
+    el.style.display='';
+    el.classList.toggle('on',curDay===d);
+    if(d==='Sun'){
+      el.textContent=SETTINGS.sundayActive?'Sunday':'Sunday — Admin';
+    }
+    if(d==='Thu'){
+      el.textContent='Thursday';
+    }
+  });
+}
 function setB(b,btn){curBr=b;document.querySelectorAll('.pf').forEach(el=>el.classList.remove('on'));btn.classList.add('on');renderPool();}
 
 // ===== CARS MANAGER =====
@@ -2160,7 +2240,7 @@ function doAdd(){
   SS[id]={...prev,id,n,br,t,la,ln,a,visits,sessionsPerWeek,parentPhone,sessionType};
   // Ensure teacher record exists
   if(t&&!TEACHERS[t]){
-    TEACHERS[t]={name:t,phone:'',branch:br,days:{Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:SETTINGS.teacherDefaultMax||6,active:1,note:''};
+    TEACHERS[t]={name:t,phone:'',branch:br,days:{Sun:0,Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:SETTINGS.teacherDefaultMax||6,active:1,note:''};
   }
   closeAdd();renderPool();saveState();
   // Refresh the students table if it's open
@@ -2488,7 +2568,7 @@ function deleteTeacher(name){
 function addTeacherRow(){
   let base='New teacher',name=base,i=1;
   while(TEACHERS[name]){name=base+' '+(++i);}
-  TEACHERS[name]={name,phone:'',branch:'Shuhada',days:{Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:6,active:1,note:''};
+  TEACHERS[name]={name,phone:'',branch:'Shuhada',days:{Sun:0,Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:6,active:1,note:''};
   saveState();renderTeachersTable();
   // Focus the name cell of the new row for quick editing
   setTimeout(()=>{
@@ -2535,9 +2615,10 @@ function renderReports(){
   else if(_rptTab==='parent')renderParentNotificationsReport();
 }
 
-// Iterate every scheduled student-session in SCHED with attendance status
+// Iterate every scheduled student-session in SCHED with attendance status.
+// Only iterates ACTIVE days (Sunday/Thursday can be toggled off in Settings).
 function forEachScheduledSlot(cb){
-  DAYS.forEach(d=>CARS.forEach(car=>{
+  activeDays().forEach(d=>CARS.forEach(car=>{
     const slots=SCHED[d]?.[car.id]||[];
     slots.forEach((sl_,si)=>{
       if(!sl_||sl_.t==='pick')return;
@@ -2794,6 +2875,9 @@ function showSettingsModal(){
   qs('set-sameBranch').checked=!!SETTINGS.sameBranchOnly;
   qs('set-autoPickup').checked=!!SETTINGS.autoPickup;
   qs('set-preventDouble').checked=!!SETTINGS.preventSameDayDouble;
+  qs('set-sunActive').checked=!!SETTINGS.sundayActive;
+  qs('set-thuActive').checked=!!SETTINGS.thursdayActive;
+  qs('set-autoPin').value=SETTINGS.autoSchedulePin||'';
   qs('settingsmodal').style.display='flex';
 }
 function closeSettingsModal(){qs('settingsmodal').style.display='none';}
@@ -2821,16 +2905,24 @@ function saveSettingsModal(){
     sameBranchOnly:qs('set-sameBranch').checked?1:0,
     autoPickup:qs('set-autoPickup').checked?1:0,
     preventSameDayDouble:qs('set-preventDouble').checked?1:0,
+    sundayActive:qs('set-sunActive').checked?1:0,
+    thursdayActive:qs('set-thuActive').checked?1:0,
+    autoSchedulePin:(qs('set-autoPin').value||'').trim(),
   };
   // Validation: clamp to sane ranges
   if(next.sessionMin<15||next.sessionMin>180){toast('Session length must be 15–180 minutes');return;}
   if(next.bufferMin<0||next.bufferMin>30){toast('Buffer must be 0–30 minutes');return;}
   if(next.maxSlotsPerCar<4||next.maxSlotsPerCar>24){toast('Slots per car must be 4–24');return;}
   if(next.maxGroupSize<2||next.maxGroupSize>8){toast('Max group size must be 2–8');return;}
+  if(next.autoSchedulePin&&!/^[0-9A-Za-z]{3,12}$/.test(next.autoSchedulePin)){toast('PIN must be 3–12 letters/numbers (or leave empty)');return;}
   migrateSettings(next);
   ensureSchedCoverage(); // MAX_SL may have changed
+  // If we just turned Thursday off, make sure we're not stuck on it
+  if(!SETTINGS.thursdayActive&&curDay==='Thu')curDay='Mon';
+  if(!SETTINGS.sundayActive&&curDay==='Sun')curDay='Mon';
+  if(typeof renderDayTabs==='function')renderDayTabs();
   closeSettingsModal();
-  renderSched();saveState();
+  renderSched();renderPool();saveState();
   toast('Settings saved');
 }
 
@@ -2839,9 +2931,23 @@ function autoScheduleWeek(){
   const pool=poolEntries();
   qs('auto-pool-count').textContent=pool.reduce((n,e)=>n+e.remaining,0);
   qs('auto-clear').checked=false;
+  // Show / hide the PIN row based on whether a PIN is configured
+  const pinSet=!!(SETTINGS.autoSchedulePin&&SETTINGS.autoSchedulePin.length);
+  qs('auto-pin-row').style.display=pinSet?'':'none';
+  if(pinSet)qs('auto-pin-input').value='';
   qs('automodal').style.display='flex';
+  if(pinSet)setTimeout(()=>qs('auto-pin-input').focus(),50);
 }
 function runAutoSchedule(){
+  // PIN gate
+  if(SETTINGS.autoSchedulePin&&SETTINGS.autoSchedulePin.length){
+    const entered=(qs('auto-pin-input').value||'').trim();
+    if(entered!==SETTINGS.autoSchedulePin){
+      toast('Wrong PIN — auto-schedule cancelled');
+      const el=qs('auto-pin-input');if(el){el.value='';el.focus();}
+      return;
+    }
+  }
   const clearFirst=qs('auto-clear').checked;
   qs('automodal').style.display='none';
   if(clearFirst){SCHED=blankSched();ensureSchedCoverage();}
@@ -2870,10 +2976,13 @@ function runAutoSchedule(){
   const autoPickup=!!SETTINGS.autoPickup;
   const preventDouble=!!SETTINGS.preventSameDayDouble;
 
+  // Only schedule on active days (Sunday/Thursday can be turned off in Settings).
+  const DAYS_ACTIVE=activeDays();
+
   // Track per-day per-teacher count (for maxPerDay limits).
   // Prime with existing scheduled counts so auto-schedule respects manual edits.
   const teacherDayCount={};
-  DAYS.forEach(d=>{teacherDayCount[d]={};CARS.forEach(car=>{
+  DAYS_ACTIVE.forEach(d=>{teacherDayCount[d]={};CARS.forEach(car=>{
     (SCHED[d]?.[car.id]||[]).forEach(sl_=>{
       if(!sl_||sl_.t==='pick')return;
       slotStudentIds(sl_).forEach(sid=>{
@@ -2886,7 +2995,7 @@ function runAutoSchedule(){
   // Per-day sets of students already placed (for preventSameDayDouble).
   // Primed from existing SCHED so manually-placed students aren't double-booked.
   const onDay={};
-  DAYS.forEach(d=>{onDay[d]=new Set();CARS.forEach(car=>{
+  DAYS_ACTIVE.forEach(d=>{onDay[d]=new Set();CARS.forEach(car=>{
     (SCHED[d]?.[car.id]||[]).forEach(sl_=>{
       if(!sl_||sl_.t==='pick')return;
       slotStudentIds(sl_).forEach(sid=>onDay[d].add(sid));
@@ -2930,7 +3039,7 @@ function runAutoSchedule(){
 
   let placed=0;
 
-  DAYS.forEach(day=>{
+  DAYS_ACTIVE.forEach(day=>{
     CARS.forEach(car=>{
       const slots=SCHED[day][car.id];
       // Start position = car's home branch (default)
