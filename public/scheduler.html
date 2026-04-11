@@ -228,7 +228,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <body>
 <div class="hdr">
-  <div><div class="hdr-title">BeCurious Schedule Builder</div><div class="hdr-sub">Drag to schedule · Drop on filled slot = double-drop · Click slot = set active</div></div>
+  <div><div class="hdr-title">BeCurious Schedule Builder</div><div class="hdr-sub">Drag to schedule · Drop on filled slot = double/triple-drop · Click slot = set active</div></div>
   <div class="hdr-stats">
     <div class="hstat"><b id="st-s">0</b>Dropped</div>
     <div class="hstat"><b id="st-p">0</b>Pool</div>
@@ -443,21 +443,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
     </div>
     <div style="overflow:auto;flex:1">
       <table id="teachers-table" style="width:100%;border-collapse:collapse;font-size:11px">
-        <thead>
-          <tr style="background:var(--bg);position:sticky;top:0;z-index:2">
-            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">Name</th>
-            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">Phone</th>
-            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">Branch</th>
-            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">Mon</th>
-            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">Tue</th>
-            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">Wed</th>
-            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">Thu</th>
-            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)" title="Maximum sessions this teacher can do per day">Max/day</th>
-            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">Active</th>
-            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">Students</th>
-            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)"></th>
-          </tr>
-        </thead>
+        <thead id="teachers-thead"></thead>
         <tbody id="teachers-tbody"></tbody>
       </table>
     </div>
@@ -911,10 +897,11 @@ function slotWarningsStructured(d,cid,si){
   }
 
   if(sl_.t==='d'){
-    const inter=sl_.inter||0;
+    const inter=ddTotalInter(sl_);
+    const n=(sl_.ids||[]).length;
     if(inter>20)out.push({
       type:'double-drop-gap',
-      msg:`Double-drop gap: ${inter}min between the two homes — driver may wait too long`,
+      msg:`${n===3?'Triple':'Double'}-drop gap: ${inter}min between ${n===3?'first and last':'the two'} homes — driver may wait too long`,
       data:{inter}
     });
   }
@@ -1394,13 +1381,69 @@ function importState(){
 }
 
 // ===== TIMING =====
+// Multi-drop helpers: a 'd' slot holds 2 or 3 students in its `ids` array and
+// an optional `legs` array giving inter-home minutes between consecutive drops.
+// Legacy double-drops only store a single `inter` scalar, so ddLegs falls back
+// to computing from coords (or reading `inter`) when `legs` is absent. This
+// lets old saved schedules keep working after the triple-drop upgrade.
+function ddLegs(sl_){
+  if(!sl_||sl_.t!=='d'||!sl_.ids)return[];
+  if(Array.isArray(sl_.legs)&&sl_.legs.length===sl_.ids.length-1)return sl_.legs;
+  if(sl_.ids.length===2){
+    const s1=SS[sl_.ids[0]],s2=SS[sl_.ids[1]];
+    const inter=sl_.inter||(s1&&s2?tm(hv(s1.la,s1.ln,s2.la,s2.ln)):0);
+    return[inter];
+  }
+  const legs=[];
+  for(let i=0;i<sl_.ids.length-1;i++){
+    const a=SS[sl_.ids[i]],b=SS[sl_.ids[i+1]];
+    legs.push(a&&b?tm(hv(a.la,a.ln,b.la,b.ln)):0);
+  }
+  return legs;
+}
+function ddTotalInter(sl_){return ddLegs(sl_).reduce((a,b)=>a+b,0);}
+// Sum of straight-line km between consecutive homes. For legacy 2-student
+// drops with only `sl_.km` saved, prefer the stored value.
+function ddTotalKm(sl_){
+  if(!sl_||!sl_.ids)return 0;
+  if(sl_.ids.length===2&&sl_.km!=null)return sl_.km;
+  let total=0;
+  for(let i=0;i<sl_.ids.length-1;i++){
+    const a=SS[sl_.ids[i]],b=SS[sl_.ids[i+1]];
+    if(a&&b)total+=hv(a.la,a.ln,b.la,b.ln);
+  }
+  return total;
+}
+// Recompute legs + km + inter after an edit (add/remove student).
+function ddRecomputeMetrics(sl_){
+  if(!sl_||sl_.t!=='d'||!sl_.ids)return;
+  const legs=[];let totalKm=0;
+  for(let i=0;i<sl_.ids.length-1;i++){
+    const a=SS[sl_.ids[i]],b=SS[sl_.ids[i+1]];
+    if(a&&b){
+      const d=hv(a.la,a.ln,b.la,b.ln);
+      totalKm+=d;
+      legs.push(tm(d));
+    }else{
+      legs.push(0);
+    }
+  }
+  sl_.legs=legs;
+  sl_.km=totalKm;
+  sl_.inter=legs.reduce((a,b)=>a+b,0); // keep for back-compat (total minutes between first and last drop)
+}
+
 // Last occupied position before slot si in car cid on day d
 function lastPos(d,cid,si){
   const slots=SCHED[d]?.[cid]||[];
   for(let i=si-1;i>=0;i--){
     const s=slots[i];if(!s)continue;
     if(s.t==='s'&&SS[s.id])return SS[s.id];
-    if(s.t==='d'&&SS[s.ids?.[1]])return SS[s.ids[1]]; // second teacher is last drop location
+    if(s.t==='d'&&s.ids&&s.ids.length){
+      // Last drop position = last student in the ids array (2nd or 3rd)
+      const last=SS[s.ids[s.ids.length-1]];
+      if(last)return last;
+    }
     if(s.t==='pick'&&SS[s.id])return SS[s.id];
   }
   // Return branch as pseudo-student
@@ -1431,11 +1474,12 @@ function slotDur(sl_,d,cid,si){
     return tm(hv(prev.la,prev.ln,s.la,s.ln))+block;
   }
   if(sl_.t==='d'){
-    const s1=SS[sl_.ids?.[0]],s2=SS[sl_.ids?.[1]];if(!s1)return block+15;
+    const s1=SS[sl_.ids?.[0]];if(!s1)return block+15;
     const travel1=tm(hv(prev.la,prev.ln,s1.la,s1.ln));
-    const interMin=sl_.inter||tm(hv(s1.la,s1.ln,s2?.la||s1.la,s2?.ln||s1.ln));
-    // Duration: travel to first + inter-home + block (parallel sessions done by then)
-    return travel1+interMin+block;
+    const interTotal=ddTotalInter(sl_);
+    // Duration: travel to first + total inter-home legs + block (parallel
+    // sessions done by then). Works for 2- or 3-student drops.
+    return travel1+interTotal+block;
   }
   if(sl_.t==='g'){
     // Group slot: travel to first student + one session block (children share the slot)
@@ -1467,12 +1511,16 @@ function findDropInfo(sid){
         let readyMin=startMin+slotDur(sl_,d,car.id,si);
         if(sl_.t==='d'&&sl_.ids){
           const block=sessionBlockMin();
-          const s1=SS[sl_.ids[0]],s2=SS[sl_.ids[1]];
+          const s1=SS[sl_.ids[0]];
           const prev=lastPos(d,car.id,si);
           const travel1=s1?tm(hv(prev.la,prev.ln,s1.la,s1.ln)):0;
-          const interMin=sl_.inter||(s1&&s2?tm(hv(s1.la,s1.ln,s2.la,s2.ln)):0);
-          // first student's session ends first
-          readyMin=startMin+travel1+(sl_.ids[0]===sid?block:interMin+block);
+          const legs=ddLegs(sl_);
+          const idx=sl_.ids.indexOf(sid);
+          let offset=0;for(let i=0;i<idx;i++)offset+=legs[i]||0;
+          // Each student's ready time = arrival at their home + one session block.
+          // For a 3-student drop: student[1] ready = travel1 + leg0 + block,
+          // student[2] ready = travel1 + leg0 + leg1 + block.
+          readyMin=startMin+travel1+offset+block;
         }
         return{d,cid:car.id,si,startMin,readyMin};
       }
@@ -1537,7 +1585,7 @@ function stats(){
   let sc=0,dd=0,pk=0;
   DAYS.forEach(d=>CARS.forEach(car=>(SCHED[d]?.[car.id]||[]).forEach(sl_=>{
     if(!sl_)return;
-    if(sl_.t==='s')sc++;if(sl_.t==='d'){sc+=2;dd++;}if(sl_.t==='pick')pk++;
+    if(sl_.t==='s')sc++;if(sl_.t==='d'){sc+=(sl_.ids||[]).length;dd++;}if(sl_.t==='pick')pk++;
   })));
   const tot=Object.values(SS).reduce((s,x)=>s+(x.sessionsPerWeek||1),0);
   qs('st-s').textContent=sc;
@@ -1767,51 +1815,59 @@ function renderSlot(d,cid,si){
   }
 
   if(sl_.t==='d'){
-    const[s1,s2]=[SS[sl_.ids?.[0]],SS[sl_.ids?.[1]]];if(!s1||!s2)return'';
-    const[c1,c2]=[TC[s1.t]||'#6A5FA8',TC[s2.t]||'#6A5FA8'];
+    const ids=sl_.ids||[];
+    const students=ids.map(id=>SS[id]).filter(Boolean);
+    if(students.length<2)return'';
+    const n=students.length;
+    const label=n===3?'TRIPLE-DROP':'DOUBLE-DROP';
     const prev=lastPos(d,cid,si);
+    const s1=students[0];
     const eff1La=sl_.grp?.la??s1.la, eff1Ln=sl_.grp?.ln??s1.ln;
-    const eff2La=sl_.grp?.la??s2.la, eff2Ln=sl_.grp?.ln??s2.ln;
     const travel1=tm(hv(prev.la,prev.ln,eff1La,eff1Ln));
-    const interMin=sl_.grp?0:(sl_.inter||tm(hv(s1.la,s1.ln,s2.la,s2.ln)));
-    const time2=ts(startMin+travel1+(sl_.grp?0:interMin));
+    const legs=sl_.grp?students.slice(1).map(()=>0):ddLegs(sl_);
+    // Cumulative drop offsets from slot start.
+    const dropOffsets=[0]; // first student's drop = startMin + travel1
+    for(let i=0;i<legs.length;i++)dropOffsets.push(dropOffsets[dropOffsets.length-1]+(legs[i]||0));
+    const block=sessionBlockMin();
     const fromLabel=prev.isBase?prev.a:sl(prev.a);
     const toLabel=sl_.grp?`${sl(sl_.grp.addr)} (Group)`:sl(s1.a);
-    // Each student's session is sessionMin + bufferMin long. Both start after
-    // their respective drop-off time; pickTime1 = drop1 + block, pickTime2 = drop2 + block.
-    const block=sessionBlockMin();
-    const pickTime1=ts(startMin+travel1+block);
-    const pickTime2=ts(startMin+travel1+(sl_.grp?0:interMin)+block);
-    const pick1=findPickSlot(sl_.ids[0]);const pick2=findPickSlot(sl_.ids[1]);
     const pickNext=nextSlotPos(d,cid,si);
     const pickToLabel=isLast?carBranch(cid)+' branch':sl(pickNext.a);
     const pickRow=(s,pickT,pickSl,idx)=>`<div class="auto-pick"><div class="ap-row">
       <span class="ap-badge">▲ ${pickT}</span><span class="ap-name">${s.n}</span>
       ${pickSl?`<span style="font-size:8px;color:var(--teal)">→ ${CARS.find(c=>c.id===pickSl.cid)?.label||'Car'} → ${pickToLabel}</span>`
-        :`<div class="sc pick-card" draggable="true" data-sid="${sl_.ids[idx]}" data-dtype="pick" style="display:inline-flex;align-items:center;gap:3px;padding:2px 5px;cursor:grab;border-radius:4px;margin-left:auto;font-size:8px;border-left:2px solid var(--orange)"><span style="color:var(--orange);font-weight:700">Drag →</span></div>`}
+        :`<div class="sc pick-card" draggable="true" data-sid="${ids[idx]}" data-dtype="pick" style="display:inline-flex;align-items:center;gap:3px;padding:2px 5px;cursor:grab;border-radius:4px;margin-left:auto;font-size:8px;border-left:2px solid var(--orange)"><span style="color:var(--orange);font-weight:700">Drag →</span></div>`}
     </div></div>`;
     const grpCls=sl_.grp?'grp-on':'';
+    const totalKm=(sl_.km||ddTotalKm(sl_)||0).toFixed(1);
+    const totalInter=legs.reduce((a,b)=>a+b,0);
+    const headerDetail=sl_.grp?'Same location (group)':`${totalKm}km total · ${totalInter}min between first and last drop`;
+    const studentCards=students.map((s,idx)=>{
+      const col=TC[s.t]||'#6A5FA8';
+      const dropT=ts(startMin+travel1+dropOffsets[idx]);
+      const offsetLabel=idx===0?timeStr:`<b>${dropT}</b>${sl_.grp?'':` (+${dropOffsets[idx]}min)`}`;
+      return `<div class="ss" draggable="true" data-sid="${s.id}" data-dtype="drop" style="border-left:3px solid ${col};margin:${idx===0?'3px 6px 0':idx===n-1?'0 6px 2px':'0 6px 0'}">
+          <div class="t" style="color:${col}">▼ ${s.t} · ${offsetLabel}</div>
+          <div class="n">${s.n}</div><div class="a">${s.a}</div>
+          <button class="rm" onclick="event.stopPropagation();unpair('${d}',${cid},${si},${idx})">×</button>
+        </div>${idx<n-1?'<div class="dd-sep"></div>':''}`;
+    }).join('');
+    const pickRows=students.map((s,idx)=>{
+      const pickT=ts(startMin+travel1+dropOffsets[idx]+block);
+      const pickSl=findPickSlot(ids[idx]);
+      return pickRow(s,pickT,pickSl,idx);
+    }).join('');
     return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
       <div class="slot paired${isActive?' active-slot':''}" ${base} ${handlers}>
-        ${sl_.grp?`<div class="grp-banner">🏠 Group: <span class="grp-loc">${sl(sl_.grp.addr)}</span> — both teachers same location</div>`:''}
+        ${sl_.grp?`<div class="grp-banner">🏠 Group: <span class="grp-loc">${sl(sl_.grp.addr)}</span> — all teachers same location</div>`:''}
         <div class="journey drop-j"><span class="j-from">${fromLabel}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
         <div class="slot-toprow">${warns}</div>
-        <div class="dd-hdr"><span class="dd-badge">DOUBLE-DROP</span><span class="dd-km">${sl_.grp?'Same location (group)':sl_.km?.toFixed(1)+'km apart · '+interMin+'min between homes'}</span></div>
-        <div class="ss" draggable="true" data-sid="${s1.id}" data-dtype="drop" style="border-left:3px solid ${c1};margin:3px 6px 0">
-          <div class="t" style="color:${c1}">▼ ${s1.t} · ${timeStr}</div>
-          <div class="n">${s1.n}</div><div class="a">${s1.a}</div>
-          <button class="rm" onclick="event.stopPropagation();unpair('${d}',${cid},${si},0)">×</button>
-        </div>
-        <div class="dd-sep"></div>
-        <div class="ss" draggable="true" data-sid="${s2.id}" data-dtype="drop" style="border-left:3px solid ${c2};margin:0 6px 2px">
-          <div class="t" style="color:${c2}">▼ ${s2.t} · <b>${time2}</b>${sl_.grp?'':` (+${interMin}min)`}</div>
-          <div class="n">${s2.n}</div><div class="a">${s2.a}</div>
-          <button class="rm" onclick="event.stopPropagation();unpair('${d}',${cid},${si},1)">×</button>
-        </div>
-        ${pickRow(s1,pickTime1,pick1,0)}${pickRow(s2,pickTime2,pick2,1)}
+        <div class="dd-hdr"><span class="dd-badge">${label}</span><span class="dd-km">${headerDetail}</span></div>
+        ${studentCards}
+        ${pickRows}
         ${attRowHtml(d,cid,si)}
         <div class="slot-actions">
-          <button class="sa-btn ${grpCls}" onclick="event.stopPropagation();openGroup('${d}',${cid},${si})" title="Both teachers at same group location">🏠 ${sl_.grp?'Group on':'Group'}</button>
+          <button class="sa-btn ${grpCls}" onclick="event.stopPropagation();openGroup('${d}',${cid},${si})" title="All teachers at same group location">🏠 ${sl_.grp?'Group on':'Group'}</button>
         </div>
       </div></div>`;
   }
@@ -1951,7 +2007,7 @@ function slotDrop(e,el){
   } else {
     if(!ex)placeIn(dragId,d,cid,si);
     else if(ex.t==='s'&&ex.id!==dragId)tryPair(dragId,ex.id,d,cid,si);
-    else if(ex.t==='d')toast('Slot already paired — convert to group mode first if needed');
+    else if(ex.t==='d'&&!(ex.ids||[]).includes(dragId))tryExtendPair(dragId,d,cid,si);
     else if(ex.t==='g')addToGroup(dragId,d,cid,si);
   }
   dragId=null;
@@ -1994,10 +2050,28 @@ function tryPair(sid1,sid2,d,cid,si){
   const s1=SS[sid1],s2=SS[sid2];if(!s1||!s2)return;
   const dist=hv(s1.la,s1.ln,s2.la,s2.ln);
   if(dist>3.5){toast(`${dist.toFixed(1)}km apart — too far to double-drop (max 3.5km)`);return;}
-  const inter=tm(dist);
   rmFromSched(sid1);
-  SCHED[d][cid][si]={t:'d',ids:[sid2,sid1],km:dist,inter};
-  toast(`Double-drop! ${s1.t} + ${s2.t} · ${dist.toFixed(1)}km · ${inter}min between homes · ${s2.t} drops ${inter}min later`);
+  const sl_={t:'d',ids:[sid2,sid1]};
+  ddRecomputeMetrics(sl_);
+  SCHED[d][cid][si]=sl_;
+  toast(`Double-drop! ${s1.t} + ${s2.t} · ${sl_.km.toFixed(1)}km · ${sl_.inter}min between homes`);
+  advance(d,cid,si);renderSched();renderPool();saveState();
+}
+// Extend an existing drop (2 students) into a triple drop by appending newSid
+// at the end. Distance gate uses the straight-line from the current last student
+// to the new one so the driver's new leg stays under 3.5km.
+function tryExtendPair(newSid,d,cid,si){
+  const sl_=SCHED[d]?.[cid]?.[si];
+  if(!sl_||sl_.t!=='d'||!Array.isArray(sl_.ids))return;
+  if(sl_.ids.length>=3){toast('Drop already has 3 students — that is the max');return;}
+  const newS=SS[newSid];if(!newS)return;
+  const lastS=SS[sl_.ids[sl_.ids.length-1]];if(!lastS)return;
+  const hopKm=hv(lastS.la,lastS.ln,newS.la,newS.ln);
+  if(hopKm>3.5){toast(`${hopKm.toFixed(1)}km from ${lastS.n} — too far to add (max 3.5km per leg)`);return;}
+  rmFromSched(newSid);
+  sl_.ids.push(newSid);
+  ddRecomputeMetrics(sl_);
+  toast(`Triple-drop! ${SS[sl_.ids[0]].t} + ${SS[sl_.ids[1]].t} + ${newS.t} · total ${sl_.km.toFixed(1)}km`);
   advance(d,cid,si);renderSched();renderPool();saveState();
 }
 
@@ -2008,8 +2082,13 @@ function rmFromSched(sid){
       if(!sl_)return;
       if(sl_.t==='s'&&sl_.id===sid)s[i]=null;
       if(sl_.t==='d'&&sl_.ids?.includes(sid)){
-        const other=sl_.ids.find(x=>x!==sid);
-        s[i]=other?{t:'s',id:other}:null;
+        // Drop with 2 ids collapses to a single-student slot (or empties).
+        // Drop with 3 ids stays a double-drop: remove the one matching sid,
+        // keep the order of the others, and recompute legs/km/inter.
+        const remaining=sl_.ids.filter(x=>x!==sid);
+        if(remaining.length===0)s[i]=null;
+        else if(remaining.length===1)s[i]={t:'s',id:remaining[0]};
+        else{sl_.ids=remaining;ddRecomputeMetrics(sl_);}
       }
       if(sl_.t==='g'&&sl_.ids?.includes(sid)){
         sl_.ids=sl_.ids.filter(x=>x!==sid);
@@ -2036,9 +2115,12 @@ function rmPickSlots(sids){
 }
 
 function unpair(d,cid,si,idx){
-  const sl_=SCHED[d]?.[cid]?.[si];if(!sl_||sl_.t!=='d')return;
-  const removed=sl_.ids[idx];const kept=sl_.ids[1-idx];
-  SCHED[d][cid][si]={t:'s',id:kept};
+  const sl_=SCHED[d]?.[cid]?.[si];if(!sl_||sl_.t!=='d'||!Array.isArray(sl_.ids))return;
+  const removed=sl_.ids[idx];if(!removed)return;
+  const remaining=sl_.ids.filter((_,i)=>i!==idx);
+  if(remaining.length===0)SCHED[d][cid][si]=null;
+  else if(remaining.length===1)SCHED[d][cid][si]={t:'s',id:remaining[0]};
+  else{sl_.ids=remaining;ddRecomputeMetrics(sl_);}
   rmPickSlots([removed]);
   renderSched();renderPool();saveState();toast('Session returned to pool');
 }
@@ -2598,22 +2680,30 @@ function buildDispatchMessage(d,cid){
       prevLa=useLa; prevLn=useLn; prevNm=s.n;
     }
     else if(sl_.t==='d'){
-      const s1=SS[sl_.ids?.[0]],s2=SS[sl_.ids?.[1]];
-      if(!s1)return;
+      const ids=sl_.ids||[];
+      const students=ids.map(id=>SS[id]).filter(Boolean);
+      if(students.length<2)return;
+      const s1=students[0];
       const travel1=tm(hv(prevLa,prevLn,s1.la,s1.ln));
-      const arr1=ts(startM+travel1);
+      const legs=ddLegs(sl_);
+      // First drop: car leaves prev and arrives at s1 after travel1 minutes.
+      let cursor=startM+travel1;
       num++;
-      lines.push(`${num}. ${depT}  Pickup ${s1.t||'teacher'} from ${prevNm}  → Drop at ${arr1} ${s1.n}: ${s1.a}`);
+      lines.push(`${num}. ${depT}  Pickup ${s1.t||'teacher'} from ${prevNm}  → Drop at ${ts(cursor)} ${s1.n}: ${s1.a}`);
       lines.push(`   🗺️ ${mapLink(s1.la,s1.ln)}`);
       prevLa=s1.la; prevLn=s1.ln; prevNm=s1.n;
-      if(s2){
-        const interMin=sl_.inter||tm(hv(s1.la,s1.ln,s2.la,s2.ln));
-        const dep2=ts(startM+travel1); // leave s1 immediately after dropping teacher1
-        const arr2=ts(startM+travel1+interMin);
+      // Each subsequent drop leaves the previous student's home immediately
+      // and arrives after the inter-home leg minutes.
+      for(let i=1;i<students.length;i++){
+        const sN=students[i];
+        const legMin=legs[i-1]||0;
+        const depN=ts(cursor); // leave previous student's home
+        cursor+=legMin;
+        const arrN=ts(cursor);
         num++;
-        lines.push(`${num}. ${dep2}  Pickup ${s2.t||'teacher'} from ${prevNm}  → Drop at ${arr2} ${s2.n}: ${s2.a}`);
-        lines.push(`   🗺️ ${mapLink(s2.la,s2.ln)}`);
-        prevLa=s2.la; prevLn=s2.ln; prevNm=s2.n;
+        lines.push(`${num}. ${depN}  Pickup ${sN.t||'teacher'} from ${prevNm}  → Drop at ${arrN} ${sN.n}: ${sN.a}`);
+        lines.push(`   🗺️ ${mapLink(sN.la,sN.ln)}`);
+        prevLa=sN.la; prevLn=sN.ln; prevNm=sN.n;
       }
     }
     else if(sl_.t==='g'){
@@ -2711,11 +2801,15 @@ function buildCSV(){
         rows.push([d,car.label,car.driver,si+1,t,'DROP',s.t,s.n,s.a,s.br,dbBr(s,carBranch(car.id)).toFixed(1),tm(dbBr(s,carBranch(car.id))),s.visits||0,'']);
       }
       if(sl_.t==='d'){
-        [sl_.ids[0],sl_.ids[1]].forEach((sid,idx)=>{
+        const ids=sl_.ids||[];const legs=ddLegs(sl_);
+        const total=ids.length;
+        const label=total===3?'TRIPLE-DROP':'DOUBLE-DROP';
+        let offset=0;
+        ids.forEach((sid,idx)=>{
           const s=SS[sid];if(!s)return;
-          const inter=sl_.inter||0;
-          const t2=ts(slotStartMin(d,car.id,si)+(idx===1?inter:0));
-          rows.push([d,car.label,car.driver,si+1,t2,`DOUBLE-DROP (${idx+1}/2)`,s.t,s.n,s.a,s.br,dbBr(s,carBranch(car.id)).toFixed(1),tm(dbBr(s,carBranch(car.id))),s.visits||0,`Paired · ${sl_.km?.toFixed(1)}km between homes`]);
+          if(idx>0)offset+=legs[idx-1]||0;
+          const t2=ts(slotStartMin(d,car.id,si)+offset);
+          rows.push([d,car.label,car.driver,si+1,t2,`${label} (${idx+1}/${total})`,s.t,s.n,s.a,s.br,dbBr(s,carBranch(car.id)).toFixed(1),tm(dbBr(s,carBranch(car.id))),s.visits||0,`Paired · ${(sl_.km||ddTotalKm(sl_)||0).toFixed(1)}km total between homes`]);
         });
       }
       if(sl_.t==='pick'){
@@ -2802,10 +2896,20 @@ function renderTeachersTable(){
   const names=Object.keys(TEACHERS).sort((a,b)=>a.localeCompare(b));
   qs('tchr-count').textContent=`${names.length} teacher${names.length===1?'':'s'}`;
   const esc=v=>String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+  // Day columns depend on which days are active in Settings.
+  // Sun and Thu are optional; if the settings flag is off we hide that column
+  // from the teacher table so it matches the schedule view.
+  const dayCols=[];
+  if(SETTINGS.sundayActive)dayCols.push('Sun');
+  dayCols.push('Mon','Tue','Wed');
+  if(SETTINGS.thursdayActive!==0)dayCols.push('Thu');
+  const th=v=>`<th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">${v}</th>`;
+  const thL=v=>`<th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">${v}</th>`;
+  qs('teachers-thead').innerHTML=`<tr style="background:var(--bg);position:sticky;top:0;z-index:2">${thL('Name')}${thL('Phone')}${thL('Branch')}${dayCols.map(d=>th(d)).join('')}${th('<span title="Maximum sessions this teacher can do per day">Max/day</span>')}${th('Active')}${th('Students')}${th('')}</tr>`;
   qs('teachers-tbody').innerHTML=names.map(name=>{
     const t=TEACHERS[name];const sc=teacherStudentCount(name);
     const col=TC[name]||'#6A5FA8';
-    const dayChk=day=>`<input type="checkbox" ${t.days?.[day]?'checked':''} onchange="patchTeacher('${esc(name)}','day','${day}',this.checked)">`;
+    const dayChk=day=>`<td class="st-cell" style="text-align:center"><input type="checkbox" ${t.days?.[day]?'checked':''} onchange="patchTeacher('${esc(name)}','day','${day}',this.checked)"></td>`;
     return `<tr class="st-row" id="tchrrow-${esc(name)}">
       <td class="st-cell"><input class="st-inp" value="${esc(name)}" style="color:${col};font-weight:600" onchange="renameTeacher('${esc(name)}',this.value)"></td>
       <td class="st-cell"><input class="st-inp" value="${esc(t.phone)}" placeholder="96599…" onchange="patchTeacher('${esc(name)}','phone',null,this.value)"></td>
@@ -2816,10 +2920,7 @@ function renderTeachersTable(){
           <option${t.branch==='Salwa'?' selected':''}>Salwa</option>
         </select>
       </td>
-      <td class="st-cell" style="text-align:center">${dayChk('Mon')}</td>
-      <td class="st-cell" style="text-align:center">${dayChk('Tue')}</td>
-      <td class="st-cell" style="text-align:center">${dayChk('Wed')}</td>
-      <td class="st-cell" style="text-align:center">${dayChk('Thu')}</td>
+      ${dayCols.map(d=>dayChk(d)).join('')}
       <td class="st-cell" style="text-align:center"><input class="st-inp num" type="number" min="1" max="12" value="${t.maxPerDay||6}" style="width:50px" onchange="patchTeacher('${esc(name)}','maxPerDay',null,+this.value)"></td>
       <td class="st-cell" style="text-align:center"><input type="checkbox" ${t.active?'checked':''} onchange="patchTeacher('${esc(name)}','active',null,this.checked?1:0)"></td>
       <td class="st-cell" style="text-align:center;font-size:10px;color:var(--text3)">${sc}</td>
