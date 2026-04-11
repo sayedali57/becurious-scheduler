@@ -457,11 +457,11 @@ const SUPA_ROW_ID='main';
 const supa=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(SUPA_URL,SUPA_KEY):null;
 
 // ===== PASSWORD GATE =====
-// Default password: "becurious2026" — change it by replacing PW_HASH below with the SHA-256 hex of your new password.
+// To change the team password, replace PW_HASH below with the SHA-256 hex of your new password.
 // Quickest way to compute a new hash: open this page, open DevTools Console, and run:
 //   (async()=>{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('NEWPASSWORD'));console.log(Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join(''));})()
 // Copy the hex string it prints and paste it into PW_HASH below.
-const PW_HASH='e6026aa444e03697afaf6d8a1480cd80e2490cc96dff301a2e229ac1ca9383de'; // sha256('becurious2026')
+const PW_HASH='72965adbd252658a80efaf2acda87bdb7125ac2eb32b3dc87562b66d16c2422c'; // sha256 of team password
 const PW_KEY='bc_auth_v1';
 
 async function _sha256hex(s){
