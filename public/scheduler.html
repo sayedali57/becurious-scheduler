@@ -1726,19 +1726,60 @@ function buildDispatchMessage(d,cid){
     }
   });
 
-  // Return to branch
-  pts.push([bLa,bLn]);
-
   const header=`🚗 ${car.label}${car.driver?' · '+car.driver:''}\n📅 ${dayFull}${dateStr?' '+dateStr:''} · ${car.branch} branch`;
 
   if(num===0){
     return {text:`${header}\n${sep}\nNo stops scheduled.`,mapUrl:'',count:0};
   }
 
-  const path=pts.map(p=>p[0].toFixed(5)+','+p[1].toFixed(5)).join('/');
-  const mapUrl='https://www.google.com/maps/dir/'+path;
-  const text=`${header}\n${sep}\n${lines.join('\n')}\n${sep}\n🗺️ Route with all ${num} stops:\n${mapUrl}`;
-  return {text,mapUrl,count:num};
+  // Build a Google Maps link using the documented ?api=1 format so every
+  // point is treated as raw coordinates (lat,lng), not geocoded text.
+  // Google Maps URL spec allows up to 9 intermediate waypoints per link,
+  // so if there are more stops we split into consecutive leg-links.
+  const fmt=p=>p[0].toFixed(5)+','+p[1].toFixed(5);
+  const branchStr=fmt([bLa,bLn]);
+  const stops=pts.slice(1); // pts[0] is the branch origin
+  const MAX_WP=9;           // max waypoints per Google Maps dir URL
+
+  function buildLegUrl(origin,waypointsArr,destination){
+    const params=['api=1','travelmode=driving'];
+    params.push('origin='+encodeURIComponent(origin));
+    params.push('destination='+encodeURIComponent(destination));
+    if(waypointsArr.length){
+      params.push('waypoints='+waypointsArr.map(encodeURIComponent).join('%7C'));
+    }
+    return 'https://www.google.com/maps/dir/?'+params.join('&');
+  }
+
+  const legUrls=[];
+  if(stops.length<=MAX_WP){
+    // One link: branch → all stops → branch
+    legUrls.push(buildLegUrl(branchStr,stops.map(fmt),branchStr));
+  }else{
+    // Split into consecutive legs. Each leg: (last point of prev leg) → up to 9 waypoints → final stop of leg.
+    // To use all 9 waypoints slots, we let each leg cover 10 stops (9 waypoints + 1 destination).
+    let cursor=branchStr;
+    for(let i=0;i<stops.length;i+=MAX_WP+1){
+      const chunk=stops.slice(i,i+MAX_WP+1);
+      const dest=fmt(chunk[chunk.length-1]);
+      const mids=chunk.slice(0,-1).map(fmt);
+      legUrls.push(buildLegUrl(cursor,mids,dest));
+      cursor=dest;
+    }
+    // Final leg back to branch
+    legUrls.push(buildLegUrl(cursor,[],branchStr));
+  }
+
+  let mapBlock;
+  if(legUrls.length===1){
+    mapBlock=`🗺️ Route with all ${num} stops:\n${legUrls[0]}`;
+  }else{
+    mapBlock=`🗺️ Route with all ${num} stops (Google Maps caps each link at 10 stops, so the route is split into ${legUrls.length} legs — open them in order):`;
+    legUrls.forEach((u,i)=>{mapBlock+=`\nLeg ${i+1}: ${u}`;});
+  }
+
+  const text=`${header}\n${sep}\n${lines.join('\n')}\n${sep}\n${mapBlock}`;
+  return {text,mapUrl:legUrls[0],count:num,legUrls};
 }
 
 function showDispatch(d,cid){
