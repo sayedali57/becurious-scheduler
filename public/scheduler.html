@@ -186,6 +186,15 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .grp-drop-zone.doverg{background:#FEF3CD;border-style:solid}
 /* Warning flag - JS popup instead of CSS hover (avoids column clipping) */
 .warn-flag{display:inline-flex;align-items:center;cursor:pointer;font-size:13px;line-height:1;border:none;background:none;padding:0}
+/* Warnings panel buttons */
+.wf-fix{padding:4px 9px;border-radius:5px;background:#059669;color:#fff;border:none;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap}
+.wf-fix:hover{background:#047857}
+.wf-jump{padding:4px 8px;border-radius:5px;background:#F3F4F6;color:#374151;border:1px solid #E5E7EB;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap}
+.wf-jump:hover{background:#E5E7EB}
+.wf-del{padding:4px 8px;border-radius:5px;background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap}
+.wf-del:hover{background:#FCA5A5;color:#fff}
+.wf-row:hover{background:#FAFAFA}
+#warn-toolbar-btn.has-warns{color:#DC2626;font-weight:700}
 /* Fixed global tooltip - rendered via JS, always on screen */
 #warn-popup{position:fixed;background:#1E1E1E;color:#fff;font-size:10px;padding:9px 11px;border-radius:7px;width:220px;z-index:999;line-height:1.6;white-space:pre-wrap;box-shadow:0 4px 16px rgba(0,0,0,.35);display:none;pointer-events:none}
 /* Sessions counter on pool card */
@@ -229,6 +238,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
   <span id="save-ind">Connecting…</span>
   <span id="last-edit"></span>
   <button class="hbtn green" onclick="autoScheduleWeek()" title="Automatically place every pool student into car slots — minimizes drive time and groups by teacher">⚡ Auto-schedule</button>
+  <button class="hbtn" id="warn-toolbar-btn" onclick="showWarningsPanel()" title="Show every warning across the week with one-click fixes"><span id="warn-toolbar-count">🚩 Warnings</span></button>
   <button class="hbtn" onclick="showReportsModal()">📊 Reports</button>
   <button class="hbtn" onclick="showTeachersModal()">👩‍🏫 Teachers</button>
   <button class="hbtn" onclick="showSettingsModal()">⚙ Settings</button>
@@ -584,6 +594,21 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
   </div>
 </div>
 
+<!-- WARNINGS PANEL -->
+<div class="modal" id="warnpanel" style="display:none;align-items:flex-start;padding:30px 20px;overflow:auto">
+  <div class="mbox" style="width:640px;max-height:85vh;display:flex;flex-direction:column;padding:0">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <h3 style="margin:0;flex:1">🚩 Schedule warnings <span style="font-size:11px;color:var(--text3);font-weight:400">(<span id="warnpanel-count">0</span>)</span></h3>
+      <button class="btn" onclick="closeWarningsPanel()">Close</button>
+    </div>
+    <div style="padding:8px 18px 10px 18px;font-size:10px;color:var(--text2);border-bottom:1px solid var(--border);background:#FFFBEB;line-height:1.5">
+      One-click fixes. Every fix can be undone from the toast for ~10 seconds after you click.
+      <span style="color:#6B7280">·</span> <span style="color:#DC2626">red</span> = structural · <span style="color:#D97706">orange</span> = time · <span style="color:#6B7280">grey</span> = route ergonomics
+    </div>
+    <div id="warnpanel-body" style="flex:1;overflow:auto"></div>
+  </div>
+</div>
+
 <!-- EXPORT -->
 <div class="modal" id="exportmodal" style="display:none">
   <div class="mbox" style="width:440px">
@@ -819,19 +844,33 @@ function isLastSlot(d,cid,si){
 }
 
 // ===== WARNINGS =====
-function slotWarnings(d,cid,si){
+// Structured warnings are the source of truth. Each returned item has:
+//   type: 'early-pickup' | 'orphaned-pickup' | 'far-student' | 'stranded-teacher'
+//         | 'long-drive' | 'double-drop-gap' | 'past-cutoff'
+//   msg:  human-readable text
+//   data: type-specific payload used by fix handlers
+// slotWarnings() returns just the text strings for backwards-compat with
+// the existing 🚩 pop-up on each slot card.
+function slotWarningsStructured(d,cid,si){
   const sl_=SCHED[d]?.[cid]?.[si];if(!sl_)return[];
-  const warns=[];
+  const out=[];
   const startMin=slotStartMin(d,cid,si);
 
   if(sl_.t==='pick'){
     const info=findDropInfo(sl_.id);
     if(info){
       const readyMin=info.readyMin;
-      if(startMin<readyMin)warns.push(`⚠ Early pickup: teacher session ends ${ts(readyMin)} but pickup scheduled at ${ts(startMin)} (${readyMin-startMin}min too early)`);
+      if(startMin<readyMin)out.push({
+        type:'early-pickup',
+        msg:`Early pickup: teacher session ends ${ts(readyMin)} but pickup scheduled at ${ts(startMin)} (${readyMin-startMin}min too early)`,
+        data:{readyMin,startMin,teacherId:sl_.id}
+      });
     }
-    // Pickup with no corresponding drop on any day
-    if(!findDropInfo(sl_.id))warns.push('⚠ No drop-off found for this teacher on any day — orphaned pickup');
+    if(!info)out.push({
+      type:'orphaned-pickup',
+      msg:'No drop-off found for this teacher on any day — orphaned pickup',
+      data:{teacherId:sl_.id}
+    });
   }
 
   if(sl_.t==='s'||sl_.t==='d'){
@@ -839,8 +878,16 @@ function slotWarnings(d,cid,si){
     ids.forEach(id=>{
       const s=SS[id];if(!s)return;
       const dist=dbBr(s,carBranch(cid));
-      if(dist>20)warns.push(`⚠ Very far student: ${s.n} is ${dist.toFixed(0)}km from branch — verify coordinates`);
-      if(!findPickSlot(id))warns.push(`⚠ No pickup scheduled for ${s.t} (${s.n}) — teacher will be stranded`);
+      if(dist>20)out.push({
+        type:'far-student',
+        msg:`Very far student: ${s.n} is ${dist.toFixed(0)}km from branch — verify coordinates`,
+        data:{sid:id,studentName:s.n,dist}
+      });
+      if(!findPickSlot(id))out.push({
+        type:'stranded-teacher',
+        msg:`No pickup scheduled for ${s.t} (${s.n}) — teacher will be stranded`,
+        data:{sid:id,studentName:s.n,teacherName:s.t}
+      });
     });
   }
 
@@ -848,13 +895,21 @@ function slotWarnings(d,cid,si){
     const s=SS[sl_.id];if(s){
       const prev=lastPos(d,cid,si);
       const travelMin=tm(hv(prev.la,prev.ln,(sl_.grp?.la??s.la),(sl_.grp?.ln??s.ln)));
-      if(travelMin>40&&!prev.isBase)warns.push(`⚠ Long drive: ${travelMin}min from previous stop — consider reordering`);
+      if(travelMin>40&&!prev.isBase)out.push({
+        type:'long-drive',
+        msg:`Long drive: ${travelMin}min from previous stop — consider reordering`,
+        data:{travelMin,studentName:s.n}
+      });
     }
   }
 
   if(sl_.t==='d'){
     const inter=sl_.inter||0;
-    if(inter>20)warns.push(`⚠ Double-drop gap: ${inter}min between the two homes — driver may wait too long`);
+    if(inter>20)out.push({
+      type:'double-drop-gap',
+      msg:`Double-drop gap: ${inter}min between the two homes — driver may wait too long`,
+      data:{inter}
+    });
   }
 
   // Latest-session-end cutoff: warn if this drop/group would end past the configured dayEndMin.
@@ -862,12 +917,189 @@ function slotWarnings(d,cid,si){
     const dayEnd=parseInt(SETTINGS.dayEndMin);
     if(!isNaN(dayEnd)&&dayEnd>0){
       const slotEnd=startMin+slotDur(sl_,d,cid,si);
-      if(slotEnd>dayEnd)warns.push(`⚠ Session ends ${ts(slotEnd)} — past the ${ts(dayEnd)} cutoff in ⚙ Settings`);
+      if(slotEnd>dayEnd)out.push({
+        type:'past-cutoff',
+        msg:`Session ends ${ts(slotEnd)} — past the ${ts(dayEnd)} cutoff in ⚙ Settings`,
+        data:{slotEnd,dayEnd}
+      });
     }
   }
-
-  return warns;
+  return out;
 }
+function slotWarnings(d,cid,si){
+  return slotWarningsStructured(d,cid,si).map(w=>'⚠ '+w.msg);
+}
+// Walk the entire SCHED and return every warning across every slot, tagged with d/cid/si.
+function allScheduleWarnings(){
+  const out=[];
+  activeDays().forEach(d=>{
+    CARS.forEach(car=>{
+      const slots=SCHED[d]?.[car.id]||[];
+      slots.forEach((sl_,si)=>{
+        if(!sl_)return;
+        slotWarningsStructured(d,car.id,si).forEach(w=>{
+          out.push({d,cid:car.id,si,car,...w});
+        });
+      });
+    });
+  });
+  return out;
+}
+// ===== WARNING FIX HANDLERS =====
+// Each fix takes a snapshot of SCHED BEFORE mutating so the user can undo within ~10s.
+// After every fix we re-render + save and re-open the panel so the list refreshes.
+function _snapshotSched(){return JSON.parse(JSON.stringify(SCHED));}
+function _restoreSched(snap){SCHED=snap;renderSched();renderPool();saveState();if(qs('warnpanel')?.style.display==='flex')showWarningsPanel();}
+function _withSnapshot(label,fn){
+  const snap=_snapshotSched();
+  try{fn();}catch(e){console.error(e);toast('Fix failed: '+e.message);return;}
+  renderSched();renderPool();saveState();
+  if(qs('warnpanel')?.style.display==='flex')showWarningsPanel(); // refresh the panel
+  toastUndo(label,()=>{_restoreSched(snap);toast('Reverted');},10000);
+}
+// Fix an early-pickup by deleting the misplaced pickup and re-inserting it in the first
+// empty slot AFTER the drop on the same day/car. If no empty slot is available we push one.
+function fixEarlyPickup(d,cid,si){
+  _withSnapshot('Pickup shifted to correct time',()=>{
+    const sl_=SCHED[d]?.[cid]?.[si];if(!sl_||sl_.t!=='pick')return;
+    const sid=sl_.id;
+    const info=findDropInfo(sid);
+    if(!info){toast('No matching drop found');return;}
+    // Null out the wrong pickup first
+    SCHED[d][cid][si]=null;
+    // Find the drop slot index on the same day+car (pickup must be same-day same-car to the drop)
+    if(info.d!==d||info.cid!==cid){
+      // Different day/car drop — just drop the pickup, user will re-place manually
+      toast('Drop is on a different day/car — pickup removed, please re-add manually');
+      return;
+    }
+    const slots=SCHED[d][cid];
+    let target=-1;
+    for(let i=info.si+1;i<slots.length;i++){if(!slots[i]){target=i;break;}}
+    if(target===-1){
+      // Append a new trailing slot
+      slots.push({t:'pick',id:sid});
+    }else{
+      slots[target]={t:'pick',id:sid};
+    }
+  });
+}
+// Delete an orphaned pickup slot (no matching drop anywhere).
+function fixOrphanedPickup(d,cid,si){
+  _withSnapshot('Orphaned pickup removed',()=>{
+    const sl_=SCHED[d]?.[cid]?.[si];if(!sl_||sl_.t!=='pick')return;
+    SCHED[d][cid][si]=null;
+  });
+}
+// Insert an auto-pickup after a drop whose teacher is stranded.
+function fixStrandedTeacher(d,cid,si,sid){
+  _withSnapshot('Auto-pickup inserted',()=>{
+    const slots=SCHED[d]?.[cid];if(!slots)return;
+    // Already has a pickup? bail
+    if(findPickSlot(sid))return;
+    let target=-1;
+    for(let i=si+1;i<slots.length;i++){if(!slots[i]){target=i;break;}}
+    if(target===-1){slots.push({t:'pick',id:sid});}
+    else{slots[target]={t:'pick',id:sid};}
+  });
+}
+// Delete a slot (drop / double / group / pickup) — students return to the pool automatically
+// because renderPool reads from poolEntries() which scans SCHED.
+function fixDeleteSlot(d,cid,si){
+  _withSnapshot('Slot deleted — student(s) back to pool',()=>{
+    const slots=SCHED[d]?.[cid];if(!slots||!slots[si])return;
+    slots[si]=null;
+  });
+}
+// Jump to the slot in the schedule view: switch to the day, close the panel, flash the slot.
+function jumpToSlot(d,cid,si){
+  qs('warnpanel').style.display='none';
+  curDay=d;
+  if(typeof renderDayTabs==='function')renderDayTabs();
+  renderSched();
+  // After a tick, find and flash the slot element
+  setTimeout(()=>{
+    const el=document.getElementById('sl-'+d+'-'+cid+'-'+si);
+    if(el){
+      el.scrollIntoView({behavior:'smooth',block:'center'});
+      el.style.transition='box-shadow 400ms';
+      const orig=el.style.boxShadow;
+      el.style.boxShadow='0 0 0 3px #DC2626';
+      setTimeout(()=>{el.style.boxShadow=orig;},1800);
+    }
+  },120);
+}
+// ===== WARNINGS PANEL (central dashboard with one-click fixes) =====
+function showWarningsPanel(){
+  const list=allScheduleWarnings();
+  const modal=qs('warnpanel');
+  const body=qs('warnpanel-body');
+  if(!list.length){
+    body.innerHTML=`<div style="padding:30px;text-align:center;color:var(--text3);font-size:13px">✅ No warnings — the schedule looks clean.</div>`;
+    modal.style.display='flex';
+    return;
+  }
+  // Group by day so the panel reads like "here's everything wrong on Monday"
+  const dayOrder={Sun:-1,Mon:0,Tue:1,Wed:2,Thu:3};
+  const dayFull={Sun:'Sunday',Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday'};
+  const byDay={};
+  list.forEach(w=>{(byDay[w.d]=byDay[w.d]||[]).push(w);});
+  const days=Object.keys(byDay).sort((a,b)=>dayOrder[a]-dayOrder[b]);
+  const esc=v=>String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+  // Color per severity — structural errors red, drive-ergonomic orange
+  const sev={
+    'stranded-teacher':'#DC2626',
+    'orphaned-pickup':'#DC2626',
+    'early-pickup':'#D97706',
+    'past-cutoff':'#D97706',
+    'far-student':'#6B7280',
+    'long-drive':'#6B7280',
+    'double-drop-gap':'#6B7280'
+  };
+  const typeLabel={
+    'stranded-teacher':'Stranded teacher',
+    'orphaned-pickup':'Orphaned pickup',
+    'early-pickup':'Early pickup',
+    'past-cutoff':'Past cutoff',
+    'far-student':'Far student',
+    'long-drive':'Long drive',
+    'double-drop-gap':'Double-drop gap'
+  };
+  // Render each warning row with appropriate action buttons
+  function btnHtml(w){
+    const args=`'${w.d}',${w.cid},${w.si}`;
+    const sidArg=w.data&&w.data.sid?`,'${esc(w.data.sid).replace(/'/g,"\\'")}'`:'';
+    if(w.type==='early-pickup'){
+      return `<button class="wf-fix" onclick="fixEarlyPickup(${args})">⚡ Shift to correct time</button>`;
+    }
+    if(w.type==='orphaned-pickup'){
+      return `<button class="wf-fix" onclick="fixOrphanedPickup(${args})">🗑 Delete pickup</button>`;
+    }
+    if(w.type==='stranded-teacher'){
+      return `<button class="wf-fix" onclick="fixStrandedTeacher(${args}${sidArg})">➕ Insert pickup</button>`;
+    }
+    // No-single-fix types: Jump + Delete
+    return `<button class="wf-jump" onclick="jumpToSlot(${args})">👁 Jump</button>`+
+           `<button class="wf-del" onclick="fixDeleteSlot(${args})">🗑 Delete slot</button>`;
+  }
+  body.innerHTML=days.map(d=>`
+    <div style="padding:10px 16px 4px 16px;font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;background:#FAFAFA;border-bottom:1px solid var(--border);position:sticky;top:0">${dayFull[d]||d} <span style="color:var(--text3);font-weight:400">(${byDay[d].length})</span></div>
+    ${byDay[d].map(w=>`
+      <div class="wf-row" style="padding:10px 16px;border-bottom:1px solid #F0F0F0;display:flex;gap:10px;align-items:flex-start">
+        <div style="width:6px;height:6px;border-radius:50%;background:${sev[w.type]||'#999'};margin-top:6px;flex-shrink:0"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:9px;color:${sev[w.type]||'#999'};font-weight:700;text-transform:uppercase;letter-spacing:0.4px">${typeLabel[w.type]||w.type} · ${esc(w.car?.label||'')}</div>
+          <div style="font-size:11px;color:var(--text);margin-top:2px;line-height:1.35">${esc(w.msg)}</div>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0;align-items:center">${btnHtml(w)}</div>
+      </div>
+    `).join('')}
+  `).join('');
+  // Header counts
+  qs('warnpanel-count').textContent=list.length;
+  modal.style.display='flex';
+}
+function closeWarningsPanel(){qs('warnpanel').style.display='none';}
 
 function warnHtml(d,cid,si){
   const w=slotWarnings(d,cid,si);
@@ -1305,6 +1537,15 @@ function stats(){
   qs('st-p').textContent=poolEntries().length;
   qs('st-pk').textContent=pk;
   qs('st-u').textContent=Math.round(sc/Math.max(1,tot)*100)+'%';
+  // Refresh the toolbar warnings count so Saleh sees it change as he edits.
+  try{
+    const wBtn=qs('warn-toolbar-btn');const wLab=qs('warn-toolbar-count');
+    if(wBtn&&wLab){
+      const n=allScheduleWarnings().length;
+      wLab.textContent=n?`🚩 ${n} warning${n===1?'':'s'}`:'🚩 Warnings';
+      wBtn.classList.toggle('has-warns',n>0);
+    }
+  }catch(e){/* ignore — panel not loaded yet */}
 }
 
 // ===== RENDER POOL =====
@@ -3256,6 +3497,22 @@ function doReset(){
 
 // ===== TOAST =====
 function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3500);}
+// Toast with an Undo link on the right side. onUndo runs if user clicks before timeout.
+function toastUndo(msg,onUndo,ms){
+  const t=document.createElement('div');
+  t.className='toast';
+  t.style.cursor='default';
+  t.innerHTML='';
+  const span=document.createElement('span');span.textContent=msg+'  ';
+  const btn=document.createElement('span');
+  btn.textContent='↶ Undo';
+  btn.style.cssText='color:#FCA5A5;font-weight:700;cursor:pointer;text-decoration:underline;margin-left:8px';
+  let used=false;
+  btn.onclick=function(ev){ev.stopPropagation();if(used)return;used=true;onUndo&&onUndo();t.remove();};
+  t.appendChild(span);t.appendChild(btn);
+  document.body.appendChild(t);
+  setTimeout(()=>{if(!used)t.remove();},ms||10000);
+}
 
 // ===== START =====
 init();
