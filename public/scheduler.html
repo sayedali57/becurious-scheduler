@@ -1673,34 +1673,42 @@ function buildDispatchMessage(d,cid){
   const lines=[];
   const pts=[[bLa,bLn]]; // origin = branch
   let num=0;
+  // Track the previous physical location + its friendly name, so each line can say
+  // "Pickup {teacher} from {prevLocation}". Start at the branch.
+  let prevLa=bLa, prevLn=bLn, prevNm='BeCurious '+brKey;
 
   slots.forEach((sl_,si)=>{
     if(!sl_)return;
     const startM=slotStartMin(d,cid,si);
-    const time=ts(startM);
+    const depT=ts(startM);
 
     if(sl_.t==='s'){
       const s=SS[sl_.id];if(!s)return;
       const useLa=sl_.grp?.la??s.la, useLn=sl_.grp?.ln??s.ln, useAddr=sl_.grp?.addr||s.a;
+      const travelMin=tm(hv(prevLa,prevLn,useLa,useLn));
+      const arrT=ts(startM+travelMin);
       num++;
-      lines.push(`${num}. ${time}  DROP   ${s.t||'—'} → ${s.n}`);
-      lines.push(`     ${useAddr}`);
+      lines.push(`${num}. ${depT}  Pickup ${s.t||'teacher'} from ${prevNm}  → Drop at ${arrT} ${s.n}: ${useAddr}`);
       pts.push([useLa,useLn]);
+      prevLa=useLa; prevLn=useLn; prevNm=s.n;
     }
     else if(sl_.t==='d'){
       const s1=SS[sl_.ids?.[0]],s2=SS[sl_.ids?.[1]];
       if(!s1)return;
-      const inter=sl_.inter||0;
+      const travel1=tm(hv(prevLa,prevLn,s1.la,s1.ln));
+      const arr1=ts(startM+travel1);
       num++;
-      lines.push(`${num}. ${time}  DD 1/2  ${s1.t||'—'} → ${s1.n}`);
-      lines.push(`     ${s1.a}`);
+      lines.push(`${num}. ${depT}  Pickup ${s1.t||'teacher'} from ${prevNm}  → Drop at ${arr1} ${s1.n}: ${s1.a}`);
       pts.push([s1.la,s1.ln]);
+      prevLa=s1.la; prevLn=s1.ln; prevNm=s1.n;
       if(s2){
-        const t2=ts(startM+inter);
+        const interMin=sl_.inter||tm(hv(s1.la,s1.ln,s2.la,s2.ln));
+        const dep2=ts(startM+travel1); // leave s1 immediately after dropping teacher1
+        const arr2=ts(startM+travel1+interMin);
         num++;
-        lines.push(`${num}. ${t2}  DD 2/2  ${s2.t||'—'} → ${s2.n}`);
-        lines.push(`     ${s2.a}`);
+        lines.push(`${num}. ${dep2}  Pickup ${s2.t||'teacher'} from ${prevNm}  → Drop at ${arr2} ${s2.n}: ${s2.a}`);
         pts.push([s2.la,s2.ln]);
+        prevLa=s2.la; prevLn=s2.ln; prevNm=s2.n;
       }
     }
     else if(sl_.t==='g'){
@@ -1711,18 +1719,21 @@ function buildDispatchMessage(d,cid){
       if(la==null||ln==null)return;
       const names=ids.map(id=>SS[id]?.n).filter(Boolean).join(', ');
       const teachers=[...new Set(ids.map(id=>SS[id]?.t).filter(Boolean))].join('/');
+      const travelMin=tm(hv(prevLa,prevLn,la,ln));
+      const arrT=ts(startM+travelMin);
       num++;
-      lines.push(`${num}. ${time}  GROUP (${ids.length})  ${teachers||'—'}`);
-      lines.push(`     ${names}`);
-      lines.push(`     ${addr}`);
+      lines.push(`${num}. ${depT}  Pickup ${teachers||'teachers'} from ${prevNm}  → Drop at ${arrT} group [${names}]: ${addr}`);
       pts.push([la,ln]);
+      prevLa=la; prevLn=ln; prevNm=names.split(', ')[0]||'group';
     }
     else if(sl_.t==='pick'){
       const s=SS[sl_.id];if(!s)return;
+      const travelMin=tm(hv(prevLa,prevLn,s.la,s.ln));
+      const arrT=ts(startM+travelMin);
       num++;
-      lines.push(`${num}. ${time}  PICKUP ${s.t||'—'} ← ${s.n}`);
-      lines.push(`     ${s.a}`);
+      lines.push(`${num}. ${depT}  Return to ${s.n} from ${prevNm}  → Pickup ${s.t||'teacher'} at ${arrT}: ${s.a}`);
       pts.push([s.la,s.ln]);
+      prevLa=s.la; prevLn=s.ln; prevNm=s.n;
     }
   });
 
@@ -1732,42 +1743,25 @@ function buildDispatchMessage(d,cid){
     return {text:`${header}\n${sep}\nNo stops scheduled.`,mapUrl:'',count:0};
   }
 
-  // Build a Google Maps link using the documented ?api=1 format so every
-  // point is treated as raw coordinates (lat,lng), not geocoded text.
-  // Google Maps URL spec allows up to 9 intermediate waypoints per link,
-  // so if there are more stops we split into consecutive leg-links.
+  // Build a Google Maps link using the path form (/maps/dir/lat,lng/lat,lng/...).
+  // The path form gives the driver editable stops, a Start/Directions button,
+  // and opens directly in the Google Maps app on mobile. Each link is capped
+  // at ~10 stops total (origin + waypoints + destination), so if there are more
+  // we split into consecutive legs that the driver opens in order.
   const fmt=p=>p[0].toFixed(5)+','+p[1].toFixed(5);
-  const branchStr=fmt([bLa,bLn]);
-  const stops=pts.slice(1); // pts[0] is the branch origin
-  const MAX_WP=9;           // max waypoints per Google Maps dir URL
-
-  function buildLegUrl(origin,waypointsArr,destination){
-    const params=['api=1','travelmode=driving'];
-    params.push('origin='+encodeURIComponent(origin));
-    params.push('destination='+encodeURIComponent(destination));
-    if(waypointsArr.length){
-      params.push('waypoints='+waypointsArr.map(encodeURIComponent).join('%7C'));
-    }
-    return 'https://www.google.com/maps/dir/?'+params.join('&');
-  }
-
+  // Full route: branch → every stop → back to branch
+  const allPts=[...pts,[bLa,bLn]];
+  const MAX=10; // Google Maps path-form per-URL stop cap
   const legUrls=[];
-  if(stops.length<=MAX_WP){
-    // One link: branch → all stops → branch
-    legUrls.push(buildLegUrl(branchStr,stops.map(fmt),branchStr));
+  if(allPts.length<=MAX){
+    legUrls.push('https://www.google.com/maps/dir/'+allPts.map(fmt).join('/')+'/');
   }else{
-    // Split into consecutive legs. Each leg: (last point of prev leg) → up to 9 waypoints → final stop of leg.
-    // To use all 9 waypoints slots, we let each leg cover 10 stops (9 waypoints + 1 destination).
-    let cursor=branchStr;
-    for(let i=0;i<stops.length;i+=MAX_WP+1){
-      const chunk=stops.slice(i,i+MAX_WP+1);
-      const dest=fmt(chunk[chunk.length-1]);
-      const mids=chunk.slice(0,-1).map(fmt);
-      legUrls.push(buildLegUrl(cursor,mids,dest));
-      cursor=dest;
+    let start=0;
+    while(start<allPts.length-1){
+      const end=Math.min(start+MAX,allPts.length);
+      legUrls.push('https://www.google.com/maps/dir/'+allPts.slice(start,end).map(fmt).join('/')+'/');
+      start=end-1; // next leg starts where this one ended, so legs overlap by 1 point
     }
-    // Final leg back to branch
-    legUrls.push(buildLegUrl(cursor,[],branchStr));
   }
 
   let mapBlock;
