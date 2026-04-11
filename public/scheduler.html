@@ -228,10 +228,13 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
   </div>
   <span id="save-ind">Connecting…</span>
   <span id="last-edit"></span>
-  <button class="hbtn amber" onclick="importState()">⬆ Import JSON</button>
-  <button class="hbtn green" onclick="showExport()">⬇ Export</button>
+  <button class="hbtn green" onclick="autoScheduleWeek()" title="Automatically place every pool student into car slots — minimizes drive time and groups by teacher">⚡ Auto-schedule</button>
+  <button class="hbtn" onclick="showReportsModal()">📊 Reports</button>
+  <button class="hbtn" onclick="showTeachersModal()">👩‍🏫 Teachers</button>
   <button class="hbtn" onclick="showCarsModal()">🚗 Cars</button>
   <button class="hbtn" onclick="showStudentsTable()">📋 Students</button>
+  <button class="hbtn amber" onclick="importState()">⬆ Import</button>
+  <button class="hbtn" onclick="showExport()">⬇ Export</button>
   <button class="hbtn" onclick="doReset()" style="opacity:.7">↺ Reset</button>
 </div>
 
@@ -302,6 +305,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
       <div class="frow"><label>Sessions per week</label><input id="fspw" type="number" min="1" max="7" value="1" placeholder="1"></div>
       <div class="frow"><label>Total visits so far</label><input id="fvisits" type="number" min="0" value="0" placeholder="0"></div>
     </div>
+    <div class="frow"><label>Parent WhatsApp (with country code, e.g. 96599887766)</label><input id="fparent" placeholder="Optional — enables parent notifications"></div>
     <input type="hidden" id="fedit-id">
     <div class="mbtns">
       <button class="btn" onclick="closeAdd()">Cancel</button>
@@ -349,9 +353,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Address</th>
             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Latitude</th>
             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Longitude</th>
+            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Parent WhatsApp</th>
             <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Sess/wk</th>
             <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Visits</th>
             <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Scheduled</th>
+            <th style="padding:8px 6px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">WA</th>
             <th style="padding:8px 6px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Del</th>
           </tr>
         </thead>
@@ -393,6 +399,99 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
     <div id="import-footer" style="display:none;padding:10px 18px;border-top:1px solid var(--border);align-items:center;gap:10px;flex-shrink:0;background:#FAFAFA">
       <div id="import-summary" style="font-size:11px;color:var(--text2)"></div>
       <button id="import-confirm-btn" onclick="confirmImport()" style="margin-left:auto;padding:7px 16px;border-radius:6px;background:var(--purple);color:#fff;border:none;font-size:11px;font-weight:600;cursor:pointer">Import valid rows</button>
+    </div>
+  </div>
+</div>
+
+<!-- TEACHERS MODAL -->
+<div class="modal" id="teachersmodal" style="display:none;align-items:flex-start;padding:20px">
+  <div style="background:#fff;border-radius:12px;width:100%;max-width:980px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.2)">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <div>
+        <div style="font-size:15px;font-weight:700">Teachers</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:1px">Manage availability, phone numbers, and daily limits. Inactive teachers are skipped by auto-scheduler.</div>
+      </div>
+      <button onclick="addTeacherRow()" style="margin-left:auto;padding:5px 13px;border-radius:6px;background:var(--purple);color:#fff;border:none;font-size:11px;font-weight:600;cursor:pointer">+ Add teacher</button>
+      <button onclick="closeTeachersModal()" style="padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:transparent;font-size:11px;cursor:pointer">Close</button>
+    </div>
+    <div style="overflow:auto;flex:1">
+      <table id="teachers-table" style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead>
+          <tr style="background:var(--bg);position:sticky;top:0;z-index:2">
+            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">Name</th>
+            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">Phone</th>
+            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">Branch</th>
+            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">Mon</th>
+            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">Tue</th>
+            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">Wed</th>
+            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">Thu</th>
+            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)" title="Maximum sessions this teacher can do per day">Max/day</th>
+            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">Active</th>
+            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">Students</th>
+            <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)"></th>
+          </tr>
+        </thead>
+        <tbody id="teachers-tbody"></tbody>
+      </table>
+    </div>
+    <div style="padding:8px 18px;border-top:1px solid var(--border);font-size:10px;color:var(--text3);flex-shrink:0">
+      <span id="tchr-count"></span> · Click any cell to edit · Changes save automatically
+    </div>
+  </div>
+</div>
+
+<!-- REPORTS MODAL -->
+<div class="modal" id="reportsmodal" style="display:none;align-items:flex-start;padding:20px">
+  <div style="background:#fff;border-radius:12px;width:100%;max-width:1000px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.2)">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <div>
+        <div style="font-size:15px;font-weight:700">Reports</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:1px">Attendance, completion rates, and teacher workload</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+        <label style="font-size:10px;color:var(--text2)">Week:</label>
+        <select id="rpt-week" onchange="renderReports()" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:11px;outline:none"></select>
+        <button onclick="closeReportsModal()" style="padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:transparent;font-size:11px;cursor:pointer">Close</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:4px;padding:0 18px;border-bottom:1px solid var(--border);flex-shrink:0">
+      <button id="rpt-tab-student" class="rpt-tab on" onclick="switchReportTab('student')">📋 Student completion</button>
+      <button id="rpt-tab-teacher" class="rpt-tab" onclick="switchReportTab('teacher')">👩‍🏫 Teacher weekly view</button>
+      <button id="rpt-tab-parent" class="rpt-tab" onclick="switchReportTab('parent')">💬 Parent notifications</button>
+    </div>
+    <div style="overflow:auto;flex:1" id="rpt-body"></div>
+  </div>
+</div>
+<style>
+.rpt-tab{padding:8px 14px;font-size:11px;font-weight:500;cursor:pointer;color:var(--text2);border:none;background:transparent;border-bottom:2px solid transparent;margin-bottom:-1px}
+.rpt-tab.on{color:var(--purple);border-bottom-color:var(--purple);font-weight:600}
+.rpt-tab:hover{color:var(--purple-dk)}
+.att-btn{font-size:9px;padding:1px 5px;border-radius:3px;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text2);font-weight:500;margin:0 1px}
+.att-btn:hover{border-color:var(--purple)}
+.att-btn.on-done{background:#D1FAE5;border-color:#059669;color:#065F46;font-weight:700}
+.att-btn.on-cancel{background:#FEE2E2;border-color:#DC2626;color:#991B1B;font-weight:700}
+.att-btn.on-noshow{background:#FEF3C7;border-color:#D97706;color:#92400E;font-weight:700}
+.att-row{display:flex;align-items:center;gap:3px;padding:3px 7px 4px;font-size:9px;color:var(--text3);border-top:1px solid var(--border);flex-wrap:wrap}
+.att-row b{font-size:8px;font-weight:700;margin-right:3px;color:var(--text3);text-transform:uppercase}
+</style>
+
+<!-- AUTO-SCHEDULE CONFIRM MODAL -->
+<div class="modal" id="automodal" style="display:none">
+  <div class="mbox" style="width:480px">
+    <h3>⚡ Auto-schedule the week</h3>
+    <p style="font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.6">This will automatically place <b id="auto-pool-count">0</b> unscheduled student session(s) into car slots across Mon–Thu, minimizing drive time and grouping students by teacher where possible.</p>
+    <div style="background:var(--bg);border-radius:6px;padding:10px;font-size:10px;color:var(--text2);line-height:1.7;margin-bottom:10px">
+      <b>How it works:</b><br>
+      1. Only <i>pool</i> students (those not yet fully scheduled) are placed — existing schedule is kept.<br>
+      2. Each student is assigned to the closest car (by branch) on a day the teacher is available.<br>
+      3. Teacher daily limits (Max/day) are respected — over-limit students stay in the pool.<br>
+      4. Students of the same teacher are chained consecutively to reduce handoff drives.<br>
+      5. Auto pickup slots are added after each drop.
+    </div>
+    <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="auto-clear"> Clear the existing schedule first (start from scratch)</label></div>
+    <div class="mbtns">
+      <button class="btn" onclick="qs('automodal').style.display='none'">Cancel</button>
+      <button class="btn btnp" onclick="runAutoSchedule()">⚡ Run auto-schedule</button>
     </div>
   </div>
 </div>
@@ -526,10 +625,24 @@ function getUserName(){
 }
 
 // ===== STATE =====
-let SS={},SCHED={},CARS=[],curDay='Mon',curBr='All',curSort='closest';
+let SS={},SCHED={},CARS=[],TEACHERS={},ATTEND={},curDay='Mon',curBr='All',curSort='closest';
 let dragId=null,dragType='drop',activeSlot=null;
 // Supabase sync state
 let supaOnline=false,applyingRemote=false,lastSyncFp='',saveTimer=null;
+
+// ===== ISO WEEK (for attendance tracking) =====
+function isoWeek(date){
+  const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));
+  const day=d.getUTCDay()||7;
+  d.setUTCDate(d.getUTCDate()+4-day);
+  const yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  const weekNo=Math.ceil((((d-yearStart)/86400000)+1)/7);
+  return d.getUTCFullYear()+'-W'+String(weekNo).padStart(2,'0');
+}
+function currentWeekKey(){return isoWeek(new Date());}
+function weekKeyOffset(offset){
+  const d=new Date();d.setDate(d.getDate()+offset*7);return isoWeek(d);
+}
 
 // ===== HELPERS =====
 function hv(a,b,c,d){const R=6371,p=Math.PI/180,da=(c-a)*p,db=(d-b)*p;return+(2*R*Math.asin(Math.sqrt(Math.sin(da/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(db/2)**2))).toFixed(2);}
@@ -691,8 +804,24 @@ function ensureSchedCoverage(){
 }
 function init(){
   CARS=defaultCars();
-  SS={};RAW.forEach(([id,n,br,t,la,ln,a])=>SS[id]={id,n,br,t,la,ln,a,visits:0});
+  SS={};RAW.forEach(([id,n,br,t,la,ln,a])=>SS[id]={id,n,br,t,la,ln,a,visits:0,parentPhone:'',sessionsPerWeek:1});
   SCHED=blankSched();activeSlot=null;
+  TEACHERS={};ATTEND={};
+  deriveTeachersFromStudents();
+}
+// Create teacher records for any teacher name appearing on a student
+// but not yet present in TEACHERS. Existing records are left alone.
+function deriveTeachersFromStudents(){
+  Object.values(SS).forEach(s=>{
+    if(!s.t)return;
+    if(!TEACHERS[s.t]){
+      TEACHERS[s.t]={
+        name:s.t, phone:'', branch:s.br||'Shuhada',
+        days:{Mon:1,Tue:1,Wed:1,Thu:1},
+        maxPerDay:6, active:1, note:''
+      };
+    }
+  });
 }
 
 // ===== PERSISTENCE (Supabase shared + localStorage fallback) =====
@@ -712,7 +841,7 @@ function setLastEdit(name,when){
 
 function saveState(){
   // Always save locally (offline fallback, instant)
-  try{localStorage.setItem(SAVE_KEY,JSON.stringify({SS,SCHED,CARS,v:3}));}catch(e){}
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,v:4}));}catch(e){}
   // Don't echo remote updates back to Supabase
   if(applyingRemote)return;
   // Debounce pushes so a burst of edits only triggers one network call
@@ -724,7 +853,7 @@ function saveState(){
 async function pushToSupabase(){
   if(!supa){setSyncIndicator('offline');return;}
   try{
-    const payload={SS,SCHED,CARS,v:3};
+    const payload={SS,SCHED,CARS,TEACHERS,ATTEND,v:4};
     const fp=JSON.stringify(payload);
     if(fp===lastSyncFp){setSyncIndicator('synced');return;}
     const {error}=await supa.from('scheduler_state').update({
@@ -749,7 +878,12 @@ function tryLoadState(){
     const data=JSON.parse(raw);
     if(!data.v||data.v<3)return false;
     SS=data.SS||{};
+    // Ensure parentPhone exists on all students (v3 -> v4 migration)
+    Object.values(SS).forEach(s=>{if(s.parentPhone==null)s.parentPhone='';});
     CARS=data.CARS&&data.CARS.length?data.CARS:defaultCars();
+    TEACHERS=data.TEACHERS&&typeof data.TEACHERS==='object'?data.TEACHERS:{};
+    ATTEND=data.ATTEND&&typeof data.ATTEND==='object'?data.ATTEND:{};
+    deriveTeachersFromStudents();
     const raw_s=data.SCHED||{};
     SCHED={};
     DAYS.forEach(d=>{SCHED[d]={};CARS.forEach(car=>{
@@ -767,14 +901,18 @@ function applyRemoteData(payload,updatedBy,updatedAt){
   applyingRemote=true;
   try{
     SS=payload.SS||{};
+    Object.values(SS).forEach(s=>{if(s.parentPhone==null)s.parentPhone='';});
     CARS=(payload.CARS&&payload.CARS.length)?payload.CARS:defaultCars();
+    TEACHERS=payload.TEACHERS&&typeof payload.TEACHERS==='object'?payload.TEACHERS:{};
+    ATTEND=payload.ATTEND&&typeof payload.ATTEND==='object'?payload.ATTEND:{};
+    deriveTeachersFromStudents();
     const raw_s=payload.SCHED||{};
     SCHED={};
     DAYS.forEach(d=>{SCHED[d]={};CARS.forEach(car=>{
       const arr=raw_s[d]?.[car.id]||[];
       SCHED[d][car.id]=arr.length>=MAX_SL?arr:[...arr,...Array(MAX_SL-arr.length).fill(null)];
     });});
-    lastSyncFp=JSON.stringify({SS,SCHED,CARS,v:3});
+    lastSyncFp=JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,v:4});
     setLastEdit(updatedBy,updatedAt);
     return true;
   }finally{
@@ -806,7 +944,7 @@ function subscribeRealtime(){
       (pl)=>{
         const newData=pl.new&&pl.new.data;
         if(!newData)return;
-        const fp=JSON.stringify({SS:newData.SS,SCHED:newData.SCHED,CARS:newData.CARS,v:3});
+        const fp=JSON.stringify({SS:newData.SS,SCHED:newData.SCHED,CARS:newData.CARS,TEACHERS:newData.TEACHERS||{},ATTEND:newData.ATTEND||{},v:4});
         // Ignore our own echo
         if(fp===lastSyncFp)return;
         if(applyRemoteData(newData,pl.new.updated_by,pl.new.updated_at)){
@@ -819,7 +957,7 @@ function subscribeRealtime(){
     .subscribe();
 }
 function exportJSON(){
-  const blob=new Blob([JSON.stringify({SS,SCHED,CARS,v:3},null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,v:4},null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);const a=document.createElement('a');
   a.href=url;a.download=`BeCurious_${curDay}_${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);
   toast('JSON saved — share this file to continue editing on any device');closeExport();
@@ -832,7 +970,11 @@ function importState(){
     r.onload=ev=>{try{
       const data=JSON.parse(ev.target.result);
       SS=data.SS||{};
+      Object.values(SS).forEach(s=>{if(s.parentPhone==null)s.parentPhone='';});
       CARS=data.CARS&&data.CARS.length?data.CARS:defaultCars();
+      TEACHERS=data.TEACHERS&&typeof data.TEACHERS==='object'?data.TEACHERS:{};
+      ATTEND=data.ATTEND&&typeof data.ATTEND==='object'?data.ATTEND:{};
+      deriveTeachersFromStudents();
       SCHED={};
       DAYS.forEach(d=>{SCHED[d]={};CARS.forEach(car=>{
         const arr=data.SCHED?.[d]?.[car.id]||[];
@@ -1159,6 +1301,7 @@ function renderSlot(d,cid,si){
           <button class="rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})">×</button>
         </div>
         ${pickHtml}
+        ${attRowHtml(d,cid,si)}
         <div class="slot-actions">
           <button class="sa-btn ${grpCls}" onclick="event.stopPropagation();openGroup('${d}',${cid},${si})" title="Set group location">🏠 ${sl_.grp?'Group on':'Group'}</button>
           ${s.visits?`<span class="tag-v" style="font-size:8px">${s.visits}v</span>`:''}
@@ -1206,6 +1349,7 @@ function renderSlot(d,cid,si){
           <button class="rm" onclick="event.stopPropagation();unpair('${d}',${cid},${si},1)">×</button>
         </div>
         ${pickRow(s1,pickTime1,pick1,0)}${pickRow(s2,pickTime2,pick2,1)}
+        ${attRowHtml(d,cid,si)}
         <div class="slot-actions">
           <button class="sa-btn ${grpCls}" onclick="event.stopPropagation();openGroup('${d}',${cid},${si})" title="Both teachers at same group location">🏠 ${sl_.grp?'Group on':'Group'}</button>
         </div>
@@ -1288,6 +1432,7 @@ function renderSlot(d,cid,si){
         ${childRows}
         ${dropZone}
         ${pickRows}
+        ${attRowHtml(d,cid,si)}
       </div></div>`;
   }
 
@@ -1526,12 +1671,14 @@ function renderStudentsTable(){
       <td class="st-cell"><input class="st-inp" value="${esc(s.a)}" onchange="patchStudent('${s.id}','a',this.value)" style="min-width:160px" onkeydown="stNav(event,this)"></td>
       <td class="st-cell"><input class="st-inp num" value="${s.la||''}" type="number" step="any" onchange="patchStudent('${s.id}','la',parseFloat(this.value))" style="width:90px" onkeydown="stNav(event,this)"></td>
       <td class="st-cell"><input class="st-inp num" value="${s.ln||''}" type="number" step="any" onchange="patchStudent('${s.id}','ln',parseFloat(this.value))" style="width:90px" onkeydown="stNav(event,this)"></td>
+      <td class="st-cell"><input class="st-inp" value="${esc(s.parentPhone||'')}" onchange="patchStudent('${s.id}','parentPhone',this.value)" placeholder="96599…" style="min-width:110px" onkeydown="stNav(event,this)"></td>
       <td class="st-cell"><input class="st-inp num" value="${s.sessionsPerWeek||1}" type="number" min="1" max="7" onchange="patchStudent('${s.id}','sessionsPerWeek',+this.value)" style="width:52px" onkeydown="stNav(event,this)"></td>
       <td class="st-cell"><input class="st-inp num" value="${s.visits||0}" type="number" min="0" onchange="patchStudent('${s.id}','visits',+this.value)" style="width:52px" onkeydown="stNav(event,this)"></td>
       <td class="st-cell" style="text-align:center;padding:6px 8px;white-space:nowrap">
         <span class="sched-dot" style="background:${dotCol}"></span>${sched}/${total}
         ${total>1?`<div style="width:40px;height:3px;background:var(--border);border-radius:2px;margin:3px auto 0;overflow:hidden"><div style="width:${pct}%;height:100%;background:${dotCol};border-radius:2px"></div></div>`:''}
       </td>
+      <td class="st-cell" style="text-align:center"><button class="st-del" title="Send weekly schedule to parent on WhatsApp" onclick="sendParentWhatsApp('${s.id}')" ${s.parentPhone?'':'style="opacity:.3;cursor:not-allowed"'}>💬</button></td>
       <td class="st-cell" style="text-align:center"><button class="st-del" onclick="deleteStudent('${s.id}')" title="Delete student">&#10005;</button></td>
     </tr>`;
   }).join('');
@@ -1542,6 +1689,10 @@ function esc(v){return(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 function patchStudent(sid,field,val){
   if(!SS[sid])return;
   SS[sid][field]=val;
+  // If the teacher name changed and the new name isn't in TEACHERS, create a default record
+  if(field==='t'&&val&&!TEACHERS[val]){
+    TEACHERS[val]={name:val,phone:'',branch:SS[sid].br||'Shuhada',days:{Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:6,active:1,note:''};
+  }
   saveState();
   renderPool();
   // Highlight row briefly to confirm
@@ -1562,7 +1713,7 @@ function deleteStudent(sid){
 
 function addNewStudentRow(){
   const id='sx'+Date.now();
-  SS[id]={id,n:'New Student',t:'',br:'Shuhada',a:'',la:0,ln:0,visits:0,sessionsPerWeek:1};
+  SS[id]={id,n:'New Student',t:'',br:'Shuhada',a:'',la:0,ln:0,visits:0,sessionsPerWeek:1,parentPhone:''};
   saveState();
   renderStudentsTable();
   // Find the ACTUAL new row by id (sorting may put it anywhere in the list)
@@ -1800,7 +1951,11 @@ function confirmImport(){
   ok.forEach(r=>{
     const d=r.data;
     const id='sx'+Date.now()+'_'+Math.floor(Math.random()*10000);
-    SS[id]={id,n:d.n,t:d.t,br:d.br,a:d.a,la:d.la,ln:d.ln,visits:0,sessionsPerWeek:d.spw};
+    SS[id]={id,n:d.n,t:d.t,br:d.br,a:d.a,la:d.la,ln:d.ln,visits:0,sessionsPerWeek:d.spw,parentPhone:''};
+    // Auto-create teacher record for any new teacher seen in import
+    if(d.t&&!TEACHERS[d.t]){
+      TEACHERS[d.t]={name:d.t,phone:'',branch:d.br,days:{Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:6,active:1,note:''};
+    }
     added++;
   });
   saveState();
@@ -1863,6 +2018,7 @@ function showAdd(){
   qs('add-title').textContent='Add new student';
   qs('fedit-id').value='';qs('ft').value='';qs('fs').value='';qs('fa').value='';
   qs('flat').value='';qs('flng').value='';qs('fvisits').value='0';qs('fspw').value='1';
+  qs('fparent').value='';
   qs('fb').value='Shuhada';qs('addmodal').style.display='flex';
 }
 function closeAdd(){qs('addmodal').style.display='none';}
@@ -1871,10 +2027,16 @@ function doAdd(){
   const la=parseFloat(qs('flat').value),ln=parseFloat(qs('flng').value);
   const visits=parseInt(qs('fvisits').value)||0;
   const sessionsPerWeek=Math.max(1,parseInt(qs('fspw').value)||1);
+  const parentPhone=(qs('fparent').value||'').trim();
   const editId=qs('fedit-id').value;
   if(!t||!n||!a||isNaN(la)||isNaN(ln)){toast('Fill all fields');return;}
   const id=editId||'sx'+Date.now();
-  SS[id]={id,n,br,t,la,ln,a,visits,sessionsPerWeek};
+  const prev=SS[id]||{};
+  SS[id]={...prev,id,n,br,t,la,ln,a,visits,sessionsPerWeek,parentPhone};
+  // Ensure teacher record exists
+  if(t&&!TEACHERS[t]){
+    TEACHERS[t]={name:t,phone:'',branch:br,days:{Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:6,active:1,note:''};
+  }
   closeAdd();renderPool();saveState();
   // Refresh the students table if it's open
   if(qs('studentsmodal').style.display==='flex')renderStudentsTable();
@@ -1886,6 +2048,7 @@ function editStudent(sid){
   qs('fedit-id').value=sid;qs('fb').value=s.br;qs('ft').value=s.t;qs('fs').value=s.n;
   qs('fa').value=s.a;qs('flat').value=s.la;qs('flng').value=s.ln;
   qs('fvisits').value=s.visits||0;qs('fspw').value=s.sessionsPerWeek||1;
+  qs('fparent').value=s.parentPhone||'';
   qs('addmodal').style.display='flex';
 }
 
@@ -2082,6 +2245,531 @@ function downloadCSV(){
 function copyForSheets(){
   const tsv=buildCSV().map(r=>r.join('\t')).join('\n');
   navigator.clipboard.writeText(tsv).then(()=>{toast('Copied! Paste into Google Sheets (A1)');closeExport();}).catch(()=>toast('Copy failed — use CSV download'));
+}
+
+// ===== ATTENDANCE =====
+// Attendance is tracked per ISO week. The key in ATTEND[weekKey] is
+// `${day}|${cid}|${si}|${sid}` so the same slot can hold attendance
+// for multiple students (e.g. a double-drop or a group).
+let _rptWeek=null; // selected week for reports view (null = current)
+function activeWeekKey(){return _rptWeek||currentWeekKey();}
+function attKey(d,cid,si,sid){return d+'|'+cid+'|'+si+'|'+sid;}
+function getAtt(d,cid,si,sid,wk){
+  const w=wk||activeWeekKey();
+  return ATTEND[w]?.[attKey(d,cid,si,sid)]||'';
+}
+function setAtt(d,cid,si,sid,status){
+  const w=activeWeekKey();
+  if(!ATTEND[w])ATTEND[w]={};
+  const k=attKey(d,cid,si,sid);
+  if(status===''||status==null)delete ATTEND[w][k];
+  else ATTEND[w][k]=status;
+  saveState();renderSched();
+}
+function cycleAtt(d,cid,si,sid){
+  const order=['','completed','cancelled','noshow'];
+  const cur=getAtt(d,cid,si,sid);
+  const next=order[(order.indexOf(cur)+1)%order.length];
+  setAtt(d,cid,si,sid,next);
+}
+// Slot IDs this attendance row should cover (students inside the slot)
+function slotStudentIds(sl_){
+  if(!sl_)return[];
+  if(sl_.t==='s'||sl_.t==='pick')return sl_.id?[sl_.id]:[];
+  if(sl_.t==='d')return (sl_.ids||[]).filter(Boolean);
+  if(sl_.t==='g')return (sl_.ids||[]).filter(Boolean);
+  return[];
+}
+// HTML for the attendance row under a slot. Always shows current week.
+function attRowHtml(d,cid,si){
+  const sl_=SCHED[d]?.[cid]?.[si];if(!sl_)return'';
+  const ids=slotStudentIds(sl_);if(!ids.length)return'';
+  const wk=activeWeekKey();
+  const rows=ids.map(sid=>{
+    const s=SS[sid];if(!s)return'';
+    const cur=getAtt(d,cid,si,sid,wk);
+    const on=cls=>cur===cls?'on-'+cls:'';
+    const label=ids.length>1?s.n.split(' ')[0]+' ':'';
+    return `<span style="display:inline-flex;align-items:center;gap:2px">
+      ${ids.length>1?`<span style="font-size:8px;color:var(--text3);font-weight:600">${label}</span>`:''}
+      <button class="att-btn ${on('completed')}" title="Mark completed" onclick="event.stopPropagation();setAtt('${d}',${cid},${si},'${sid}','${cur==='completed'?'':'completed'}')">✓</button>
+      <button class="att-btn ${on('cancelled')}" title="Mark cancelled" onclick="event.stopPropagation();setAtt('${d}',${cid},${si},'${sid}','${cur==='cancelled'?'':'cancelled'}')">✗</button>
+      <button class="att-btn ${on('noshow')}" title="Mark no-show" onclick="event.stopPropagation();setAtt('${d}',${cid},${si},'${sid}','${cur==='noshow'?'':'noshow'}')">⚠</button>
+    </span>`;
+  }).join('');
+  return `<div class="att-row" title="Attendance — week ${wk}"><b>Att:</b>${rows}</div>`;
+}
+
+// ===== TEACHERS MODAL =====
+function showTeachersModal(){deriveTeachersFromStudents();renderTeachersTable();qs('teachersmodal').style.display='flex';}
+function closeTeachersModal(){qs('teachersmodal').style.display='none';renderPool();renderSched();saveState();}
+function teacherStudentCount(name){return Object.values(SS).filter(s=>s.t===name).length;}
+function renderTeachersTable(){
+  deriveTeachersFromStudents();
+  const names=Object.keys(TEACHERS).sort((a,b)=>a.localeCompare(b));
+  qs('tchr-count').textContent=`${names.length} teacher${names.length===1?'':'s'}`;
+  const esc=v=>String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+  qs('teachers-tbody').innerHTML=names.map(name=>{
+    const t=TEACHERS[name];const sc=teacherStudentCount(name);
+    const col=TC[name]||'#6A5FA8';
+    const dayChk=day=>`<input type="checkbox" ${t.days?.[day]?'checked':''} onchange="patchTeacher('${esc(name)}','day','${day}',this.checked)">`;
+    return `<tr class="st-row" id="tchrrow-${esc(name)}">
+      <td class="st-cell"><input class="st-inp" value="${esc(name)}" style="color:${col};font-weight:600" onchange="renameTeacher('${esc(name)}',this.value)"></td>
+      <td class="st-cell"><input class="st-inp" value="${esc(t.phone)}" placeholder="96599…" onchange="patchTeacher('${esc(name)}','phone',null,this.value)"></td>
+      <td class="st-cell">
+        <select class="st-sel" onchange="patchTeacher('${esc(name)}','branch',null,this.value)">
+          <option${t.branch==='Shuhada'?' selected':''}>Shuhada</option>
+          <option${t.branch==='Salam'?' selected':''}>Salam</option>
+          <option${t.branch==='Salwa'?' selected':''}>Salwa</option>
+        </select>
+      </td>
+      <td class="st-cell" style="text-align:center">${dayChk('Mon')}</td>
+      <td class="st-cell" style="text-align:center">${dayChk('Tue')}</td>
+      <td class="st-cell" style="text-align:center">${dayChk('Wed')}</td>
+      <td class="st-cell" style="text-align:center">${dayChk('Thu')}</td>
+      <td class="st-cell" style="text-align:center"><input class="st-inp num" type="number" min="1" max="12" value="${t.maxPerDay||6}" style="width:50px" onchange="patchTeacher('${esc(name)}','maxPerDay',null,+this.value)"></td>
+      <td class="st-cell" style="text-align:center"><input type="checkbox" ${t.active?'checked':''} onchange="patchTeacher('${esc(name)}','active',null,this.checked?1:0)"></td>
+      <td class="st-cell" style="text-align:center;font-size:10px;color:var(--text3)">${sc}</td>
+      <td class="st-cell" style="text-align:center"><button class="st-del" onclick="deleteTeacher('${esc(name)}')" title="Remove teacher">&#10005;</button></td>
+    </tr>`;
+  }).join('');
+}
+function patchTeacher(name,field,sub,val){
+  const t=TEACHERS[name];if(!t)return;
+  if(field==='day'){if(!t.days)t.days={};t.days[sub]=val?1:0;}
+  else t[field]=val;
+  saveState();
+}
+function renameTeacher(oldName,newName){
+  newName=(newName||'').trim();
+  if(!newName||newName===oldName){renderTeachersTable();return;}
+  if(TEACHERS[newName]){toast('A teacher named "'+newName+'" already exists');renderTeachersTable();return;}
+  // Rename in TEACHERS
+  TEACHERS[newName]={...TEACHERS[oldName],name:newName};
+  delete TEACHERS[oldName];
+  // Cascade rename to every student that referenced the old name
+  Object.values(SS).forEach(s=>{if(s.t===oldName)s.t=newName;});
+  saveState();renderTeachersTable();renderPool();renderSched();
+  toast(`Renamed "${oldName}" → "${newName}"`);
+}
+function deleteTeacher(name){
+  const sc=teacherStudentCount(name);
+  if(sc>0&&!confirm(`${name} has ${sc} student${sc===1?'':'s'} assigned. Removing the teacher record will NOT delete the students — they'll keep the teacher name but won't have availability data. Continue?`))return;
+  if(sc===0&&!confirm(`Remove teacher "${name}"?`))return;
+  delete TEACHERS[name];
+  saveState();renderTeachersTable();
+}
+function addTeacherRow(){
+  let base='New teacher',name=base,i=1;
+  while(TEACHERS[name]){name=base+' '+(++i);}
+  TEACHERS[name]={name,phone:'',branch:'Shuhada',days:{Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:6,active:1,note:''};
+  saveState();renderTeachersTable();
+  // Focus the name cell of the new row for quick editing
+  setTimeout(()=>{
+    const row=qs('tchrrow-'+name);
+    if(row){row.scrollIntoView({block:'center',behavior:'smooth'});
+      const inp=row.querySelector('.st-inp');if(inp){inp.focus();inp.select();}}
+  },40);
+}
+
+// ===== REPORTS MODAL =====
+let _rptTab='student';
+function showReportsModal(){
+  populateWeekDropdown();
+  _rptTab='student';
+  switchReportTab('student');
+  qs('reportsmodal').style.display='flex';
+}
+function closeReportsModal(){qs('reportsmodal').style.display='none';}
+function populateWeekDropdown(){
+  const sel=qs('rpt-week');
+  const weeks=[];
+  for(let i=-8;i<=2;i++)weeks.push(weekKeyOffset(i));
+  // Also include any weeks present in ATTEND not already in list
+  Object.keys(ATTEND).forEach(w=>{if(!weeks.includes(w))weeks.push(w);});
+  weeks.sort();
+  const cur=currentWeekKey();
+  sel.innerHTML=weeks.map(w=>{
+    const label=w+(w===cur?' (current)':'');
+    return `<option value="${w}"${w===cur?' selected':''}>${label}</option>`;
+  }).join('');
+  _rptWeek=cur;
+}
+function switchReportTab(tab){
+  _rptTab=tab;
+  ['student','teacher','parent'].forEach(t=>{
+    const el=qs('rpt-tab-'+t);if(el)el.classList.toggle('on',t===tab);
+  });
+  renderReports();
+}
+function renderReports(){
+  _rptWeek=qs('rpt-week').value||currentWeekKey();
+  if(_rptTab==='student')renderStudentCompletionReport();
+  else if(_rptTab==='teacher')renderTeacherWeeklyReport();
+  else if(_rptTab==='parent')renderParentNotificationsReport();
+}
+
+// Iterate every scheduled student-session in SCHED with attendance status
+function forEachScheduledSlot(cb){
+  DAYS.forEach(d=>CARS.forEach(car=>{
+    const slots=SCHED[d]?.[car.id]||[];
+    slots.forEach((sl_,si)=>{
+      if(!sl_||sl_.t==='pick')return;
+      slotStudentIds(sl_).forEach(sid=>{
+        cb({d,cid:car.id,si,sid,sl_});
+      });
+    });
+  }));
+}
+
+function renderStudentCompletionReport(){
+  const wk=activeWeekKey();
+  // Build per-student tally
+  const tally={};
+  Object.values(SS).forEach(s=>{tally[s.id]={s,sched:0,done:0,cancelled:0,noshow:0,unmarked:0};});
+  forEachScheduledSlot(({d,cid,si,sid})=>{
+    if(!tally[sid])return;
+    tally[sid].sched++;
+    const st=getAtt(d,cid,si,sid,wk);
+    if(st==='completed')tally[sid].done++;
+    else if(st==='cancelled')tally[sid].cancelled++;
+    else if(st==='noshow')tally[sid].noshow++;
+    else tally[sid].unmarked++;
+  });
+  const rows=Object.values(tally).sort((a,b)=>a.s.n.localeCompare(b.s.n));
+  let totalSched=0,totalDone=0,totalCan=0,totalNo=0;
+  rows.forEach(r=>{totalSched+=r.sched;totalDone+=r.done;totalCan+=r.cancelled;totalNo+=r.noshow;});
+  const esc=v=>String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+  const body=qs('rpt-body');
+  body.innerHTML=`
+    <div style="padding:12px 18px;display:flex;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:#FAFAFA">
+      <div style="font-size:11px;color:var(--text2)"><b>Week ${wk}</b> · ${totalSched} scheduled sessions</div>
+      <div style="margin-left:auto;display:flex;gap:10px;font-size:10px;color:var(--text2)">
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#059669;margin-right:4px"></span>${totalDone} completed</span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#DC2626;margin-right:4px"></span>${totalCan} cancelled</span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#D97706;margin-right:4px"></span>${totalNo} no-show</span>
+        <button onclick="exportReportCSV()" style="padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:#fff;font-size:10px;cursor:pointer">⬇ Export CSV</button>
+      </div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px">
+      <thead><tr style="background:var(--bg);position:sticky;top:0">
+        <th style="padding:8px 10px;text-align:left;font-size:10px;color:var(--text2);border-bottom:2px solid var(--border)">Student</th>
+        <th style="padding:8px 10px;text-align:left;font-size:10px;color:var(--text2);border-bottom:2px solid var(--border)">Teacher</th>
+        <th style="padding:8px 10px;text-align:left;font-size:10px;color:var(--text2);border-bottom:2px solid var(--border)">Branch</th>
+        <th style="padding:8px 10px;text-align:center;font-size:10px;color:var(--text2);border-bottom:2px solid var(--border)">Scheduled</th>
+        <th style="padding:8px 10px;text-align:center;font-size:10px;color:var(--text2);border-bottom:2px solid var(--border)">✓ Done</th>
+        <th style="padding:8px 10px;text-align:center;font-size:10px;color:var(--text2);border-bottom:2px solid var(--border)">✗ Cancel</th>
+        <th style="padding:8px 10px;text-align:center;font-size:10px;color:var(--text2);border-bottom:2px solid var(--border)">⚠ No-show</th>
+        <th style="padding:8px 10px;text-align:center;font-size:10px;color:var(--text2);border-bottom:2px solid var(--border)">Unmarked</th>
+        <th style="padding:8px 10px;text-align:center;font-size:10px;color:var(--text2);border-bottom:2px solid var(--border)">Completion %</th>
+      </tr></thead>
+      <tbody>
+        ${rows.map(r=>{
+          const pct=r.sched?Math.round(r.done/r.sched*100):null;
+          const col=pct==null?'#999':pct>=80?'#059669':pct>=50?'#D97706':'#DC2626';
+          return `<tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:6px 10px">${esc(r.s.n)}</td>
+            <td style="padding:6px 10px">${esc(r.s.t)}</td>
+            <td style="padding:6px 10px">${esc(r.s.br)}</td>
+            <td style="padding:6px 10px;text-align:center">${r.sched}</td>
+            <td style="padding:6px 10px;text-align:center;color:#059669;font-weight:${r.done?'700':'400'}">${r.done||'—'}</td>
+            <td style="padding:6px 10px;text-align:center;color:#DC2626;font-weight:${r.cancelled?'700':'400'}">${r.cancelled||'—'}</td>
+            <td style="padding:6px 10px;text-align:center;color:#D97706;font-weight:${r.noshow?'700':'400'}">${r.noshow||'—'}</td>
+            <td style="padding:6px 10px;text-align:center;color:var(--text3)">${r.unmarked||'—'}</td>
+            <td style="padding:6px 10px;text-align:center;font-weight:600;color:${col}">${pct==null?'—':pct+'%'}</td>
+          </tr>`;
+        }).join('')||'<tr><td colspan="9" style="padding:20px;text-align:center;color:var(--text3)">No students</td></tr>'}
+      </tbody>
+    </table>
+  `;
+}
+
+function exportReportCSV(){
+  const wk=activeWeekKey();
+  const rows=[['Week','Student','Teacher','Branch','Scheduled','Completed','Cancelled','NoShow','Unmarked','Completion%']];
+  Object.values(SS).sort((a,b)=>a.n.localeCompare(b.n)).forEach(s=>{
+    let sched=0,done=0,can=0,ns=0,un=0;
+    forEachScheduledSlot(({d,cid,si,sid})=>{
+      if(sid!==s.id)return;
+      sched++;
+      const st=getAtt(d,cid,si,sid,wk);
+      if(st==='completed')done++;
+      else if(st==='cancelled')can++;
+      else if(st==='noshow')ns++;
+      else un++;
+    });
+    const pct=sched?Math.round(done/sched*100)+'%':'';
+    rows.push([wk,s.n,s.t,s.br,sched,done,can,ns,un,pct]);
+  });
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download=`BeCurious_Attendance_${wk}.csv`;a.click();URL.revokeObjectURL(url);
+  toast('Attendance CSV downloaded');
+}
+
+// ===== TEACHER WEEKLY VIEW =====
+function renderTeacherWeeklyReport(){
+  deriveTeachersFromStudents();
+  // For each teacher, collect their sessions across the week
+  const byTeacher={};
+  Object.keys(TEACHERS).forEach(n=>{byTeacher[n]=[];});
+  forEachScheduledSlot(({d,cid,si,sid,sl_})=>{
+    const s=SS[sid];if(!s)return;
+    const tname=s.t||'(unassigned)';
+    if(!byTeacher[tname])byTeacher[tname]=[];
+    const startM=slotStartMin(d,cid,si);
+    byTeacher[tname].push({d,cid,si,sid,s,sl_,startM,car:CARS.find(c=>c.id===cid)});
+  });
+  const esc=v=>String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+  const dayOrder={Mon:0,Tue:1,Wed:2,Thu:3};
+  const names=Object.keys(byTeacher).sort((a,b)=>a.localeCompare(b));
+  const body=qs('rpt-body');
+  body.innerHTML=`
+    <div style="padding:12px 18px;font-size:11px;color:var(--text2);border-bottom:1px solid var(--border);background:#FAFAFA">
+      Per-teacher weekly view — each teacher's sessions across Mon–Thu, ordered by day and time.
+    </div>
+    <div style="padding:14px 18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px">
+      ${names.map(name=>{
+        const t=TEACHERS[name]||{};
+        const sessions=byTeacher[name]||[];
+        sessions.sort((a,b)=>(dayOrder[a.d]-dayOrder[b.d])||(a.startM-b.startM));
+        const col=TC[name]||'#6A5FA8';
+        const sc=sessions.length;
+        const phoneBtn=t.phone?`<a href="https://wa.me/${t.phone.replace(/[^0-9]/g,'')}" target="_blank" style="margin-left:auto;font-size:9px;color:var(--teal);text-decoration:none">💬 ${t.phone}</a>`:'';
+        const dayTags=['Mon','Tue','Wed','Thu'].map(d=>{
+          const ok=t.days?.[d];
+          return `<span style="font-size:8px;padding:1px 5px;border-radius:3px;background:${ok?'#D1FAE5':'#FEE2E2'};color:${ok?'#065F46':'#991B1B'}">${d}</span>`;
+        }).join(' ');
+        return `<div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:#fff">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <div style="width:10px;height:10px;border-radius:50%;background:${col}"></div>
+            <div style="font-size:12px;font-weight:700">${esc(name)}</div>
+            <span style="font-size:9px;color:var(--text3);background:var(--bg);padding:1px 6px;border-radius:10px">${sc}/wk</span>
+            ${phoneBtn}
+          </div>
+          <div style="font-size:9px;color:var(--text3);margin-bottom:6px">${dayTags} · max ${t.maxPerDay||6}/day${t.active?'':' · <span style="color:#DC2626">INACTIVE</span>'}</div>
+          ${sessions.length?`<div style="font-size:10px;line-height:1.6">
+            ${sessions.map(x=>`<div style="padding:3px 0;border-top:1px solid #F0F0F0;display:flex;gap:6px">
+              <span style="font-weight:700;color:var(--purple);min-width:60px">${x.d} ${ts(x.startM)}</span>
+              <span style="flex:1">${esc(x.s.n)}</span>
+              <span style="font-size:9px;color:var(--text3)">${esc(x.car?.label||'')}</span>
+            </div>`).join('')}
+          </div>`:'<div style="font-size:10px;color:var(--text3);font-style:italic">No sessions scheduled this week</div>'}
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+// ===== PARENT NOTIFICATIONS VIEW =====
+function renderParentNotificationsReport(){
+  const esc=v=>String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+  // Build per-student schedule entries
+  const byStudent={};
+  Object.values(SS).forEach(s=>{byStudent[s.id]={s,sessions:[]};});
+  forEachScheduledSlot(({d,cid,si,sid,sl_})=>{
+    if(!byStudent[sid])return;
+    byStudent[sid].sessions.push({d,cid,si,startM:slotStartMin(d,cid,si)});
+  });
+  const dayOrder={Mon:0,Tue:1,Wed:2,Thu:3};
+  const rows=Object.values(byStudent)
+    .filter(e=>e.sessions.length>0)
+    .sort((a,b)=>a.s.n.localeCompare(b.s.n));
+  const withPhone=rows.filter(r=>r.s.parentPhone);
+  const body=qs('rpt-body');
+  body.innerHTML=`
+    <div style="padding:12px 18px;font-size:11px;color:var(--text2);border-bottom:1px solid var(--border);background:#FAFAFA;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span>Send each parent their child's weekly schedule on WhatsApp. ${rows.length} scheduled students · ${withPhone.length} with parent phone.</span>
+      <button onclick="sendAllParentMessages()" ${withPhone.length?'':'disabled'} style="margin-left:auto;padding:6px 14px;border-radius:6px;background:var(--teal);color:#fff;border:none;font-size:11px;font-weight:600;cursor:${withPhone.length?'pointer':'not-allowed'};opacity:${withPhone.length?'1':'0.5'}">💬 Open WhatsApp for all (${withPhone.length})</button>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px">
+      <thead><tr style="background:var(--bg);position:sticky;top:0">
+        <th style="padding:8px 10px;text-align:left;font-size:10px;color:var(--text2);border-bottom:2px solid var(--border)">Student</th>
+        <th style="padding:8px 10px;text-align:left;font-size:10px;color:var(--text2);border-bottom:2px solid var(--border)">Teacher</th>
+        <th style="padding:8px 10px;text-align:left;font-size:10px;color:var(--text2);border-bottom:2px solid var(--border)">Parent phone</th>
+        <th style="padding:8px 10px;text-align:left;font-size:10px;color:var(--text2);border-bottom:2px solid var(--border)">Schedule this week</th>
+        <th style="padding:8px 10px;text-align:center;font-size:10px;color:var(--text2);border-bottom:2px solid var(--border)">Send</th>
+      </tr></thead>
+      <tbody>
+        ${rows.map(r=>{
+          r.sessions.sort((a,b)=>(dayOrder[a.d]-dayOrder[b.d])||(a.startM-b.startM));
+          const schedStr=r.sessions.map(x=>`${x.d} ${ts(x.startM)}`).join(' · ');
+          const hasPh=!!r.s.parentPhone;
+          return `<tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:6px 10px"><b>${esc(r.s.n)}</b></td>
+            <td style="padding:6px 10px">${esc(r.s.t)}</td>
+            <td style="padding:6px 10px;font-family:ui-monospace,Menlo,monospace;font-size:10px;color:${hasPh?'var(--text)':'var(--text3)'}">${esc(r.s.parentPhone)||'— not set —'}</td>
+            <td style="padding:6px 10px;font-size:10px;color:var(--text2)">${schedStr}</td>
+            <td style="padding:6px 10px;text-align:center">
+              <button onclick="sendParentWhatsApp('${r.s.id}')" ${hasPh?'':'disabled'} style="padding:4px 10px;border-radius:5px;background:${hasPh?'var(--teal)':'#ccc'};color:#fff;border:none;font-size:10px;cursor:${hasPh?'pointer':'not-allowed'}">💬 Send</button>
+            </td>
+          </tr>`;
+        }).join('')||'<tr><td colspan="5" style="padding:20px;text-align:center;color:var(--text3)">No scheduled students</td></tr>'}
+      </tbody>
+    </table>
+  `;
+}
+
+// Build the parent WhatsApp message body for a single student
+function buildParentMessage(sid){
+  const s=SS[sid];if(!s)return null;
+  const sessions=[];
+  forEachScheduledSlot(({d,cid,si,sid:xsid,sl_})=>{
+    if(xsid!==sid)return;
+    sessions.push({d,cid,si,startM:slotStartMin(d,cid,si)});
+  });
+  if(!sessions.length)return null;
+  const dayOrder={Mon:0,Tue:1,Wed:2,Thu:3};
+  const dayFull={Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday'};
+  sessions.sort((a,b)=>(dayOrder[a.d]-dayOrder[b.d])||(a.startM-b.startM));
+  const header=`السلام عليكم 🌙\n\nThis is BeCurious. Below is ${s.n}'s tutoring schedule for the week with ${s.t}:`;
+  const lines=sessions.map(x=>{
+    const arriveApprox=x.startM; // drop time approximation
+    return`• ${dayFull[x.d]||x.d} — around ${ts(arriveApprox)}`;
+  });
+  const footer=`\nEach session is about 60 minutes. Please make sure ${s.n.split(' ')[0]} is ready 5 minutes before the arrival time. Reply here if the time doesn't work.\n\n— BeCurious`;
+  return header+'\n\n'+lines.join('\n')+'\n'+footer;
+}
+function sendParentWhatsApp(sid){
+  const s=SS[sid];if(!s){toast('Student not found');return;}
+  if(!s.parentPhone){toast('No parent phone saved for this student — add it in the Students table first');return;}
+  const msg=buildParentMessage(sid);
+  if(!msg){toast(s.n+' has no scheduled sessions yet');return;}
+  const phone=String(s.parentPhone).replace(/[^0-9]/g,'');
+  const url='https://wa.me/'+phone+'?text='+encodeURIComponent(msg);
+  window.open(url,'_blank');
+}
+function sendAllParentMessages(){
+  const withPhone=Object.values(SS).filter(s=>{
+    if(!s.parentPhone)return false;
+    let hasSess=false;
+    forEachScheduledSlot(({sid})=>{if(sid===s.id)hasSess=true;});
+    return hasSess;
+  });
+  if(!withPhone.length){toast('No students with parent phone and schedule');return;}
+  if(!confirm(`Open ${withPhone.length} WhatsApp tabs (one per parent)?\n\nYour browser may block pop-ups — allow them for this site first.`))return;
+  let opened=0;
+  withPhone.forEach((s,i)=>{
+    setTimeout(()=>{sendParentWhatsApp(s.id);opened++;if(opened===withPhone.length)toast(`${opened} WhatsApp tab(s) opened`);},i*350);
+  });
+}
+
+// ===== AUTO-SCHEDULE THE WEEK =====
+function autoScheduleWeek(){
+  const pool=poolEntries();
+  qs('auto-pool-count').textContent=pool.reduce((n,e)=>n+e.remaining,0);
+  qs('auto-clear').checked=false;
+  qs('automodal').style.display='flex';
+}
+function runAutoSchedule(){
+  const clearFirst=qs('auto-clear').checked;
+  qs('automodal').style.display='none';
+  if(clearFirst){SCHED=blankSched();ensureSchedCoverage();}
+  deriveTeachersFromStudents();
+
+  // For each pool student, we need to place `remaining` slots across the week.
+  // Strategy: iterate each day in order, each car in order. At each step:
+  //   1. Candidate pool = students who still need a session AND whose teacher
+  //      is active AND available on this day AND under the teacher's per-day limit.
+  //   2. Of the candidates, prefer students already assigned to the teacher that
+  //      was the PREVIOUS drop on this car (same-teacher chaining). Within that
+  //      tie-breaker, pick the student closest to the last position.
+  //   3. Drop student, add auto-pickup in the next empty slot, advance position.
+
+  // Track per-day per-teacher count (for maxPerDay limits)
+  const teacherDayCount={};
+  // Prime with existing scheduled counts
+  DAYS.forEach(d=>{teacherDayCount[d]={};CARS.forEach(car=>{
+    (SCHED[d]?.[car.id]||[]).forEach(sl_=>{
+      if(!sl_||sl_.t==='pick')return;
+      slotStudentIds(sl_).forEach(sid=>{
+        const s=SS[sid];if(!s)return;
+        teacherDayCount[d][s.t]=(teacherDayCount[d][s.t]||0)+1;
+      });
+    });
+  });});
+
+  // Remaining to place per student
+  const remain={};
+  poolEntries().forEach(e=>{remain[e.s.id]=e.remaining;});
+
+  function teacherCanTake(tname,day){
+    const t=TEACHERS[tname];
+    if(t&&!t.active)return false;
+    if(t&&t.days&&!t.days[day])return false;
+    const max=(t&&t.maxPerDay)||6;
+    const used=teacherDayCount[day][tname]||0;
+    return used<max;
+  }
+
+  let placed=0, skippedNoAvail=0;
+
+  DAYS.forEach(day=>{
+    CARS.forEach(car=>{
+      const slots=SCHED[day][car.id];
+      // Find the first empty slot
+      let pos={la:brCoords((car.branch||'Shuhada').split('/')[0])[0], ln:brCoords((car.branch||'Shuhada').split('/')[0])[1], isBase:true};
+      let lastTeacher=null;
+      // Walk existing slots to find last drop position + teacher
+      for(let si=slots.length-1;si>=0;si--){
+        const sl_=slots[si];
+        if(sl_&&(sl_.t==='s'||sl_.t==='d'||sl_.t==='g')){
+          const ids=slotStudentIds(sl_);
+          const lastSid=ids[ids.length-1];
+          const s=SS[lastSid];
+          if(s){pos={la:s.la,ln:s.ln,isBase:false};lastTeacher=s.t;}
+          break;
+        }
+      }
+
+      // Greedily fill empty slots
+      for(let si=0;si<slots.length;si++){
+        if(slots[si])continue;
+        // Gather candidates
+        const cands=Object.keys(remain).filter(sid=>{
+          if(remain[sid]<=0)return false;
+          const s=SS[sid];if(!s)return false;
+          // Only place in car that serves the student's branch (or Salam/Salwa flex)
+          const carBr=(car.branch||'').split('/');
+          if(!carBr.includes(s.br)&&!(carBr.length>1))return false;
+          // Respect teacher availability
+          if(!teacherCanTake(s.t,day))return false;
+          return true;
+        });
+        if(!cands.length){
+          // No candidates for this car — leave remaining slots empty
+          break;
+        }
+        // Score: same-teacher-chain bonus + distance
+        cands.sort((a,b)=>{
+          const sa=SS[a],sb=SS[b];
+          const chainA=(lastTeacher&&sa.t===lastTeacher)?-100:0;
+          const chainB=(lastTeacher&&sb.t===lastTeacher)?-100:0;
+          const dA=hv(pos.la,pos.ln,sa.la,sa.ln);
+          const dB=hv(pos.la,pos.ln,sb.la,sb.ln);
+          return (chainA+dA)-(chainB+dB);
+        });
+        const pickSid=cands[0];
+        const pickS=SS[pickSid];
+        // Place drop in this slot
+        slots[si]={t:'s',id:pickSid};
+        remain[pickSid]--;
+        teacherDayCount[day][pickS.t]=(teacherDayCount[day][pickS.t]||0)+1;
+        lastTeacher=pickS.t;
+        pos={la:pickS.la,ln:pickS.ln,isBase:false};
+        placed++;
+        // Add pickup in the next empty slot (same car, same day) if available
+        const pickNext=slots.findIndex((x,k)=>k>si&&!x);
+        if(pickNext>=0){slots[pickNext]={t:'pick',id:pickSid};si=pickNext;} // skip past the pickup slot
+      }
+    });
+  });
+
+  // Students that still have remaining slots = couldn't be placed
+  const unplaced=Object.entries(remain).filter(([,n])=>n>0).length;
+  renderSched();renderPool();saveState();
+  toast(`Auto-schedule done — ${placed} session(s) placed${unplaced?`, ${unplaced} student(s) couldn't be placed (check teacher availability)`:''}`);
 }
 
 // ===== RESET =====
