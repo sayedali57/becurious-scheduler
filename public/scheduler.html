@@ -216,6 +216,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 #last-edit{font-size:9px;color:rgba(255,255,255,.6);margin-left:6px;white-space:nowrap}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <body>
 <div class="hdr">
   <div><div class="hdr-title">BeCurious Schedule Builder</div><div class="hdr-sub">Drag to schedule · Drop on filled slot = double-drop · Click slot = set active</div></div>
@@ -333,6 +334,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
           <option value="">All branches</option>
           <option>Shuhada</option><option>Salam</option><option>Salwa</option>
         </select>
+        <button onclick="openImportModal()" style="padding:5px 11px;border-radius:6px;border:1px solid var(--purple);background:transparent;color:var(--purple);font-size:11px;font-weight:600;cursor:pointer" title="Import students from an Excel spreadsheet">📥 Import from spreadsheet</button>
         <button onclick="addNewStudentRow()" style="padding:5px 13px;border-radius:6px;background:var(--purple);color:#fff;border:none;font-size:11px;font-weight:600;cursor:pointer">+ Add student</button>
         <button onclick="closeStudentsModal()" style="padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:transparent;font-size:11px;cursor:pointer">Close</button>
       </div>
@@ -360,6 +362,37 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
       <span id="st-count"></span>
       <span>· Changes auto-apply to schedule</span>
       <button onclick="exportStudentsCSV()" style="margin-left:auto;padding:4px 12px;border-radius:5px;border:1px solid var(--border);background:transparent;font-size:10px;cursor:pointer">Export student list CSV</button>
+    </div>
+  </div>
+</div>
+
+<!-- BULK IMPORT -->
+<div class="modal" id="importmodal" style="display:none;align-items:flex-start;padding:20px">
+  <div style="background:#fff;border-radius:12px;width:100%;max-width:880px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.2)">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <div>
+        <div style="font-size:15px;font-weight:700">Import students from spreadsheet</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:1px">Upload an Excel file filled with student details. Download the template if you need one.</div>
+      </div>
+      <button onclick="closeImportModal()" style="margin-left:auto;padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:transparent;font-size:11px;cursor:pointer">Close</button>
+    </div>
+    <div style="padding:14px 18px;overflow:auto;flex:1">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+        <a href="/BeCurious_Student_Import_Template.xlsx" download style="padding:7px 14px;border-radius:6px;background:var(--purple);color:#fff;text-decoration:none;font-size:11px;font-weight:600">⬇️ Download blank template</a>
+        <label style="padding:7px 14px;border-radius:6px;border:1px solid var(--border);background:#fff;font-size:11px;cursor:pointer;font-weight:600">
+          📂 Choose filled file
+          <input type="file" id="import-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="onImportFile(event)">
+        </label>
+        <span id="import-fname" style="font-size:10px;color:var(--text3)"></span>
+      </div>
+      <div style="font-size:10px;color:var(--text3);line-height:1.6;border:1px solid var(--border);border-radius:6px;padding:9px 12px;background:#FAFAFA;margin-bottom:12px">
+        <b>Required columns:</b> Name, Teacher, Branch, Address, Latitude, Longitude. Optional: Sessions per week (default 1). Branch must be exactly <b>Shuhada</b>, <b>Salam</b>, or <b>Salwa</b>. The first row must be the header. Existing students are kept — new rows are added with fresh IDs.
+      </div>
+      <div id="import-preview"></div>
+    </div>
+    <div id="import-footer" style="display:none;padding:10px 18px;border-top:1px solid var(--border);align-items:center;gap:10px;flex-shrink:0;background:#FAFAFA">
+      <div id="import-summary" style="font-size:11px;color:var(--text2)"></div>
+      <button id="import-confirm-btn" onclick="confirmImport()" style="margin-left:auto;padding:7px 16px;border-radius:6px;background:var(--purple);color:#fff;border:none;font-size:11px;font-weight:600;cursor:pointer">Import valid rows</button>
     </div>
   </div>
 </div>
@@ -1564,6 +1597,180 @@ function exportStudentsCSV(){
   const url=URL.createObjectURL(blob);const a=document.createElement('a');
   a.href=url;a.download='BeCurious_Students.csv';a.click();URL.revokeObjectURL(url);
   toast('Student list exported');
+}
+
+// ===== BULK IMPORT =====
+let importParsedRows=[]; // rows with {ok, row, data:{n,t,br,a,la,ln,spw}, errors:[]}
+function openImportModal(){
+  qs('importmodal').style.display='flex';
+  qs('import-preview').innerHTML='';
+  qs('import-footer').style.display='none';
+  qs('import-fname').textContent='';
+  qs('import-file').value='';
+  importParsedRows=[];
+}
+function closeImportModal(){qs('importmodal').style.display='none';}
+
+// Normalize header text for flexible column matching
+function _normHdr(s){return String(s||'').toLowerCase().replace(/[^a-z]/g,'');}
+const VALID_BRANCHES=['Shuhada','Salam','Salwa'];
+
+function onImportFile(e){
+  const file=e.target.files&&e.target.files[0];
+  if(!file)return;
+  qs('import-fname').textContent=file.name;
+  if(typeof XLSX==='undefined'){
+    qs('import-preview').innerHTML='<div style="color:#B91C1C;font-size:11px;padding:10px">Spreadsheet library failed to load. Check your internet and retry.</div>';
+    return;
+  }
+  const reader=new FileReader();
+  reader.onload=evt=>{
+    try{
+      const wb=XLSX.read(evt.target.result,{type:'array'});
+      // Prefer the "Students" sheet if present; otherwise use the first sheet
+      let sheetName=wb.SheetNames.find(n=>n.toLowerCase()==='students')||wb.SheetNames[0];
+      const sheet=wb.Sheets[sheetName];
+      if(!sheet){throw new Error('No sheet found');}
+      // Read as array-of-arrays so we can be forgiving about column order
+      const aoa=XLSX.utils.sheet_to_json(sheet,{header:1,blankrows:false,raw:true,defval:''});
+      parseImportRows(aoa);
+    }catch(err){
+      console.error(err);
+      qs('import-preview').innerHTML='<div style="color:#B91C1C;font-size:11px;padding:10px">Could not read the file: '+String(err.message||err)+'</div>';
+      qs('import-footer').style.display='none';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseImportRows(aoa){
+  if(!aoa.length){
+    qs('import-preview').innerHTML='<div style="color:#B91C1C;font-size:11px;padding:10px">The spreadsheet is empty.</div>';
+    qs('import-footer').style.display='none';
+    return;
+  }
+  // Find the header row — first row containing "name" in any column
+  let headerRowIdx=-1;
+  for(let i=0;i<Math.min(5,aoa.length);i++){
+    if(aoa[i].some(v=>_normHdr(v)==='name')){headerRowIdx=i;break;}
+  }
+  if(headerRowIdx===-1){
+    qs('import-preview').innerHTML='<div style="color:#B91C1C;font-size:11px;padding:10px">Could not find a header row. Make sure the first row contains column names like "Name", "Teacher", "Branch", "Address", "Latitude", "Longitude".</div>';
+    qs('import-footer').style.display='none';
+    return;
+  }
+  const headers=aoa[headerRowIdx].map(_normHdr);
+  const idx={
+    n:headers.indexOf('name'),
+    t:headers.indexOf('teacher'),
+    br:headers.indexOf('branch'),
+    a:headers.indexOf('address'),
+    la:headers.findIndex(h=>h==='latitude'||h==='lat'),
+    ln:headers.findIndex(h=>h==='longitude'||h==='lng'||h==='long'||h==='lon'),
+    spw:headers.findIndex(h=>h==='sessionsperweek'||h==='sessionsweek'||h==='sessperweek'||h==='sessweek'),
+  };
+  const missing=[];
+  ['n','t','br','a','la','ln'].forEach(k=>{if(idx[k]===-1)missing.push({n:'Name',t:'Teacher',br:'Branch',a:'Address',la:'Latitude',ln:'Longitude'}[k]);});
+  if(missing.length){
+    qs('import-preview').innerHTML='<div style="color:#B91C1C;font-size:11px;padding:10px">Missing required column(s): <b>'+missing.join(', ')+'</b></div>';
+    qs('import-footer').style.display='none';
+    return;
+  }
+  const rows=[];
+  for(let i=headerRowIdx+1;i<aoa.length;i++){
+    const r=aoa[i];
+    if(!r||r.every(v=>v===''||v===null||v===undefined))continue; // skip blank rows
+    const d={
+      n:String(r[idx.n]??'').trim(),
+      t:String(r[idx.t]??'').trim(),
+      br:String(r[idx.br]??'').trim(),
+      a:String(r[idx.a]??'').trim(),
+      la:parseFloat(r[idx.la]),
+      ln:parseFloat(r[idx.ln]),
+      spw:idx.spw>=0?Math.max(1,parseInt(r[idx.spw])||1):1,
+    };
+    const errs=[];
+    if(!d.n)errs.push('Name');
+    if(!d.t)errs.push('Teacher');
+    if(!d.br)errs.push('Branch');
+    else{
+      // Case-insensitive branch match, normalize to canonical case
+      const match=VALID_BRANCHES.find(b=>b.toLowerCase()===d.br.toLowerCase());
+      if(!match)errs.push('Branch must be Shuhada/Salam/Salwa');
+      else d.br=match;
+    }
+    if(!d.a)errs.push('Address');
+    if(isNaN(d.la)||d.la<15||d.la>40)errs.push('Latitude (expect ~29)');
+    if(isNaN(d.ln)||d.ln<30||d.ln>65)errs.push('Longitude (expect ~48)');
+    rows.push({row:i+1,data:d,errors:errs,ok:errs.length===0});
+  }
+  importParsedRows=rows;
+  renderImportPreview();
+}
+
+function renderImportPreview(){
+  const rows=importParsedRows;
+  if(!rows.length){
+    qs('import-preview').innerHTML='<div style="font-size:11px;color:var(--text3);padding:10px">No student rows found below the header.</div>';
+    qs('import-footer').style.display='none';
+    return;
+  }
+  const okCount=rows.filter(r=>r.ok).length;
+  const badCount=rows.length-okCount;
+  const header=`<div style="font-size:11px;margin-bottom:6px"><b>${rows.length}</b> row(s) found — <span style="color:#059669"><b>${okCount}</b> ready</span>${badCount?` · <span style="color:#B91C1C"><b>${badCount}</b> with errors (will be skipped)</span>`:''}</div>`;
+  let tbl='<div style="max-height:340px;overflow:auto;border:1px solid var(--border);border-radius:6px"><table style="width:100%;border-collapse:collapse;font-size:10px">';
+  tbl+='<thead style="background:#FAFAFA;position:sticky;top:0"><tr>'
+     + '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Row</th>'
+     + '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Name</th>'
+     + '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Teacher</th>'
+     + '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Branch</th>'
+     + '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Address</th>'
+     + '<th style="padding:6px 8px;text-align:right;border-bottom:1px solid var(--border)">Lat</th>'
+     + '<th style="padding:6px 8px;text-align:right;border-bottom:1px solid var(--border)">Lng</th>'
+     + '<th style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border)">Sess/wk</th>'
+     + '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Status</th>'
+     + '</tr></thead><tbody>';
+  rows.forEach(r=>{
+    const bg=r.ok?'#fff':'#FEF2F2';
+    const status=r.ok?'<span style="color:#059669">✓ Ready</span>':'<span style="color:#B91C1C" title="'+r.errors.join('; ')+'">✗ '+r.errors.join(', ')+'</span>';
+    tbl+=`<tr style="background:${bg}">`
+       + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0;color:var(--text3)">${r.row}</td>`
+       + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0">${_esc(r.data.n)}</td>`
+       + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0">${_esc(r.data.t)}</td>`
+       + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0">${_esc(r.data.br)}</td>`
+       + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0">${_esc(r.data.a)}</td>`
+       + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0;text-align:right;font-family:ui-monospace,Menlo,monospace">${isNaN(r.data.la)?'—':r.data.la.toFixed(5)}</td>`
+       + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0;text-align:right;font-family:ui-monospace,Menlo,monospace">${isNaN(r.data.ln)?'—':r.data.ln.toFixed(5)}</td>`
+       + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0;text-align:center">${r.data.spw}</td>`
+       + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0">${status}</td>`
+       + `</tr>`;
+  });
+  tbl+='</tbody></table></div>';
+  qs('import-preview').innerHTML=header+tbl;
+  qs('import-summary').innerHTML=okCount?`${okCount} student(s) will be added${badCount?`, ${badCount} skipped`:''}.`:'No valid rows to import.';
+  qs('import-confirm-btn').disabled=okCount===0;
+  qs('import-confirm-btn').style.opacity=okCount===0?'0.5':'1';
+  qs('import-confirm-btn').style.cursor=okCount===0?'not-allowed':'pointer';
+  qs('import-footer').style.display='flex';
+}
+
+function _esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function confirmImport(){
+  const ok=importParsedRows.filter(r=>r.ok);
+  if(!ok.length)return;
+  let added=0;
+  ok.forEach(r=>{
+    const d=r.data;
+    const id='sx'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    SS[id]={id,n:d.n,t:d.t,br:d.br,a:d.a,la:d.la,ln:d.ln,visits:0,sessionsPerWeek:d.spw};
+    added++;
+  });
+  saveState();
+  if(qs('studentsmodal').style.display==='flex')renderStudentsTable();
+  renderPool();
+  closeImportModal();
+  toast(`Imported ${added} student${added===1?'':'s'}`);
 }
 
 qs('st-search')?.addEventListener('input',renderStudentsTable);
