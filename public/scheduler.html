@@ -2933,7 +2933,7 @@ function buildTeacherMessage(tname){
       lines.push(`- ${ts(x.startM)} — ${x.s.n}${x.car?` (${x.car.label})`:''}`);
     });
   });
-  const footer=`\n\nPlease be ready 15 minutes before the first pickup each day. Reply here if any issues regarding the schedule.\n\n— BeCurious`;
+  const footer=`\n\nPlease be ready 30 minutes before the first pickup each day. Reply here if any issues regarding the schedule.\n\n— BeCurious`;
   return header+'\n'+lines.join('\n')+footer;
 }
 function sendTeacherWhatsApp(tname){
