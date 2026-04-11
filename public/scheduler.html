@@ -1671,11 +1671,16 @@ function buildDispatchMessage(d,cid){
   const sep='━━━━━━━━━━━━━━━━━━━';
 
   const lines=[];
-  const pts=[[bLa,bLn]]; // origin = branch
   let num=0;
   // Track the previous physical location + its friendly name, so each line can say
   // "Pickup {teacher} from {prevLocation}". Start at the branch.
   let prevLa=bLa, prevLn=bLn, prevNm='BeCurious '+brKey;
+
+  // Each numbered stop gets its own single-destination Google Maps link on
+  // a second line, because multi-waypoint URLs land on Google Maps' edit
+  // screen instead of the drive-now screen. A single-destination daddr URL
+  // always opens in drive-ready mode with the Start button visible.
+  const mapLink=(la,ln)=>'https://maps.google.com/?daddr='+la.toFixed(5)+','+ln.toFixed(5)+'&dirflg=d';
 
   slots.forEach((sl_,si)=>{
     if(!sl_)return;
@@ -1689,7 +1694,7 @@ function buildDispatchMessage(d,cid){
       const arrT=ts(startM+travelMin);
       num++;
       lines.push(`${num}. ${depT}  Pickup ${s.t||'teacher'} from ${prevNm}  → Drop at ${arrT} ${s.n}: ${useAddr}`);
-      pts.push([useLa,useLn]);
+      lines.push(`   🗺️ ${mapLink(useLa,useLn)}`);
       prevLa=useLa; prevLn=useLn; prevNm=s.n;
     }
     else if(sl_.t==='d'){
@@ -1699,7 +1704,7 @@ function buildDispatchMessage(d,cid){
       const arr1=ts(startM+travel1);
       num++;
       lines.push(`${num}. ${depT}  Pickup ${s1.t||'teacher'} from ${prevNm}  → Drop at ${arr1} ${s1.n}: ${s1.a}`);
-      pts.push([s1.la,s1.ln]);
+      lines.push(`   🗺️ ${mapLink(s1.la,s1.ln)}`);
       prevLa=s1.la; prevLn=s1.ln; prevNm=s1.n;
       if(s2){
         const interMin=sl_.inter||tm(hv(s1.la,s1.ln,s2.la,s2.ln));
@@ -1707,7 +1712,7 @@ function buildDispatchMessage(d,cid){
         const arr2=ts(startM+travel1+interMin);
         num++;
         lines.push(`${num}. ${dep2}  Pickup ${s2.t||'teacher'} from ${prevNm}  → Drop at ${arr2} ${s2.n}: ${s2.a}`);
-        pts.push([s2.la,s2.ln]);
+        lines.push(`   🗺️ ${mapLink(s2.la,s2.ln)}`);
         prevLa=s2.la; prevLn=s2.ln; prevNm=s2.n;
       }
     }
@@ -1723,7 +1728,7 @@ function buildDispatchMessage(d,cid){
       const arrT=ts(startM+travelMin);
       num++;
       lines.push(`${num}. ${depT}  Pickup ${teachers||'teachers'} from ${prevNm}  → Drop at ${arrT} group [${names}]: ${addr}`);
-      pts.push([la,ln]);
+      lines.push(`   🗺️ ${mapLink(la,ln)}`);
       prevLa=la; prevLn=ln; prevNm=names.split(', ')[0]||'group';
     }
     else if(sl_.t==='pick'){
@@ -1732,10 +1737,21 @@ function buildDispatchMessage(d,cid){
       const arrT=ts(startM+travelMin);
       num++;
       lines.push(`${num}. ${depT}  Return to ${s.n} from ${prevNm}  → Pickup ${s.t||'teacher'} at ${arrT}: ${s.a}`);
-      pts.push([s.la,s.ln]);
+      lines.push(`   🗺️ ${mapLink(s.la,s.ln)}`);
       prevLa=s.la; prevLn=s.ln; prevNm=s.n;
     }
   });
+
+  // Final leg back to the branch
+  if(num>0){
+    const travelMin=tm(hv(prevLa,prevLn,bLa,bLn));
+    // Departure = end of last slot. slotStartMin of the "next" slot index = current total time.
+    const returnDep=slotStartMin(d,cid,slots.length);
+    const returnArr=ts(returnDep+travelMin);
+    num++;
+    lines.push(`${num}. ${ts(returnDep)}  Return to BeCurious ${brKey} from ${prevNm}  → Arrive at ${returnArr}`);
+    lines.push(`   🗺️ ${mapLink(bLa,bLn)}`);
+  }
 
   const header=`🚗 ${car.label}${car.driver?' · '+car.driver:''}\n📅 ${dayFull}${dateStr?' '+dateStr:''} · ${car.branch} branch`;
 
@@ -1743,52 +1759,9 @@ function buildDispatchMessage(d,cid){
     return {text:`${header}\n${sep}\nNo stops scheduled.`,mapUrl:'',count:0};
   }
 
-  // Build Google Maps links. We use the iPhone-specific comgooglemaps:// URL
-  // scheme which opens the Google Maps iOS app directly in driving-directions
-  // mode with all waypoints pre-calculated and the blue Start button visible.
-  // The https:// equivalent is tacked on as a fallback for Android / desktop.
-  // Each link is capped at ~10 stops total, so longer routes are split into
-  // consecutive legs the driver opens one after the other.
-  const fmt=p=>p[0].toFixed(5)+','+p[1].toFixed(5);
-  const allPts=[...pts,[bLa,bLn]]; // branch → every stop → back to branch
-  const MAX=10;
-  function buildLegUrl(legPts){
-    if(legPts.length<2)return {app:'',web:''};
-    const saddr=fmt(legPts[0]);
-    const daddr=legPts.slice(1).map(fmt).join('+to:');
-    // iPhone deep link — Google Maps iOS app registers the comgooglemaps://
-    // scheme and launches directly into the directions view.
-    const app='comgooglemaps://?saddr='+saddr+'&daddr='+daddr+'&directionsmode=driving';
-    // Universal fallback for Android / desktop
-    const web='https://maps.google.com/maps?saddr='+saddr+'&daddr='+daddr+'&dirflg=d';
-    return {app,web};
-  }
-  const legUrls=[];
-  if(allPts.length<=MAX){
-    legUrls.push(buildLegUrl(allPts));
-  }else{
-    let start=0;
-    while(start<allPts.length-1){
-      const end=Math.min(start+MAX,allPts.length);
-      legUrls.push(buildLegUrl(allPts.slice(start,end)));
-      start=end-1; // next leg starts where this one ended, so legs overlap by 1 point
-    }
-  }
-
-  // Each leg gets two links: the iPhone deep link first (so tapping in
-  // WhatsApp on iOS opens the Google Maps app directly with the route ready
-  // to go), then the universal https:// link as a fallback for Android /
-  // desktop or if the deep link doesn't open.
-  let mapBlock;
-  if(legUrls.length===1){
-    mapBlock=`🗺️ Route with all ${num} stops\n📱 iPhone: ${legUrls[0].app}\n🌐 Other: ${legUrls[0].web}`;
-  }else{
-    mapBlock=`🗺️ Route with all ${num} stops (split into ${legUrls.length} legs — open them in order):`;
-    legUrls.forEach((u,i)=>{mapBlock+=`\nLeg ${i+1} 📱 iPhone: ${u.app}\nLeg ${i+1} 🌐 Other: ${u.web}`;});
-  }
-
-  const text=`${header}\n${sep}\n${lines.join('\n')}\n${sep}\n${mapBlock}`;
-  return {text,mapUrl:legUrls[0].web,count:num,legUrls};
+  const footer=`Tap each 🗺️ link as you go — Google Maps will open with the Start button ready for that stop.`;
+  const text=`${header}\n${sep}\n${lines.join('\n')}\n${sep}\n${footer}`;
+  return {text,count:num};
 }
 
 function showDispatch(d,cid){
