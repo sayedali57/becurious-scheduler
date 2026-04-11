@@ -386,7 +386,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
         <span id="import-fname" style="font-size:10px;color:var(--text3)"></span>
       </div>
       <div style="font-size:10px;color:var(--text3);line-height:1.6;border:1px solid var(--border);border-radius:6px;padding:9px 12px;background:#FAFAFA;margin-bottom:12px">
-        <b>Required columns:</b> Name, Teacher, Branch, Address, Latitude, Longitude. Optional: Sessions per week (default 1). Branch must be exactly <b>Shuhada</b>, <b>Salam</b>, or <b>Salwa</b>. The first row must be the header. Existing students are kept — new rows are added with fresh IDs.
+        <b>Required columns:</b> Name, Teacher, Branch, Address, Latitude, Longitude. Optional: Sessions per week (default 1). Branch must be exactly <b>Shuhada</b>, <b>Salam</b>, or <b>Salwa</b>. The first row must be the header. Existing students are kept — new rows get fresh IDs. <b>Duplicates</b> (same Name + Teacher as an existing student, case-insensitive) are detected and skipped automatically.
       </div>
       <div id="import-preview"></div>
     </div>
@@ -1676,6 +1676,12 @@ function parseImportRows(aoa){
     qs('import-footer').style.display='none';
     return;
   }
+  // Build a set of existing (name|teacher) keys already in the roster so
+  // we can flag duplicates. Case- and whitespace-insensitive.
+  const dedupKey=(n,t)=>String(n||'').trim().toLowerCase()+'|'+String(t||'').trim().toLowerCase();
+  const existingKeys=new Set(Object.values(SS).map(s=>dedupKey(s.n,s.t)));
+  const seenInFile=new Set(); // tracks duplicates within the uploaded file itself
+
   const rows=[];
   for(let i=headerRowIdx+1;i<aoa.length;i++){
     const r=aoa[i];
@@ -1702,7 +1708,24 @@ function parseImportRows(aoa){
     if(!d.a)errs.push('Address');
     if(isNaN(d.la)||d.la<15||d.la>40)errs.push('Latitude (expect ~29)');
     if(isNaN(d.ln)||d.ln<30||d.ln>65)errs.push('Longitude (expect ~48)');
-    rows.push({row:i+1,data:d,errors:errs,ok:errs.length===0});
+
+    // Duplicate detection (only meaningful if name + teacher are both present)
+    let dup=null;
+    if(d.n&&d.t){
+      const k=dedupKey(d.n,d.t);
+      if(existingKeys.has(k))dup='already in roster';
+      else if(seenInFile.has(k))dup='duplicate row in this file';
+      else seenInFile.add(k);
+    }
+
+    rows.push({
+      row:i+1,
+      data:d,
+      errors:errs,
+      duplicate:dup,
+      // A row is imported only if it has no errors AND is not a duplicate.
+      ok:errs.length===0 && !dup,
+    });
   }
   importParsedRows=rows;
   renderImportPreview();
@@ -1716,8 +1739,12 @@ function renderImportPreview(){
     return;
   }
   const okCount=rows.filter(r=>r.ok).length;
-  const badCount=rows.length-okCount;
-  const header=`<div style="font-size:11px;margin-bottom:6px"><b>${rows.length}</b> row(s) found — <span style="color:#059669"><b>${okCount}</b> ready</span>${badCount?` · <span style="color:#B91C1C"><b>${badCount}</b> with errors (will be skipped)</span>`:''}</div>`;
+  const dupCount=rows.filter(r=>r.duplicate&&r.errors.length===0).length;
+  const badCount=rows.filter(r=>r.errors.length>0).length;
+  const parts=[`<span style="color:#059669"><b>${okCount}</b> ready</span>`];
+  if(dupCount)parts.push(`<span style="color:#B45309"><b>${dupCount}</b> duplicate${dupCount===1?'':'s'} (skipped)</span>`);
+  if(badCount)parts.push(`<span style="color:#B91C1C"><b>${badCount}</b> with errors (skipped)</span>`);
+  const header=`<div style="font-size:11px;margin-bottom:6px"><b>${rows.length}</b> row(s) found — ${parts.join(' · ')}</div>`;
   let tbl='<div style="max-height:340px;overflow:auto;border:1px solid var(--border);border-radius:6px"><table style="width:100%;border-collapse:collapse;font-size:10px">';
   tbl+='<thead style="background:#FAFAFA;position:sticky;top:0"><tr>'
      + '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Row</th>'
@@ -1731,8 +1758,15 @@ function renderImportPreview(){
      + '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Status</th>'
      + '</tr></thead><tbody>';
   rows.forEach(r=>{
-    const bg=r.ok?'#fff':'#FEF2F2';
-    const status=r.ok?'<span style="color:#059669">✓ Ready</span>':'<span style="color:#B91C1C" title="'+r.errors.join('; ')+'">✗ '+r.errors.join(', ')+'</span>';
+    // Priority: hard errors first (red), then duplicates (amber), then ok (white)
+    let bg='#fff',status='<span style="color:#059669">✓ Ready</span>';
+    if(r.errors.length){
+      bg='#FEF2F2';
+      status='<span style="color:#B91C1C" title="'+r.errors.join('; ')+'">✗ '+r.errors.join(', ')+'</span>';
+    }else if(r.duplicate){
+      bg='#FEF3C7';
+      status='<span style="color:#B45309" title="Skipped: '+r.duplicate+'">⚠ Duplicate — '+r.duplicate+'</span>';
+    }
     tbl+=`<tr style="background:${bg}">`
        + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0;color:var(--text3)">${r.row}</td>`
        + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0">${_esc(r.data.n)}</td>`
@@ -1747,7 +1781,10 @@ function renderImportPreview(){
   });
   tbl+='</tbody></table></div>';
   qs('import-preview').innerHTML=header+tbl;
-  qs('import-summary').innerHTML=okCount?`${okCount} student(s) will be added${badCount?`, ${badCount} skipped`:''}.`:'No valid rows to import.';
+  const skipped=dupCount+badCount;
+  qs('import-summary').innerHTML=okCount
+    ?`${okCount} student${okCount===1?'':'s'} will be added${skipped?`, ${skipped} skipped`:''}.`
+    :'No new students to import.';
   qs('import-confirm-btn').disabled=okCount===0;
   qs('import-confirm-btn').style.opacity=okCount===0?'0.5':'1';
   qs('import-confirm-btn').style.cursor=okCount===0?'not-allowed':'pointer';
