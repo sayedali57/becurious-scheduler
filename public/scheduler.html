@@ -67,9 +67,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .sched-outer{flex:1;overflow:auto;padding:10px}
 .cargrid{display:flex;gap:8px;min-height:100%}
 .carcol{flex:1;display:flex;flex-direction:column;min-width:180px}
-.carhdr{background:var(--purple);color:#fff;padding:6px 8px;border-radius:7px 7px 0 0;font-size:10px;font-weight:600;text-align:center;cursor:pointer}
+.carhdr{position:relative;background:var(--purple);color:#fff;padding:6px 22px 6px 22px;border-radius:7px 7px 0 0;font-size:10px;font-weight:600;text-align:center;cursor:pointer}
 .carhdr:hover{background:var(--purple-dk)}
 .carhdr small{display:block;opacity:.7;font-size:8px;font-weight:400;margin-top:1px}
+.wa-btn{position:absolute;right:3px;top:3px;bottom:3px;background:rgba(255,255,255,.22);border:none;color:#fff;padding:0 6px;border-radius:4px;font-size:11px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center}
+.wa-btn:hover{background:rgba(255,255,255,.45)}
 .carslots{background:rgba(0,0,0,.02);border:1px solid var(--border);border-top:none;border-radius:0 0 7px 7px;padding:5px;flex:1;display:flex;flex-direction:column;gap:4px;min-height:300px}
 .carslots.dover{background:var(--purple-lt);border-color:var(--purple)}
 /* Slots */
@@ -388,21 +390,34 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
     <details style="margin-top:10px">
       <summary style="font-size:10px;font-weight:600;color:var(--text2);cursor:pointer;padding:4px 0">💡 Suggested upgrades for next round</summary>
       <div style="font-size:9px;color:var(--text2);line-height:1.7;margin-top:8px;background:var(--bg);border-radius:6px;padding:10px">
+        <b>Done:</b> Shared live sync across coordinators · WhatsApp driver dispatch with Google Maps route · Password gate.<br><br>
         <b>High impact:</b><br>
-        1. <b>Firebase real-time sync</b> — replace localStorage with a cloud database so all coordinators see the same schedule simultaneously. ~1 developer day.<br>
-        2. <b>WhatsApp driver dispatch</b> — auto-generate a WhatsApp message for each driver summarising their day: stops, times, student names. One tap sends it.<br>
-        3. <b>Weekly visit tracker</b> — dashboard showing each child's total visits this month vs. contracted visits. Flag children who haven't been visited.<br>
-        4. <b>Teacher workload view</b> — bar chart of sessions per teacher per week. Immediately shows who is overloaded or underutilised.<br><br>
+        1. <b>Weekly visit tracker</b> — dashboard showing each child's total visits this month vs. contracted visits. Flag children who haven't been visited.<br>
+        2. <b>Teacher workload view</b> — bar chart of sessions per teacher per week. Immediately shows who is overloaded or underutilised.<br>
+        3. <b>Parent confirmation toggle</b> — mark each session as "parent confirmed / not home / rescheduled" during the day from a phone-friendly view.<br><br>
         <b>Medium impact:</b><br>
-        5. <b>Parent confirmation toggle</b> — mark each session as "parent confirmed / not home / rescheduled" during the day from a phone-friendly view.<br>
-        6. <b>Recurring schedule copy</b> — copy a full week's schedule to next week with one click, then adjust exceptions.<br>
-        7. <b>Kuwait traffic time-of-day model</b> — adjust travel times based on whether the slot is before or after 10am rush and before or after 3pm school pickup.<br><br>
+        4. <b>Recurring schedule copy</b> — copy a full week's schedule to next week with one click, then adjust exceptions.<br>
+        5. <b>Kuwait traffic time-of-day model</b> — adjust travel times based on whether the slot is before or after 10am rush and before or after 3pm school pickup.<br>
+        6. <b>Printable daily driver sheet</b> (A4 PDF per car) for drivers who prefer paper.<br><br>
         <b>Lower priority but useful:</b><br>
-        8. Colour-coded branch heatmap on the student map showing coverage gaps.<br>
-        9. Printable daily driver sheet (A4 PDF per car).<br>
-        10. Substitution mode — if a teacher is absent, quickly reassign her students to another teacher for the day without touching the main schedule.
+        7. Colour-coded branch heatmap on the student map showing coverage gaps.<br>
+        8. Substitution mode — if a teacher is absent, quickly reassign her students to another teacher for the day.
       </div>
     </details>
+  </div>
+</div>
+
+<!-- DRIVER DISPATCH MODAL -->
+<div class="modal" id="dispmodal" style="display:none">
+  <div class="mbox" style="width:480px">
+    <h3 id="disp-title">Driver dispatch</h3>
+    <p style="font-size:10px;color:var(--text2);margin-bottom:8px;line-height:1.5">Copy this message and send it to the driver on WhatsApp. The 🗺️ link at the bottom opens Google Maps with every stop of the day in order.</p>
+    <textarea id="disp-text" style="width:100%;height:270px;font-family:ui-monospace,Menlo,monospace;font-size:10px;padding:8px;border:1px solid var(--border);border-radius:6px;resize:vertical;line-height:1.5;color:var(--text);background:var(--bg)"></textarea>
+    <div class="mbtns">
+      <button class="btn" onclick="qs('dispmodal').style.display='none'">Close</button>
+      <button class="btn" onclick="copyDispatch()">📋 Copy</button>
+      <button class="btn btnp" onclick="openDispatchWhatsApp()">💬 Open WhatsApp</button>
+    </div>
   </div>
 </div>
 
@@ -440,6 +455,31 @@ const SUPA_URL='https://mzrklddpdliltwrrackj.supabase.co';
 const SUPA_KEY='sb_publishable_QhVNl-SuiLxU2695vu1TqQ_rKhN3cp9';
 const SUPA_ROW_ID='main';
 const supa=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(SUPA_URL,SUPA_KEY):null;
+
+// ===== PASSWORD GATE =====
+// Default password: "becurious2026" — change it by replacing PW_HASH below with the SHA-256 hex of your new password.
+// Quickest way to compute a new hash: open this page, open DevTools Console, and run:
+//   (async()=>{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('NEWPASSWORD'));console.log(Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join(''));})()
+// Copy the hex string it prints and paste it into PW_HASH below.
+const PW_HASH='e6026aa444e03697afaf6d8a1480cd80e2490cc96dff301a2e229ac1ca9383de'; // sha256('becurious2026')
+const PW_KEY='bc_auth_v1';
+
+async function _sha256hex(s){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function checkPasswordGate(){
+  if(localStorage.getItem(PW_KEY)==='ok')return true;
+  for(let tries=0;tries<5;tries++){
+    const pw=prompt('🔒 BeCurious Scheduler\n\nEnter team password:');
+    if(pw==null){document.body.innerHTML='<div style="padding:40px;text-align:center;font-family:system-ui;color:#666">Access required.</div>';return false;}
+    const h=await _sha256hex(pw.trim());
+    if(h===PW_HASH){localStorage.setItem(PW_KEY,'ok');return true;}
+    alert('Wrong password. Try again.');
+  }
+  document.body.innerHTML='<div style="padding:40px;text-align:center;font-family:system-ui;color:#666">Too many failed attempts.</div>';
+  return false;
+}
 
 // Who is using this browser — prompted on first use, stored locally
 function getUserName(){
@@ -1004,7 +1044,7 @@ function renderCars(){
     const col=document.createElement('div');col.className='carcol';
     const slots=SCHED[d]?.[car.id]||[];
     const driverStr=car.driver?` · ${car.driver}`:'';
-    col.innerHTML=`<div class="carhdr" onclick="editCar(${car.id})" title="Click to edit car details">${car.label}<small>${car.branch}${driverStr}</small></div>
+    col.innerHTML=`<div class="carhdr" onclick="editCar(${car.id})" title="Click to edit car details"><button class="wa-btn" onclick="event.stopPropagation();showDispatch('${d}',${car.id})" title="WhatsApp driver dispatch">📱</button>${car.label}<small>${car.branch}${driverStr}</small></div>
       <div class="carslots" id="cs-${car.id}" data-cid="${car.id}" ondragover="ev(event)" ondrop="dropCar(event,this)" ondragleave="this.classList.remove('dover')" ondragenter="this.classList.add('dover')">
         ${slots.map((_,si)=>renderSlot(d,car.id,si)).join('')}
       </div>`;
@@ -1605,6 +1645,127 @@ function editStudent(sid){
   qs('addmodal').style.display='flex';
 }
 
+// ===== DRIVER DISPATCH (WhatsApp) =====
+let curDispatch=null;
+
+function _nextWeekdayDate(dayKey){
+  // Map Mon..Thu to the next occurrence (today if already that weekday)
+  const map={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+  const target=map[dayKey];if(target==null)return null;
+  const now=new Date();
+  const diff=(target-now.getDay()+7)%7;
+  const d=new Date(now);d.setDate(now.getDate()+diff);
+  return d;
+}
+
+function buildDispatchMessage(d,cid){
+  const car=CARS.find(c=>c.id===cid);
+  if(!car)return null;
+  const slots=SCHED[d]?.[cid]||[];
+  // Pick branch coords — handles 'Salam/Salwa' by taking first
+  const brKey=(car.branch||'Shuhada').split('/')[0];
+  const [bLa,bLn]=brCoords(brKey);
+  const dayFull={Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday'}[d]||d;
+  const dateObj=_nextWeekdayDate(d);
+  const dateStr=dateObj?dateObj.toLocaleDateString('en-GB',{day:'numeric',month:'long'}):'';
+  const sep='━━━━━━━━━━━━━━━━━━━';
+
+  const lines=[];
+  const pts=[[bLa,bLn]]; // origin = branch
+  let num=0;
+
+  slots.forEach((sl_,si)=>{
+    if(!sl_)return;
+    const startM=slotStartMin(d,cid,si);
+    const time=ts(startM);
+
+    if(sl_.t==='s'){
+      const s=SS[sl_.id];if(!s)return;
+      const useLa=sl_.grp?.la??s.la, useLn=sl_.grp?.ln??s.ln, useAddr=sl_.grp?.addr||s.a;
+      num++;
+      lines.push(`${num}. ${time}  DROP   ${s.t||'—'} → ${s.n}`);
+      lines.push(`     ${useAddr}`);
+      pts.push([useLa,useLn]);
+    }
+    else if(sl_.t==='d'){
+      const s1=SS[sl_.ids?.[0]],s2=SS[sl_.ids?.[1]];
+      if(!s1)return;
+      const inter=sl_.inter||0;
+      num++;
+      lines.push(`${num}. ${time}  DD 1/2  ${s1.t||'—'} → ${s1.n}`);
+      lines.push(`     ${s1.a}`);
+      pts.push([s1.la,s1.ln]);
+      if(s2){
+        const t2=ts(startM+inter);
+        num++;
+        lines.push(`${num}. ${t2}  DD 2/2  ${s2.t||'—'} → ${s2.n}`);
+        lines.push(`     ${s2.a}`);
+        pts.push([s2.la,s2.ln]);
+      }
+    }
+    else if(sl_.t==='g'){
+      const ids=sl_.ids||[];
+      const firstS=SS[ids[0]];
+      const la=sl_.grp?.la??firstS?.la, ln=sl_.grp?.ln??firstS?.ln;
+      const addr=sl_.grp?.addr||firstS?.a||'';
+      if(la==null||ln==null)return;
+      const names=ids.map(id=>SS[id]?.n).filter(Boolean).join(', ');
+      const teachers=[...new Set(ids.map(id=>SS[id]?.t).filter(Boolean))].join('/');
+      num++;
+      lines.push(`${num}. ${time}  GROUP (${ids.length})  ${teachers||'—'}`);
+      lines.push(`     ${names}`);
+      lines.push(`     ${addr}`);
+      pts.push([la,ln]);
+    }
+    else if(sl_.t==='pick'){
+      const s=SS[sl_.id];if(!s)return;
+      num++;
+      lines.push(`${num}. ${time}  PICKUP ${s.t||'—'} ← ${s.n}`);
+      lines.push(`     ${s.a}`);
+      pts.push([s.la,s.ln]);
+    }
+  });
+
+  // Return to branch
+  pts.push([bLa,bLn]);
+
+  const header=`🚗 ${car.label}${car.driver?' · '+car.driver:''}\n📅 ${dayFull}${dateStr?' '+dateStr:''} · ${car.branch} branch`;
+
+  if(num===0){
+    return {text:`${header}\n${sep}\nNo stops scheduled.`,mapUrl:'',count:0};
+  }
+
+  const path=pts.map(p=>p[0].toFixed(5)+','+p[1].toFixed(5)).join('/');
+  const mapUrl='https://www.google.com/maps/dir/'+path;
+  const text=`${header}\n${sep}\n${lines.join('\n')}\n${sep}\n🗺️ Route with all ${num} stops:\n${mapUrl}`;
+  return {text,mapUrl,count:num};
+}
+
+function showDispatch(d,cid){
+  const msg=buildDispatchMessage(d,cid);
+  if(!msg){toast('Could not build dispatch');return;}
+  curDispatch=msg;
+  const car=CARS.find(c=>c.id===cid);
+  qs('disp-title').textContent=`${car?.label||'Car'} — ${d} dispatch`;
+  qs('disp-text').value=msg.text;
+  qs('dispmodal').style.display='flex';
+}
+function copyDispatch(){
+  if(!curDispatch)return;
+  const txt=curDispatch.text;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>toast('Copied — paste into WhatsApp'))
+      .catch(()=>{qs('disp-text').select();document.execCommand('copy');toast('Copied');});
+  }else{
+    qs('disp-text').select();document.execCommand('copy');toast('Copied');
+  }
+}
+function openDispatchWhatsApp(){
+  if(!curDispatch)return;
+  const url='https://wa.me/?text='+encodeURIComponent(curDispatch.text);
+  window.open(url,'_blank');
+}
+
 // ===== EXPORT =====
 function showExport(){
   const sc=Object.keys(SS).length-poolSids().length;const pool=poolSids().length;
@@ -1669,6 +1830,8 @@ function toast(msg){const t=document.createElement('div');t.className='toast';t.
 init();
 setSyncIndicator('connecting');
 (async()=>{
+  const ok=await checkPasswordGate();
+  if(!ok)return;
   const fromSupa=await bootLoadFromSupabase();
   if(!fromSupa){
     // Nothing useful in Supabase yet — use localStorage or the seeded RAW data
