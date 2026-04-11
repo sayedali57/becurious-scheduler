@@ -87,6 +87,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .slot.active-slot{border:2px solid #34D399;animation:pulse 2s infinite}
 .slot.active-slot .slot-empty{color:#059669;font-weight:600}
 .slot-empty{display:flex;align-items:center;justify-content:center;height:100%;min-height:60px;color:var(--text3);font-size:9px;padding:4px}
+.slot.other-branch-slot{background:repeating-linear-gradient(45deg,#F6F6F6,#F6F6F6 6px,#EFEFEF 6px,#EFEFEF 12px);border:1.5px dashed #D4D4D4;cursor:not-allowed;opacity:.75}
+.slot.other-branch-slot:hover{border-color:#C4C4C4}
 /* Journey line */
 .journey{font-size:8px;font-weight:600;padding:3px 8px;display:flex;align-items:center;gap:3px;color:var(--text2);border-bottom:1px solid var(--border);background:var(--bg);flex-wrap:wrap}
 .journey.drop-j{border-left:3px solid var(--purple)}
@@ -290,6 +292,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
     </div>
     <!-- Banner shown only when viewing a non-current attendance week -->
     <div id="sched-week-banner" style="display:none;padding:7px 14px;background:#FEF3CD;border-bottom:1px solid #F59E0B;color:#92400E;font-size:11px;font-weight:600;text-align:center"></div>
+    <!-- Branch filter banner: shows when the supervisor has scoped the view -->
+    <div id="br-filter-lbl" style="display:none;padding:6px 14px;background:#EEF2FF;border-bottom:1px solid #C7D2FE;color:#4338CA;font-size:11px;font-weight:600;text-align:center"></div>
     <div class="sched-outer" id="sched-outer"><div class="cargrid" id="cargrid"></div></div>
     <div class="legend">
       <span style="font-size:9px;color:var(--text3);font-weight:500">Legend:</span>
@@ -513,7 +517,17 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
       4. Students of the same teacher are chained consecutively to reduce handoff drives.<br>
       5. Auto pickup slots are added after each drop (if enabled in Settings).
     </div>
-    <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;color:#991B1B"><input type="checkbox" id="auto-clear"> <b>Clear the existing schedule first</b> (start from scratch — cannot be undone)</label></div>
+    <div class="frow">
+      <label for="auto-branch" style="font-size:11px;font-weight:600">Scope: which branch to auto-schedule</label>
+      <select id="auto-branch" style="padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px;background:#fff">
+        <option value="All">All branches (full week)</option>
+        <option value="Shuhada">Only Shuhada students</option>
+        <option value="Salam">Only Salam students</option>
+        <option value="Salwa">Only Salwa students</option>
+      </select>
+      <small class="set-help">When a specific branch is picked, only that branch's pool students get placed — other branches' existing slots stay untouched. Supervisors can run this per branch and then hand-tweak the result.</small>
+    </div>
+    <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;color:#991B1B"><input type="checkbox" id="auto-clear"> <b>Clear the existing schedule first</b> <span id="auto-clear-scope-note">(start from scratch — cannot be undone)</span></label></div>
     <div class="frow" id="auto-pin-row" style="display:none">
       <label>Enter the auto-schedule PIN to continue</label>
       <input id="auto-pin-input" type="password" autocomplete="off" placeholder="PIN">
@@ -1764,6 +1778,17 @@ function renderSlot(d,cid,si){
       </div></div>`;
   }
 
+  // Branch filter: when a supervisor has picked a specific branch, slots that
+  // belong entirely to another branch render as a muted placeholder so the
+  // supervisor sees the slot is in use without seeing student details — and
+  // cannot accidentally drop onto another branch's slot.
+  if(curBr!=='All'&&!slotMatchesBranch(sl_,curBr)){
+    return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
+      <div class="slot other-branch-slot" ${base} title="This slot belongs to another branch">
+        <div style="padding:14px 8px;text-align:center;font-size:10px;color:var(--text3);font-style:italic">Other branch</div>
+      </div></div>`;
+  }
+
   const warns=warnHtml(d,cid,si);
   const isLast=isLastSlot(d,cid,si);
 
@@ -2149,6 +2174,31 @@ function rmFromSched(sid,opts){
         if(sl_.ids.length===0)s[i]=null;
       }
       if(sl_.t==='pick'&&sl_.id===sid)s[i]=null;
+    });
+  }));
+}
+
+// Remove every drop/group/pickup for students of a given branch from the
+// schedule. Used by the branch-scoped auto-scheduler's "clear first" option:
+// it wipes only the selected branch's placements, leaving other branches
+// untouched. Double/triple/group slots collapse the same way as rmFromSched.
+function clearBranchFromSched(br){
+  DAYS.forEach(d=>CARS.forEach(car=>{
+    const s=SCHED[d]?.[car.id];if(!s)return;
+    s.forEach((sl_,i)=>{
+      if(!sl_)return;
+      if(sl_.t==='s'&&SS[sl_.id]&&SS[sl_.id].br===br)s[i]=null;
+      else if(sl_.t==='d'&&Array.isArray(sl_.ids)){
+        const remaining=sl_.ids.filter(x=>!(SS[x]&&SS[x].br===br));
+        if(remaining.length===0)s[i]=null;
+        else if(remaining.length===1)s[i]={t:'s',id:remaining[0]};
+        else if(remaining.length!==sl_.ids.length){sl_.ids=remaining;ddRecomputeMetrics(sl_);}
+      }
+      else if(sl_.t==='g'&&Array.isArray(sl_.ids)){
+        sl_.ids=sl_.ids.filter(x=>!(SS[x]&&SS[x].br===br));
+        if(sl_.ids.length===0)s[i]=null;
+      }
+      else if(sl_.t==='pick'&&SS[sl_.id]&&SS[sl_.id].br===br)s[i]=null;
     });
   }));
 }
@@ -2608,7 +2658,27 @@ function renderDayTabs(){
     }
   });
 }
-function setB(b,btn){curBr=b;document.querySelectorAll('.pf').forEach(el=>el.classList.remove('on'));btn.classList.add('on');renderPool();}
+function setB(b,btn){
+  curBr=b;
+  document.querySelectorAll('.pf').forEach(el=>el.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  // Re-render both pool and schedule grid. The grid needs a refresh so slots
+  // for other branches get visually muted (see renderSlot for the filter).
+  renderPool();renderSched();
+  // Keep the branch label badge in the schedule header in sync.
+  const lbl=qs('br-filter-lbl');
+  if(lbl){
+    if(curBr==='All'){lbl.style.display='none';lbl.textContent='';}
+    else{lbl.style.display='';lbl.textContent='Viewing: '+curBr+' branch only';}
+  }
+}
+// Does this slot contain at least one student from the given branch? 'All'
+// always returns true. Pick slots fall back to their student's branch.
+function slotMatchesBranch(sl_,br){
+  if(!sl_||br==='All')return true;
+  const ids=sl_.t==='pick'?[sl_.id]:slotStudentIds(sl_);
+  return ids.some(sid=>SS[sid]&&SS[sid].br===br);
+}
 
 // ===== CARS MANAGER =====
 function showCarsModal(){renderCarList();qs('carsmodal').style.display='flex';}
@@ -3578,8 +3648,18 @@ function saveSettingsModal(){
 
 // ===== AUTO-SCHEDULE THE WEEK =====
 function autoScheduleWeek(){
-  const pool=poolEntries();
-  qs('auto-pool-count').textContent=pool.reduce((n,e)=>n+e.remaining,0);
+  // Seed the branch scope from whatever filter the supervisor has open so
+  // it's a one-click run for the branch they're already viewing.
+  const brSel=qs('auto-branch');
+  if(brSel){
+    const opt=['All','Shuhada','Salam','Salwa'].includes(curBr)?curBr:'All';
+    brSel.value=opt;
+    brSel.onchange=autoScopeNoteRefresh;
+    autoScopeNoteRefresh();
+  }
+  // Recount the pool based on the selected branch so the number shown in the
+  // modal matches what will actually be placed.
+  autoScopeNoteRefresh();
   qs('auto-clear').checked=false;
   // Show / hide the PIN row based on whether a PIN is configured
   const pinSet=!!(SETTINGS.autoSchedulePin&&SETTINGS.autoSchedulePin.length);
@@ -3587,6 +3667,20 @@ function autoScheduleWeek(){
   if(pinSet)qs('auto-pin-input').value='';
   qs('automodal').style.display='flex';
   if(pinSet)setTimeout(()=>qs('auto-pin-input').focus(),50);
+}
+// Refresh the modal copy so supervisors can see exactly what will be
+// touched: pool count for the selected branch and a scoped clear warning.
+function autoScopeNoteRefresh(){
+  const br=(qs('auto-branch')?.value)||'All';
+  const pool=poolEntries();
+  const scoped=br==='All'?pool:pool.filter(e=>e.s.br===br);
+  const n=scoped.reduce((acc,e)=>acc+e.remaining,0);
+  qs('auto-pool-count').textContent=n;
+  const note=qs('auto-clear-scope-note');
+  if(note){
+    if(br==='All')note.textContent='(start from scratch — cannot be undone)';
+    else note.textContent=`(clears ONLY ${br} students' existing slots — other branches stay put)`;
+  }
 }
 function runAutoSchedule(){
   // PIN gate
@@ -3599,8 +3693,16 @@ function runAutoSchedule(){
     }
   }
   const clearFirst=qs('auto-clear').checked;
+  // Branch scope — 'All' means the classic whole-week run. Anything else
+  // limits the candidate pool AND scopes the clear-first reset to just that
+  // branch's existing slots, so a supervisor can safely re-run for her
+  // branch without disturbing the others.
+  const scopeBr=(qs('auto-branch')?.value)||'All';
   qs('automodal').style.display='none';
-  if(clearFirst){SCHED=blankSched();ensureSchedCoverage();}
+  if(clearFirst){
+    if(scopeBr==='All'){SCHED=blankSched();ensureSchedCoverage();}
+    else clearBranchFromSched(scopeBr);
+  }
   deriveTeachersFromStudents();
 
   // Strategy
@@ -3656,9 +3758,14 @@ function runAutoSchedule(){
     });
   });});
 
-  // Remaining to place per student (sessionsPerWeek - already-scheduled)
+  // Remaining to place per student (sessionsPerWeek - already-scheduled).
+  // When a branch scope is set, ignore pool students from other branches so
+  // they stay in the unscheduled pool untouched.
   const remain={};
-  poolEntries().forEach(e=>{remain[e.s.id]=e.remaining;});
+  poolEntries().forEach(e=>{
+    if(scopeBr!=='All'&&e.s.br!==scopeBr)return;
+    remain[e.s.id]=e.remaining;
+  });
 
   function teacherCanTake(tname,day){
     const t=TEACHERS[tname];
@@ -3783,7 +3890,8 @@ function runAutoSchedule(){
   // Students that still have remaining sessions = couldn't be placed
   const unplaced=Object.entries(remain).filter(([,n])=>n>0).length;
   renderSched();renderPool();saveState();
-  let msg=`Auto-schedule done — ${placed} session(s) placed`;
+  const scopeLabel=scopeBr==='All'?'':` for ${scopeBr}`;
+  let msg=`Auto-schedule${scopeLabel} done — ${placed} session(s) placed`;
   if(unplaced)msg+=`, ${unplaced} still in pool (check teacher availability / branches / day limits)`;
   toast(msg);
 }
