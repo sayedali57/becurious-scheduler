@@ -1743,23 +1743,32 @@ function buildDispatchMessage(d,cid){
     return {text:`${header}\n${sep}\nNo stops scheduled.`,mapUrl:'',count:0};
   }
 
-  // Build a Google Maps link using the path form (/maps/dir/lat,lng/lat,lng/...).
-  // The path form gives the driver editable stops, a Start/Directions button,
-  // and opens directly in the Google Maps app on mobile. Each link is capped
-  // at ~10 stops total (origin + waypoints + destination), so if there are more
-  // we split into consecutive legs that the driver opens in order.
+  // Build a Google Maps link using the legacy ?saddr=...&daddr=A+to:B+to:C&dirflg=d
+  // format. On iPhone the Google Maps app treats this as "driving directions
+  // ready to go" and shows the blue Start button immediately — unlike the
+  // /maps/dir/ path form, which lands on an edit-route screen with no Start
+  // button. This format also opens the Google Maps app directly on iOS and
+  // works in the web Maps viewer as a fallback.
+  // Each link is capped at ~10 stops total, so if there are more we split
+  // into consecutive legs that the driver opens in order.
   const fmt=p=>p[0].toFixed(5)+','+p[1].toFixed(5);
   // Full route: branch → every stop → back to branch
   const allPts=[...pts,[bLa,bLn]];
-  const MAX=10; // Google Maps path-form per-URL stop cap
+  const MAX=10; // Google Maps legacy-URL per-route stop cap
+  function buildLegUrl(legPts){
+    if(legPts.length<2)return '';
+    const saddr=fmt(legPts[0]);
+    const daddr=legPts.slice(1).map(fmt).join('+to:');
+    return 'https://maps.google.com/maps?saddr='+saddr+'&daddr='+daddr+'&dirflg=d';
+  }
   const legUrls=[];
   if(allPts.length<=MAX){
-    legUrls.push('https://www.google.com/maps/dir/'+allPts.map(fmt).join('/')+'/');
+    legUrls.push(buildLegUrl(allPts));
   }else{
     let start=0;
     while(start<allPts.length-1){
       const end=Math.min(start+MAX,allPts.length);
-      legUrls.push('https://www.google.com/maps/dir/'+allPts.slice(start,end).map(fmt).join('/')+'/');
+      legUrls.push(buildLegUrl(allPts.slice(start,end)));
       start=end-1; // next leg starts where this one ended, so legs overlap by 1 point
     }
   }
