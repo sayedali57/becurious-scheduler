@@ -1743,23 +1743,25 @@ function buildDispatchMessage(d,cid){
     return {text:`${header}\n${sep}\nNo stops scheduled.`,mapUrl:'',count:0};
   }
 
-  // Build a Google Maps link using the legacy ?saddr=...&daddr=A+to:B+to:C&dirflg=d
-  // format. On iPhone the Google Maps app treats this as "driving directions
-  // ready to go" and shows the blue Start button immediately — unlike the
-  // /maps/dir/ path form, which lands on an edit-route screen with no Start
-  // button. This format also opens the Google Maps app directly on iOS and
-  // works in the web Maps viewer as a fallback.
-  // Each link is capped at ~10 stops total, so if there are more we split
-  // into consecutive legs that the driver opens in order.
+  // Build Google Maps links. We use the iPhone-specific comgooglemaps:// URL
+  // scheme which opens the Google Maps iOS app directly in driving-directions
+  // mode with all waypoints pre-calculated and the blue Start button visible.
+  // The https:// equivalent is tacked on as a fallback for Android / desktop.
+  // Each link is capped at ~10 stops total, so longer routes are split into
+  // consecutive legs the driver opens one after the other.
   const fmt=p=>p[0].toFixed(5)+','+p[1].toFixed(5);
-  // Full route: branch → every stop → back to branch
-  const allPts=[...pts,[bLa,bLn]];
-  const MAX=10; // Google Maps legacy-URL per-route stop cap
+  const allPts=[...pts,[bLa,bLn]]; // branch → every stop → back to branch
+  const MAX=10;
   function buildLegUrl(legPts){
-    if(legPts.length<2)return '';
+    if(legPts.length<2)return {app:'',web:''};
     const saddr=fmt(legPts[0]);
     const daddr=legPts.slice(1).map(fmt).join('+to:');
-    return 'https://maps.google.com/maps?saddr='+saddr+'&daddr='+daddr+'&dirflg=d';
+    // iPhone deep link — Google Maps iOS app registers the comgooglemaps://
+    // scheme and launches directly into the directions view.
+    const app='comgooglemaps://?saddr='+saddr+'&daddr='+daddr+'&directionsmode=driving';
+    // Universal fallback for Android / desktop
+    const web='https://maps.google.com/maps?saddr='+saddr+'&daddr='+daddr+'&dirflg=d';
+    return {app,web};
   }
   const legUrls=[];
   if(allPts.length<=MAX){
@@ -1773,16 +1775,20 @@ function buildDispatchMessage(d,cid){
     }
   }
 
+  // Each leg gets two links: the iPhone deep link first (so tapping in
+  // WhatsApp on iOS opens the Google Maps app directly with the route ready
+  // to go), then the universal https:// link as a fallback for Android /
+  // desktop or if the deep link doesn't open.
   let mapBlock;
   if(legUrls.length===1){
-    mapBlock=`🗺️ Route with all ${num} stops:\n${legUrls[0]}`;
+    mapBlock=`🗺️ Route with all ${num} stops\n📱 iPhone: ${legUrls[0].app}\n🌐 Other: ${legUrls[0].web}`;
   }else{
-    mapBlock=`🗺️ Route with all ${num} stops (Google Maps caps each link at 10 stops, so the route is split into ${legUrls.length} legs — open them in order):`;
-    legUrls.forEach((u,i)=>{mapBlock+=`\nLeg ${i+1}: ${u}`;});
+    mapBlock=`🗺️ Route with all ${num} stops (split into ${legUrls.length} legs — open them in order):`;
+    legUrls.forEach((u,i)=>{mapBlock+=`\nLeg ${i+1} 📱 iPhone: ${u.app}\nLeg ${i+1} 🌐 Other: ${u.web}`;});
   }
 
   const text=`${header}\n${sep}\n${lines.join('\n')}\n${sep}\n${mapBlock}`;
-  return {text,mapUrl:legUrls[0],count:num,legUrls};
+  return {text,mapUrl:legUrls[0].web,count:num,legUrls};
 }
 
 function showDispatch(d,cid){
