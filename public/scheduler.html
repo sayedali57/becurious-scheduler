@@ -261,6 +261,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
   <button class="hbtn" onclick="showStudentsTable()">📋 Students</button>
   <button class="hbtn amber" onclick="importState()">⬆ Import</button>
   <button class="hbtn" onclick="showExport()">⬇ Export</button>
+  <button class="hbtn" onclick="showHelp()">❓ Help</button>
   <button class="hbtn" onclick="doReset()" style="opacity:.7">↺ Reset</button>
 </div>
 
@@ -627,6 +628,17 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
       <span style="color:#6B7280">·</span> <span style="color:#DC2626">red</span> = structural · <span style="color:#D97706">orange</span> = time · <span style="color:#6B7280">grey</span> = route ergonomics
     </div>
     <div id="warnpanel-body" style="flex:1;overflow:auto"></div>
+  </div>
+</div>
+
+<!-- HELP & FAQ -->
+<div class="modal" id="helpmodal" style="display:none;align-items:flex-start;padding:20px">
+  <div class="mbox" style="width:700px;max-height:90vh;overflow:auto;padding:0">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;position:sticky;top:0;background:#fff;z-index:1">
+      <h3 style="margin:0;flex:1">❓ Help &amp; FAQ — BeCurious Schedule Builder</h3>
+      <button class="btn" onclick="qs('helpmodal').style.display='none'">Close</button>
+    </div>
+    <div id="help-content" style="padding:18px;font-size:12px;line-height:1.7;color:var(--text)"></div>
   </div>
 </div>
 
@@ -3144,6 +3156,188 @@ function showExport(){
   qs('exportmodal').style.display='flex';
 }
 function closeExport(){qs('exportmodal').style.display='none';}
+
+function showHelp(){
+  const v='v2.13 — April 2026';
+  qs('help-content').innerHTML=`
+<style>.hfaq h4{margin:14px 0 6px;color:var(--purple);font-size:13px}.hfaq p,.hfaq li{font-size:11.5px;line-height:1.7;color:#374151}.hfaq ul{padding-left:18px;margin:4px 0 10px}.hfaq li{margin:3px 0}.hfaq .hsec{background:#F9FAFB;border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin:10px 0}.hfaq .htag{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;margin:0 3px}.hfaq .ht-new{background:#DCFCE7;color:#166534}.hfaq .ht-tip{background:#DBEAFE;color:#1E40AF}.hfaq .ht-warn{background:#FEF3C7;color:#92400E}</style>
+<div class="hfaq">
+
+<p style="color:var(--text3);font-size:10px;margin-bottom:14px">${v} · Built for BeCurious tutoring operations in Kuwait</p>
+
+<h4>🗓 Overview</h4>
+<div class="hsec">
+<p>The Schedule Builder helps supervisors assign tutoring home-visits to cars for each day of the week. Students are dropped off by the driver + teacher, the session happens at the student's home, and then the driver picks the student back up.</p>
+<p><b>Core flow:</b> Add students → Add cars &amp; teachers → Use Auto-schedule or drag-and-drop → Send dispatch to drivers via WhatsApp → Track attendance.</p>
+</div>
+
+<h4>📋 Students panel (left sidebar)</h4>
+<div class="hsec">
+<p><b>Unscheduled sessions</b> — students who still need to be placed this week. Each card shows the teacher (color-coded), address, branch, and a progress pill (e.g. "1/2" = 1 of 2 weekly sessions placed).</p>
+<ul>
+<li><b>Drag a card</b> onto an empty slot to schedule a session.</li>
+<li><b>Drop onto a filled slot</b> to create a double-drop (same ride, two students).</li>
+<li><b>Branch filter tabs</b> (All / Shuhada / Salam / Salwa) — show only students from that branch.</li>
+<li><b>Search</b> — type a student or teacher name to filter.</li>
+</ul>
+<p><span class="htag ht-new">NEW</span> <b>⚠ Yellow banner</b> — if a student couldn't be auto-scheduled, the card shows <i>why</i>: teacher inactive, no car for that branch, teacher at daily max, or all slots full. This tells you what to fix.</p>
+</div>
+
+<h4>🔍 Pool sorting (click a slot first)</h4>
+<div class="hsec">
+<p>Click any slot in the grid to make it "active" (blue highlight). The pool then shows extra sort buttons:</p>
+<ul>
+<li><b>Closest</b> — sorts students by distance from the car's current position.</li>
+<li><b>Suggestions ★</b> — top 3 picks highlighted, factoring distance + teacher continuity.</li>
+<li><b>By teacher</b> — filter pool by a specific teacher using the dropdown.</li>
+</ul>
+<p><span class="htag ht-tip">TIP</span> Click an empty slot, then use "Suggestions" to see the best students for that slot.</p>
+</div>
+
+<h4>🚗 Car columns (daily grid)</h4>
+<div class="hsec">
+<p>Each column = one car for the selected day. The header shows the car name and branch.</p>
+<p><span class="htag ht-new">NEW</span> <b>Capacity bar</b> — under each car header you'll see "<b>5/14 slots · 36%</b>" with a color bar (green &lt; 70%, amber 70–90%, red ≥ 90%). This instantly tells you which cars have room and which are full.</p>
+<ul>
+<li><b>Drop slots</b> (▼) — a student being dropped off at their home. Shows teacher, address, drive time, and distance.</li>
+<li><b>Pickup slots</b> (▲) — the driver returning to collect the student after the session. Shows whether it's on time or early/late.</li>
+<li><b>Double/Triple drops</b> — two or three students sharing the same ride. Created by dropping a student onto an existing filled slot.</li>
+<li><b>Group slots</b> (🏠) — up to 7 students at the same group location with different teachers.</li>
+</ul>
+</div>
+
+<h4>🔒 Mandatory timing <span class="htag ht-new">NEW</span></h4>
+<div class="hsec">
+<p>Some students have fixed time restrictions from parents (e.g., "only Tuesday 1pm"). Set these in the <b>Students table → Fixed times column</b>.</p>
+<ul>
+<li>Pick a day (Sun–Thu) and a time for each session slot.</li>
+<li>Auto-schedule will place these <b>first</b> as locked slots with a 🔒 icon.</li>
+<li>Locked slots cannot be dragged — they stay pinned at the requested time.</li>
+<li>The auto-scheduler fills around them, respecting the fixed times.</li>
+</ul>
+</div>
+
+<h4>🚗 Teacher ride annotations <span class="htag ht-new">NEW</span></h4>
+<div class="hsec">
+<p>The driver picks up teachers from the branch and drops them back. The grid now shows:</p>
+<ul>
+<li><b>🚗 Pick up [Teacher] from [Branch]</b> — first drop of the day, driver picks up teacher on the way out.</li>
+<li><b>🚗 ↩ [Teacher A] → branch · Pick up [Teacher B]</b> — teacher change between drops. Driver must return to branch to swap teachers.</li>
+<li>If consecutive drops share the same teacher, no annotation is shown (teacher stays in the car).</li>
+</ul>
+<p><span class="htag ht-tip">TIP</span> Minimize teacher swaps by grouping same-teacher drops in the same car. The auto-scheduler does this automatically via the "teacher chaining bonus" in Settings.</p>
+</div>
+
+<h4>🔄 Cross-car pickups <span class="htag ht-new">NEW</span></h4>
+<div class="hsec">
+<p>Sometimes Car 1 drops a student but Car 2 picks them up. When this happens:</p>
+<ul>
+<li>The <b>drop card</b> in Car 1 shows: <b>🔄 Car 2 picks up →</b></li>
+<li>The <b>pickup slot</b> in Car 2 shows: <b>🔄 Dropped by Car 1 — this car picks up [Name]</b></li>
+</ul>
+<p>Both cars clearly show what's happening so the drivers know.</p>
+</div>
+
+<h4>👫 Sibling auto-drops <span class="htag ht-new">NEW</span></h4>
+<div class="hsec">
+<p>When auto-scheduling, if two students live at the same address (or within 0.5 km), they're automatically paired as a <b>double-drop</b> — even if they have different teachers. This saves a car trip.</p>
+<p><span class="htag ht-tip">TIP</span> Make sure sibling addresses match in the student data. Small differences (e.g., "St5" vs "St 5") are fine — the system uses GPS coordinates, not text matching.</p>
+</div>
+
+<h4>⚡ Auto-schedule</h4>
+<div class="hsec">
+<p>Click <b>⚡ Auto-schedule</b> to automatically place all pool students into car slots. The algorithm:</p>
+<ol style="padding-left:18px;margin:4px 0">
+<li>Pre-places <b>mandatory (locked)</b> sessions first.</li>
+<li>Greedily fills remaining slots, picking the nearest student to the car's current position.</li>
+<li>Prefers to chain the same teacher to avoid branch detours.</li>
+<li>Auto-pairs siblings / same-address students as double-drops.</li>
+<li>Respects branch-matching, teacher day limits, and day-end cutoff.</li>
+</ol>
+<ul>
+<li><b>Branch scope</b> — choose "All" or a specific branch in the auto-schedule modal.</li>
+<li><b>Clear existing first</b> — removes current slots for the selected scope before filling.</li>
+<li>Students left in the pool after auto-schedule will show a ⚠ reason banner.</li>
+</ul>
+</div>
+
+<h4>📊 Reports</h4>
+<div class="hsec">
+<p>Click <b>📊 Reports</b> to see weekly summaries:</p>
+<ul>
+<li><b>Student report</b> — attendance by student across the week.</li>
+<li><b>Teacher report</b> — sessions per teacher per day.</li>
+<li><b>Car report</b> — utilization per car.</li>
+</ul>
+</div>
+
+<h4>📱 WhatsApp dispatch</h4>
+<div class="hsec">
+<p>Click the 📱 button on a car header to generate a WhatsApp message for the driver. It includes:</p>
+<ul>
+<li>Each stop in order: drop-off address, student name, teacher name, time.</li>
+<li>Teacher swap instructions (who to pick up / return at branch).</li>
+<li>Pickup times and addresses.</li>
+</ul>
+<p>The message is copied to clipboard — paste it into WhatsApp.</p>
+</div>
+
+<h4>💾 Saving &amp; syncing</h4>
+<div class="hsec">
+<p>The schedule auto-saves to Supabase every time you make a change. The header shows <b>✅ Synced</b> or <b>⏳ Saving…</b>. Multiple team members can edit simultaneously — the latest change wins.</p>
+<ul>
+<li><b>Export → Save progress (JSON)</b> — download a backup file you can import on any device.</li>
+<li><b>Import</b> — load a previously exported JSON file to restore state.</li>
+</ul>
+</div>
+
+<h4>⚙ Settings reference</h4>
+<div class="hsec">
+<ul>
+<li><b>Session length</b> — duration of each tutoring session (default 45 min).</li>
+<li><b>Drop-off handover</b> — buffer time for the teacher to settle in (default 10 min).</li>
+<li><b>First car departure</b> — earliest a car leaves branch (default 09:50).</li>
+<li><b>Latest session end</b> — auto-schedule won't place sessions ending after this time.</li>
+<li><b>Slots per car</b> — maximum slots per car per day (default 14).</li>
+<li><b>Same branch only</b> — if ON, students can only be placed in cars matching their branch.</li>
+<li><b>Auto-insert pickups</b> — automatically adds a pickup slot after each drop.</li>
+<li><b>Prevent same-day double</b> — stops a student from being scheduled twice on the same day.</li>
+<li><b>Teacher chaining bonus</b> — distance bonus (km) for keeping the same teacher to avoid swaps.</li>
+</ul>
+</div>
+
+<h4>🚩 Common issues &amp; solutions</h4>
+<div class="hsec">
+<ul>
+<li><b>Student stuck in pool?</b> — Check the ⚠ yellow banner on their card. Common fixes: activate their teacher, add a car for their branch, or increase the teacher's max sessions/day.</li>
+<li><b>Car looks full?</b> — Check the capacity bar. Increase "Slots per car" in Settings, or add another car in the Cars panel.</li>
+<li><b>"VERY FAR" warning?</b> — Student is &gt;15km from their branch. Check if their address/coordinates are correct in the Students table.</li>
+<li><b>Teacher getting too many sessions?</b> — Adjust the teacher's "max per day" in the Teachers panel, or set the default in Settings.</li>
+<li><b>Pickup is "early" (⚠ Ready at…)?</b> — The car arrives before the session is done. Drag the pickup to a later slot or rearrange drops.</li>
+<li><b>Cross-car pickup needed?</b> — Drag a pickup card from the "Pending Pickups" list in the sidebar to the appropriate car's slot. Both cars will show the 🔄 indicator.</li>
+<li><b>Coordinates wrong?</b> — In the Students table, check lat/lng. Kuwait is approximately lat ~29, lng ~48. If swapped, fix in your import spreadsheet.</li>
+<li><b>Mandatory time not working?</b> — Open Students table → Fixed times column. Set both the day AND time for each mandatory session.</li>
+</ul>
+</div>
+
+<h4>⌨ Quick reference</h4>
+<div class="hsec">
+<ul>
+<li><b>Drag student → empty slot</b> = schedule a session</li>
+<li><b>Drag student → filled slot</b> = create double-drop</li>
+<li><b>Drag student → double-drop</b> = create triple-drop (max 3)</li>
+<li><b>Click empty slot</b> = set active (enables pool sorting)</li>
+<li><b>Click × on a slot</b> = return student to pool</li>
+<li><b>Click × on double-drop student</b> = unpair (keeps other student)</li>
+<li><b>🏠 Group button</b> = set group location for all teachers to meet</li>
+<li><b>Branch filter tabs</b> = show only that branch's students + mute other slots</li>
+</ul>
+</div>
+
+<p style="text-align:center;color:var(--text3);font-size:9px;margin-top:16px">BeCurious Schedule Builder ${v}<br>Questions? Contact your system administrator.</p>
+</div>`;
+  qs('helpmodal').style.display='flex';
+}
 
 function buildCSV(){
   const rows=[['BeCurious Home Visit Schedule'],['Generated:',new Date().toLocaleString('en-GB'),'','','','','',''],[''],
