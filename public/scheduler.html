@@ -102,6 +102,30 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .car-cap-fill{height:100%;border-radius:3px;transition:width .3s}
 /* Cross-car pickup indicator */
 .xcar-pick{font-size:9px;font-weight:600;color:#0369A1;background:#E0F2FE;border:1px solid #7DD3FC;border-radius:5px;padding:4px 8px;margin:3px 0;text-align:center}
+/* View toggle buttons */
+.view-toggle{padding:4px 10px;border:1px solid var(--border);border-radius:5px;font-size:10px;font-weight:600;background:#fff;color:var(--text2);cursor:pointer;transition:.15s}
+.view-toggle:hover{background:#F3F4F6}
+.view-toggle.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+/* Audit view */
+#audit-outer{display:none;padding:16px 20px;overflow:auto}
+.audit-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.audit-bar select{padding:5px 10px;border:1px solid var(--border);border-radius:5px;font-size:11px}
+.audit-tab{padding:5px 12px;border:1px solid var(--border);border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;background:#fff;color:var(--text2)}
+.audit-tab.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+.audit-section{margin-top:12px}
+.audit-tbl{width:100%;border-collapse:collapse;font-size:11px}
+.audit-tbl th{text-align:left;padding:6px 8px;background:#F9FAFB;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);font-weight:600;white-space:nowrap;position:sticky;top:0}
+.audit-tbl td{padding:5px 8px;border-bottom:1px solid #F3F4F6;vertical-align:top}
+.audit-tbl tr:hover td{background:#FEFCE8}
+.a-ok{color:#059669;font-weight:600}.a-warn{color:#D97706;font-weight:600}.a-bad{color:#DC2626;font-weight:600}
+.a-pill{display:inline-block;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px}
+.a-pill-green{background:#DCFCE7;color:#166534}.a-pill-amber{background:#FEF3C7;color:#92400E}.a-pill-red{background:#FEE2E2;color:#991B1B}
+.idle-bar{height:8px;border-radius:4px;background:#E5E7EB;position:relative;min-width:80px}
+.idle-fill{height:100%;border-radius:4px;position:absolute;left:0;top:0}
+.audit-summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.audit-stat{background:#F9FAFB;border:1px solid var(--border);border-radius:8px;padding:10px 16px;min-width:120px;text-align:center}
+.audit-stat b{display:block;font-size:20px;margin-bottom:2px}
+.audit-stat small{font-size:9px;color:var(--text3)}
 /* Journey line */
 .journey{font-size:8px;font-weight:600;padding:3px 8px;display:flex;align-items:center;gap:3px;color:var(--text2);border-bottom:1px solid var(--border);background:var(--bg);flex-wrap:wrap}
 .journey.drop-j{border-left:3px solid var(--purple)}
@@ -299,6 +323,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
       <div class="dt" data-day="Wed" onclick="gd('Wed')">Wednesday</div>
       <div class="dt" data-day="Thu" onclick="gd('Thu')">Thursday · Far</div>
       <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:4px;padding:0 6px">
+        <button class="view-toggle active" id="vt-daily" onclick="switchView('daily')">📅 Daily view</button>
+        <button class="view-toggle" id="vt-audit" onclick="switchView('audit')">📊 Audit view</button>
+      </div>
       <div class="week-picker-wrap" style="display:flex;align-items:center;gap:6px;padding:0 10px">
         <label for="sched-week" style="font-size:10px;color:var(--text2);font-weight:600">Attendance week</label>
         <select id="sched-week" onchange="setSelectedWeek(this.value)" style="padding:4px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px;background:#fff;outline:none"></select>
@@ -309,6 +337,20 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
     <!-- Branch filter banner: shows when the supervisor has scoped the view -->
     <div id="br-filter-lbl" style="display:none;padding:6px 14px;background:#EEF2FF;border-bottom:1px solid #C7D2FE;color:#4338CA;font-size:11px;font-weight:600;text-align:center"></div>
     <div class="sched-outer" id="sched-outer"><div class="cargrid" id="cargrid"></div></div>
+    <!-- AUDIT VIEW (hidden by default — toggled via Daily/Audit buttons) -->
+    <div id="audit-outer">
+      <div class="audit-bar">
+        <span style="font-weight:600;font-size:12px;color:var(--text)">📊 Weekly Audit</span>
+        <select id="audit-branch" onchange="renderAudit()"><option value="All">All branches</option></select>
+        <select id="audit-teacher" onchange="renderAudit()"><option value="All">All teachers</option></select>
+        <div style="flex:1"></div>
+        <button class="audit-tab active" data-atab="students" onclick="switchAuditTab('students')">Students</button>
+        <button class="audit-tab" data-atab="teachers" onclick="switchAuditTab('teachers')">Teachers</button>
+        <button class="audit-tab" data-atab="idle" onclick="switchAuditTab('idle')">Idle / Waste</button>
+        <button class="audit-tab" data-atab="branch" onclick="switchAuditTab('branch')">Branch summary</button>
+      </div>
+      <div id="audit-body"></div>
+    </div>
     <div class="legend">
       <span style="font-size:9px;color:var(--text3);font-weight:500">Legend:</span>
       <div class="leg"><div class="legdot" style="background:var(--teal)"></div>Double-drop</div>
@@ -3156,6 +3198,367 @@ function showExport(){
   qs('exportmodal').style.display='flex';
 }
 function closeExport(){qs('exportmodal').style.display='none';}
+
+// ===== AUDIT VIEW =====
+let _auditTab='students';
+function switchView(view){
+  qs('vt-daily').classList.toggle('active',view==='daily');
+  qs('vt-audit').classList.toggle('active',view==='audit');
+  qs('sched-outer').style.display=view==='daily'?'':'none';
+  document.querySelectorAll('.legend').forEach(el=>el.style.display=view==='daily'?'':'none');
+  qs('audit-outer').style.display=view==='audit'?'block':'none';
+  if(view==='audit')renderAudit();
+}
+function switchAuditTab(tab){
+  _auditTab=tab;
+  document.querySelectorAll('.audit-tab').forEach(b=>b.classList.toggle('active',b.dataset.atab===tab));
+  renderAudit();
+}
+
+function renderAudit(){
+  // Populate branch dropdown
+  const brSel=qs('audit-branch');
+  const curBrVal=brSel.value;
+  const branches=['All',...new Set(Object.values(SS).map(s=>s.br).filter(Boolean))];
+  brSel.innerHTML=branches.map(b=>`<option${b===curBrVal?' selected':''}>${b==='All'?'All branches':b}</option>`).join('');
+  brSel.value=curBrVal&&branches.includes(curBrVal)?curBrVal:(branches.includes(curBrVal)?curBrVal:'All');
+  const filterBr=brSel.value==='All branches'?'All':brSel.value;
+
+  // Populate teacher dropdown based on branch
+  const tSel=qs('audit-teacher');
+  const curTVal=tSel.value;
+  let teachers=Object.keys(TEACHERS).filter(t=>TEACHERS[t].active!==0);
+  if(filterBr!=='All')teachers=teachers.filter(t=>{
+    const te=TEACHERS[t];return!te.branch||te.branch===filterBr;
+  });
+  teachers.sort();
+  tSel.innerHTML='<option>All teachers</option>'+teachers.map(t=>`<option${t===curTVal?' selected':''}>${t}</option>`).join('');
+  const filterT=tSel.value==='All teachers'?'All':tSel.value;
+
+  const AD=activeDays();
+  const body=qs('audit-body');
+
+  if(_auditTab==='students')body.innerHTML=auditStudents(filterBr,filterT,AD);
+  else if(_auditTab==='teachers')body.innerHTML=auditTeachers(filterBr,filterT,AD);
+  else if(_auditTab==='idle')body.innerHTML=auditIdle(filterBr,filterT,AD);
+  else if(_auditTab==='branch')body.innerHTML=auditBranch(AD);
+}
+
+// — TAB 1: Student coverage —
+function auditStudents(filterBr,filterT,AD){
+  let students=Object.values(SS);
+  if(filterBr!=='All')students=students.filter(s=>s.br===filterBr);
+  if(filterT!=='All')students=students.filter(s=>s.t===filterT);
+  students.sort((a,b)=>a.n.localeCompare(b.n));
+
+  // Per-student: which days scheduled, which car, teacher
+  const rows=students.map(s=>{
+    const needed=s.sessionsPerWeek||1;
+    const dayMap={};
+    AD.forEach(d=>{
+      CARS.forEach(car=>{
+        (SCHED[d]?.[car.id]||[]).forEach((sl_,si)=>{
+          if(!sl_)return;
+          const sids=slotStudentIds(sl_);
+          if(sids.includes(s.id)){
+            dayMap[d]=dayMap[d]||[];
+            dayMap[d].push({car:car.label,si,t:sl_.t,time:ts(slotStartMin(d,car.id,si))});
+          }
+        });
+      });
+    });
+    const scheduled=Object.keys(dayMap).length;
+    // Check pickup status per day
+    let hasAllPickups=true;
+    Object.keys(dayMap).forEach(d=>{
+      const picked=CARS.some(car=>(SCHED[d]?.[car.id]||[]).some(sl_=>sl_&&sl_.t==='pick'&&sl_.id===s.id));
+      if(!picked)hasAllPickups=false;
+    });
+    return{s,needed,scheduled,dayMap,hasAllPickups};
+  });
+
+  // Summary stats
+  const full=rows.filter(r=>r.scheduled>=r.needed).length;
+  const partial=rows.filter(r=>r.scheduled>0&&r.scheduled<r.needed).length;
+  const none=rows.filter(r=>r.scheduled===0).length;
+  const noPick=rows.filter(r=>r.scheduled>0&&!r.hasAllPickups).length;
+
+  let h=`<div class="audit-summary">
+    <div class="audit-stat"><b style="color:#059669">${full}</b><small>Fully scheduled</small></div>
+    <div class="audit-stat"><b style="color:#D97706">${partial}</b><small>Partial</small></div>
+    <div class="audit-stat"><b style="color:#DC2626">${none}</b><small>Not scheduled</small></div>
+    <div class="audit-stat"><b style="color:#7C3AED">${noPick}</b><small>Missing pickup</small></div>
+    <div class="audit-stat"><b>${rows.length}</b><small>Total students</small></div>
+  </div>`;
+  h+=`<div style="max-height:60vh;overflow:auto"><table class="audit-tbl"><thead><tr>
+    <th>Student</th><th>Teacher</th><th>Branch</th><th>Need</th><th>Sched</th><th>Status</th>`;
+  AD.forEach(d=>h+=`<th>${d}</th>`);
+  h+=`<th>Pickup</th></tr></thead><tbody>`;
+  rows.forEach(r=>{
+    const cls=r.scheduled>=r.needed?'a-ok':r.scheduled>0?'a-warn':'a-bad';
+    const pill=r.scheduled>=r.needed?'a-pill-green':r.scheduled>0?'a-pill-amber':'a-pill-red';
+    const statusLabel=r.scheduled>=r.needed?'OK':r.scheduled>0?`${r.scheduled}/${r.needed}`:'Missing';
+    h+=`<tr><td><b>${r.s.n}</b></td><td style="color:${TC[r.s.t]||'#666'}">${r.s.t}</td><td>${r.s.br}</td>
+      <td>${r.needed}</td><td class="${cls}">${r.scheduled}</td>
+      <td><span class="a-pill ${pill}">${statusLabel}</span></td>`;
+    AD.forEach(d=>{
+      const info=r.dayMap[d];
+      if(info){
+        h+=`<td style="font-size:9px">${info.map(i=>i.time+' '+i.car).join('<br>')}</td>`;
+      }else{
+        h+=`<td style="color:#D1D5DB">—</td>`;
+      }
+    });
+    h+=`<td>${r.scheduled===0?'—':r.hasAllPickups?'<span class="a-ok">✓</span>':'<span class="a-bad">✗ Missing</span>'}</td></tr>`;
+  });
+  h+=`</tbody></table></div>`;
+  return h;
+}
+
+// — TAB 2: Teacher workload —
+function auditTeachers(filterBr,filterT,AD){
+  let teachers=Object.keys(TEACHERS).filter(t=>TEACHERS[t].active!==0);
+  if(filterBr!=='All')teachers=teachers.filter(t=>{
+    const te=TEACHERS[t];return!te.branch||te.branch===filterBr;
+  });
+  if(filterT!=='All')teachers=teachers.filter(t=>t===filterT);
+  teachers.sort();
+
+  const rows=teachers.map(tname=>{
+    const te=TEACHERS[tname]||{};
+    const maxPD=(te.maxPerDay)||(SETTINGS.teacherDefaultMax||6);
+    // Find all students assigned to this teacher
+    const myStudents=Object.values(SS).filter(s=>s.t===tname);
+    const totalNeeded=myStudents.reduce((a,s)=>a+(s.sessionsPerWeek||1),0);
+    // Count sessions per day
+    const dayData={};
+    let totalSched=0;
+    AD.forEach(d=>{
+      let count=0;const studs=new Set();
+      CARS.forEach(car=>{
+        (SCHED[d]?.[car.id]||[]).forEach(sl_=>{
+          if(!sl_||sl_.t==='pick')return;
+          slotStudentIds(sl_).forEach(sid=>{
+            const s=SS[sid];
+            if(s&&s.t===tname){count++;studs.add(s.n);}
+          });
+        });
+      });
+      dayData[d]={count,studs:[...studs],maxPD,atMax:count>=maxPD};
+      totalSched+=count;
+    });
+    return{tname,te,myStudents,totalNeeded,totalSched,dayData,maxPD};
+  });
+
+  let h=`<div class="audit-summary">
+    <div class="audit-stat"><b>${teachers.length}</b><small>Active teachers</small></div>
+    <div class="audit-stat"><b>${rows.reduce((a,r)=>a+r.totalSched,0)}</b><small>Total sessions</small></div>
+    <div class="audit-stat"><b style="color:${rows.some(r=>r.totalSched<r.totalNeeded)?'#D97706':'#059669'}">${rows.filter(r=>r.totalSched<r.totalNeeded).length}</b><small>Underbooked</small></div>
+    <div class="audit-stat"><b style="color:#DC2626">${rows.filter(r=>Object.values(r.dayData).some(dd=>dd.atMax)).length}</b><small>At max on ≥1 day</small></div>
+  </div>`;
+  h+=`<div style="max-height:60vh;overflow:auto"><table class="audit-tbl"><thead><tr>
+    <th>Teacher</th><th>Branch</th><th>Students</th><th>Need</th><th>Sched</th><th>Max/day</th>`;
+  AD.forEach(d=>h+=`<th>${d}</th>`);
+  h+=`<th>Unscheduled students</th></tr></thead><tbody>`;
+  rows.forEach(r=>{
+    const schedSids=new Set();
+    AD.forEach(d=>CARS.forEach(car=>(SCHED[d]?.[car.id]||[]).forEach(sl_=>{
+      if(!sl_||sl_.t==='pick')return;
+      slotStudentIds(sl_).forEach(sid=>{if(SS[sid]?.t===r.tname)schedSids.add(sid);});
+    })));
+    const unsched=r.myStudents.filter(s=>!schedSids.has(s.id));
+    h+=`<tr><td><b style="color:${TC[r.tname]||'#666'}">${r.tname}</b></td>
+      <td>${r.te.branch||'—'}</td>
+      <td>${r.myStudents.length}</td>
+      <td>${r.totalNeeded}</td>
+      <td class="${r.totalSched>=r.totalNeeded?'a-ok':'a-warn'}">${r.totalSched}</td>
+      <td>${r.maxPD}</td>`;
+    AD.forEach(d=>{
+      const dd=r.dayData[d];
+      const cls=dd.atMax?'a-bad':dd.count>0?'a-ok':'';
+      const tip=dd.studs.length?dd.studs.join(', '):'';
+      h+=`<td class="${cls}" title="${tip}">${dd.count}${dd.atMax?' ⛔':''}</td>`;
+    });
+    h+=`<td style="font-size:9px;color:#DC2626">${unsched.length?unsched.map(s=>s.n).join(', '):'<span class="a-ok">All covered</span>'}</td></tr>`;
+  });
+  h+=`</tbody></table></div>`;
+  return h;
+}
+
+// — TAB 3: Teacher idle / waste time —
+function auditIdle(filterBr,filterT,AD){
+  // For each day × car, walk the slots and track when a teacher is IN the car
+  // but not at a drop (= idle time = waste). This happens between:
+  // - a pickup of student A (teacher done) and the next drop (same teacher) → teacher rides along uselessly
+  // - between drops when the teacher changes → old teacher waits in car during detour
+  const idleEntries=[];
+  AD.forEach(day=>{
+    CARS.forEach(car=>{
+      if(filterBr!=='All'&&!(car.branch||'').split('/').includes(filterBr))return;
+      const slots=SCHED[day]?.[car.id]||[];
+      // Build timeline of teachers in/out of car
+      let inCar=new Set(); // teachers currently in car
+      for(let si=0;si<slots.length;si++){
+        const sl_=slots[si];if(!sl_)continue;
+        const startMin=slotStartMin(day,car.id,si);
+        if(sl_.t==='pick'){
+          // After pickup, teacher is back in car — but they're done with their student
+          // If next slot is NOT their student, they're idle until returned to branch
+          const s=SS[sl_.id];if(!s)continue;
+          const teacher=s.t;
+          // Look ahead: is the next drop also for this teacher?
+          let nextDropTeacher=null;
+          for(let j=si+1;j<slots.length;j++){
+            const ns=slots[j];if(!ns)continue;
+            if(ns.t==='pick')continue;
+            const nids=slotStudentIds(ns);
+            if(nids.length)nextDropTeacher=SS[nids[0]]?.t;
+            break;
+          }
+          if(nextDropTeacher&&nextDropTeacher!==teacher){
+            // Teacher is in car but next drop isn't theirs = idle ride to branch + swap
+            const nextStart=slotStartMin(day,car.id,si+1);
+            const idleMin=nextStart-startMin;
+            if(idleMin>0){
+              idleEntries.push({day,car:car.label,teacher,fromSi:si,toSi:si+1,idleMin,reason:'Riding back to branch (teacher swap)',startMin});
+            }
+          }
+        }
+        if(sl_.t!=='pick'){
+          const sids=slotStudentIds(sl_);
+          const curTeachers=new Set(sids.map(sid=>SS[sid]?.t).filter(Boolean));
+          // Teachers in car but NOT in this drop = idle
+          for(const t of inCar){
+            if(!curTeachers.has(t)){
+              // This teacher is in the car but not dropping off — they're idle
+              idleEntries.push({day,car:car.label,teacher:t,fromSi:si-1,toSi:si,idleMin:0,reason:'In car but not assigned to this drop',startMin});
+            }
+          }
+          inCar=curTeachers;
+        }
+      }
+    });
+  });
+
+  // Filter by teacher
+  let filtered=idleEntries;
+  if(filterT!=='All')filtered=filtered.filter(e=>e.teacher===filterT);
+
+  // Also compute teacher-level summary: total idle minutes per teacher
+  const teacherIdle={};
+  filtered.forEach(e=>{
+    teacherIdle[e.teacher]=(teacherIdle[e.teacher]||0)+(e.idleMin||10);
+  });
+
+  // Summary: how many total idle events, total wasted minutes
+  const totalEvents=filtered.length;
+  const totalMin=Object.values(teacherIdle).reduce((a,b)=>a+b,0);
+
+  let h=`<div class="audit-summary">
+    <div class="audit-stat"><b style="color:${totalEvents>0?'#DC2626':'#059669'}">${totalEvents}</b><small>Idle events</small></div>
+    <div class="audit-stat"><b style="color:#D97706">${totalMin}</b><small>Est. wasted minutes</small></div>
+    <div class="audit-stat"><b>${Object.keys(teacherIdle).length}</b><small>Teachers affected</small></div>
+  </div>`;
+
+  if(!filtered.length){
+    h+=`<div style="text-align:center;padding:40px;color:#059669;font-weight:600;font-size:14px">✓ No idle time detected — all teacher rides are efficient</div>`;
+    return h;
+  }
+
+  // Teacher summary
+  h+=`<h4 style="margin:10px 0 6px;font-size:12px;color:var(--text)">Teacher idle summary</h4>`;
+  h+=`<div style="max-height:30vh;overflow:auto"><table class="audit-tbl"><thead><tr><th>Teacher</th><th>Idle events</th><th>Est. wasted time</th><th>Impact</th></tr></thead><tbody>`;
+  Object.entries(teacherIdle).sort((a,b)=>b[1]-a[1]).forEach(([t,mins])=>{
+    const events=filtered.filter(e=>e.teacher===t).length;
+    const pct=Math.min(100,Math.round(mins/60*100));
+    const cls=mins>30?'a-bad':mins>10?'a-warn':'a-ok';
+    h+=`<tr><td><b style="color:${TC[t]||'#666'}">${t}</b></td><td>${events}</td>
+      <td class="${cls}">${mins} min</td>
+      <td><div class="idle-bar"><div class="idle-fill" style="width:${pct}%;background:${mins>30?'#DC2626':mins>10?'#D97706':'#059669'}"></div></div></td></tr>`;
+  });
+  h+=`</tbody></table></div>`;
+
+  // Detail table
+  h+=`<h4 style="margin:14px 0 6px;font-size:12px;color:var(--text)">Idle events detail</h4>`;
+  h+=`<div style="max-height:35vh;overflow:auto"><table class="audit-tbl"><thead><tr><th>Day</th><th>Car</th><th>Teacher</th><th>Time</th><th>Reason</th></tr></thead><tbody>`;
+  filtered.forEach(e=>{
+    h+=`<tr><td>${e.day}</td><td>${e.car}</td><td style="color:${TC[e.teacher]||'#666'}">${e.teacher}</td>
+      <td>${ts(e.startMin)}</td><td>${e.reason}</td></tr>`;
+  });
+  h+=`</tbody></table></div>`;
+  return h;
+}
+
+// — TAB 4: Branch summary —
+function auditBranch(AD){
+  const branches=[...new Set(Object.values(SS).map(s=>s.br).filter(Boolean))].sort();
+  const rows=branches.map(br=>{
+    const brStudents=Object.values(SS).filter(s=>s.br===br);
+    const totalNeed=brStudents.reduce((a,s)=>a+(s.sessionsPerWeek||1),0);
+    const brCars=CARS.filter(c=>(c.branch||'').split('/').includes(br));
+    // Count scheduled sessions
+    let totalSched=0;
+    const dayStats={};
+    AD.forEach(d=>{
+      let daySched=0,daySlots=0,dayUsed=0;
+      brCars.forEach(car=>{
+        const slots=SCHED[d]?.[car.id]||[];
+        daySlots+=slots.length;
+        slots.forEach(sl_=>{
+          if(!sl_)return;
+          dayUsed++;
+          if(sl_.t==='pick')return;
+          slotStudentIds(sl_).forEach(sid=>{
+            if(SS[sid]?.br===br){daySched++;totalSched++;}
+          });
+        });
+      });
+      dayStats[d]={sched:daySched,slots:daySlots,used:dayUsed,capPct:daySlots>0?Math.round(dayUsed/daySlots*100):0};
+    });
+    // Teachers serving this branch
+    const brTeachers=[...new Set(brStudents.map(s=>s.t))];
+    // Unscheduled students
+    const schedSids=new Set();
+    AD.forEach(d=>CARS.forEach(car=>(SCHED[d]?.[car.id]||[]).forEach(sl_=>{
+      if(!sl_||sl_.t==='pick')return;
+      slotStudentIds(sl_).forEach(sid=>schedSids.add(sid));
+    })));
+    const unschedStudents=brStudents.filter(s=>{
+      const needed=s.sessionsPerWeek||1;
+      const got=countScheduled(s.id);
+      return got<needed;
+    });
+    const coveragePct=totalNeed>0?Math.round(totalSched/totalNeed*100):100;
+    return{br,brStudents,totalNeed,totalSched,brCars,dayStats,brTeachers,unschedStudents,coveragePct};
+  });
+
+  let h=`<div class="audit-summary">
+    <div class="audit-stat"><b>${branches.length}</b><small>Branches</small></div>
+    <div class="audit-stat"><b>${Object.values(SS).length}</b><small>Total students</small></div>
+    <div class="audit-stat"><b>${CARS.length}</b><small>Total cars</small></div>
+    <div class="audit-stat"><b style="color:${rows.every(r=>r.coveragePct>=95)?'#059669':'#D97706'}">${rows.length?Math.round(rows.reduce((a,r)=>a+r.coveragePct,0)/rows.length):100}%</b><small>Avg coverage</small></div>
+  </div>`;
+  h+=`<div style="max-height:65vh;overflow:auto"><table class="audit-tbl"><thead><tr>
+    <th>Branch</th><th>Students</th><th>Sessions needed</th><th>Scheduled</th><th>Coverage</th><th>Cars</th><th>Teachers</th>`;
+  AD.forEach(d=>h+=`<th>${d} cap</th>`);
+  h+=`<th>Unscheduled students</th></tr></thead><tbody>`;
+  rows.forEach(r=>{
+    const covCls=r.coveragePct>=95?'a-pill-green':r.coveragePct>=70?'a-pill-amber':'a-pill-red';
+    h+=`<tr><td><b>${r.br}</b></td><td>${r.brStudents.length}</td><td>${r.totalNeed}</td>
+      <td class="${r.totalSched>=r.totalNeed?'a-ok':'a-warn'}">${r.totalSched}</td>
+      <td><span class="a-pill ${covCls}">${r.coveragePct}%</span></td>
+      <td>${r.brCars.length} (${r.brCars.map(c=>c.label).join(', ')})</td>
+      <td style="font-size:9px">${r.brTeachers.join(', ')}</td>`;
+    AD.forEach(d=>{
+      const ds=r.dayStats[d];
+      const capCls=ds.capPct>=90?'a-bad':ds.capPct>=70?'a-warn':'a-ok';
+      h+=`<td class="${capCls}">${ds.used}/${ds.slots} (${ds.capPct}%)</td>`;
+    });
+    h+=`<td style="font-size:9px;color:#DC2626">${r.unschedStudents.length?r.unschedStudents.map(s=>s.n).join(', '):'<span class="a-ok">All covered</span>'}</td></tr>`;
+  });
+  h+=`</tbody></table></div>`;
+  return h;
+}
 
 function showHelp(){
   const v='v2.13 — April 2026';
