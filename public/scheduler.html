@@ -3274,7 +3274,14 @@ function auditStudents(filterBr,filterT,AD){
       const picked=CARS.some(car=>(SCHED[d]?.[car.id]||[]).some(sl_=>sl_&&sl_.t==='pick'&&sl_.id===s.id));
       if(!picked)hasAllPickups=false;
     });
-    return{s,needed,scheduled,dayMap,hasAllPickups};
+    // Back-to-back detection: are any scheduled days adjacent?
+    const schedDays=Object.keys(dayMap);
+    let backToBack=false;
+    if(schedDays.length>=2){
+      const idxs=schedDays.map(d=>AD.indexOf(d)).filter(i=>i>=0).sort((a,b)=>a-b);
+      for(let i=1;i<idxs.length;i++){if(idxs[i]-idxs[i-1]===1){backToBack=true;break;}}
+    }
+    return{s,needed,scheduled,dayMap,hasAllPickups,backToBack};
   });
 
   // Summary stats
@@ -3282,16 +3289,18 @@ function auditStudents(filterBr,filterT,AD){
   const partial=rows.filter(r=>r.scheduled>0&&r.scheduled<r.needed).length;
   const none=rows.filter(r=>r.scheduled===0).length;
   const noPick=rows.filter(r=>r.scheduled>0&&!r.hasAllPickups).length;
+  const b2b=rows.filter(r=>r.backToBack).length;
 
   let h=`<div class="audit-summary">
     <div class="audit-stat"><b style="color:#059669">${full}</b><small>Fully scheduled</small></div>
     <div class="audit-stat"><b style="color:#D97706">${partial}</b><small>Partial</small></div>
     <div class="audit-stat"><b style="color:#DC2626">${none}</b><small>Not scheduled</small></div>
     <div class="audit-stat"><b style="color:#7C3AED">${noPick}</b><small>Missing pickup</small></div>
+    <div class="audit-stat"><b style="color:${b2b>0?'#DC2626':'#059669'}">${b2b}</b><small>Back-to-back ⚠</small></div>
     <div class="audit-stat"><b>${rows.length}</b><small>Total students</small></div>
   </div>`;
   h+=`<div style="max-height:60vh;overflow:auto"><table class="audit-tbl"><thead><tr>
-    <th>Student</th><th>Teacher</th><th>Branch</th><th>Need</th><th>Sched</th><th>Status</th>`;
+    <th>Student</th><th>Teacher</th><th>Branch</th><th>Need</th><th>Sched</th><th>Status</th><th>Spread</th>`;
   AD.forEach(d=>h+=`<th>${d}</th>`);
   h+=`<th>Pickup</th></tr></thead><tbody>`;
   rows.forEach(r=>{
@@ -3300,11 +3309,17 @@ function auditStudents(filterBr,filterT,AD){
     const statusLabel=r.scheduled>=r.needed?'OK':r.scheduled>0?`${r.scheduled}/${r.needed}`:'Missing';
     h+=`<tr><td><b>${r.s.n}</b></td><td style="color:${TC[r.s.t]||'#666'}">${r.s.t}</td><td>${r.s.br}</td>
       <td>${r.needed}</td><td class="${cls}">${r.scheduled}</td>
-      <td><span class="a-pill ${pill}">${statusLabel}</span></td>`;
+      <td><span class="a-pill ${pill}">${statusLabel}</span></td>
+      <td>${r.scheduled<2?'—':r.backToBack?'<span class="a-bad">⚠ Back-to-back</span>':'<span class="a-ok">✓ Spread</span>'}</td>`;
     AD.forEach(d=>{
       const info=r.dayMap[d];
       if(info){
-        h+=`<td style="font-size:9px">${info.map(i=>i.time+' '+i.car).join('<br>')}</td>`;
+        // Highlight back-to-back days in red
+        const isAdj=r.backToBack&&info&&AD.some(ad=>{
+          const di=AD.indexOf(d),ai=AD.indexOf(ad);
+          return Math.abs(di-ai)===1&&r.dayMap[ad];
+        });
+        h+=`<td style="font-size:9px;${isAdj?'background:#FEE2E2':''}">${info.map(i=>i.time+' '+i.car).join('<br>')}</td>`;
       }else{
         h+=`<td style="color:#D1D5DB">—</td>`;
       }
@@ -4609,15 +4624,37 @@ function runAutoSchedule(){
     if(!sameBranchOnly)return true;
     return carBr.includes(s.br);
   }
+  // Spread rule: students with 2+ sessions/week should have at least a 1-day
+  // gap between sessions. adjacentDays returns the days immediately before and
+  // after the given day in the active schedule (e.g., Mon → [Sun,Tue]).
+  function adjacentDays(day){
+    const idx=DAYS_ACTIVE.indexOf(day);if(idx<0)return[];
+    const adj=[];
+    if(idx>0)adj.push(DAYS_ACTIVE[idx-1]);
+    if(idx<DAYS_ACTIVE.length-1)adj.push(DAYS_ACTIVE[idx+1]);
+    return adj;
+  }
+  function isSpreadOk(sid,day){
+    const s=SS[sid];if(!s)return true;
+    if((s.sessionsPerWeek||1)<=1)return true; // only 1 session — no spread needed
+    return adjacentDays(day).every(ad=>!onDay[ad]?.has(sid));
+  }
+
   function candidateFor(day,car,pos,lastTeacher){
-    return Object.keys(remain).filter(sid=>{
+    // First pass: candidates that satisfy the spread rule (1-day gap)
+    const all=Object.keys(remain).filter(sid=>{
       if(remain[sid]<=0)return false;
       const s=SS[sid];if(!s)return false;
       if(preventDouble&&onDay[day].has(sid))return false;
       if(!carServesBranch(car,s))return false;
       if(!teacherCanTake(s.t,day))return false;
       return true;
-    }).sort((a,b)=>{
+    });
+    const spread=all.filter(sid=>isSpreadOk(sid,day));
+    // Use spread-compliant candidates first; fall back to all if none available
+    // (better to schedule back-to-back than not at all)
+    const pool=spread.length?spread:all;
+    return pool.sort((a,b)=>{
       const sa=SS[a],sb=SS[b];
       const chA=(lastTeacher&&sa.t===lastTeacher)?chainBonus:0;
       const chB=(lastTeacher&&sb.t===lastTeacher)?chainBonus:0;
@@ -4744,6 +4781,7 @@ function runAutoSchedule(){
             if(sid2===pickSid||remain[sid2]<=0)return false;
             const s2=SS[sid2];if(!s2)return false;
             if(preventDouble&&onDay[day].has(sid2))return false;
+            if(!isSpreadOk(sid2,day))return false;
             if(!carServesBranch(car,s2))return false;
             if(!teacherCanTake(s2.t,day))return false;
             return hv(pickS.la,pickS.ln,s2.la,s2.ln)<=0.5;
