@@ -3,12 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BeCurious — Live Schedule Builder</title>
+<title>BeCurious — Schedule &amp; Admissions</title>
 <style>
-:root{--purple:#6A5FA8;--purple-lt:#EEEDFE;--purple-dk:#3C3489;--teal:#0F6E56;--teal-lt:#E1F5EE;--orange:#E87C50;--orange-lt:#FEF3ED;--red:#A32D2D;--red-lt:#FCEBEB;--amber:#854F0B;--amber-lt:#FAEEDA;--bg:#F0EDE5;--card:#fff;--border:#E5E0D5;--text:#2C2C2A;--text2:#5A5650;--text3:#8A8680}
+:root{--purple:#6A5FA8;--purple-lt:#EEEDFE;--purple-dk:#3C3489;--teal:#4DBFAD;--teal-lt:#99D9CC;--orange:#E87C50;--orange-lt:#F0A080;--green:#7ECB8F;--green-lt:#BFDFAA;--red:#A32D2D;--red-lt:#FCEBEB;--amber:#854F0B;--amber-lt:#FAEEDA;--bg:#F0EDE5;--bg-dark:#3D365C;--bg-mid:#E8E5D8;--card:#fff;--border:#E5E0D5;--text:#2C2C2A;--text2:#5A5650;--text3:#8A8680;
+/* Theme accent — switched by JS */
+--accent:var(--teal);--accent-lt:#E1F5EE;--accent-dk:#0F6E56;--accent-bg:#F0EDE5}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
-.hdr{background:var(--purple);color:#fff;padding:8px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
+/* ===== TOP NAV — theme switcher ===== */
+.topnav{background:var(--bg-dark);display:flex;align-items:center;padding:0 14px;flex-shrink:0;gap:0}
+.topnav-brand{font-size:13px;font-weight:700;color:#fff;padding:8px 14px 8px 0;margin-right:8px;border-right:1px solid rgba(255,255,255,.15);letter-spacing:.3px}
+.topnav-brand span{color:var(--orange)}
+.theme-tab{padding:9px 18px;font-size:11px;font-weight:700;color:rgba(255,255,255,.55);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;transition:all .15s;letter-spacing:.3px}
+.theme-tab:hover{color:rgba(255,255,255,.85)}
+.theme-tab.active{color:#fff;border-bottom-color:var(--accent)}
+.theme-tab.active[data-theme="hv"]{border-bottom-color:var(--teal)}
+.theme-tab.active[data-theme="pl"]{border-bottom-color:var(--orange)}
+.topnav-spacer{flex:1}
+.topnav-shared{display:flex;align-items:center;gap:2px}
+.topnav-btn{padding:6px 10px;font-size:10px;font-weight:600;color:rgba(255,255,255,.6);cursor:pointer;border:none;background:none;border-radius:5px;transition:all .15s}
+.topnav-btn:hover{color:#fff;background:rgba(255,255,255,.1)}
+.topnav-btn.active{color:#fff;background:rgba(255,255,255,.13)}
+.topnav-sync{font-size:9px;padding:4px 8px;border-radius:5px;margin-left:4px}
+/* ===== CONTEXTUAL TOOLBAR (per theme) ===== */
+.ctx-bar{background:var(--accent);color:#fff;padding:6px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
+.ctx-bar .ctx-title{font-size:13px;font-weight:700}
+.ctx-bar .ctx-sub{font-size:9px;opacity:.7;margin-left:2px}
+.hdr{background:var(--purple);color:#fff;padding:8px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;display:none}
 .hdr-title{font-size:15px;font-weight:700}
 .hdr-sub{font-size:9px;opacity:.7;margin-top:1px}
 .hdr-stats{display:flex;gap:6px;margin-left:auto}
@@ -353,109 +374,202 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .pl-log-add button{padding:5px 10px;background:var(--purple);color:#fff;border:none;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer}
 .pl-search{padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:11px;width:180px;outline:none;font-family:inherit}
 .pl-search:focus{border-color:var(--purple);box-shadow:0 0 0 2px rgba(106,95,168,.15)}
+/* ===== THEME CONTAINERS ===== */
+.theme-panel{display:none;flex:1;overflow:hidden;flex-direction:column}
+.theme-panel.active{display:flex}
+/* Home Visits theme tweaks */
+[data-active-theme="hv"]{--accent:var(--teal);--accent-lt:#E1F5EE;--accent-dk:#0F6E56}
+[data-active-theme="pl"]{--accent:var(--orange);--accent-lt:#FEF3ED;--accent-dk:#C45A2D}
+.hv-toolbar{background:var(--teal);color:#fff;padding:6px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
+.pl-topbar{background:var(--orange);color:#fff;padding:6px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
+.ctx-title{font-size:13px;font-weight:700}
+.ctx-sub{font-size:9px;opacity:.7}
+.ctx-stats{display:flex;gap:6px;margin-left:0}
+.ctx-stat{background:rgba(255,255,255,.15);padding:2px 8px;border-radius:5px;text-align:center;font-size:9px;color:#fff}
+.ctx-stat b{display:block;font-size:13px;font-weight:600}
+.ctx-btn{padding:4px 10px;border-radius:5px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:10px;cursor:pointer;white-space:nowrap;transition:.15s}
+.ctx-btn:hover{background:rgba(255,255,255,.25)}
+.ctx-btn.green{background:rgba(52,211,153,.25);border-color:rgba(52,211,153,.5)}
+.ctx-btn.amber{background:rgba(251,191,36,.2);border-color:rgba(251,191,36,.4)}
+/* Sub-tabs within a theme */
+.sub-tabs{display:flex;align-items:center;gap:4px;padding:0 6px}
+.sub-tab{padding:4px 10px;border:1px solid rgba(255,255,255,.3);border-radius:5px;font-size:10px;font-weight:600;background:rgba(255,255,255,.1);color:#fff;cursor:pointer;transition:.15s}
+.sub-tab:hover{background:rgba(255,255,255,.2)}
+.sub-tab.active{background:#fff;color:var(--accent)}
+/* ===== SHARED PAGES ===== */
+.shared-page{display:none;position:fixed;inset:0;z-index:500;background:var(--bg);overflow-y:auto}
+.shared-page.open{display:block}
+.sp-hdr{background:var(--bg-dark);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:1}
+.sp-hdr h2{font-size:16px;font-weight:700;margin:0}
+.sp-close{background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;padding:4px;margin-left:auto}
+.sp-close:hover{color:#fff}
+.sp-body{max-width:800px;margin:0 auto;padding:20px}
+.sp-section{background:#fff;border-radius:10px;border:1px solid var(--border);padding:16px 20px;margin-bottom:12px}
+.sp-section h3{font-size:13px;font-weight:700;color:var(--purple);margin-bottom:8px}
+.sp-section p{font-size:11px;line-height:1.7;color:var(--text2);margin-bottom:6px}
+.sp-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;margin-right:4px}
+.sp-badge.hv{background:#E1F5EE;color:#0F6E56}
+.sp-badge.pl{background:#FEF3ED;color:#C45A2D}
+.sp-badge.shared{background:var(--purple-lt);color:var(--purple)}
+/* Settings form fields */
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.setting-row:last-child{border-bottom:none}
+.setting-row label{font-size:11px;font-weight:600;color:var(--text)}
+.setting-row .setting-desc{font-size:9px;color:var(--text3);margin-top:1px}
+.setting-row input,.setting-row select{padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px;outline:none}
+.setting-row input:focus,.setting-row select:focus{border-color:var(--purple)}
+/* Pipeline dashboard */
+.pl-dash{padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:8px}
+.pl-dash-card{background:#fff;border-radius:10px;border:1px solid var(--border);padding:14px 16px}
+.pl-dash-card h4{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.pl-dash-card .pl-dash-num{font-size:28px;font-weight:700;color:var(--text)}
+.pl-dash-card .pl-dash-sub{font-size:10px;color:var(--text2);margin-top:2px}
+.pl-funnel{background:#fff;border-radius:10px;border:1px solid var(--border);padding:14px 16px;margin:0 16px 12px}
+.pl-funnel h4{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.pl-funnel-bar{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.pl-funnel-label{font-size:10px;font-weight:600;width:100px;color:var(--text)}
+.pl-funnel-track{flex:1;height:20px;background:#F3F4F6;border-radius:6px;overflow:hidden}
+.pl-funnel-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:6px;font-size:9px;font-weight:700;color:#fff;min-width:0;transition:width .3s}
+.pl-funnel-count{font-size:10px;font-weight:600;width:30px;text-align:right;color:var(--text2)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<body>
-<div class="hdr">
-  <div><div class="hdr-title">BeCurious Schedule Builder</div><div class="hdr-sub">Drag to schedule · Drop on filled slot = double/triple-drop · Click slot = set active</div></div>
-  <div class="hdr-stats">
-    <div class="hstat"><b id="st-s">0</b>Dropped</div>
-    <div class="hstat"><b id="st-p">0</b>Pool</div>
-    <div class="hstat"><b id="st-pk">0</b>Pickups</div>
-    <div class="hstat"><b id="st-u">0%</b>Done</div>
+<body data-active-theme="hv">
+<!-- ===== TOP NAV ===== -->
+<div class="topnav">
+  <div class="topnav-brand">BE<span>:</span>CURIOUS</div>
+  <button class="theme-tab active" data-theme="hv" onclick="switchTheme('hv')">🏠 Home Visits</button>
+  <button class="theme-tab" data-theme="pl" onclick="switchTheme('pl')">📨 Pipeline</button>
+  <div class="topnav-spacer"></div>
+  <div class="topnav-shared">
+    <button class="topnav-btn" onclick="showStudentsTable()">📋 Students</button>
+    <button class="topnav-btn" onclick="importState()">⬆ Import</button>
+    <button class="topnav-btn" onclick="showExport()">⬇ Export</button>
+    <button class="topnav-btn" onclick="showSettingsModal()">⚙ Settings</button>
+    <button class="topnav-btn" onclick="showSharedHelp()">❓ Help</button>
+    <span id="save-ind" class="topnav-sync">Connecting…</span>
+    <span id="last-edit" style="font-size:9px;color:rgba(255,255,255,.5)"></span>
   </div>
-  <span id="save-ind">Connecting…</span>
-  <span id="last-edit"></span>
-  <button class="hbtn green" onclick="autoScheduleWeek()" title="Automatically place every pool student into car slots — minimizes drive time and groups by teacher">⚡ Auto-schedule</button>
-  <button class="hbtn" id="warn-toolbar-btn" onclick="showWarningsPanel()" title="Show every warning across the week with one-click fixes"><span id="warn-toolbar-count">🚩 Warnings</span></button>
-  <button class="hbtn" onclick="showReportsModal()">📊 Reports</button>
-  <button class="hbtn" onclick="showTeachersModal()">👩‍🏫 Teachers</button>
-  <button class="hbtn" onclick="showSettingsModal()">⚙ Settings</button>
-  <button class="hbtn" onclick="showCarsModal()">🚗 Cars</button>
-  <button class="hbtn" onclick="showStudentsTable()">📋 Students</button>
-  <button class="hbtn amber" onclick="importState()">⬆ Import</button>
-  <button class="hbtn" onclick="showExport()">⬇ Export</button>
-  <button class="hbtn" onclick="showHelp()">❓ Help</button>
-  <button class="hbtn" onclick="doReset()" style="opacity:.7">↺ Reset</button>
 </div>
 
-<div class="layout">
-  <div class="pool" style="display:flex;flex-direction:column">
-    <div class="pool-hdr">
-      <h3>Unscheduled sessions</h3>
-      <input class="psearch" id="psearch" placeholder="Search..." oninput="renderPool()">
-      <div class="pfilter">
-        <button class="pf on" onclick="setB('All',this)">All</button>
-        <button class="pf" onclick="setB('Shuhada',this)">Shuhada</button>
-        <button class="pf" onclick="setB('Salam',this)">Salam</button>
-        <button class="pf" onclick="setB('Salwa',this)">Salwa</button>
-      </div>
+<!-- ===== THEME: HOME VISITS ===== -->
+<div class="theme-panel active" id="theme-hv">
+  <div class="hv-toolbar">
+    <span class="ctx-title">🏠 Home Visits</span>
+    <span class="ctx-sub">Drag to schedule · Drop on filled slot = double/triple-drop</span>
+    <div class="ctx-stats">
+      <div class="ctx-stat"><b id="st-s">0</b>Dropped</div>
+      <div class="ctx-stat"><b id="st-p">0</b>Pool</div>
+      <div class="ctx-stat"><b id="st-pk">0</b>Pickups</div>
+      <div class="ctx-stat"><b id="st-u">0%</b>Done</div>
     </div>
-    <div style="padding:5px 8px;border-bottom:1px solid var(--border);flex-shrink:0">
-      <div class="active-info" id="active-info" style="display:none"></div>
-      <div class="sort-row" id="sort-row" style="display:none">
-        <button class="sb on" id="sb-c" onclick="setSort('closest')">Closest<br>stop</button>
-        <button class="sb" id="sb-t" onclick="setSort('teacher')">By<br>teacher</button>
-        <button class="sb" id="sb-s" onclick="setSort('suggest')">Suggest<br>best</button>
-      </div>
-      <select class="teacher-dd" id="teacher-dd" style="display:none" onchange="renderPool()"></select>
+    <div style="flex:1"></div>
+    <button class="ctx-btn green" onclick="autoScheduleWeek()" title="Auto-place all pool students">⚡ Auto-schedule</button>
+    <button class="ctx-btn" id="warn-toolbar-btn" onclick="showWarningsPanel()"><span id="warn-toolbar-count">🚩 Warnings</span></button>
+    <button class="ctx-btn" onclick="showReportsModal()">📊 Reports</button>
+    <button class="ctx-btn" onclick="showTeachersModal()">👩‍🏫 Teachers</button>
+    <button class="ctx-btn" onclick="showCarsModal()">🚗 Cars</button>
+    <div class="sub-tabs">
+      <button class="sub-tab active" id="vt-daily" onclick="switchView('daily')">📅 Daily</button>
+      <button class="sub-tab" id="vt-week" onclick="switchView('week')">📆 Week</button>
+      <button class="sub-tab" id="vt-audit" onclick="switchView('audit')">📊 Audit</button>
     </div>
-    <div class="pool-body" id="pool-body" style="flex:1" ondragover="ev(event)" ondrop="dropToPool(event)"></div>
-    <div class="pool-sect" id="pick-hdr" style="display:none">Pending pick-ups <span id="pick-count">0</span></div>
-    <div class="pool-body" id="pick-body" style="display:none;max-height:180px;flex-shrink:0" ondragover="ev(event)" ondrop="dropToPool(event)"></div>
   </div>
 
-  <div class="main">
-    <div class="daytabs">
-      <div class="dt sun" data-day="Sun" onclick="gd('Sun')">Sunday — Admin</div>
-      <div class="dt on" data-day="Mon" onclick="gd('Mon')">Monday</div>
-      <div class="dt" data-day="Tue" onclick="gd('Tue')">Tuesday</div>
-      <div class="dt" data-day="Wed" onclick="gd('Wed')">Wednesday</div>
-      <div class="dt" data-day="Thu" onclick="gd('Thu')">Thursday · Far</div>
-      <div style="flex:1"></div>
-      <div style="display:flex;align-items:center;gap:4px;padding:0 6px">
-        <button class="view-toggle active" id="vt-daily" onclick="switchView('daily')">📅 Daily</button>
-        <button class="view-toggle" id="vt-week" onclick="switchView('week')">📆 Week</button>
-        <button class="view-toggle" id="vt-audit" onclick="switchView('audit')">📊 Audit</button>
-        <button class="view-toggle" id="vt-pipeline" onclick="switchView('pipeline')">🔗 Pipeline</button>
+  <div class="layout">
+    <div class="pool" style="display:flex;flex-direction:column">
+      <div class="pool-hdr">
+        <h3>Unscheduled sessions</h3>
+        <input class="psearch" id="psearch" placeholder="Search..." oninput="renderPool()">
+        <div class="pfilter">
+          <button class="pf on" onclick="setB('All',this)">All</button>
+          <button class="pf" onclick="setB('Shuhada',this)">Shuhada</button>
+          <button class="pf" onclick="setB('Salam',this)">Salam</button>
+          <button class="pf" onclick="setB('Salwa',this)">Salwa</button>
+        </div>
       </div>
-      <div class="week-picker-wrap" style="display:flex;align-items:center;gap:6px;padding:0 10px">
-        <label for="sched-week" style="font-size:10px;color:var(--text2);font-weight:600">Attendance week</label>
-        <select id="sched-week" onchange="setSelectedWeek(this.value)" style="padding:4px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px;background:#fff;outline:none"></select>
+      <div style="padding:5px 8px;border-bottom:1px solid var(--border);flex-shrink:0">
+        <div class="active-info" id="active-info" style="display:none"></div>
+        <div class="sort-row" id="sort-row" style="display:none">
+          <button class="sb on" id="sb-c" onclick="setSort('closest')">Closest<br>stop</button>
+          <button class="sb" id="sb-t" onclick="setSort('teacher')">By<br>teacher</button>
+          <button class="sb" id="sb-s" onclick="setSort('suggest')">Suggest<br>best</button>
+        </div>
+        <select class="teacher-dd" id="teacher-dd" style="display:none" onchange="renderPool()"></select>
       </div>
+      <div class="pool-body" id="pool-body" style="flex:1" ondragover="ev(event)" ondrop="dropToPool(event)"></div>
+      <div class="pool-sect" id="pick-hdr" style="display:none">Pending pick-ups <span id="pick-count">0</span></div>
+      <div class="pool-body" id="pick-body" style="display:none;max-height:180px;flex-shrink:0" ondragover="ev(event)" ondrop="dropToPool(event)"></div>
     </div>
-    <!-- Banner shown only when viewing a non-current attendance week -->
-    <div id="sched-week-banner" style="display:none;padding:7px 14px;background:#FEF3CD;border-bottom:1px solid #F59E0B;color:#92400E;font-size:11px;font-weight:600;text-align:center"></div>
-    <!-- Branch filter banner: shows when the supervisor has scoped the view -->
-    <div id="br-filter-lbl" style="display:none;padding:6px 14px;background:#EEF2FF;border-bottom:1px solid #C7D2FE;color:#4338CA;font-size:11px;font-weight:600;text-align:center"></div>
-    <div class="sched-outer" id="sched-outer"><div class="cargrid" id="cargrid"></div></div>
-    <!-- AUDIT VIEW (hidden by default — toggled via Daily/Audit buttons) -->
-    <div id="audit-outer">
-      <div class="audit-bar">
-        <span style="font-weight:600;font-size:12px;color:var(--text)">📊 Weekly Audit</span>
-        <select id="audit-branch" onchange="renderAudit()"><option value="All">All branches</option></select>
-        <select id="audit-teacher" onchange="renderAudit()"><option value="All">All teachers</option></select>
+
+    <div class="main">
+      <div class="daytabs">
+        <div class="dt sun" data-day="Sun" onclick="gd('Sun')">Sunday — Admin</div>
+        <div class="dt on" data-day="Mon" onclick="gd('Mon')">Monday</div>
+        <div class="dt" data-day="Tue" onclick="gd('Tue')">Tuesday</div>
+        <div class="dt" data-day="Wed" onclick="gd('Wed')">Wednesday</div>
+        <div class="dt" data-day="Thu" onclick="gd('Thu')">Thursday · Far</div>
         <div style="flex:1"></div>
-        <button class="audit-tab active" data-atab="students" onclick="switchAuditTab('students')">Students</button>
-        <button class="audit-tab" data-atab="teachers" onclick="switchAuditTab('teachers')">Teachers</button>
-        <button class="audit-tab" data-atab="idle" onclick="switchAuditTab('idle')">Idle / Waste</button>
-        <button class="audit-tab" data-atab="branch" onclick="switchAuditTab('branch')">Branch summary</button>
+        <div class="week-picker-wrap" style="display:flex;align-items:center;gap:6px;padding:0 10px">
+          <label for="sched-week" style="font-size:10px;color:var(--text2);font-weight:600">Attendance week</label>
+          <select id="sched-week" onchange="setSelectedWeek(this.value)" style="padding:4px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px;background:#fff;outline:none"></select>
+        </div>
       </div>
-      <div id="audit-body"></div>
+      <div id="sched-week-banner" style="display:none;padding:7px 14px;background:#FEF3CD;border-bottom:1px solid #F59E0B;color:#92400E;font-size:11px;font-weight:600;text-align:center"></div>
+      <div id="br-filter-lbl" style="display:none;padding:6px 14px;background:#EEF2FF;border-bottom:1px solid #C7D2FE;color:#4338CA;font-size:11px;font-weight:600;text-align:center"></div>
+      <div class="sched-outer" id="sched-outer"><div class="cargrid" id="cargrid"></div></div>
+      <div id="audit-outer">
+        <div class="audit-bar">
+          <span style="font-weight:600;font-size:12px;color:var(--text)">📊 Weekly Audit</span>
+          <select id="audit-branch" onchange="renderAudit()"><option value="All">All branches</option></select>
+          <select id="audit-teacher" onchange="renderAudit()"><option value="All">All teachers</option></select>
+          <div style="flex:1"></div>
+          <button class="audit-tab active" data-atab="students" onclick="switchAuditTab('students')">Students</button>
+          <button class="audit-tab" data-atab="teachers" onclick="switchAuditTab('teachers')">Teachers</button>
+          <button class="audit-tab" data-atab="idle" onclick="switchAuditTab('idle')">Idle / Waste</button>
+          <button class="audit-tab" data-atab="branch" onclick="switchAuditTab('branch')">Branch summary</button>
+        </div>
+        <div id="audit-body"></div>
+      </div>
+      <div id="week-outer"></div>
+      <div class="legend">
+        <span style="font-size:9px;color:var(--text3);font-weight:500">Legend:</span>
+        <div class="leg"><div class="legdot" style="background:var(--teal)"></div>Double-drop</div>
+        <div class="leg"><div class="legdot" style="background:var(--orange)"></div>Pick-up</div>
+        <div class="leg"><div class="legdot" style="background:var(--amber)"></div>Far &gt;10km</div>
+        <div class="leg"><div class="legdot" style="background:#34D399"></div>Active slot</div>
+        <span style="font-size:9px;color:var(--text3)">· Click slot to set active · Drag pick-up card to move to another car</span>
+      </div>
     </div>
-    <!-- WEEK VIEW -->
-    <div id="week-outer"></div>
-    <!-- PIPELINE / CRM VIEW -->
-    <div id="pipeline-outer"></div>
-    <div class="legend">
-      <span style="font-size:9px;color:var(--text3);font-weight:500">Legend:</span>
-      <div class="leg"><div class="legdot" style="background:var(--teal)"></div>Double-drop</div>
-      <div class="leg"><div class="legdot" style="background:var(--orange)"></div>Pick-up</div>
-      <div class="leg"><div class="legdot" style="background:var(--amber)"></div>Far &gt;10km</div>
-      <div class="leg"><div class="legdot" style="background:#34D399"></div>Active slot</div>
-      <span style="font-size:9px;color:var(--text3)">· Click slot to set active · Drag pick-up card to move to another car</span>
+  </div>
+</div>
+
+<!-- ===== THEME: PIPELINE ===== -->
+<div class="theme-panel" id="theme-pl">
+  <div class="pl-topbar">
+    <span class="ctx-title">📨 Admission Pipeline</span>
+    <span class="ctx-sub">SOP 4.6.4 — Lead Generation &amp; Enrollment Funnel</span>
+    <div style="flex:1"></div>
+    <div class="sub-tabs">
+      <button class="sub-tab active" id="vt-pl-dash" onclick="switchPlView('dashboard')">📊 Dashboard</button>
+      <button class="sub-tab" id="vt-pl-kanban" onclick="switchPlView('kanban')">📋 Kanban</button>
     </div>
+  </div>
+  <div id="pl-dashboard-outer" style="overflow-y:auto;flex:1"></div>
+  <div id="pipeline-outer" style="overflow-y:auto;flex:1"></div>
+</div>
+
+<!-- ===== SHARED HELP PAGE ===== -->
+<div class="shared-page" id="shared-help">
+  <div class="sp-hdr"><h2>❓ Help &amp; Guide</h2><button class="sp-close" onclick="closeSharedPage('shared-help')">&times;</button></div>
+  <div class="sp-body" id="help-body"></div>
+</div>
+
+<!-- ===== OLD HDR (hidden — preserved for backward compat with JS refs) ===== -->
+<div class="hdr" style="display:none">
+  <div class="hdr-stats" style="display:none">
+    <div class="hstat"><b id="st-s-old">0</b></div>
+    <div class="hstat"><b id="st-p-old">0</b></div>
   </div>
 </div>
 
@@ -3378,15 +3492,82 @@ function switchView(view){
   qs('vt-daily').classList.toggle('active',view==='daily');
   qs('vt-week').classList.toggle('active',view==='week');
   qs('vt-audit').classList.toggle('active',view==='audit');
-  qs('vt-pipeline').classList.toggle('active',view==='pipeline');
   qs('sched-outer').style.display=view==='daily'?'':'none';
   document.querySelectorAll('.legend').forEach(el=>el.style.display=view==='daily'?'':'none');
   qs('audit-outer').style.display=view==='audit'?'block':'none';
   qs('week-outer').style.display=view==='week'?'block':'none';
-  qs('pipeline-outer').style.display=view==='pipeline'?'block':'none';
+  // Show/hide pool sidebar only in daily view
+  const poolEl=document.querySelector('.pool');
+  if(poolEl)poolEl.style.display=view==='daily'?'flex':'none';
   if(view==='audit')renderAudit();
   if(view==='week')renderWeekView();
-  if(view==='pipeline')renderPipeline();
+}
+
+// ===== THEME SWITCHING =====
+let _activeTheme='hv';
+function switchTheme(theme){
+  _activeTheme=theme;
+  document.body.setAttribute('data-active-theme',theme);
+  // Toggle theme tabs
+  document.querySelectorAll('.theme-tab').forEach(t=>t.classList.toggle('active',t.dataset.theme===theme));
+  // Toggle theme panels
+  document.querySelectorAll('.theme-panel').forEach(p=>p.classList.toggle('active',p.id==='theme-'+theme));
+  // Render appropriate view
+  if(theme==='pl'){renderPlDashboard();renderPipeline();}
+}
+
+let _plView='dashboard';
+function switchPlView(view){
+  _plView=view;
+  const dashBtn=document.getElementById('vt-pl-dash');
+  const kanbanBtn=document.getElementById('vt-pl-kanban');
+  if(dashBtn)dashBtn.classList.toggle('active',view==='dashboard');
+  if(kanbanBtn)kanbanBtn.classList.toggle('active',view==='kanban');
+  const dashOuter=document.getElementById('pl-dashboard-outer');
+  const kanbanOuter=qs('pipeline-outer');
+  if(dashOuter)dashOuter.style.display=view==='dashboard'?'block':'none';
+  if(kanbanOuter)kanbanOuter.style.display=view==='kanban'?'block':'none';
+  if(view==='dashboard')renderPlDashboard();
+  if(view==='kanban')renderPipeline();
+}
+
+// ===== SHARED PAGES =====
+function showSharedHelp(){
+  renderHelpPage();
+  document.getElementById('shared-help').classList.add('open');
+}
+function closeSharedPage(id){document.getElementById(id).classList.remove('open');}
+
+function renderHelpPage(){
+  let h='';
+  // Home Visits section
+  h+='<div class="sp-section"><h3><span class="sp-badge hv">Home Visits</span> Schedule Builder</h3>';
+  h+='<p><b>Daily View</b> — Drag students from the pool into car slots. Each slot is a 45-minute session. Drop on a filled slot to create double/triple drops (same address, same teacher). Click a slot to set it as "active" — the pool re-sorts by proximity.</p>';
+  h+='<p><b>Week View</b> — See the full week at a glance. Use the legend toggles to filter slot types. Branch filter narrows the view.</p>';
+  h+='<p><b>Audit View</b> — Tracks student coverage, teacher workload, idle time, and branch summaries across the week.</p>';
+  h+='<p><b>Auto-schedule</b> — Places all pool students optimally: groups by teacher, minimizes drive distance, respects rejected days and fixed times, creates double-drops for siblings at the same address.</p>';
+  h+='<p><b>Rejected Days</b> — Set in the student roster. The auto-scheduler will never place a student on their rejected days. Manual placements show a red warning banner.</p>';
+  h+='<p><b>Group Host</b> — For group-type students, set the host student. The car drives to the host\'s address; other group members\' addresses are ignored for routing.</p>';
+  h+='</div>';
+
+  // Pipeline section
+  h+='<div class="sp-section"><h3><span class="sp-badge pl">Pipeline</span> Admission CRM</h3>';
+  h+='<p><b>Dashboard</b> — Summary of your admission funnel: total leads, conversion rates, stale alerts, and the 5 Weekly Numbers (new inquiries, tours booked, tours completed, offers made, enrollments).</p>';
+  h+='<p><b>Kanban Board</b> — 7 stages per SOP 4.6.4: Inquiry → Tour Booked → Toured → Offer Made → Enrolled → Retained/Referred → Lost. Drag cards between columns to advance leads.</p>';
+  h+='<p><b>Stale Leads</b> — Any lead sitting in a stage for more than 14 days without action gets a red "stale" badge. The dashboard highlights total stale count.</p>';
+  h+='<p><b>Conversation Log</b> — Click any lead card to open details. Log outgoing messages, incoming messages, or internal notes. Every stage change is auto-logged.</p>';
+  h+='<p><b>3-Contact Rule</b> — Track contact count per lead. After 3 contacts without progression, consider moving to Lost.</p>';
+  h+='</div>';
+
+  // Shared features
+  h+='<div class="sp-section"><h3><span class="sp-badge shared">Shared</span> Common Features</h3>';
+  h+='<p><b>Students</b> — Master roster shared across both themes. Student data (name, branch, teacher, address, phone, session type, etc.) feeds both the schedule builder and pipeline.</p>';
+  h+='<p><b>Settings</b> — Configure rules for both systems: session length, buffer time, day start/end, stale lead threshold, max contacts, etc.</p>';
+  h+='<p><b>Import / Export</b> — Import brings in full state (schedule + pipeline). Export downloads the current state as JSON for backup.</p>';
+  h+='<p><b>Real-time Sync</b> — All data syncs to Supabase in real-time. Multiple users see changes instantly. The sync indicator shows connection status.</p>';
+  h+='</div>';
+
+  document.getElementById('help-body').innerHTML=h;
 }
 // ===== WEEK VIEW =====
 let _wkBranch='All';
@@ -5300,6 +5481,97 @@ function plSavePipeline(){
   saveState();
 }
 
+// ---- PIPELINE DASHBOARD ----
+function renderPlDashboard(){
+  const el=document.getElementById('pl-dashboard-outer');
+  if(!el)return;
+  const leads=Object.values(PIPELINE);
+  const total=leads.length;
+  const staleCount=leads.filter(plIsStale).length;
+  const now=new Date();
+  const weekAgo=new Date(now.getTime()-7*86400000).toISOString();
+  const monthAgo=new Date(now.getTime()-30*86400000).toISOString();
+
+  // Stage counts
+  const stageCounts={};
+  PL_STAGES.forEach(s=>stageCounts[s.id]=0);
+  leads.forEach(l=>stageCounts[l.stage]=(stageCounts[l.stage]||0)+1);
+
+  // Weekly numbers
+  const wkNew=leads.filter(l=>l.createdAt>=weekAgo).length;
+  const wkTourBooked=leads.filter(l=>l.stage==='tour_booked'&&l.stageEnteredAt>=weekAgo).length;
+  const wkTouredN=leads.filter(l=>l.stage==='toured'&&l.stageEnteredAt>=weekAgo).length;
+  const wkOffers=leads.filter(l=>l.stage==='offer_made'&&l.stageEnteredAt>=weekAgo).length;
+  const wkEnrolled=leads.filter(l=>l.stage==='enrolled'&&l.stageEnteredAt>=weekAgo).length;
+
+  // Source breakdown
+  const srcCounts={};
+  leads.forEach(l=>{srcCounts[l.source]=(srcCounts[l.source]||0)+1;});
+
+  let h='';
+  // KPI cards
+  h+='<div class="pl-dash">';
+  h+='<div class="pl-dash-card"><h4>Total Leads</h4><div class="pl-dash-num">'+total+'</div><div class="pl-dash-sub">'+leads.filter(l=>l.createdAt>=monthAgo).length+' added this month</div></div>';
+  h+='<div class="pl-dash-card"><h4>Active Pipeline</h4><div class="pl-dash-num">'+(total-stageCounts.enrolled-stageCounts.retained-stageCounts.lost)+'</div><div class="pl-dash-sub">In progress (Inquiry → Offer)</div></div>';
+  h+='<div class="pl-dash-card" style="'+(staleCount>0?'border-color:#FCA5A5':'')+'"><h4>Stale Leads</h4><div class="pl-dash-num" style="'+(staleCount>0?'color:#DC2626':'')+'">'+staleCount+'</div><div class="pl-dash-sub">&gt; '+PL_STALE_DAYS+' days without action</div></div>';
+  h+='<div class="pl-dash-card"><h4>Enrolled</h4><div class="pl-dash-num" style="color:var(--green)">'+stageCounts.enrolled+'</div><div class="pl-dash-sub">'+stageCounts.retained+' retained/referred</div></div>';
+  h+='<div class="pl-dash-card"><h4>Lost</h4><div class="pl-dash-num" style="color:var(--red)">'+stageCounts.lost+'</div><div class="pl-dash-sub">'+(total>0?Math.round(stageCounts.lost/total*100):0)+'% loss rate</div></div>';
+  h+='</div>';
+
+  // 5 Weekly Numbers
+  h+='<div class="pl-dash" style="grid-template-columns:repeat(5,1fr)">';
+  h+='<div class="pl-dash-card" style="text-align:center;border-top:3px solid var(--orange)"><h4>New Inquiries</h4><div class="pl-dash-num">'+wkNew+'</div><div class="pl-dash-sub">this week</div></div>';
+  h+='<div class="pl-dash-card" style="text-align:center;border-top:3px solid var(--purple)"><h4>Tours Booked</h4><div class="pl-dash-num">'+wkTourBooked+'</div><div class="pl-dash-sub">this week</div></div>';
+  h+='<div class="pl-dash-card" style="text-align:center;border-top:3px solid var(--teal)"><h4>Tours Done</h4><div class="pl-dash-num">'+wkTouredN+'</div><div class="pl-dash-sub">this week</div></div>';
+  h+='<div class="pl-dash-card" style="text-align:center;border-top:3px solid var(--amber)"><h4>Offers Made</h4><div class="pl-dash-num">'+wkOffers+'</div><div class="pl-dash-sub">this week</div></div>';
+  h+='<div class="pl-dash-card" style="text-align:center;border-top:3px solid var(--green)"><h4>Enrolled</h4><div class="pl-dash-num">'+wkEnrolled+'</div><div class="pl-dash-sub">this week</div></div>';
+  h+='</div>';
+
+  // Funnel visualization
+  const maxCount=Math.max(1,...PL_STAGES.filter(s=>s.id!=='lost').map(s=>stageCounts[s.id]||0));
+  h+='<div class="pl-funnel"><h4>Enrollment Funnel</h4>';
+  PL_STAGES.filter(s=>s.id!=='lost').forEach(stg=>{
+    const cnt=stageCounts[stg.id]||0;
+    const pct=Math.round(cnt/maxCount*100)||0;
+    h+='<div class="pl-funnel-bar">';
+    h+='<div class="pl-funnel-label">'+stg.icon+' '+stg.label+'</div>';
+    h+='<div class="pl-funnel-track"><div class="pl-funnel-fill" style="width:'+Math.max(pct,2)+'%;background:'+stg.color+'">'+cnt+'</div></div>';
+    h+='<div class="pl-funnel-count">'+cnt+'</div>';
+    h+='</div>';
+  });
+  h+='</div>';
+
+  // Source breakdown
+  h+='<div style="padding:0 16px 12px;display:flex;gap:12px;flex-wrap:wrap">';
+  h+='<div class="sp-section" style="flex:1;min-width:250px"><h3>Lead Sources</h3>';
+  const srcSorted=Object.entries(srcCounts).sort((a,b)=>b[1]-a[1]);
+  if(srcSorted.length===0) h+='<p style="color:var(--text3)">No leads yet — add your first lead in the Kanban view</p>';
+  srcSorted.forEach(([src,cnt])=>{
+    h+='<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:11px"><span>'+esc(src)+'</span><b>'+cnt+'</b></div>';
+  });
+  h+='</div>';
+
+  // Recent activity
+  h+='<div class="sp-section" style="flex:1;min-width:250px"><h3>Recent Activity</h3>';
+  const recentLeads=leads.sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt)).slice(0,8);
+  if(recentLeads.length===0) h+='<p style="color:var(--text3)">No activity yet</p>';
+  recentLeads.forEach(l=>{
+    const stg=PL_STAGES.find(s=>s.id===l.stage);
+    const ago=plDaysSince(l.updatedAt);
+    h+='<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:10px;border-bottom:1px solid var(--border)">';
+    h+='<span style="font-weight:700">'+esc(l.familyName||'Unnamed')+'</span>';
+    h+='<span class="sp-badge" style="background:'+((stg&&stg.color)||'#999')+'22;color:'+(stg?stg.color:'#999')+'">'+(stg?stg.label:'?')+'</span>';
+    h+='<span style="margin-left:auto;color:var(--text3)">'+ago+'d ago</span>';
+    h+='</div>';
+  });
+  h+='</div></div>';
+
+  // CTA to Kanban
+  h+='<div style="text-align:center;padding:12px"><button class="pl-add-btn" style="font-size:12px;padding:8px 20px" onclick="switchPlView(\'kanban\')">Open Kanban Board →</button></div>';
+
+  el.innerHTML=h;
+}
+
 // ---- RENDER KANBAN ----
 function renderPipeline(){
   const el=qs('pipeline-outer');
@@ -5547,6 +5819,8 @@ setSyncIndicator('connecting');
   if(typeof populateSchedWeekPicker==='function')populateSchedWeekPicker();
   setSyncIndicator(supaOnline?'synced':'offline');
   if(supaOnline)subscribeRealtime();
+  // Initialize theme: Home Visits active, Pipeline dashboard hidden
+  switchTheme('hv');
 })();
 </script>
 </body>
