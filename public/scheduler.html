@@ -126,6 +126,30 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .audit-stat{background:#F9FAFB;border:1px solid var(--border);border-radius:8px;padding:10px 16px;min-width:120px;text-align:center}
 .audit-stat b{display:block;font-size:20px;margin-bottom:2px}
 .audit-stat small{font-size:9px;color:var(--text3)}
+/* Week view */
+#week-outer{display:none;padding:10px;overflow:auto}
+.wk-grid{display:grid;gap:8px;min-width:900px}
+.wk-day{background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.wk-day-hdr{padding:8px 12px;font-weight:700;font-size:13px;color:#fff;display:flex;align-items:center;gap:8px}
+.wk-day-hdr small{font-weight:400;font-size:10px;opacity:.85}
+.wk-day-body{padding:6px 8px;display:flex;flex-wrap:wrap;gap:4px}
+.wk-car{flex:1;min-width:180px;max-width:280px}
+.wk-car-hdr{font-size:9px;font-weight:700;color:var(--text2);padding:4px 6px;background:#F9FAFB;border-radius:5px;margin-bottom:3px;display:flex;justify-content:space-between}
+.wk-slot{font-size:9px;padding:4px 6px;border-radius:5px;margin:2px 0;border-left:3px solid #ccc;background:#FAFAFA;line-height:1.4}
+.wk-slot.wk-drop{background:#F0FDF4;border-left-color:#059669}
+.wk-slot.wk-pick{background:#FFF7ED;border-left-color:#EA580C;font-size:8px;opacity:.7}
+.wk-slot.wk-dd{background:#EFF6FF;border-left-color:#2563EB}
+.wk-slot.wk-grp{background:#FDF4FF;border-left-color:#9333EA}
+.wk-slot.wk-empty{background:#F9FAFB;border-left-color:#E5E7EB;color:#D1D5DB;font-style:italic}
+.wk-slot .wk-time{font-weight:700;color:var(--text2);margin-right:4px}
+.wk-slot .wk-teacher{font-weight:600;font-size:8px}
+.wk-slot .wk-student{font-weight:600}
+.wk-day-stats{font-size:9px;color:var(--text3);padding:4px 8px;border-top:1px solid #F3F4F6;display:flex;gap:10px;flex-wrap:wrap}
+.wk-bar{display:flex;align-items:center;gap:6px;padding:0 8px 8px}
+.wk-bar select{padding:4px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px}
+.wk-legend{display:flex;gap:10px;flex-wrap:wrap;padding:6px 10px;font-size:9px;color:var(--text3)}
+.wk-legend span{display:flex;align-items:center;gap:3px}
+.wk-legend i{display:inline-block;width:10px;height:10px;border-radius:2px}
 /* Journey line */
 .journey{font-size:8px;font-weight:600;padding:3px 8px;display:flex;align-items:center;gap:3px;color:var(--text2);border-bottom:1px solid var(--border);background:var(--bg);flex-wrap:wrap}
 .journey.drop-j{border-left:3px solid var(--purple)}
@@ -324,8 +348,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
       <div class="dt" data-day="Thu" onclick="gd('Thu')">Thursday · Far</div>
       <div style="flex:1"></div>
       <div style="display:flex;align-items:center;gap:4px;padding:0 6px">
-        <button class="view-toggle active" id="vt-daily" onclick="switchView('daily')">📅 Daily view</button>
-        <button class="view-toggle" id="vt-audit" onclick="switchView('audit')">📊 Audit view</button>
+        <button class="view-toggle active" id="vt-daily" onclick="switchView('daily')">📅 Daily</button>
+        <button class="view-toggle" id="vt-week" onclick="switchView('week')">📆 Week</button>
+        <button class="view-toggle" id="vt-audit" onclick="switchView('audit')">📊 Audit</button>
       </div>
       <div class="week-picker-wrap" style="display:flex;align-items:center;gap:6px;padding:0 10px">
         <label for="sched-week" style="font-size:10px;color:var(--text2);font-weight:600">Attendance week</label>
@@ -351,6 +376,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
       </div>
       <div id="audit-body"></div>
     </div>
+    <!-- WEEK VIEW -->
+    <div id="week-outer"></div>
     <div class="legend">
       <span style="font-size:9px;color:var(--text3);font-weight:500">Legend:</span>
       <div class="leg"><div class="legdot" style="background:var(--teal)"></div>Double-drop</div>
@@ -3203,12 +3230,135 @@ function closeExport(){qs('exportmodal').style.display='none';}
 let _auditTab='students';
 function switchView(view){
   qs('vt-daily').classList.toggle('active',view==='daily');
+  qs('vt-week').classList.toggle('active',view==='week');
   qs('vt-audit').classList.toggle('active',view==='audit');
   qs('sched-outer').style.display=view==='daily'?'':'none';
   document.querySelectorAll('.legend').forEach(el=>el.style.display=view==='daily'?'':'none');
   qs('audit-outer').style.display=view==='audit'?'block':'none';
+  qs('week-outer').style.display=view==='week'?'block':'none';
   if(view==='audit')renderAudit();
+  if(view==='week')renderWeekView();
 }
+// ===== WEEK VIEW =====
+let _wkBranch='All';
+function renderWeekView(){
+  const AD=activeDays();
+  const el=qs('week-outer');
+  const filterBr=_wkBranch;
+  // Day colors
+  const dayColors={Sun:'#7C3AED',Mon:'#2563EB',Tue:'#059669',Wed:'#D97706',Thu:'#DC2626'};
+  const dayFull={Sun:'Sunday',Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday'};
+
+  // Filter bar
+  let h=`<div class="wk-bar">
+    <span style="font-weight:600;font-size:12px;color:var(--text)">📆 Week Overview</span>
+    <select onchange="_wkBranch=this.value;renderWeekView()">
+      <option${filterBr==='All'?' selected':''}>All</option>
+      ${[...new Set(Object.values(SS).map(s=>s.br).filter(Boolean))].sort().map(b=>`<option${b===filterBr?' selected':''}>${b}</option>`).join('')}
+    </select>
+  </div>`;
+  h+=`<div class="wk-legend">
+    <span><i style="background:#F0FDF4;border:1px solid #059669"></i> Drop</span>
+    <span><i style="background:#EFF6FF;border:1px solid #2563EB"></i> Double/Triple</span>
+    <span><i style="background:#FDF4FF;border:1px solid #9333EA"></i> Group</span>
+    <span><i style="background:#FFF7ED;border:1px solid #EA580C"></i> Pickup</span>
+  </div>`;
+
+  // Grid: days as columns
+  const cols=AD.length;
+  h+=`<div class="wk-grid" style="grid-template-columns:repeat(${cols},1fr)">`;
+
+  AD.forEach(day=>{
+    const color=dayColors[day]||'#6B7280';
+    // Gather all sessions across cars for this day
+    let dayDrops=0,dayPicks=0,dayStudents=new Set();
+
+    h+=`<div class="wk-day">`;
+    h+=`<div class="wk-day-hdr" style="background:${color}">${dayFull[day]||day}`;
+
+    // Build car sections
+    let carHtml='';
+    CARS.forEach(car=>{
+      if(filterBr!=='All'&&!(car.branch||'').split('/').includes(filterBr))return;
+      const slots=SCHED[day]?.[car.id]||[];
+      const filled=slots.filter(x=>x).length;
+      if(filled===0)return; // skip empty cars
+      const capPct=slots.length>0?Math.round(filled/slots.length*100):0;
+      const capColor=capPct>=90?'#FEE2E2':capPct>=70?'#FEF3C7':'#F0FDF4';
+
+      carHtml+=`<div class="wk-car">`;
+      carHtml+=`<div class="wk-car-hdr" style="background:${capColor}">${car.label} <span>${filled}/${slots.length} (${capPct}%)</span></div>`;
+
+      slots.forEach((sl_,si)=>{
+        if(!sl_)return; // skip empty slots in week view for compactness
+        const timeStr=ts(slotStartMin(day,car.id,si));
+        const col_=sl_.t==='pick'?'':'';
+
+        if(sl_.t==='s'){
+          const s=SS[sl_.id];if(!s)return;
+          const tc=TC[s.t]||'#6A5FA8';
+          dayDrops++;dayStudents.add(s.id);
+          carHtml+=`<div class="wk-slot wk-drop" style="border-left-color:${tc}">
+            <span class="wk-time">${timeStr}</span>
+            <span class="wk-teacher" style="color:${tc}">▼ ${s.t}</span><br>
+            <span class="wk-student">${s.n}</span>
+          </div>`;
+        }
+        else if(sl_.t==='d'){
+          const ids=sl_.ids||[];
+          const students=ids.map(id=>SS[id]).filter(Boolean);
+          dayDrops+=students.length;students.forEach(s=>dayStudents.add(s.id));
+          const label=students.length===3?'TRIPLE':'DOUBLE';
+          carHtml+=`<div class="wk-slot wk-dd">
+            <span class="wk-time">${timeStr}</span>
+            <span style="font-size:8px;font-weight:700;color:#2563EB">${label}</span><br>
+            ${students.map(s=>`<span class="wk-student" style="color:${TC[s.t]||'#666'}">▼ ${s.t}</span> ${s.n}`).join('<br>')}
+          </div>`;
+        }
+        else if(sl_.t==='g'){
+          const ids=sl_.ids||[];
+          const children=ids.map(id=>SS[id]).filter(Boolean);
+          dayDrops+=children.length;children.forEach(s=>dayStudents.add(s.id));
+          carHtml+=`<div class="wk-slot wk-grp">
+            <span class="wk-time">${timeStr}</span>
+            <span style="font-size:8px;font-weight:700;color:#9333EA">GROUP (${children.length})</span><br>
+            ${children.map(s=>`<span style="color:${TC[s.t]||'#666'};font-size:8px">● ${s.t}</span> ${s.n}`).join('<br>')}
+          </div>`;
+        }
+        else if(sl_.t==='pick'){
+          const s=SS[sl_.id];if(!s)return;
+          dayPicks++;
+          carHtml+=`<div class="wk-slot wk-pick">
+            <span class="wk-time">${timeStr}</span> ▲ ${s.n}
+          </div>`;
+        }
+      });
+      carHtml+=`</div>`;
+    });
+
+    // Day header stats
+    h+=`<small>${dayDrops} drops · ${dayPicks} pickups · ${dayStudents.size} students</small>`;
+    h+=`</div>`; // close header
+    h+=`<div class="wk-day-body">${carHtml||'<div style="padding:12px;text-align:center;color:var(--text3);font-size:10px">No sessions</div>'}</div>`;
+
+    // Day summary footer
+    const teachers=new Set();
+    CARS.forEach(car=>{
+      (SCHED[day]?.[car.id]||[]).forEach(sl_=>{
+        if(!sl_||sl_.t==='pick')return;
+        slotStudentIds(sl_).forEach(sid=>{const s=SS[sid];if(s)teachers.add(s.t);});
+      });
+    });
+    h+=`<div class="wk-day-stats"><span>👩‍🏫 ${teachers.size} teachers</span><span>🚗 ${CARS.filter(c=>{
+      if(filterBr!=='All'&&!(c.branch||'').split('/').includes(filterBr))return false;
+      return(SCHED[day]?.[c.id]||[]).some(x=>x);
+    }).length} active cars</span></div>`;
+    h+=`</div>`; // close day
+  });
+  h+=`</div>`; // close grid
+  el.innerHTML=h;
+}
+
 function switchAuditTab(tab){
   _auditTab=tab;
   document.querySelectorAll('.audit-tab').forEach(b=>b.classList.toggle('active',b.dataset.atab===tab));
