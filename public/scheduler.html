@@ -89,6 +89,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .slot-empty{display:flex;align-items:center;justify-content:center;height:100%;min-height:60px;color:var(--text3);font-size:9px;padding:4px}
 .slot.other-branch-slot{background:repeating-linear-gradient(45deg,#F6F6F6,#F6F6F6 6px,#EFEFEF 6px,#EFEFEF 12px);border:1.5px dashed #D4D4D4;cursor:not-allowed;opacity:.75}
 .slot.other-branch-slot:hover{border-color:#C4C4C4}
+/* Teacher ride annotation between slots */
+.ride-note{font-size:9px;font-weight:600;color:#4338CA;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:5px;padding:3px 8px;margin:3px 0 1px;text-align:center}
+/* Locked (mandatory-time) slot */
+.lock-badge{font-size:11px;cursor:help;margin-right:3px}
+.slot.locked-slot{border-color:#7C3AED;border-style:solid;background:#FAF5FF}
 /* Journey line */
 .journey{font-size:8px;font-weight:600;padding:3px 8px;display:flex;align-items:center;gap:3px;color:var(--text2);border-bottom:1px solid var(--border);background:var(--bg);flex-wrap:wrap}
 .journey.drop-j{border-left:3px solid var(--purple)}
@@ -386,6 +391,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Parent WhatsApp</th>
             <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap" title="1on1 = own slot · Group = shares slot with same teacher">Type</th>
             <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Sess/wk</th>
+            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap" title="Fixed day+time per session (leave blank = flexible, parents have no preference)">Fixed times</th>
             <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Visits</th>
             <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Scheduled</th>
             <th style="padding:8px 6px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">WA</th>
@@ -1209,7 +1215,21 @@ function migrateStudents(){
     if(s.parentPhone==null)s.parentPhone='';
     if(s.sessionsPerWeek==null)s.sessionsPerWeek=1;
     if(s.sessionType==null||(s.sessionType!=='1on1'&&s.sessionType!=='group'))s.sessionType='1on1';
+    // Mandatory timing: array of {day,min} entries per session. null = flexible.
+    if(!Array.isArray(s.mandatory))s.mandatory=[];
   });
+}
+// Convert minutes to 24h HH:MM string for <input type="time">
+function ts24(min){
+  if(min==null||isNaN(min))return'';
+  const h=Math.floor(min/60),m=min%60;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+}
+// Parse "HH:MM" 24h string to minutes-since-midnight (or null if empty)
+function parseTime24(v){
+  if(!v)return null;
+  const[h,m]=(v+'').split(':').map(Number);
+  return(isNaN(h)||isNaN(m))?null:h*60+m;
 }
 // Create teacher records for any teacher name appearing on a student
 // but not yet present in TEACHERS. Existing records are left alone.
@@ -1466,10 +1486,17 @@ function lastPos(d,cid,si){
 }
 
 function slotStartMin(d,cid,si){
-  let m=SETTINGS.dayStartMin||600;
   const slots=SCHED[d]?.[cid]||[];
+  // Mandatory / locked slots may have a fixedStart override that pins
+  // them to a specific time of day (in minutes since midnight). If the
+  // target slot itself is pinned, return it directly.
+  if(slots[si]&&slots[si].fixedStart!=null)return slots[si].fixedStart;
+  let m=SETTINGS.dayStartMin||600;
   for(let i=0;i<si;i++){
-    const sl_=slots[i];if(!sl_)continue;m+=slotDur(sl_,d,cid,i);
+    const sl_=slots[i];if(!sl_)continue;
+    // If an earlier slot is pinned, reset the running clock to its pin.
+    if(sl_.fixedStart!=null)m=sl_.fixedStart;
+    m+=slotDur(sl_,d,cid,i);
   }
   return m;
 }
@@ -1763,6 +1790,41 @@ function renderSched(){
   stats();
 }
 
+// Returns an HTML annotation banner when the driver needs to swap teachers
+// between consecutive drop slots. Tracks who was just dropped versus who is
+// about to be dropped: if the teacher changes, the driver must detour back to
+// the branch to return one teacher and pick up another.
+function teacherRideNote(d,cid,si){
+  const sl_=SCHED[d]?.[cid]?.[si];
+  if(!sl_||sl_.t==='pick')return'';
+  const curT=[...new Set(slotStudentIds(sl_).map(sid=>SS[sid]?.t).filter(Boolean))];
+  if(!curT.length)return'';
+  // Walk backwards to find the previous DROP slot (skip pickups)
+  let prevT=[];
+  for(let i=si-1;i>=0;i--){
+    const p=SCHED[d]?.[cid]?.[i];
+    if(p&&p.t!=='pick'){
+      prevT=[...new Set(slotStudentIds(p).map(sid=>SS[sid]?.t).filter(Boolean))];
+      break;
+    }
+  }
+  const br=carBranch(cid);
+  // No previous drop → first drop of the day. Show who the driver picks up.
+  if(!prevT.length){
+    return`<div class="ride-note">🚗 Pick up <b>${curT.join(' + ')}</b> from ${br} branch</div>`;
+  }
+  // Check for teacher change
+  const prevSet=new Set(prevT), curSet=new Set(curT);
+  const returning=[...prevSet].filter(t=>!curSet.has(t));
+  const pickingUp=[...curSet].filter(t=>!prevSet.has(t));
+  if(!returning.length&&!pickingUp.length)return''; // same teacher(s), no change
+  let note='🚗 ';
+  if(returning.length)note+=`↩ ${returning.join(' + ')} → ${br} branch`;
+  if(returning.length&&pickingUp.length)note+=' · ';
+  if(pickingUp.length)note+=`Pick up <b>${pickingUp.join(' + ')}</b> from ${br} branch`;
+  return`<div class="ride-note">${note}</div>`;
+}
+
 function renderSlot(d,cid,si){
   const sl_=SCHED[d]?.[cid]?.[si];
   const startMin=slotStartMin(d,cid,si);
@@ -1792,6 +1854,11 @@ function renderSlot(d,cid,si){
   const warns=warnHtml(d,cid,si);
   const isLast=isLastSlot(d,cid,si);
 
+  // Teacher ride annotation: show a banner when a teacher change means
+  // the driver must detour back to branch.
+  const rideNote=teacherRideNote(d,cid,si);
+  const lockBadge=sl_.locked?'<span class="lock-badge" title="Mandatory time — locked by parent request">🔒</span>':'';
+
   if(sl_.t==='s'){
     const s=SS[sl_.id];if(!s)return'';
     const col=TC[s.t]||'#6A5FA8';
@@ -1819,11 +1886,12 @@ function renderSlot(d,cid,si){
           :`<div class="sc pick-card" draggable="true" data-sid="${sl_.id}" data-dtype="pick" style="display:inline-flex;align-items:center;gap:4px;padding:2px 5px;cursor:grab;border-radius:4px;margin-left:auto;font-size:8px;border-left:2px solid var(--orange)"><span style="color:var(--orange);font-weight:700">Drag to assign →</span></div>`}
       </div></div>`;
     return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
-      <div class="slot filled${isActive?' active-slot':''}" ${base} ${handlers}>
+      ${rideNote}
+      <div class="slot filled${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}" ${base} ${handlers}>
         ${sl_.grp?`<div class="grp-banner">🏠 Group: <span class="grp-loc">${sl(sl_.grp.addr)}</span></div>`:''}
         <div class="journey drop-j"><span class="j-from">${fromLabel}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
-        <div class="slot-toprow">${warns}<button class="edit-ico" onclick="event.stopPropagation();editStudent('${s.id}')" title="Edit student">✏</button></div>
-        <div class="ss" draggable="true" data-sid="${s.id}" data-dtype="drop" style="border-left:3px solid ${col};padding-top:2px">
+        <div class="slot-toprow">${lockBadge}${warns}<button class="edit-ico" onclick="event.stopPropagation();editStudent('${s.id}')" title="Edit student">✏</button></div>
+        <div class="ss" ${sl_.locked?'':'draggable="true"'} data-sid="${s.id}" data-dtype="drop" style="border-left:3px solid ${col};padding-top:2px">
           <div class="t" style="color:${col}">▼ ${s.t}</div>
           <div class="n">${s.n}</div>
           <div class="a">${s.a}</div>
@@ -1883,7 +1951,8 @@ function renderSlot(d,cid,si){
       return pickRow(s,pickT,pickSl,idx);
     }).join('');
     return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
-      <div class="slot paired${isActive?' active-slot':''}" ${base} ${handlers}>
+      ${rideNote}
+      <div class="slot paired${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}" ${base} ${handlers}>
         ${sl_.grp?`<div class="grp-banner">🏠 Group: <span class="grp-loc">${sl(sl_.grp.addr)}</span> — all teachers same location</div>`:''}
         <div class="journey drop-j"><span class="j-from">${fromLabel}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
         <div class="slot-toprow">${warns}</div>
@@ -1956,7 +2025,8 @@ function renderSlot(d,cid,si){
       </div></div>`;
     }).join('');
     return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
-      <div class="slot group-slot${isActive?' active-slot':''}" ${base} ${handlers}>
+      ${rideNote}
+      <div class="slot group-slot${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}" ${base} ${handlers}>
         <div class="grp-hdr">
           <span style="font-size:9px;font-weight:700;color:#92400E">&#127968; GROUP</span>
           <span class="grp-count-pill">${sl_.ids.length}/7 children</span>
@@ -2327,6 +2397,7 @@ function renderStudentsTable(){
         </select>
       </td>
       <td class="st-cell"><input class="st-inp num" value="${s.sessionsPerWeek||1}" type="number" min="1" max="7" onchange="patchStudent('${s.id}','sessionsPerWeek',+this.value)" style="width:52px" onkeydown="stNav(event,this)"></td>
+      <td class="st-cell" style="min-width:150px">${mandatoryCells(s)}</td>
       <td class="st-cell"><input class="st-inp num" value="${s.visits||0}" type="number" min="0" onchange="patchStudent('${s.id}','visits',+this.value)" style="width:52px" onkeydown="stNav(event,this)"></td>
       <td class="st-cell" style="text-align:center;padding:6px 8px;white-space:nowrap">
         <span class="sched-dot" style="background:${dotCol}"></span>${sched}/${total}
@@ -2339,6 +2410,51 @@ function renderStudentsTable(){
 }
 
 function esc(v){return(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+
+// Build compact mandatory-time editors for the students table. One row
+// per session: day dropdown + time input. Empty = flexible (parent ok
+// with any day/time). Filled = auto-scheduler must honour this slot.
+function mandatoryCells(s){
+  const spw=s.sessionsPerWeek||1;
+  const mand=s.mandatory||[];
+  const dayOpts=['Sun','Mon','Tue','Wed','Thu'];
+  let html='';
+  for(let m=0;m<spw;m++){
+    const e=mand[m]||{};
+    const dv=e.day||'';
+    const tv=e.min!=null?ts24(e.min):'';
+    html+=`<div style="display:flex;gap:2px;align-items:center;margin:${m?'2px':'0'} 0">
+      <span style="font-size:8px;color:var(--text3);width:10px">${m+1}.</span>
+      <select class="st-sel" style="width:50px;font-size:9px;padding:1px 2px" onchange="patchMandatory('${s.id}',${m},'day',this.value)">
+        <option value="">—</option>
+        ${dayOpts.map(d=>`<option${d===dv?' selected':''}>${d}</option>`).join('')}
+      </select>
+      <input type="time" value="${tv}" style="width:62px;font-size:9px;border:1px solid var(--border);border-radius:3px;padding:1px 2px" onchange="patchMandatory('${s.id}',${m},'min',this.value)">
+    </div>`;
+  }
+  return html;
+}
+
+function patchMandatory(sid,idx,field,val){
+  const s=SS[sid];if(!s)return;
+  if(!Array.isArray(s.mandatory))s.mandatory=[];
+  while(s.mandatory.length<=idx)s.mandatory.push(null);
+  if(field==='day'){
+    if(!val){s.mandatory[idx]=null;}
+    else{if(!s.mandatory[idx])s.mandatory[idx]={};s.mandatory[idx].day=val;}
+  }
+  if(field==='min'){
+    const mins=parseTime24(val);
+    if(mins==null){if(s.mandatory[idx])delete s.mandatory[idx].min;}
+    else{if(!s.mandatory[idx])s.mandatory[idx]={};s.mandatory[idx].min=mins;}
+  }
+  // Clean: remove trailing nulls / entries with neither day nor min
+  s.mandatory=s.mandatory.map(e=>e&&(e.day||e.min!=null)?e:null);
+  while(s.mandatory.length>0&&!s.mandatory[s.mandatory.length-1])s.mandatory.pop();
+  saveState();
+  const row=qs('strow-'+sid);
+  if(row){row.style.background='#EAF3DE';setTimeout(()=>row.style.background='',800);}
+}
 
 function patchStudent(sid,field,val){
   if(!SS[sid])return;
@@ -2367,7 +2483,7 @@ function deleteStudent(sid){
 
 function addNewStudentRow(){
   const id='sx'+Date.now();
-  SS[id]={id,n:'New Student',t:'',br:'Shuhada',a:'',la:0,ln:0,visits:0,sessionsPerWeek:1,parentPhone:''};
+  SS[id]={id,n:'New Student',t:'',br:'Shuhada',a:'',la:0,ln:0,visits:0,sessionsPerWeek:1,parentPhone:'',mandatory:[]};
   saveState();
   renderStudentsTable();
   // Find the ACTUAL new row by id (sorting may put it anywhere in the list)
@@ -2779,20 +2895,40 @@ function buildDispatchMessage(d,cid){
 
   const lines=[];
   let num=0;
-  // Track the previous physical location + its friendly name, so each line can say
-  // "Pickup {teacher} from {prevLocation}". Start at the branch.
+  // Track the previous physical location + its friendly name.
   let prevLa=bLa, prevLn=bLn, prevNm='BeCurious '+brKey;
+  // Track which teacher(s) are currently IN the car so we can detect
+  // teacher swaps that require a detour back to the branch.
+  let inCar=new Set();
 
-  // Each numbered stop gets its own single-destination Google Maps link on
-  // a second line, because multi-waypoint URLs land on Google Maps' edit
-  // screen instead of the drive-now screen. A single-destination daddr URL
-  // always opens in drive-ready mode with the Start button visible.
   const mapLink=(la,ln)=>'https://maps.google.com/?daddr='+la.toFixed(5)+','+ln.toFixed(5)+'&dirflg=d';
+
+  // Helper: get teacher names for a drop slot
+  function slotTeachers(sl_){
+    return[...new Set(slotStudentIds(sl_).map(sid=>SS[sid]?.t).filter(Boolean))];
+  }
 
   slots.forEach((sl_,si)=>{
     if(!sl_)return;
     const startM=slotStartMin(d,cid,si);
     const depT=ts(startM);
+
+    // ─── Teacher ride management ───
+    // Before every drop slot, check if we need to pick up / return teachers.
+    if(sl_.t!=='pick'){
+      const needT=new Set(slotTeachers(sl_));
+      const returnT=[...inCar].filter(t=>!needT.has(t));
+      const pickUpT=[...needT].filter(t=>!inCar.has(t));
+      if(returnT.length||pickUpT.length){
+        const parts=[];
+        if(returnT.length)parts.push(`↩ Return ${returnT.join(' + ')} to ${brKey} branch`);
+        if(pickUpT.length)parts.push(`🚗 Pick up ${pickUpT.join(' + ')} from ${brKey} branch`);
+        lines.push(`   ── ${parts.join(' · ')} ──`);
+        // If we returned someone, the car went back to the branch first
+        if(returnT.length){prevLa=bLa;prevLn=bLn;prevNm='BeCurious '+brKey;}
+      }
+      inCar=needT;
+    }
 
     if(sl_.t==='s'){
       const s=SS[sl_.id];if(!s)return;
@@ -2800,7 +2936,8 @@ function buildDispatchMessage(d,cid){
       const travelMin=tm(hv(prevLa,prevLn,useLa,useLn));
       const arrT=ts(startM+travelMin);
       num++;
-      lines.push(`${num}. ${depT}  Pickup ${s.t||'teacher'} from ${prevNm}  → Drop at ${arrT} ${s.n}: ${useAddr}`);
+      const locked=sl_.locked?' 🔒':'';
+      lines.push(`${num}. ${depT}  ${s.t||'teacher'} + driver → Drop at ${arrT} ${s.n}: ${useAddr}${locked}`);
       lines.push(`   🗺️ ${mapLink(useLa,useLn)}`);
       prevLa=useLa; prevLn=useLn; prevNm=s.n;
     }
@@ -2811,22 +2948,19 @@ function buildDispatchMessage(d,cid){
       const s1=students[0];
       const travel1=tm(hv(prevLa,prevLn,s1.la,s1.ln));
       const legs=ddLegs(sl_);
-      // First drop: car leaves prev and arrives at s1 after travel1 minutes.
       let cursor=startM+travel1;
       num++;
-      lines.push(`${num}. ${depT}  Pickup ${s1.t||'teacher'} from ${prevNm}  → Drop at ${ts(cursor)} ${s1.n}: ${s1.a}`);
+      lines.push(`${num}. ${depT}  ${s1.t||'teacher'} + driver → Drop at ${ts(cursor)} ${s1.n}: ${s1.a}`);
       lines.push(`   🗺️ ${mapLink(s1.la,s1.ln)}`);
       prevLa=s1.la; prevLn=s1.ln; prevNm=s1.n;
-      // Each subsequent drop leaves the previous student's home immediately
-      // and arrives after the inter-home leg minutes.
       for(let i=1;i<students.length;i++){
         const sN=students[i];
         const legMin=legs[i-1]||0;
-        const depN=ts(cursor); // leave previous student's home
+        const depN=ts(cursor);
         cursor+=legMin;
         const arrN=ts(cursor);
         num++;
-        lines.push(`${num}. ${depN}  Pickup ${sN.t||'teacher'} from ${prevNm}  → Drop at ${arrN} ${sN.n}: ${sN.a}`);
+        lines.push(`${num}. ${depN}  ${sN.t||'teacher'} + driver → Drop at ${arrN} ${sN.n}: ${sN.a}`);
         lines.push(`   🗺️ ${mapLink(sN.la,sN.ln)}`);
         prevLa=sN.la; prevLn=sN.ln; prevNm=sN.n;
       }
@@ -2842,7 +2976,7 @@ function buildDispatchMessage(d,cid){
       const travelMin=tm(hv(prevLa,prevLn,la,ln));
       const arrT=ts(startM+travelMin);
       num++;
-      lines.push(`${num}. ${depT}  Pickup ${teachers||'teachers'} from ${prevNm}  → Drop at ${arrT} group [${names}]: ${addr}`);
+      lines.push(`${num}. ${depT}  ${teachers||'teachers'} + driver → Drop at ${arrT} group [${names}]: ${addr}`);
       lines.push(`   🗺️ ${mapLink(la,ln)}`);
       prevLa=la; prevLn=ln; prevNm=names.split(', ')[0]||'group';
     }
@@ -3800,6 +3934,50 @@ function runAutoSchedule(){
 
   let placed=0;
 
+  // ──── PHASE 0: Pre-place MANDATORY (fixed-time) slots ────
+  // Collect every mandatory entry for in-scope students, sort by day then time
+  // so earlier mandatory slots get first pick of slot positions.
+  const mandEntries=[];
+  Object.keys(remain).forEach(sid=>{
+    const s=SS[sid];if(!s)return;
+    (s.mandatory||[]).forEach((m,idx)=>{
+      if(!m||!m.day||m.min==null)return;
+      if(!DAYS_ACTIVE.includes(m.day))return;
+      mandEntries.push({sid,s,day:m.day,min:m.min,idx});
+    });
+  });
+  mandEntries.sort((a,b)=>DAYS_ACTIVE.indexOf(a.day)-DAYS_ACTIVE.indexOf(b.day)||a.min-b.min);
+
+  mandEntries.forEach(({sid,s,day,min})=>{
+    if(remain[sid]<=0)return;
+    if(preventDouble&&onDay[day]?.has(sid))return;
+    if(!teacherCanTake(s.t,day))return;
+    // Find the best car for this student on this day
+    const validCars=CARS.filter(c=>carServesBranch(c,s));
+    if(!validCars.length)return;
+    // Pick car with most empty slots on this day (= most room)
+    const best=validCars.sort((a,b)=>{
+      const ea=(SCHED[day][a.id]||[]).filter(x=>!x).length;
+      const eb=(SCHED[day][b.id]||[]).filter(x=>!x).length;
+      return eb-ea;
+    })[0];
+    const slots=SCHED[day][best.id];
+    // Find first empty slot
+    const si=slots.findIndex(x=>!x);
+    if(si<0)return;
+    slots[si]={t:'s',id:sid,fixedStart:min,locked:true};
+    // Auto-pickup after the locked drop
+    if(autoPickup){
+      const psi=slots.findIndex((x,k)=>k>si&&!x);
+      if(psi>=0)slots[psi]={t:'pick',id:sid};
+    }
+    remain[sid]--;
+    onDay[day]=onDay[day]||new Set();onDay[day].add(sid);
+    teacherDayCount[day][s.t]=(teacherDayCount[day][s.t]||0)+1;
+    placed++;
+  });
+
+  // ──── PHASE 1: Greedy fill (main auto-schedule loop) ────
   DAYS_ACTIVE.forEach(day=>{
     CARS.forEach(car=>{
       const slots=SCHED[day][car.id];
@@ -3820,7 +3998,7 @@ function runAutoSchedule(){
 
       // Greedily fill empty slots
       for(let si=0;si<slots.length;si++){
-        if(slots[si])continue;
+        if(slots[si])continue; // already filled (manual, locked, or pickup)
         // Day-end cutoff: if even a best-case session starting now would run past the
         // configured latest-end-time, stop filling this car for this day. Uses the
         // 10-minute travel floor from tm() as the minimum arrival time.
@@ -3834,9 +4012,6 @@ function runAutoSchedule(){
 
         if((pickS.sessionType||'1on1')==='group'){
           // ----- GROUP SLOT -----
-          // Start with the picked student, then add up to (maxGroupSize-1) MORE
-          // group-type students from this car's candidates who share the same teacher,
-          // ordered by distance from the anchor drop.
           const ids=[pickSid];
           remain[pickSid]--;
           onDay[day].add(pickSid);
@@ -3861,12 +4036,33 @@ function runAutoSchedule(){
           slots[si]={t:'g',ids};
           placed+=ids.length;
         } else {
-          // ----- 1-on-1 SLOT -----
+          // ----- 1-on-1 SLOT → check for sibling / same-address auto-pair -----
           slots[si]={t:'s',id:pickSid};
           remain[pickSid]--;
           onDay[day].add(pickSid);
           teacherDayCount[day][pickS.t]=(teacherDayCount[day][pickS.t]||0)+1;
           placed++;
+          // Look for another pool student at the same address (≤0.5km) —
+          // siblings with different teachers should share a ride as a
+          // double-drop even if their teachers differ.
+          const nearSibling=Object.keys(remain).find(sid2=>{
+            if(sid2===pickSid||remain[sid2]<=0)return false;
+            const s2=SS[sid2];if(!s2)return false;
+            if(preventDouble&&onDay[day].has(sid2))return false;
+            if(!carServesBranch(car,s2))return false;
+            if(!teacherCanTake(s2.t,day))return false;
+            return hv(pickS.la,pickS.ln,s2.la,s2.ln)<=0.5;
+          });
+          if(nearSibling){
+            const s2=SS[nearSibling];
+            const sl_={t:'d',ids:[pickSid,nearSibling]};
+            ddRecomputeMetrics(sl_);
+            slots[si]=sl_;
+            remain[nearSibling]--;
+            onDay[day].add(nearSibling);
+            teacherDayCount[day][s2.t]=(teacherDayCount[day][s2.t]||0)+1;
+            placed++;
+          }
         }
 
         // Advance drive position + teacher pointer to the newly-placed drop
