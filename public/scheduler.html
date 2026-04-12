@@ -147,8 +147,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .wk-day-stats{font-size:9px;color:var(--text3);padding:4px 8px;border-top:1px solid #F3F4F6;display:flex;gap:10px;flex-wrap:wrap}
 .wk-bar{display:flex;align-items:center;gap:6px;padding:0 8px 8px}
 .wk-bar select{padding:4px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px}
-.wk-legend{display:flex;gap:10px;flex-wrap:wrap;padding:6px 10px;font-size:9px;color:var(--text3)}
-.wk-legend span{display:flex;align-items:center;gap:3px}
+.wk-legend{display:flex;gap:8px;flex-wrap:wrap;padding:6px 10px;font-size:9px;color:var(--text3)}
+.wk-filter-btn{display:flex;align-items:center;gap:3px;cursor:pointer;padding:3px 8px;border-radius:6px;border:1px solid #E5E7EB;background:#fff;transition:all .15s;user-select:none}
+.wk-filter-btn:hover{border-color:#A5B4FC;background:#F5F3FF}
+.wk-filter-btn.active{border-color:#7C3AED;background:#F5F3FF;font-weight:600;color:var(--text1)}
+.wk-filter-btn:not(.active){opacity:.5;text-decoration:line-through}
 .wk-legend i{display:inline-block;width:10px;height:10px;border-radius:2px}
 /* Journey line */
 .journey{font-size:8px;font-weight:600;padding:3px 8px;display:flex;align-items:center;gap:3px;color:var(--text2);border-bottom:1px solid var(--border);background:var(--bg);flex-wrap:wrap}
@@ -3241,6 +3244,7 @@ function switchView(view){
 }
 // ===== WEEK VIEW =====
 let _wkBranch='All';
+let _wkFilter={drop:true,dd:true,grp:true,pick:true};
 function renderWeekView(){
   const AD=activeDays();
   const el=qs('week-outer');
@@ -3258,10 +3262,10 @@ function renderWeekView(){
     </select>
   </div>`;
   h+=`<div class="wk-legend">
-    <span><i style="background:#F0FDF4;border:1px solid #059669"></i> Drop</span>
-    <span><i style="background:#EFF6FF;border:1px solid #2563EB"></i> Double/Triple</span>
-    <span><i style="background:#FDF4FF;border:1px solid #9333EA"></i> Group</span>
-    <span><i style="background:#FFF7ED;border:1px solid #EA580C"></i> Pickup</span>
+    <label class="wk-filter-btn${_wkFilter.drop?' active':''}" onclick="_wkFilter.drop=!_wkFilter.drop;renderWeekView()"><i style="background:#F0FDF4;border:1px solid #059669"></i><input type="checkbox" ${_wkFilter.drop?'checked':''} style="display:none"> Drop</label>
+    <label class="wk-filter-btn${_wkFilter.dd?' active':''}" onclick="_wkFilter.dd=!_wkFilter.dd;renderWeekView()"><i style="background:#EFF6FF;border:1px solid #2563EB"></i><input type="checkbox" ${_wkFilter.dd?'checked':''} style="display:none"> Double/Triple</label>
+    <label class="wk-filter-btn${_wkFilter.grp?' active':''}" onclick="_wkFilter.grp=!_wkFilter.grp;renderWeekView()"><i style="background:#FDF4FF;border:1px solid #9333EA"></i><input type="checkbox" ${_wkFilter.grp?'checked':''} style="display:none"> Group</label>
+    <label class="wk-filter-btn${_wkFilter.pick?' active':''}" onclick="_wkFilter.pick=!_wkFilter.pick;renderWeekView()"><i style="background:#FFF7ED;border:1px solid #EA580C"></i><input type="checkbox" ${_wkFilter.pick?'checked':''} style="display:none"> Pickup</label>
   </div>`;
 
   // Grid: days as columns
@@ -3298,7 +3302,7 @@ function renderWeekView(){
           const s=SS[sl_.id];if(!s)return;
           const tc=TC[s.t]||'#6A5FA8';
           dayDrops++;dayStudents.add(s.id);
-          carHtml+=`<div class="wk-slot wk-drop" style="border-left-color:${tc}">
+          if(_wkFilter.drop) carHtml+=`<div class="wk-slot wk-drop" style="border-left-color:${tc}">
             <span class="wk-time">${timeStr}</span>
             <span class="wk-teacher" style="color:${tc}">▼ ${s.t}</span><br>
             <span class="wk-student">${s.n}</span>
@@ -3308,27 +3312,27 @@ function renderWeekView(){
           const ids=sl_.ids||[];
           const students=ids.map(id=>SS[id]).filter(Boolean);
           dayDrops+=students.length;students.forEach(s=>dayStudents.add(s.id));
-          const label=students.length===3?'TRIPLE':'DOUBLE';
+          if(_wkFilter.dd){const label=students.length===3?'TRIPLE':'DOUBLE';
           carHtml+=`<div class="wk-slot wk-dd">
             <span class="wk-time">${timeStr}</span>
             <span style="font-size:8px;font-weight:700;color:#2563EB">${label}</span><br>
             ${students.map(s=>`<span class="wk-student" style="color:${TC[s.t]||'#666'}">▼ ${s.t}</span> ${s.n}`).join('<br>')}
-          </div>`;
+          </div>`;}
         }
         else if(sl_.t==='g'){
           const ids=sl_.ids||[];
           const children=ids.map(id=>SS[id]).filter(Boolean);
           dayDrops+=children.length;children.forEach(s=>dayStudents.add(s.id));
-          carHtml+=`<div class="wk-slot wk-grp">
+          if(_wkFilter.grp){carHtml+=`<div class="wk-slot wk-grp">
             <span class="wk-time">${timeStr}</span>
             <span style="font-size:8px;font-weight:700;color:#9333EA">GROUP (${children.length})</span><br>
             ${children.map(s=>`<span style="color:${TC[s.t]||'#666'};font-size:8px">● ${s.t}</span> ${s.n}`).join('<br>')}
-          </div>`;
+          </div>`;}
         }
         else if(sl_.t==='pick'){
           const s=SS[sl_.id];if(!s)return;
           dayPicks++;
-          carHtml+=`<div class="wk-slot wk-pick">
+          if(_wkFilter.pick) carHtml+=`<div class="wk-slot wk-pick">
             <span class="wk-time">${timeStr}</span> ▲ ${s.n}
           </div>`;
         }
