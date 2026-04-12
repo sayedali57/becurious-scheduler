@@ -291,6 +291,68 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .st-del:hover{color:var(--red)}
 .sched-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:3px}
 #last-edit{font-size:9px;color:rgba(255,255,255,.6);margin-left:6px;white-space:nowrap}
+/* ===== PIPELINE / CRM ===== */
+#pipeline-outer{display:none;padding:12px;min-height:calc(100vh - 70px);background:var(--bg)}
+.pl-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.pl-toolbar .pl-title{font-weight:700;font-size:14px;color:var(--text)}
+.pl-toolbar .pl-stat{font-size:10px;color:var(--text2);background:#fff;border:1px solid var(--border);border-radius:5px;padding:3px 8px;font-weight:600}
+.pl-toolbar .pl-stat b{color:var(--purple)}
+.pl-add-btn{padding:5px 12px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;background:var(--purple);color:#fff;transition:.15s}
+.pl-add-btn:hover{background:var(--purple-dk)}
+.pl-board{display:flex;gap:8px;overflow-x:auto;align-items:flex-start;padding-bottom:12px}
+.pl-col{min-width:210px;max-width:210px;background:#fff;border-radius:10px;border:1px solid var(--border);display:flex;flex-direction:column;max-height:calc(100vh - 140px)}
+.pl-col-hdr{padding:8px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;border-radius:10px 10px 0 0;z-index:1}
+.pl-col-hdr .pl-col-title{font-size:11px;font-weight:700;color:var(--text)}
+.pl-col-hdr .pl-col-cnt{font-size:9px;background:var(--purple-lt);color:var(--purple);border-radius:10px;padding:2px 7px;font-weight:700}
+.pl-col-body{padding:6px;overflow-y:auto;flex:1;min-height:60px}
+.pl-col-body.drag-over{background:var(--purple-lt);border-radius:0 0 10px 10px}
+.pl-card{background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;cursor:grab;transition:box-shadow .15s,border-color .15s;position:relative}
+.pl-card:hover{border-color:var(--purple);box-shadow:0 2px 8px rgba(106,95,168,.13)}
+.pl-card.dragging{opacity:.4;border-style:dashed}
+.pl-card .pl-card-name{font-size:11px;font-weight:700;color:var(--text);margin-bottom:2px}
+.pl-card .pl-card-child{font-size:10px;color:var(--text2)}
+.pl-card .pl-card-meta{display:flex;align-items:center;gap:6px;margin-top:5px;font-size:9px;color:var(--text3)}
+.pl-card .pl-card-meta .pl-src{background:var(--purple-lt);color:var(--purple);padding:1px 5px;border-radius:4px;font-weight:600}
+.pl-card .pl-card-stale{position:absolute;top:4px;right:6px;font-size:8px;font-weight:700;color:#DC2626;background:#FEE2E2;border-radius:4px;padding:1px 5px}
+.pl-card .pl-card-hot{position:absolute;top:4px;right:6px;font-size:8px;font-weight:700;color:#059669;background:#D1FAE5;border-radius:4px;padding:1px 5px}
+/* Lead detail modal */
+.pl-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600;align-items:center;justify-content:center}
+.pl-modal{background:#fff;border-radius:12px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.2)}
+.pl-modal-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.pl-modal-hdr h3{font-size:14px;font-weight:700;color:var(--text);margin:0}
+.pl-modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3);padding:4px}
+.pl-modal-close:hover{color:var(--red)}
+.pl-modal-body{padding:14px 18px}
+.pl-field{margin-bottom:10px}
+.pl-field label{display:block;font-size:10px;font-weight:600;color:var(--text2);margin-bottom:3px}
+.pl-field input,.pl-field select,.pl-field textarea{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:11px;font-family:inherit;color:var(--text);outline:none;box-sizing:border-box}
+.pl-field input:focus,.pl-field select:focus,.pl-field textarea:focus{border-color:var(--purple);box-shadow:0 0 0 2px rgba(106,95,168,.15)}
+.pl-field textarea{resize:vertical;min-height:50px}
+.pl-field-row{display:flex;gap:8px}
+.pl-field-row .pl-field{flex:1}
+.pl-modal-actions{padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.pl-modal-actions button{padding:6px 14px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text2);transition:.15s}
+.pl-modal-actions button:hover{background:#F3F4F6}
+.pl-modal-actions .pl-save{background:var(--purple);color:#fff;border-color:var(--purple)}
+.pl-modal-actions .pl-save:hover{background:var(--purple-dk)}
+.pl-modal-actions .pl-del{color:var(--red);border-color:var(--red)}
+.pl-modal-actions .pl-del:hover{background:var(--red);color:#fff}
+/* Conversation log inside lead modal */
+.pl-log{margin-top:10px;border-top:1px solid var(--border);padding-top:8px}
+.pl-log-title{font-size:10px;font-weight:700;color:var(--text);margin-bottom:6px}
+.pl-log-list{max-height:180px;overflow-y:auto;margin-bottom:8px}
+.pl-log-entry{padding:5px 8px;border-radius:6px;margin-bottom:4px;font-size:10px;line-height:1.5}
+.pl-log-entry.outgoing{background:#EFF6FF;border-left:3px solid #2563EB}
+.pl-log-entry.incoming{background:#F0FDF4;border-left:3px solid #059669}
+.pl-log-entry.note{background:#FDF4FF;border-left:3px solid #9333EA}
+.pl-log-entry .pl-log-ts{font-size:8px;color:var(--text3);margin-bottom:1px}
+.pl-log-entry .pl-log-text{color:var(--text)}
+.pl-log-add{display:flex;gap:6px}
+.pl-log-add select{width:90px;padding:5px;border:1px solid var(--border);border-radius:5px;font-size:10px}
+.pl-log-add input{flex:1;padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-size:10px}
+.pl-log-add button{padding:5px 10px;background:var(--purple);color:#fff;border:none;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer}
+.pl-search{padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:11px;width:180px;outline:none;font-family:inherit}
+.pl-search:focus{border-color:var(--purple);box-shadow:0 0 0 2px rgba(106,95,168,.15)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -356,6 +418,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
         <button class="view-toggle active" id="vt-daily" onclick="switchView('daily')">📅 Daily</button>
         <button class="view-toggle" id="vt-week" onclick="switchView('week')">📆 Week</button>
         <button class="view-toggle" id="vt-audit" onclick="switchView('audit')">📊 Audit</button>
+        <button class="view-toggle" id="vt-pipeline" onclick="switchView('pipeline')">🔗 Pipeline</button>
       </div>
       <div class="week-picker-wrap" style="display:flex;align-items:center;gap:6px;padding:0 10px">
         <label for="sched-week" style="font-size:10px;color:var(--text2);font-weight:600">Attendance week</label>
@@ -383,6 +446,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
     </div>
     <!-- WEEK VIEW -->
     <div id="week-outer"></div>
+    <!-- PIPELINE / CRM VIEW -->
+    <div id="pipeline-outer"></div>
     <div class="legend">
       <span style="font-size:9px;color:var(--text3);font-weight:500">Legend:</span>
       <div class="leg"><div class="legdot" style="background:var(--teal)"></div>Double-drop</div>
@@ -396,6 +461,15 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 
 <!-- GLOBAL WARN POPUP -->
 <div id="warn-popup"></div>
+
+<!-- PIPELINE LEAD MODAL -->
+<div class="pl-modal-overlay" id="pl-modal-overlay" onclick="if(event.target===this)closePlModal()">
+  <div class="pl-modal">
+    <div class="pl-modal-hdr"><h3 id="pl-modal-title">New Lead</h3><button class="pl-modal-close" onclick="closePlModal()">&times;</button></div>
+    <div class="pl-modal-body" id="pl-modal-body"></div>
+    <div class="pl-modal-actions" id="pl-modal-actions"></div>
+  </div>
+</div>
 
 <!-- ADD STUDENT -->
 <div class="modal" id="addmodal" style="display:none">
@@ -1364,7 +1438,7 @@ function setLastEdit(name,when){
 
 function saveState(){
   // Always save locally (offline fallback, instant)
-  try{localStorage.setItem(SAVE_KEY,JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,v:5}));}catch(e){}
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,v:5}));}catch(e){}
   // Don't echo remote updates back to Supabase
   if(applyingRemote)return;
   // Debounce pushes so a burst of edits only triggers one network call
@@ -1376,7 +1450,7 @@ function saveState(){
 async function pushToSupabase(){
   if(!supa){setSyncIndicator('offline');return;}
   try{
-    const payload={SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,v:5};
+    const payload={SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,v:5};
     const fp=JSON.stringify(payload);
     if(fp===lastSyncFp){setSyncIndicator('synced');return;}
     const {error}=await supa.from('scheduler_state').update({
@@ -1406,6 +1480,7 @@ function tryLoadState(){
     CARS=data.CARS&&data.CARS.length?data.CARS:defaultCars();
     TEACHERS=data.TEACHERS&&typeof data.TEACHERS==='object'?data.TEACHERS:{};
     ATTEND=data.ATTEND&&typeof data.ATTEND==='object'?data.ATTEND:{};
+    PIPELINE=data.PIPELINE&&typeof data.PIPELINE==='object'?data.PIPELINE:{};
     deriveTeachersFromStudents();
     const raw_s=data.SCHED||{};
     SCHED={};
@@ -1429,6 +1504,7 @@ function applyRemoteData(payload,updatedBy,updatedAt){
     CARS=(payload.CARS&&payload.CARS.length)?payload.CARS:defaultCars();
     TEACHERS=payload.TEACHERS&&typeof payload.TEACHERS==='object'?payload.TEACHERS:{};
     ATTEND=payload.ATTEND&&typeof payload.ATTEND==='object'?payload.ATTEND:{};
+    PIPELINE=payload.PIPELINE&&typeof payload.PIPELINE==='object'?payload.PIPELINE:{};
     deriveTeachersFromStudents();
     const raw_s=payload.SCHED||{};
     SCHED={};
@@ -1436,7 +1512,7 @@ function applyRemoteData(payload,updatedBy,updatedAt){
       const arr=raw_s[d]?.[car.id]||[];
       SCHED[d][car.id]=arr.length>=MAX_SL?arr:[...arr,...Array(MAX_SL-arr.length).fill(null)];
     });});
-    lastSyncFp=JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,v:5});
+    lastSyncFp=JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,v:5});
     setLastEdit(updatedBy,updatedAt);
     return true;
   }finally{
@@ -1468,7 +1544,7 @@ function subscribeRealtime(){
       (pl)=>{
         const newData=pl.new&&pl.new.data;
         if(!newData)return;
-        const fp=JSON.stringify({SS:newData.SS,SCHED:newData.SCHED,CARS:newData.CARS,TEACHERS:newData.TEACHERS||{},ATTEND:newData.ATTEND||{},SETTINGS:newData.SETTINGS||DEFAULT_SETTINGS,v:5});
+        const fp=JSON.stringify({SS:newData.SS,SCHED:newData.SCHED,CARS:newData.CARS,TEACHERS:newData.TEACHERS||{},ATTEND:newData.ATTEND||{},SETTINGS:newData.SETTINGS||DEFAULT_SETTINGS,PIPELINE:newData.PIPELINE||{},v:5});
         // Ignore our own echo
         if(fp===lastSyncFp)return;
         if(applyRemoteData(newData,pl.new.updated_by,pl.new.updated_at)){
@@ -1499,6 +1575,7 @@ function importState(){
       CARS=data.CARS&&data.CARS.length?data.CARS:defaultCars();
       TEACHERS=data.TEACHERS&&typeof data.TEACHERS==='object'?data.TEACHERS:{};
       ATTEND=data.ATTEND&&typeof data.ATTEND==='object'?data.ATTEND:{};
+      PIPELINE=data.PIPELINE&&typeof data.PIPELINE==='object'?data.PIPELINE:{};
       deriveTeachersFromStudents();
       SCHED={};
       DAYS.forEach(d=>{SCHED[d]={};CARS.forEach(car=>{
@@ -3301,12 +3378,15 @@ function switchView(view){
   qs('vt-daily').classList.toggle('active',view==='daily');
   qs('vt-week').classList.toggle('active',view==='week');
   qs('vt-audit').classList.toggle('active',view==='audit');
+  qs('vt-pipeline').classList.toggle('active',view==='pipeline');
   qs('sched-outer').style.display=view==='daily'?'':'none';
   document.querySelectorAll('.legend').forEach(el=>el.style.display=view==='daily'?'':'none');
   qs('audit-outer').style.display=view==='audit'?'block':'none';
   qs('week-outer').style.display=view==='week'?'block':'none';
+  qs('pipeline-outer').style.display=view==='pipeline'?'block':'none';
   if(view==='audit')renderAudit();
   if(view==='week')renderWeekView();
+  if(view==='pipeline')renderPipeline();
 }
 // ===== WEEK VIEW =====
 let _wkBranch='All';
@@ -5140,6 +5220,307 @@ function toastUndo(msg,onUndo,ms){
   t.appendChild(span);t.appendChild(btn);
   document.body.appendChild(t);
   setTimeout(()=>{if(!used)t.remove();},ms||10000);
+}
+
+// ===== PIPELINE / CRM ENGINE (SOP 4.6.4) =====
+const PL_STAGES=[
+  {id:'inquiry',label:'Inquiry',icon:'📨',color:'#2563EB'},
+  {id:'tour_booked',label:'Tour Booked',icon:'📅',color:'#7C3AED'},
+  {id:'toured',label:'Toured',icon:'🏫',color:'#0891B2'},
+  {id:'offer_made',label:'Offer Made',icon:'📝',color:'#D97706'},
+  {id:'enrolled',label:'Enrolled',icon:'✅',color:'#059669'},
+  {id:'retained',label:'Retained / Referred',icon:'⭐',color:'#9333EA'},
+  {id:'lost',label:'Lost',icon:'❌',color:'#DC2626'}
+];
+const PL_SOURCES=['Walk-in','WhatsApp','Instagram','Referral','Website','Phone','Other'];
+const PL_TOUR_OUTCOMES=['strong','undecided','unlikely'];
+const PL_LOST_REASONS=['Pricing','Location','Schedule conflict','Competitor','No response','Other'];
+const PL_STALE_DAYS=14;
+const PL_MAX_CONTACTS=3;
+
+// Pipeline state — synced alongside SS/SCHED/etc
+let PIPELINE={};  // {[leadId]: leadObj}
+let _plSearch='';
+let _plDragId=null;
+
+function plId(){return 'lead_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);}
+
+function newLead(overrides){
+  const id=plId();
+  const now=new Date().toISOString();
+  return Object.assign({
+    id,
+    familyName:'',
+    childName:'',
+    childAge:'',
+    phone:'',
+    email:'',
+    source:'Walk-in',
+    branch:'Salam',
+    stage:'inquiry',
+    tourDate:'',
+    tourOutcome:'',
+    offerNote:'',
+    lostReason:'',
+    lostNote:'',
+    contactCount:0,
+    notes:'',
+    log:[],         // [{ts,type:'outgoing'|'incoming'|'note',text}]
+    createdAt:now,
+    updatedAt:now,
+    stageEnteredAt:now
+  },overrides||{},{id});
+}
+
+function plLeadsByStage(stageId){
+  return Object.values(PIPELINE).filter(l=>l.stage===stageId)
+    .filter(l=>{
+      if(!_plSearch)return true;
+      const q=_plSearch.toLowerCase();
+      return (l.familyName||'').toLowerCase().includes(q)||(l.childName||'').toLowerCase().includes(q)||(l.phone||'').includes(q);
+    })
+    .sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt));
+}
+
+function plDaysSince(isoStr){
+  if(!isoStr)return 999;
+  return Math.floor((Date.now()-new Date(isoStr).getTime())/86400000);
+}
+
+function plIsStale(lead){
+  if(lead.stage==='enrolled'||lead.stage==='retained'||lead.stage==='lost')return false;
+  return plDaysSince(lead.stageEnteredAt)>=PL_STALE_DAYS;
+}
+
+function plIsHot(lead){
+  return plDaysSince(lead.updatedAt)<=2;
+}
+
+function plSavePipeline(){
+  saveState();
+}
+
+// ---- RENDER KANBAN ----
+function renderPipeline(){
+  const el=qs('pipeline-outer');
+  if(!el)return;
+  const total=Object.keys(PIPELINE).length;
+  const staleCount=Object.values(PIPELINE).filter(plIsStale).length;
+
+  let h='<div class="pl-toolbar">';
+  h+='<span class="pl-title">🔗 Admission Pipeline</span>';
+  h+='<span class="pl-stat">Total: <b>'+total+'</b></span>';
+  if(staleCount>0) h+='<span class="pl-stat" style="color:#DC2626;border-color:#FCA5A5">Stale: <b style="color:#DC2626">'+staleCount+'</b></span>';
+  // Weekly numbers
+  const now=new Date();
+  const weekAgo=new Date(now.getTime()-7*86400000).toISOString();
+  const wkInq=Object.values(PIPELINE).filter(l=>l.createdAt>=weekAgo).length;
+  const wkTour=Object.values(PIPELINE).filter(l=>l.stage==='tour_booked'&&l.stageEnteredAt>=weekAgo).length;
+  const wkTouredN=Object.values(PIPELINE).filter(l=>l.stage==='toured'&&l.stageEnteredAt>=weekAgo).length;
+  const wkOffer=Object.values(PIPELINE).filter(l=>l.stage==='offer_made'&&l.stageEnteredAt>=weekAgo).length;
+  const wkEnrolled=Object.values(PIPELINE).filter(l=>l.stage==='enrolled'&&l.stageEnteredAt>=weekAgo).length;
+  h+='<span class="pl-stat" title="5 Weekly Numbers (SOP 4.6.4)">This week: <b>'+wkInq+'</b> inq · <b>'+wkTour+'</b> booked · <b>'+wkTouredN+'</b> toured · <b>'+wkOffer+'</b> offers · <b>'+wkEnrolled+'</b> enrolled</span>';
+  h+='<div style="flex:1"></div>';
+  h+='<input class="pl-search" placeholder="Search leads..." value="'+esc(_plSearch)+'" oninput="_plSearch=this.value;renderPipeline()">';
+  h+='<button class="pl-add-btn" onclick="openPlModal()">+ New Lead</button>';
+  h+='</div>';
+
+  // Kanban board
+  h+='<div class="pl-board">';
+  PL_STAGES.forEach(stg=>{
+    const leads=plLeadsByStage(stg.id);
+    h+='<div class="pl-col">';
+    h+='<div class="pl-col-hdr"><span class="pl-col-title">'+stg.icon+' '+stg.label+'</span><span class="pl-col-cnt">'+leads.length+'</span></div>';
+    h+='<div class="pl-col-body" data-stage="'+stg.id+'" ondragover="plDragOver(event)" ondragleave="plDragLeave(event)" ondrop="plDrop(event,\''+stg.id+'\')">';
+    leads.forEach(lead=>{
+      const stale=plIsStale(lead);
+      const hot=plIsHot(lead)&&!stale;
+      const days=plDaysSince(lead.stageEnteredAt);
+      h+='<div class="pl-card'+(stale?' stale':'')+'" draggable="true" ondragstart="plDragStart(event,\''+lead.id+'\')" ondragend="plDragEnd(event)" onclick="openPlModal(\''+lead.id+'\')">';
+      if(stale) h+='<span class="pl-card-stale">⚠ '+days+'d stale</span>';
+      else if(hot) h+='<span class="pl-card-hot">🔥 new</span>';
+      h+='<div class="pl-card-name">'+esc(lead.familyName||'Unnamed')+'</div>';
+      h+='<div class="pl-card-child">'+esc(lead.childName||'')+(lead.childAge?' ('+esc(lead.childAge)+')':'')+'</div>';
+      h+='<div class="pl-card-meta">';
+      if(lead.source) h+='<span class="pl-src">'+esc(lead.source)+'</span>';
+      h+='<span>'+days+'d in stage</span>';
+      if(lead.contactCount>0) h+='<span>'+lead.contactCount+'/'+PL_MAX_CONTACTS+' contacts</span>';
+      h+='</div>';
+      h+='</div>';
+    });
+    h+='</div></div>';
+  });
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+// ---- DRAG & DROP ----
+function plDragStart(e,leadId){
+  _plDragId=leadId;
+  e.dataTransfer.effectAllowed='move';
+  e.target.classList.add('dragging');
+}
+function plDragEnd(e){
+  _plDragId=null;
+  e.target.classList.remove('dragging');
+  document.querySelectorAll('.pl-col-body.drag-over').forEach(el=>el.classList.remove('drag-over'));
+}
+function plDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  e.currentTarget.classList.add('drag-over');
+}
+function plDragLeave(e){
+  e.currentTarget.classList.remove('drag-over');
+}
+function plDrop(e,newStage){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if(!_plDragId||!PIPELINE[_plDragId])return;
+  const lead=PIPELINE[_plDragId];
+  if(lead.stage===newStage)return;
+  const now=new Date().toISOString();
+  lead.log.push({ts:now,type:'note',text:'Stage changed: '+lead.stage+' → '+newStage});
+  lead.stage=newStage;
+  lead.stageEnteredAt=now;
+  lead.updatedAt=now;
+  // Auto-increment contact count on outbound stage moves (inquiry/tour_booked/offer_made)
+  if(['tour_booked','offer_made'].includes(newStage)) lead.contactCount=Math.min((lead.contactCount||0)+1,PL_MAX_CONTACTS);
+  plSavePipeline();
+  renderPipeline();
+}
+
+// ---- LEAD MODAL ----
+function openPlModal(leadId){
+  const isNew=!leadId;
+  const lead=isNew?newLead():PIPELINE[leadId];
+  if(!lead)return;
+  const overlay=qs('pl-modal-overlay');
+  document.getElementById('pl-modal-title').textContent=isNew?'New Lead':'Edit Lead — '+esc(lead.familyName||'Unnamed');
+
+  let b='';
+  b+='<div class="pl-field-row">';
+  b+='<div class="pl-field"><label>Family Name *</label><input id="pl-f-family" value="'+esc(lead.familyName||'')+'"></div>';
+  b+='<div class="pl-field"><label>Child Name</label><input id="pl-f-child" value="'+esc(lead.childName||'')+'"></div>';
+  b+='</div>';
+  b+='<div class="pl-field-row">';
+  b+='<div class="pl-field"><label>Child Age</label><input id="pl-f-age" value="'+esc(lead.childAge||'')+'" placeholder="e.g. 7"></div>';
+  b+='<div class="pl-field"><label>Phone</label><input id="pl-f-phone" value="'+esc(lead.phone||'')+'" placeholder="+965 ..."></div>';
+  b+='<div class="pl-field"><label>Email</label><input id="pl-f-email" value="'+esc(lead.email||'')+'"></div>';
+  b+='</div>';
+  b+='<div class="pl-field-row">';
+  b+='<div class="pl-field"><label>Source</label><select id="pl-f-source">'+PL_SOURCES.map(s=>'<option'+(lead.source===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div>';
+  b+='<div class="pl-field"><label>Branch</label><select id="pl-f-branch"><option'+(lead.branch==='Salam'?' selected':'')+'>Salam</option><option'+(lead.branch==='Shuhada'?' selected':'')+'>Shuhada</option><option'+(lead.branch==='Salwa'?' selected':'')+'>Salwa</option></select></div>';
+  b+='<div class="pl-field"><label>Stage</label><select id="pl-f-stage">'+PL_STAGES.map(s=>'<option value="'+s.id+'"'+(lead.stage===s.id?' selected':'')+'>'+s.icon+' '+s.label+'</option>').join('')+'</select></div>';
+  b+='</div>';
+
+  // Tour fields (shown for tour_booked and toured stages)
+  b+='<div class="pl-field-row">';
+  b+='<div class="pl-field"><label>Tour Date</label><input id="pl-f-tourdate" type="date" value="'+(lead.tourDate||'')+'"></div>';
+  b+='<div class="pl-field"><label>Tour Outcome</label><select id="pl-f-tourout"><option value="">—</option>'+PL_TOUR_OUTCOMES.map(o=>'<option'+(lead.tourOutcome===o?' selected':'')+'>'+o+'</option>').join('')+'</select></div>';
+  b+='</div>';
+
+  // Lost reason (shown for lost)
+  b+='<div class="pl-field-row">';
+  b+='<div class="pl-field"><label>Lost Reason</label><select id="pl-f-lostreason"><option value="">—</option>'+PL_LOST_REASONS.map(r=>'<option'+(lead.lostReason===r?' selected':'')+'>'+r+'</option>').join('')+'</select></div>';
+  b+='<div class="pl-field"><label>Lost Note</label><input id="pl-f-lostnote" value="'+esc(lead.lostNote||'')+'"></div>';
+  b+='</div>';
+
+  b+='<div class="pl-field"><label>Notes</label><textarea id="pl-f-notes" rows="2">'+esc(lead.notes||'')+'</textarea></div>';
+
+  // Conversation log
+  b+='<div class="pl-log">';
+  b+='<div class="pl-log-title">💬 Conversation Log ('+lead.log.length+' entries)</div>';
+  b+='<div class="pl-log-list" id="pl-log-list">';
+  lead.log.slice().reverse().forEach(entry=>{
+    b+='<div class="pl-log-entry '+entry.type+'">';
+    b+='<div class="pl-log-ts">'+(entry.type==='outgoing'?'📤':entry.type==='incoming'?'📥':'📝')+' '+new Date(entry.ts).toLocaleString()+'</div>';
+    b+='<div class="pl-log-text">'+esc(entry.text)+'</div>';
+    b+='</div>';
+  });
+  if(lead.log.length===0) b+='<div style="text-align:center;color:var(--text3);font-size:10px;padding:12px">No interactions logged yet</div>';
+  b+='</div>';
+  b+='<div class="pl-log-add">';
+  b+='<select id="pl-log-type"><option value="outgoing">📤 Out</option><option value="incoming">📥 In</option><option value="note">📝 Note</option></select>';
+  b+='<input id="pl-log-text" placeholder="Log a message or note...">';
+  b+='<button onclick="plAddLogEntry(\''+lead.id+'\')">Add</button>';
+  b+='</div>';
+  b+='</div>';
+
+  document.getElementById('pl-modal-body').innerHTML=b;
+
+  // Actions
+  let a='';
+  if(!isNew) a+='<button class="pl-del" onclick="plDeleteLead(\''+lead.id+'\')">Delete</button>';
+  a+='<button onclick="closePlModal()">Cancel</button>';
+  a+='<button class="pl-save" onclick="plSaveLead(\''+lead.id+'\','+(isNew?'true':'false')+')">Save</button>';
+  document.getElementById('pl-modal-actions').innerHTML=a;
+
+  overlay.style.display='flex';
+}
+
+function closePlModal(){
+  qs('pl-modal-overlay').style.display='none';
+}
+
+function plSaveLead(leadId,isNew){
+  const family=document.getElementById('pl-f-family').value.trim();
+  if(!family){alert('Family name is required');return;}
+  const now=new Date().toISOString();
+  const existing=isNew?newLead({id:leadId}):PIPELINE[leadId];
+  if(!existing)return;
+
+  const oldStage=existing.stage;
+  const newStage=document.getElementById('pl-f-stage').value;
+
+  existing.familyName=family;
+  existing.childName=document.getElementById('pl-f-child').value.trim();
+  existing.childAge=document.getElementById('pl-f-age').value.trim();
+  existing.phone=document.getElementById('pl-f-phone').value.trim();
+  existing.email=document.getElementById('pl-f-email').value.trim();
+  existing.source=document.getElementById('pl-f-source').value;
+  existing.branch=document.getElementById('pl-f-branch').value;
+  existing.stage=newStage;
+  existing.tourDate=document.getElementById('pl-f-tourdate').value;
+  existing.tourOutcome=document.getElementById('pl-f-tourout').value;
+  existing.lostReason=document.getElementById('pl-f-lostreason').value;
+  existing.lostNote=document.getElementById('pl-f-lostnote').value.trim();
+  existing.notes=document.getElementById('pl-f-notes').value.trim();
+  existing.updatedAt=now;
+
+  if(oldStage!==newStage){
+    existing.stageEnteredAt=now;
+    existing.log.push({ts:now,type:'note',text:'Stage changed: '+oldStage+' → '+newStage});
+  }
+
+  PIPELINE[existing.id]=existing;
+  plSavePipeline();
+  closePlModal();
+  renderPipeline();
+}
+
+function plDeleteLead(leadId){
+  if(!confirm('Delete this lead permanently?'))return;
+  delete PIPELINE[leadId];
+  plSavePipeline();
+  closePlModal();
+  renderPipeline();
+}
+
+function plAddLogEntry(leadId){
+  const lead=PIPELINE[leadId];
+  if(!lead)return;
+  const type=document.getElementById('pl-log-type').value;
+  const text=document.getElementById('pl-log-text').value.trim();
+  if(!text)return;
+  const now=new Date().toISOString();
+  lead.log.push({ts:now,type,text});
+  lead.contactCount=(lead.contactCount||0)+1;
+  lead.updatedAt=now;
+  PIPELINE[leadId]=lead;
+  plSavePipeline();
+  // Re-render just the log section
+  openPlModal(leadId);
 }
 
 // ===== START =====
