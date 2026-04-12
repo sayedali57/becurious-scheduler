@@ -3262,10 +3262,10 @@ function renderWeekView(){
     </select>
   </div>`;
   h+=`<div class="wk-legend">
-    <label class="wk-filter-btn${_wkFilter.drop?' active':''}" onclick="_wkFilter.drop=!_wkFilter.drop;renderWeekView()"><i style="background:#F0FDF4;border:1px solid #059669"></i><input type="checkbox" ${_wkFilter.drop?'checked':''} style="display:none"> Drop</label>
-    <label class="wk-filter-btn${_wkFilter.dd?' active':''}" onclick="_wkFilter.dd=!_wkFilter.dd;renderWeekView()"><i style="background:#EFF6FF;border:1px solid #2563EB"></i><input type="checkbox" ${_wkFilter.dd?'checked':''} style="display:none"> Double/Triple</label>
-    <label class="wk-filter-btn${_wkFilter.grp?' active':''}" onclick="_wkFilter.grp=!_wkFilter.grp;renderWeekView()"><i style="background:#FDF4FF;border:1px solid #9333EA"></i><input type="checkbox" ${_wkFilter.grp?'checked':''} style="display:none"> Group</label>
-    <label class="wk-filter-btn${_wkFilter.pick?' active':''}" onclick="_wkFilter.pick=!_wkFilter.pick;renderWeekView()"><i style="background:#FFF7ED;border:1px solid #EA580C"></i><input type="checkbox" ${_wkFilter.pick?'checked':''} style="display:none"> Pickup</label>
+    <span class="wk-filter-btn${_wkFilter.drop?' active':''}" onclick="_wkFilter.drop=!_wkFilter.drop;renderWeekView()"><i style="background:#F0FDF4;border:1px solid #059669"></i> Drop</span>
+    <span class="wk-filter-btn${_wkFilter.dd?' active':''}" onclick="_wkFilter.dd=!_wkFilter.dd;renderWeekView()"><i style="background:#EFF6FF;border:1px solid #2563EB"></i> Double/Triple</span>
+    <span class="wk-filter-btn${_wkFilter.grp?' active':''}" onclick="_wkFilter.grp=!_wkFilter.grp;renderWeekView()"><i style="background:#FDF4FF;border:1px solid #9333EA"></i> Group</span>
+    <span class="wk-filter-btn${_wkFilter.pick?' active':''}" onclick="_wkFilter.pick=!_wkFilter.pick;renderWeekView()"><i style="background:#FFF7ED;border:1px solid #EA580C"></i> Pickup</span>
   </div>`;
 
   // Grid: days as columns
