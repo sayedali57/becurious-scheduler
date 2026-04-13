@@ -4919,6 +4919,50 @@ function autoScopeNoteRefresh(){
     else note.textContent=`(clears ONLY ${br} students' existing slots — other branches stay put)`;
   }
 }
+// ──── ONE-TIME REPAIR: relocate pickups that start before their session ends ────
+function fixEarlyPickups(){
+  let fixed=0,removed=0;
+  DAYS_ACTIVE.forEach(day=>{
+    CARS.forEach(car=>{
+      const slots=SCHED[day]?.[car.id]||[];
+      for(let si=0;si<slots.length;si++){
+        const sl_=slots[si];
+        if(!sl_||sl_.t!=='pick')continue;
+        const sid=sl_.id;
+        const info=findDropInfo(sid);
+        if(!info)continue;
+        const readyMin=info.readyMin||0;
+        const pickStart=slotStartMin(day,car.id,si);
+        if(pickStart>=readyMin)continue; // this pickup is fine
+        // This pickup is early — remove it from current slot
+        const savedSlot={...sl_};
+        slots[si]=null;
+        // Try to re-place it in any car at a valid time
+        let bestCar=null,bestSi=-1,bestScore=Infinity;
+        CARS.forEach(c2=>{
+          const s2=SCHED[day]?.[c2.id]||[];
+          for(let j=0;j<s2.length;j++){
+            if(s2[j])continue;
+            const smin=slotStartMin(day,c2.id,j);
+            if(smin<readyMin)continue;
+            const score=(smin-readyMin)+(info.cid===c2.id?0:20);
+            if(score<bestScore){bestScore=score;bestCar=c2;bestSi=j;}
+          }
+        });
+        if(bestCar&&bestSi>=0){
+          SCHED[day][bestCar.id][bestSi]=savedSlot;
+          fixed++;
+        } else {
+          removed++; // no valid slot found — pickup stays removed
+        }
+      }
+    });
+  });
+  renderSched();renderPool();saveState();
+  toast(`Fixed ${fixed} early pickup(s), removed ${removed} unfixable.`);
+  console.log(`fixEarlyPickups: relocated ${fixed}, removed ${removed}`);
+}
+
 function runAutoSchedule(){
   // PIN gate
   if(SETTINGS.autoSchedulePin&&SETTINGS.autoSchedulePin.length){
