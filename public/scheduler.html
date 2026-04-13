@@ -961,7 +961,7 @@ function nextSlotPos(d,cid,si){
     const sl_=slots[i];if(!sl_)continue;
     if(sl_.t==='s'&&SS[sl_.id]){const s=SS[sl_.id];return{la:sl_.grp?.la??s.la,ln:sl_.grp?.ln??s.ln,a:sl_.grp?.addr??s.a,isBase:false};}
     if(sl_.t==='d'&&SS[sl_.ids?.[0]]){const s=SS[sl_.ids[0]];return{la:sl_.grp?.la??s.la,ln:sl_.grp?.ln??s.ln,a:sl_.grp?.addr??s.a,isBase:false};}
-    if(sl_.t==='pick'&&SS[sl_.id]){const s=SS[sl_.id];return{la:s.la,ln:s.ln,a:s.a,isBase:false};}
+    if(sl_.t==='pick'&&SS[sl_.id]){const s=SS[sl_.id];return{la:sl_.grp?.la??s.la,ln:sl_.grp?.ln??s.ln,a:sl_.grp?.addr??s.a,isBase:false};}
   }
   const br=carBranch(cid);const[la,ln]=brCoords(br);
   return{la,ln,a:br+' branch',isBase:true};
@@ -1653,7 +1653,8 @@ function slotDur(sl_,d,cid,si){
     const s=SS[sl_.id];
     const handover=parseInt(SETTINGS.pickupHandoverMin)||0;
     if(!s)return 10+handover;
-    return tm(hv(prev.la,prev.ln,s.la,s.ln))+handover;
+    const pla=sl_.grp?.la??s.la, pln=sl_.grp?.ln??s.ln;
+    return tm(hv(prev.la,prev.ln,pla,pln))+handover;
   }
   return 0;
 }
@@ -2184,7 +2185,8 @@ function renderSlot(d,cid,si){
     const s=SS[sl_.id];if(!s)return'';
     const col=TC[s.t]||'#E87C50';
     const prev=lastPos(d,cid,si);
-    const travelMin=tm(hv(prev.la,prev.ln,s.la,s.ln));
+    const pla=sl_.grp?.la??s.la, pln=sl_.grp?.ln??s.ln, pAddr=sl_.grp?.addr??s.a;
+    const travelMin=tm(hv(prev.la,prev.ln,pla,pln));
     const fromLabel=prev.isBase?prev.a:sl(prev.a);
     const info=findDropInfo(sl_.id);
     const readyMin=info?info.readyMin:600;
@@ -2204,12 +2206,12 @@ function renderSlot(d,cid,si){
       ${pickRideNote}
       ${xcarNote}
       <div class="slot pickup-slot${isActive?' active-slot':''}${rejCls}" ${base} ${handlers}>
-        <div class="journey pick-j"><span class="j-from">${sl(s.a)}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
+        <div class="journey pick-j"><span class="j-from">${sl(pAddr)}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
         <div class="slot-toprow">${warns}<button class="edit-ico" onclick="event.stopPropagation();editStudent('${s.id}')" title="Edit student">✏</button></div>
         <div class="ss" draggable="true" data-sid="${s.id}" data-dtype="pick" style="border-left:3px solid ${col};padding-top:2px">
-          <div class="t" style="color:${col}">▲ Pick-up · ${s.t}</div>
+          <div class="t" style="color:${col}">▲ Pick-up · ${s.t}${sl_.grp?' (group)':''}</div>
           <div class="n">${s.n}</div>
-          <div class="a">${sl(s.a)} → ${toLabel}</div>
+          <div class="a">${sl(pAddr)} → ${toLabel}</div>
           <div class="m">${timeStr} · ${travelMin}min drive · ${onTime?'✓ On time':`⚠ Ready at ${ts(readyMin)}`}</div>
           <button class="rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})">×</button>
         </div>
@@ -3605,7 +3607,15 @@ function auditStudents(filterBr,filterT,AD){
     // Check pickup status per day
     let hasAllPickups=true;
     Object.keys(dayMap).forEach(d=>{
-      const picked=CARS.some(car=>(SCHED[d]?.[car.id]||[]).some(sl_=>sl_&&sl_.t==='pick'&&sl_.id===s.id));
+      let picked=CARS.some(car=>(SCHED[d]?.[car.id]||[]).some(sl_=>sl_&&sl_.t==='pick'&&sl_.id===s.id));
+      // For group students: check if the group's anchor has a pickup
+      if(!picked&&(s.sessionType||'1on1')==='group'){
+        picked=CARS.some(car=>(SCHED[d]?.[car.id]||[]).some(sl_=>{
+          if(!sl_||sl_.t!=='g'||!sl_.ids?.includes(s.id))return false;
+          const anchor=sl_.ids[0];
+          return CARS.some(c2=>(SCHED[d]?.[c2.id]||[]).some(sl2=>sl2&&sl2.t==='pick'&&sl2.id===anchor));
+        }));
+      }
       if(!picked)hasAllPickups=false;
     });
     // Back-to-back detection: are any scheduled days adjacent?
@@ -5195,18 +5205,28 @@ function runAutoSchedule(){
         const driveCoords=resolveGroupCoords(pickS);
         pos={la:driveCoords.la,ln:driveCoords.ln,isBase:false};
 
-        // Optionally insert pickup slots after this drop — one per student
-        // in the slot. For groups at the same address the driver still needs
-        // to pick up each child individually (teachers finish at different
-        // times), so we create a pickup for every student, not just the anchor.
+        // Optionally insert pickup slots after this drop.
+        // For group sessions (t==='g'), ALL students are at the same location
+        // with the SAME teacher, so we create only ONE pickup (the teacher is
+        // one person). For double-drops (t==='d'), each student may be at a
+        // different address with a different teacher, so one pickup per student.
         if(autoPickup){
-          const allIds=slots[si].t==='s'?[slots[si].id]
-            :slots[si].t==='d'?(slots[si].ids||[])
-            :slots[si].t==='g'?(slots[si].ids||[])
-            :[pickSid];
-          for(const pid of allIds){
+          const curSlot=slots[si];
+          if(curSlot.t==='g'){
+            // Group: one pickup — use anchor student + group coordinates
+            const anchor=curSlot.ids[0];
+            const gC=resolveGroupCoords(SS[anchor]);
+            const gAddr=SS[anchor]?.a||'';
             const psi=slots.findIndex((x,k)=>k>si&&!x);
-            if(psi>=0){slots[psi]={t:'pick',id:pid};si=psi;}
+            if(psi>=0){slots[psi]={t:'pick',id:anchor,grp:{la:gC.la,ln:gC.ln,addr:gAddr}};si=psi;}
+          } else {
+            const allIds=curSlot.t==='s'?[curSlot.id]
+              :curSlot.t==='d'?(curSlot.ids||[])
+              :[pickSid];
+            for(const pid of allIds){
+              const psi=slots.findIndex((x,k)=>k>si&&!x);
+              if(psi>=0){slots[psi]={t:'pick',id:pid};si=psi;}
+            }
           }
         }
       }
@@ -5227,6 +5247,10 @@ function runAutoSchedule(){
         (SCHED[day]?.[car.id]||[]).forEach(sl_=>{
           if(!sl_)return;
           if(sl_.t==='pick')pickedThisDay.add(sl_.id);
+          else if(sl_.t==='g'){
+            // Group: only track the anchor student — one pickup for the whole group
+            if(sl_.ids?.[0])droppedThisDay.add(sl_.ids[0]);
+          }
           else slotStudentIds(sl_).forEach(sid=>droppedThisDay.add(sid));
         });
       });
@@ -5258,7 +5282,13 @@ function runAutoSchedule(){
           }
         });
         if(bestCar&&bestSi>=0){
-          SCHED[day][bestCar.id][bestSi]={t:'pick',id:sid};
+          // Check if this student was in a group session — if so, attach group coords
+          const pickSlot={t:'pick',id:sid};
+          if((s.sessionType||'1on1')==='group'){
+            const gC=resolveGroupCoords(s);
+            pickSlot.grp={la:gC.la,ln:gC.ln,addr:s.a};
+          }
+          SCHED[day][bestCar.id][bestSi]=pickSlot;
           pickupsPlaced++;
         }
       }
@@ -5278,6 +5308,7 @@ function runAutoSchedule(){
     CARS.forEach(car=>(SCHED[day]?.[car.id]||[]).forEach(sl_=>{
       if(!sl_)return;
       if(sl_.t==='pick')picked.add(sl_.id);
+      else if(sl_.t==='g'){if(sl_.ids?.[0])dropped.add(sl_.ids[0]);}
       else slotStudentIds(sl_).forEach(sid=>dropped.add(sid));
     }));
     pendingPicks+=[...dropped].filter(sid=>!picked.has(sid)).length;
