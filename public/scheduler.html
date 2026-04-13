@@ -12,24 +12,24 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
 /* ===== TOP NAV — theme switcher ===== */
-.topnav{background:#FFFFFF;color:var(--text);padding:0 18px;border-bottom:1px solid var(--border);gap:4px;position:relative;display:flex;align-items:center;flex-shrink:0}
-.topnav::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg, #6366F1 0%, #14B8A6 50%, #F59E0B 100%);opacity:.9}
-.topnav-brand{display:flex;align-items:center;gap:10px;padding:10px 16px 10px 0;margin-right:8px;border-right:1px solid var(--border);color:var(--text);font-weight:800;font-size:15px;letter-spacing:-0.02em}
-.topnav-brand img{width:28px;height:28px}
+.topnav{background:#FFFFFF;color:var(--text);padding:0 14px;border-bottom:1px solid var(--border);gap:4px;position:relative;display:flex;align-items:center;flex-shrink:0}
+.topnav::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg, #6366F1 0%, #14B8A6 50%, #F59E0B 100%);opacity:.9}
+.topnav-brand{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 0;margin-right:6px;border-right:1px solid var(--border);color:var(--text);font-weight:800;font-size:13px;letter-spacing:-0.02em}
+.topnav-brand img{width:22px;height:22px}
 .topnav-brand span{color:var(--purple)}
-.theme-tab{padding:12px 18px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;transition:all .12s;letter-spacing:0;display:inline-flex;align-items:center;gap:7px;font-family:inherit}
+.theme-tab{padding:8px 14px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;transition:all .12s;letter-spacing:0;display:inline-flex;align-items:center;gap:7px;font-family:inherit}
 .theme-tab:hover{color:var(--text)}
 .theme-tab.active{color:var(--text);font-weight:700}
 .theme-tab.active[data-theme="hv"]{border-bottom-color:var(--teal);color:var(--accent-dk)}
 .theme-tab.active[data-theme="pl"]{border-bottom-color:var(--orange);color:#C2410C}
 .topnav-spacer{flex:1}
 .topnav-shared{display:flex;align-items:center;gap:4px}
-.topnav-btn{padding:8px 12px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;border:1px solid transparent;background:none;border-radius:8px;display:inline-flex;align-items:center;gap:6px;font-family:inherit;transition:all .12s}
+.topnav-btn{padding:6px 10px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;border:1px solid transparent;background:none;border-radius:8px;display:inline-flex;align-items:center;gap:6px;font-family:inherit;transition:all .12s}
 .topnav-btn:hover{color:var(--purple);background:var(--purple-lt)}
 .topnav-btn.active{color:var(--purple);background:var(--purple-lt)}
 .topnav-sync{font-size:10px;padding:4px 10px;border-radius:999px;margin-left:6px;color:var(--text3);background:var(--bg-mid)}
 /* ===== CONTEXTUAL TOOLBAR (per theme) ===== */
-.ctx-bar{background:#fff;color:var(--text);padding:10px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.ctx-bar{background:#fff;color:var(--text);padding:6px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;border-bottom:1px solid var(--border)}
 .ctx-bar .ctx-title{font-size:15px;font-weight:700;color:var(--text);display:inline-flex;align-items:center;gap:8px}
 .ctx-bar .ctx-sub{font-size:11px;color:var(--text3);margin-left:6px}
 .hdr{background:var(--purple);color:#fff;padding:8px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;display:none}
@@ -84,8 +84,8 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;bac
 .suggest-star{font-size:8px;background:#059669;color:#fff;padding:1px 4px;border-radius:3px;font-weight:700}
 /* Main schedule */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.daytabs{background:#fff;border-bottom:1px solid var(--border);padding:0 18px;gap:4px;align-items:center}
-.dt{padding:12px 16px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:.12s;border-radius:0}
+.daytabs{background:#fff;border-bottom:1px solid var(--border);padding:0 14px;gap:4px;align-items:center}
+.dt{padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:.12s;border-radius:0}
 .dt:hover{color:var(--purple)}
 .dt.on{color:var(--purple);border-bottom-color:var(--purple);font-weight:700}
 .dt.sun{color:var(--red);opacity:.75}
@@ -107,7 +107,52 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;bac
 .slot.filled{border-style:solid;border-color:var(--border);background:var(--card);box-shadow:0 2px 6px rgba(30,27,75,.04)}
 .slot.filled:hover{box-shadow:0 4px 12px rgba(30,27,75,.08)}
 .slot.paired{border-style:solid;border-color:var(--teal);background:#fff;box-shadow:0 0 0 2px var(--teal-lt)}
-.slot.pickup-slot{border-style:solid;border-color:var(--orange-lt);background:#fff}
+.slot.pickup-slot{border-style:solid;border-color:var(--border);background:var(--card);box-shadow:0 2px 6px rgba(30,27,75,.04)}
+.slot.pickup-slot:hover{box-shadow:0 4px 12px rgba(30,27,75,.08)}
+/* ===== COMPACT SLOT MODE (default) — show only start/end/address/student/teacher ===== */
+/* Global toggle via body.compact-slots */
+body.compact-slots .slot .journey,
+body.compact-slots .slot .auto-pick,
+body.compact-slots .slot .ride-note,
+body.compact-slots .slot .xcar-pick,
+body.compact-slots .slot .dd-hdr,
+body.compact-slots .slot .slot-actions,
+body.compact-slots .slot .grp-banner,
+body.compact-slots .slot .attendance-row,
+body.compact-slots .slot .ss .m,
+body.compact-slots .slot .dd-sep,
+body.compact-slots .slot .grp-drop-zone,
+body.compact-slots .slot .edit-ico{display:none}
+/* Per-slot override when expanded */
+body.compact-slots .slot[data-expanded="true"] .journey,
+body.compact-slots .slot[data-expanded="true"] .auto-pick,
+body.compact-slots .slot[data-expanded="true"] .ride-note,
+body.compact-slots .slot[data-expanded="true"] .xcar-pick,
+body.compact-slots .slot[data-expanded="true"] .dd-hdr,
+body.compact-slots .slot[data-expanded="true"] .slot-actions,
+body.compact-slots .slot[data-expanded="true"] .grp-banner,
+body.compact-slots .slot[data-expanded="true"] .attendance-row,
+body.compact-slots .slot[data-expanded="true"] .ss .m,
+body.compact-slots .slot[data-expanded="true"] .dd-sep,
+body.compact-slots .slot[data-expanded="true"] .grp-drop-zone,
+body.compact-slots .slot[data-expanded="true"] .edit-ico{display:revert}
+body.compact-slots .slot .ss{padding:6px 10px}
+body.compact-slots .slot .ss .n{font-size:12px;margin:3px 0 1px}
+body.compact-slots .slot .ss .a{font-size:10px;color:var(--text3)}
+body.compact-slots .slot .ss .t{font-size:10px;padding:2px 7px}
+body.compact-slots .slot{min-height:auto}
+body.compact-slots .slot .expand-chev{display:inline-flex}
+.expand-chev{display:none;position:absolute;top:4px;right:28px;cursor:pointer;opacity:.45;z-index:2;background:none;border:none;padding:3px;line-height:1;border-radius:6px;color:var(--text3);align-items:center}
+.expand-chev:hover{background:var(--bg-mid);opacity:1;color:var(--purple)}
+.slot[data-expanded="true"] .expand-chev{opacity:1;color:var(--purple);transform:rotate(180deg)}
+/* Time gutter — add end time beside start */
+.time-range{font-size:9px;color:var(--text3);padding:1px 0 0 2px;margin-bottom:1px;font-weight:600;display:flex;align-items:center;gap:4px}
+.time-range .tr-end{color:var(--text3);opacity:.6;font-weight:500}
+.time-range .tr-arr{color:var(--text3);opacity:.4}
+/* Pickup visual marker — same bg as drop, but with arrow */
+.slot.pickup-slot .ss .t::before{content:'▲ ';font-size:8px;margin-right:2px}
+body.compact-slots .slot.pickup-slot .ss .n{font-size:11px}
+body.compact-slots .slot.pickup-slot{opacity:.85}
 .slot.doverslot{border-color:var(--purple);background:var(--purple-lt);border-style:solid}
 .slot.doverslot.canpair{border-color:var(--teal);background:var(--teal-lt)}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,.4)}50%{box-shadow:0 0 0 5px rgba(52,211,153,.1)}}
@@ -392,14 +437,14 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;bac
 /* Home Visits theme tweaks */
 [data-active-theme="hv"]{--accent:var(--teal);--accent-lt:#E1F5EE;--accent-dk:#0F6E56}
 [data-active-theme="pl"]{--accent:var(--orange);--accent-lt:#FEF3ED;--accent-dk:#C45A2D}
-.hv-toolbar{background:var(--teal);color:#fff;padding:6px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
-.pl-topbar{background:#fff;color:var(--text);padding:10px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;border-bottom:1px solid var(--border)}
-.ctx-title{font-size:13px;font-weight:700}
+.hv-toolbar{background:var(--teal);color:#fff;padding:5px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
+.pl-topbar{background:#fff;color:var(--text);padding:5px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.ctx-title{font-size:12px;font-weight:700}
 .ctx-sub{font-size:9px;opacity:.7}
-.ctx-stats{display:flex;gap:8px;margin-left:12px}
-.ctx-stat{background:var(--bg-mid);padding:6px 12px;border-radius:10px;text-align:center;font-size:10px;color:var(--text2);display:flex;flex-direction:column;gap:1px;line-height:1.1}
-.ctx-stat b{font-size:14px;font-weight:700;color:var(--text)}
-.ctx-btn{padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;transition:all .12s;font-family:inherit}
+.ctx-stats{display:flex;gap:6px;margin-left:10px}
+.ctx-stat{background:var(--bg-mid);padding:3px 10px;border-radius:8px;text-align:center;font-size:9px;color:var(--text2);display:flex;flex-direction:column;gap:0;line-height:1.1}
+.ctx-stat b{font-size:13px;font-weight:700;color:var(--text)}
+.ctx-btn{padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;transition:all .12s;font-family:inherit}
 .ctx-btn:hover{background:var(--bg-mid);border-color:var(--purple);color:var(--purple)}
 .ctx-btn.green{background:var(--purple);color:#fff;border-color:var(--purple);box-shadow:0 1px 2px rgba(99,102,241,.2)}
 .ctx-btn.green:hover{background:var(--purple-dk);border-color:var(--purple-dk);color:#fff}
@@ -458,7 +503,7 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;bac
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<body data-active-theme="hv">
+<body data-active-theme="hv" class="compact-slots">
 <!-- ===== TOP NAV ===== -->
 <div class="topnav">
   <div class="topnav-brand"><img src="/favicon.svg" alt="BeCurious"><span>BE:</span>CURIOUS</div>
@@ -472,6 +517,7 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;bac
       <div class="menu-dropdown" id="main-menu" style="display:none">
         <button onclick="closeMainMenu();showStudentsTable()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Students</button>
         <button onclick="closeMainMenu();showSettingsModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>Settings</button>
+        <button onclick="closeMainMenu();toggleCompactSlots()" title="Toggle compact / full slot cards"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>Compact slots</button>
         <button onclick="closeMainMenu();showSharedHelp()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>Help</button>
         <div class="menu-sep"></div>
         <button onclick="closeMainMenu();importState()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Import</button>
@@ -2293,11 +2339,17 @@ function renderSlot(d,cid,si){
   const startMin=slotStartMin(d,cid,si);
   const isActive=activeSlot&&activeSlot.d===d&&activeSlot.cid===cid&&activeSlot.si===si;
   const timeStr=ts(startMin);
-  const base=`id="sl-${d}-${cid}-${si}" data-d="${d}" data-cid="${cid}" data-si="${si}"`;
+  const endStr=ts(startMin+sessionBlockMin());
+  // Pickup slots use the pickup-ready time (start) → arrival at next drop; but
+  // the simple start/end rendering is fine for visual consistency.
+  const timeHtml=`<div class="time-range"><span class="tr-start">${timeStr}</span><span class="tr-arr">→</span><span class="tr-end">${endStr}</span></div>`;
+  const expAttr=_expandedSlots.has(slotKey(d,cid,si))?' data-expanded="true"':'';
+  const base=`id="sl-${d}-${cid}-${si}" data-d="${d}" data-cid="${cid}" data-si="${si}"${expAttr}`;
   const handlers=`onclick="slotClick(event,'${d}',${cid},${si})" ondragover="slotOver(event,this)" ondragleave="slotLeave(this)" ondrop="slotDrop(event,this)"`;
+  const expandBtn=`<button class="expand-chev" onclick="toggleSlotExpand(event,'${d}',${cid},${si})" title="Show full details"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>`;
 
   if(!sl_){
-    return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
+    return`<div class="slot-wrap">${timeHtml}
       <div class="slot${isActive?' active-slot':''}" ${base} ${handlers}>
         <div class="slot-empty">${isActive?'▸ drop here':'drop here'}</div>
       </div></div>`;
@@ -2308,7 +2360,7 @@ function renderSlot(d,cid,si){
   // supervisor sees the slot is in use without seeing student details — and
   // cannot accidentally drop onto another branch's slot.
   if(curBr!=='All'&&!slotMatchesBranch(sl_,curBr)){
-    return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
+    return`<div class="slot-wrap">${timeHtml}
       <div class="slot other-branch-slot" ${base} title="This slot belongs to another branch">
         <div style="padding:14px 8px;text-align:center;font-size:10px;color:var(--text3);font-style:italic">Other branch</div>
       </div></div>`;
@@ -2356,10 +2408,10 @@ function renderSlot(d,cid,si){
           :`<span style="font-size:8px;color:var(--teal)">→ ${pickCarLabel} → ${pickToLabel}</span>`)
           :`<div class="sc pick-card" draggable="true" data-sid="${sl_.id}" data-dtype="pick" style="display:inline-flex;align-items:center;gap:4px;padding:2px 5px;cursor:grab;border-radius:4px;margin-left:auto;font-size:8px;border-left:2px solid var(--orange)"><span style="color:var(--orange);font-weight:700">Drag to assign →</span></div>`}
       </div></div>`;
-    return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
+    return`<div class="slot-wrap">${timeHtml}
       ${rideNote}
       <div class="slot filled${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" style="position:relative" ${base} ${handlers}>
-        ${lockBtn}
+        ${lockBtn}${expandBtn}
         ${sl_.grp?`<div class="grp-banner">🏠 Group: <span class="grp-loc">${sl(sl_.grp.addr)}</span></div>`:''}
         <div class="journey drop-j"><span class="j-from">${fromLabel}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
         <div class="slot-toprow">${lockBadge}${warns}<button class="edit-ico" onclick="event.stopPropagation();editStudent('${s.id}')" title="Edit student">✏</button></div>
@@ -2428,10 +2480,10 @@ function renderSlot(d,cid,si){
       const pickSl=findPickSlot(ids[idx]);
       return pickRow(s,pickT,pickSl,idx);
     }).join('');
-    return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
+    return`<div class="slot-wrap">${timeHtml}
       ${rideNote}
       <div class="slot paired${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" style="position:relative" ${base} ${handlers}>
-        ${lockBtn}
+        ${lockBtn}${expandBtn}
         ${sl_.grp?`<div class="grp-banner">🏠 Group: <span class="grp-loc">${sl(sl_.grp.addr)}</span> — all teachers same location</div>`:''}
         <div class="journey drop-j"><span class="j-from">${fromLabel}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
         <div class="slot-toprow">${lockBadge}${warns}</div>
@@ -2466,11 +2518,11 @@ function renderSlot(d,cid,si){
     }
     // Teacher ride annotation for pickups — show which teacher is being collected
     const pickRideNote=teacherRideNote(d,cid,si);
-    return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
+    return`<div class="slot-wrap">${timeHtml}
       ${pickRideNote}
       ${xcarNote}
       <div class="slot pickup-slot${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" style="position:relative" ${base} ${handlers}>
-        ${lockBtn}
+        ${lockBtn}${expandBtn}
         <div class="journey pick-j"><span class="j-from">${sl(pAddr)}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
         <div class="slot-toprow">${warns}<button class="edit-ico" onclick="event.stopPropagation();editStudent('${s.id}')" title="Edit student">✏</button></div>
         <div class="ss" draggable="true" data-sid="${s.id}" data-dtype="pick" style="border-left:3px solid ${col};padding-top:2px">
@@ -2515,10 +2567,10 @@ function renderSlot(d,cid,si){
           :`<div class="sc pick-card" draggable="true" data-sid="${ch.id}" data-dtype="pick" style="display:inline-flex;align-items:center;gap:3px;padding:2px 5px;cursor:grab;border-radius:4px;margin-left:auto;font-size:8px;border-left:2px solid var(--orange)"><span style="color:var(--orange);font-weight:700">Drag &#8594;</span></div>`}
       </div></div>`;
     }).join('');
-    return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
+    return`<div class="slot-wrap">${timeHtml}
       ${rideNote}
       <div class="slot group-slot${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" style="position:relative" ${base} ${handlers}>
-        ${lockBtn}
+        ${lockBtn}${expandBtn}
         <div class="grp-hdr">
           <span style="font-size:9px;font-weight:700;color:#92400E">&#127968; GROUP</span>
           <span class="grp-count-pill">${sl_.ids.length}/7 children</span>
@@ -2768,6 +2820,25 @@ function clearBranchFromSched(br){
     });
   }));
 }
+
+// Per-slot expand toggle — flips data-expanded attribute on the .slot node.
+// Does NOT re-render; purely visual. Persists via in-memory Set for the session.
+const _expandedSlots = new Set();
+function slotKey(d,cid,si){return `${d}-${cid}-${si}`;}
+function toggleSlotExpand(ev,d,cid,si){
+  ev.stopPropagation();
+  const k=slotKey(d,cid,si);
+  const el=document.getElementById(`sl-${d}-${cid}-${si}`);
+  if(_expandedSlots.has(k)){_expandedSlots.delete(k);if(el)el.removeAttribute('data-expanded');}
+  else{_expandedSlots.add(k);if(el)el.setAttribute('data-expanded','true');}
+}
+// Global compact toggle — user can flip off via menu
+function toggleCompactSlots(){
+  document.body.classList.toggle('compact-slots');
+  try{localStorage.setItem('bc_compact', document.body.classList.contains('compact-slots')?'1':'0');}catch(e){}
+}
+// Restore compact preference on load
+(function(){try{if(localStorage.getItem('bc_compact')==='0')document.body.classList.remove('compact-slots');}catch(e){}})();
 
 function toggleSlotLock(d,cid,si){
   const sl_=SCHED[d]?.[cid]?.[si];
