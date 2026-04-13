@@ -84,7 +84,10 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;bac
 .suggest-star{font-size:8px;background:#059669;color:#fff;padding:1px 4px;border-radius:3px;font-weight:700}
 /* Main schedule */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.daytabs{background:#fff;border-bottom:1px solid var(--border);padding:0 14px;gap:4px;align-items:center}
+.daytabs{display:flex;background:#fff;border-bottom:1px solid var(--border);padding:0 14px;gap:4px;align-items:center;flex-shrink:0}
+.dt.dt-dover{background:var(--purple-lt);color:var(--purple);box-shadow:inset 0 -3px 0 var(--purple)}
+.slot-grip{display:inline-block;color:#92400E;opacity:.55;font-size:11px;letter-spacing:-1px;margin-right:2px;line-height:1;cursor:grab;user-select:none}
+.grp-hdr:hover .slot-grip{opacity:1}
 .dt{padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:.12s;border-radius:0}
 .dt:hover{color:var(--purple)}
 .dt.on{color:var(--purple);border-bottom-color:var(--purple);font-weight:700}
@@ -504,6 +507,8 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <body data-active-theme="hv" class="compact-slots">
+<!-- ===== CUSTOM BANNER (user-uploaded) — hidden until set in Branding dialog ===== -->
+<div id="bc-banner" style="display:none;width:100%;height:80px;background-size:cover;background-position:center;background-repeat:no-repeat;flex-shrink:0;border-bottom:1px solid var(--border);cursor:pointer" onclick="showBrandingDialog()" title="Click to change banner"></div>
 <!-- ===== TOP NAV ===== -->
 <div class="topnav">
   <div class="topnav-brand"><img src="/favicon.svg" alt="BeCurious"><span>BE:</span>CURIOUS</div>
@@ -512,12 +517,15 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
   <button class="theme-tab" data-theme="pl" onclick="switchTheme('pl')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Pipeline</button>
   <div class="topnav-spacer"></div>
   <div class="topnav-shared">
+    <button id="undo-btn" class="topnav-btn" onclick="undoLast()" title="Nothing to undo" disabled style="opacity:0.4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>Undo</button>
     <div class="menu-wrap">
       <button class="topnav-btn menu-btn" onclick="toggleMainMenu()" title="Menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>Menu</button>
       <div class="menu-dropdown" id="main-menu" style="display:none">
         <button onclick="closeMainMenu();showStudentsTable()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Students</button>
+        <button onclick="closeMainMenu();showTeachersModal()" title="Add, edit, deactivate teachers"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Manage teachers</button>
         <button onclick="closeMainMenu();showSettingsModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>Settings</button>
         <button onclick="closeMainMenu();toggleCompactSlots()" title="Toggle compact / full slot cards"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>Compact slots</button>
+        <button onclick="closeMainMenu();showBrandingDialog()" title="Upload logo or banner image"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>Branding (logo + banner)</button>
         <button onclick="closeMainMenu();showSharedHelp()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>Help</button>
         <div class="menu-sep"></div>
         <button onclick="closeMainMenu();importState()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Import</button>
@@ -545,7 +553,7 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
     <button class="ctx-btn green" onclick="autoScheduleWeek()" title="Auto-place all pool students"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Auto-schedule</button>
     <button class="ctx-btn" id="warn-toolbar-btn" onclick="showWarningsPanel()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg><span id="warn-toolbar-count">Warnings</span></button>
     <button class="ctx-btn" onclick="showReportsModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>Reports</button>
-    <button class="ctx-btn" onclick="showTeachersModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Teachers</button>
+    <button class="ctx-btn" onclick="showTeacherWeeklyView()" title="Open the weekly view per teacher"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Teachers Weekly View</button>
     <button class="ctx-btn" onclick="showCarsModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>Cars</button>
     <div class="sub-tabs">
       <button class="sub-tab active" id="vt-daily" onclick="switchView('daily')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Daily</button>
@@ -582,11 +590,11 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 
     <div class="main">
       <div class="daytabs">
-        <div class="dt sun" data-day="Sun" onclick="gd('Sun')">Sunday — Admin</div>
-        <div class="dt on" data-day="Mon" onclick="gd('Mon')">Monday</div>
-        <div class="dt" data-day="Tue" onclick="gd('Tue')">Tuesday</div>
-        <div class="dt" data-day="Wed" onclick="gd('Wed')">Wednesday</div>
-        <div class="dt" data-day="Thu" onclick="gd('Thu')">Thursday · Far</div>
+        <div class="dt sun" data-day="Sun" onclick="gd('Sun')" ondragover="dayTabOver(event,this)" ondragleave="dayTabLeave(this)" ondrop="dayTabDrop(event,'Sun')">Sunday — Admin</div>
+        <div class="dt on" data-day="Mon" onclick="gd('Mon')" ondragover="dayTabOver(event,this)" ondragleave="dayTabLeave(this)" ondrop="dayTabDrop(event,'Mon')">Monday</div>
+        <div class="dt" data-day="Tue" onclick="gd('Tue')" ondragover="dayTabOver(event,this)" ondragleave="dayTabLeave(this)" ondrop="dayTabDrop(event,'Tue')">Tuesday</div>
+        <div class="dt" data-day="Wed" onclick="gd('Wed')" ondragover="dayTabOver(event,this)" ondragleave="dayTabLeave(this)" ondrop="dayTabDrop(event,'Wed')">Wednesday</div>
+        <div class="dt" data-day="Thu" onclick="gd('Thu')" ondragover="dayTabOver(event,this)" ondragleave="dayTabLeave(this)" ondrop="dayTabDrop(event,'Thu')">Thursday · Far</div>
         <div style="flex:1"></div>
         <div class="week-picker-wrap" style="display:flex;align-items:center;gap:6px;padding:0 10px">
           <label for="sched-week" style="font-size:10px;color:var(--text2);font-weight:600">Attendance week</label>
@@ -2571,7 +2579,8 @@ function renderSlot(d,cid,si){
       ${rideNote}
       <div class="slot group-slot${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" style="position:relative" ${base} ${handlers}>
         ${lockBtn}${expandBtn}
-        <div class="grp-hdr">
+        <div class="grp-hdr" draggable="true" ondragstart="dsSlotMove(event,'${d}',${cid},${si})" title="Drag this header to move the entire group to another time/day" style="cursor:grab">
+          <span class="slot-grip" title="Drag whole group">⋮⋮</span>
           <span style="font-size:9px;font-weight:700;color:#92400E">&#127968; GROUP</span>
           <span class="grp-count-pill">${sl_.ids.length}/7 children</span>
           <span style="font-size:8px;color:#92400E;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 4px">${grpAddr?sl(grpAddr):'No location set'}</span>
@@ -2612,6 +2621,45 @@ function dsDrop(e){
   e.dataTransfer.setData('dtype','drop');e.dataTransfer.effectAllowed='move';
   setTimeout(()=>e.currentTarget.classList.add('dragging'),0);
 }
+// Drag the WHOLE slot (used by the group header so a whole group moves together).
+// Stores source coords in a module-level variable; drop handler picks it up.
+let _slotMoveSrc=null;
+function dsSlotMove(e,d,cid,si){
+  e.stopPropagation();
+  _slotMoveSrc={d,cid:+cid,si:+si};
+  dragType='slotmove';dragId=null;dragSrc=null;
+  e.dataTransfer.setData('dtype','slotmove');
+  e.dataTransfer.effectAllowed='move';
+}
+// Move the slot at src to (d,cid,si). Target must be empty.
+// Used by group drag and (later) single/double drag-by-handle.
+function moveSlotTo(src,d,cid,si){
+  if(!src)return;
+  const srcSl=SCHED[src.d]?.[src.cid]?.[src.si];
+  if(!srcSl){toast('Source slot is empty');return;}
+  if(SCHED[d]?.[cid]?.[si]){toast('Target slot is occupied — drop on empty slot');return;}
+  // Move the slot wholesale (preserves all children, group location, locked, etc.)
+  SCHED[d][cid][si]=srcSl;
+  SCHED[src.d][src.cid][src.si]=null;
+  // Move corresponding pickup slots (same day, same car) so children's pickups
+  // follow. We move pickup slots that come AFTER the source slot index and
+  // belong to children of this group — only when staying in the same day/car.
+  if(srcSl.t==='g'&&Array.isArray(srcSl.ids)&&src.d===d&&src.cid===cid){
+    // No-op: pickup slot indexes for the same car will naturally still point
+    // at the right times. Cross-day moves clear pickups (handled below).
+  } else if(srcSl.t==='g'&&Array.isArray(srcSl.ids)&&(src.d!==d||src.cid!==cid)){
+    const ids=new Set(srcSl.ids);
+    // Remove any pickup slots referencing these students from the SOURCE day
+    CARS.forEach(c=>{
+      const arr=SCHED[src.d]?.[c.id];if(!arr)return;
+      arr.forEach((sl_,i)=>{if(sl_&&sl_.t==='pick'&&ids.has(sl_.id))arr[i]=null;});
+    });
+    // Note: pickups on the destination day are NOT auto-created here —
+    // user can reschedule them or rerun auto-schedule.
+  }
+  saveState();renderSched();renderPool();
+  toast(`✓ Group moved to ${d} · ${CARS.find(c=>c.id===cid)?.label||'car'}`);
+}
 function dsPick(e){
   dragId=this.dataset.sid||e.currentTarget.dataset.sid;dragType='pick';
   dragSrc=_captureDragSrc(e.currentTarget);
@@ -2644,6 +2692,133 @@ function _clearDragSrc(sid){
 }
 function ev(e){e.preventDefault();}
 
+// Day-tab drop targets — let user drag a slot (e.g. group header) onto a day
+// tab to move it to that day, same car, first empty slot.
+function dayTabOver(e,el){
+  if(dragType!=='slotmove'||!_slotMoveSrc)return;
+  e.preventDefault();el.classList.add('dt-dover');
+}
+function dayTabLeave(el){el.classList.remove('dt-dover');}
+function dayTabDrop(e,day){
+  e.preventDefault();
+  document.querySelectorAll('.dt.dt-dover').forEach(x=>x.classList.remove('dt-dover'));
+  if(dragType!=='slotmove'||!_slotMoveSrc)return;
+  const src=_slotMoveSrc;_slotMoveSrc=null;dragType='drop';
+  const slots=SCHED[day]?.[src.cid];
+  if(!slots){toast('No schedule for that day');return;}
+  const ei=slots.findIndex(s=>!s);
+  if(ei<0){toast(`No empty slots on ${CARS.find(c=>c.id===src.cid)?.label||'car'} for ${day}`);return;}
+  moveSlotTo(src,day,src.cid,ei);
+  // Switch to that day so user sees the result
+  if(typeof gd==='function')gd(day);
+}
+
+// ===== UNDO STACK =====
+// Wraps saveState to remember the prior state so a single Cmd-Z reverts the
+// most recent change. Only tracks SCHED (the bulk of operational edits).
+const _undoStack=[];const _UNDO_MAX=40;
+let _undoBaseline=null;          // stringified SCHED at the time of the most recent save
+let _suppressUndoCapture=false;  // true while we're applying an undo, to avoid recursion
+const _origSaveState=saveState;
+saveState=function(){
+  try{
+    if(!_suppressUndoCapture && _undoBaseline){
+      _undoStack.push(_undoBaseline);
+      if(_undoStack.length>_UNDO_MAX)_undoStack.shift();
+      updateUndoBtn();
+    }
+    _undoBaseline=JSON.stringify(SCHED||{});
+  }catch(e){/* never break saves over undo bookkeeping */}
+  return _origSaveState.apply(this,arguments);
+};
+function undoLast(){
+  if(!_undoStack.length){toast('Nothing to undo');return;}
+  const snap=_undoStack.pop();
+  let parsed;try{parsed=JSON.parse(snap);}catch(e){toast('Undo failed — bad snapshot');return;}
+  // Replace SCHED contents in place to keep references stable
+  Object.keys(SCHED).forEach(k=>{delete SCHED[k];});
+  Object.assign(SCHED,parsed);
+  _undoBaseline=snap;
+  _suppressUndoCapture=true;
+  try{saveState();}finally{_suppressUndoCapture=false;}
+  if(typeof renderSched==='function')renderSched();
+  if(typeof renderPool==='function')renderPool();
+  updateUndoBtn();
+  toast(`↶ Undone — ${_undoStack.length} more available`);
+}
+function updateUndoBtn(){
+  const b=document.getElementById('undo-btn');if(!b)return;
+  if(_undoStack.length){b.disabled=false;b.style.opacity='1';b.title=`Undo (${_undoStack.length} step${_undoStack.length===1?'':'s'})`;}
+  else{b.disabled=true;b.style.opacity='0.4';b.title='Nothing to undo';}
+}
+// Cmd-Z / Ctrl-Z keyboard shortcut
+document.addEventListener('keydown',function(e){
+  if((e.metaKey||e.ctrlKey)&&!e.shiftKey&&e.key.toLowerCase()==='z'){
+    const tag=(e.target.tagName||'').toLowerCase();
+    if(tag==='input'||tag==='textarea'||tag==='select')return; // let native undo work in fields
+    e.preventDefault();undoLast();
+  }
+});
+// Initialize the undo baseline AFTER the initial state load so the first
+// user mutation can be undone. Called from the bottom of init code.
+function initUndoBaseline(){if(!_undoBaseline)_undoBaseline=JSON.stringify(SCHED||{});}
+
+// ===== CUSTOM BRANDING (banner + logo) — stored in localStorage as data URLs =====
+function _readImageAsDataUrl(file,cb){
+  if(!file){cb(null);return;}
+  const r=new FileReader();r.onload=()=>cb(r.result);r.readAsDataURL(file);
+}
+function setCustomLogo(file){
+  _readImageAsDataUrl(file,url=>{
+    if(!url)return;
+    try{localStorage.setItem('bc_logo',url);}catch(e){}
+    applyCustomBranding();
+    toast('✓ Logo updated');
+  });
+}
+function clearCustomLogo(){try{localStorage.removeItem('bc_logo');}catch(e){}applyCustomBranding();toast('Logo reset');}
+function setCustomBanner(file){
+  _readImageAsDataUrl(file,url=>{
+    if(!url)return;
+    try{localStorage.setItem('bc_banner',url);}catch(e){}
+    applyCustomBranding();
+    toast('✓ Banner updated');
+  });
+}
+function clearCustomBanner(){try{localStorage.removeItem('bc_banner');}catch(e){}applyCustomBranding();toast('Banner removed');}
+function applyCustomBranding(){
+  const logoUrl=localStorage.getItem('bc_logo');
+  const logoEl=document.querySelector('.topnav-brand img');
+  if(logoEl&&logoUrl)logoEl.src=logoUrl;
+  else if(logoEl)logoEl.src='/favicon.svg';
+  const bannerUrl=localStorage.getItem('bc_banner');
+  const bnEl=document.getElementById('bc-banner');
+  if(bnEl){
+    if(bannerUrl){bnEl.style.display='block';bnEl.style.backgroundImage=`url(${bannerUrl})`;}
+    else{bnEl.style.display='none';bnEl.style.backgroundImage='';}
+  }
+}
+function showBrandingDialog(){
+  const m=document.getElementById('branding-modal');if(m){m.style.display='flex';return;}
+  const html=`<div id="branding-modal" style="position:fixed;inset:0;background:rgba(30,27,75,.45);z-index:9999;display:flex;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:#fff;border-radius:14px;padding:22px 24px;width:480px;max-width:92vw;box-shadow:0 20px 50px rgba(30,27,75,.25)">
+      <h3 style="margin:0 0 4px;font-size:16px">Branding</h3>
+      <p style="font-size:11px;color:var(--text3);margin-bottom:14px">Upload a custom logo (small, replaces the lightning bolt) or a banner image (wider, shown above the top navigation). Stored in your browser only.</p>
+      <div style="border:1px dashed var(--border);border-radius:10px;padding:12px;margin-bottom:10px">
+        <div style="font-weight:600;font-size:12px;margin-bottom:6px">Logo (recommended ~64×64 PNG)</div>
+        <input type="file" accept="image/*" onchange="setCustomLogo(this.files[0])">
+        <button onclick="clearCustomLogo()" style="margin-left:8px;font-size:10px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer">Reset to default</button>
+      </div>
+      <div style="border:1px dashed var(--border);border-radius:10px;padding:12px;margin-bottom:14px">
+        <div style="font-weight:600;font-size:12px;margin-bottom:6px">Banner (wide image, e.g. 1600×120)</div>
+        <input type="file" accept="image/*" onchange="setCustomBanner(this.files[0])">
+        <button onclick="clearCustomBanner()" style="margin-left:8px;font-size:10px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer">Remove banner</button>
+      </div>
+      <div style="text-align:right"><button onclick="document.getElementById('branding-modal').style.display='none'" style="padding:7px 14px;border:1px solid var(--border);border-radius:8px;background:var(--purple);color:#fff;font-weight:600;cursor:pointer">Done</button></div>
+    </div></div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+
 function dropCar(e,el){
   e.preventDefault();el.classList.remove('dover');if(!dragId)return;
   const cid=+el.dataset.cid;const slots=SCHED[curDay]?.[cid]||[];
@@ -2663,6 +2838,12 @@ function dropToPool(e){
 
 function slotOver(e,el){
   e.preventDefault();e.stopPropagation();el.classList.add('doverslot');
+  if(dragType==='slotmove'&&_slotMoveSrc){
+    // Whole-slot move — highlight only empty target slots
+    const sl_=SCHED[el.dataset.d]?.[+el.dataset.cid]?.[+el.dataset.si];
+    if(sl_)el.classList.remove('doverslot');
+    return;
+  }
   if(dragType==='drop'&&dragId&&el.dataset.si!==undefined){
     const sl_=SCHED[el.dataset.d]?.[+el.dataset.cid]?.[+el.dataset.si];
     if(sl_&&sl_.t==='s'&&sl_.id!==dragId){
@@ -2677,10 +2858,16 @@ function slotLeave(el){el.classList.remove('doverslot','canpair');}
 
 function slotDrop(e,el){
   e.preventDefault();e.stopPropagation();
-  el.classList.remove('doverslot','canpair');if(!dragId)return;
+  el.classList.remove('doverslot','canpair');
   const d=el.dataset.d,cid=+el.dataset.cid,si=+el.dataset.si;
-  const ex=SCHED[d]?.[cid]?.[si];
   const dt=e.dataTransfer.getData('dtype')||dragType;
+  // Whole-slot move (e.g. group dragged by header) — separate path, no dragId required.
+  if(dt==='slotmove'){
+    if(_slotMoveSrc){moveSlotTo(_slotMoveSrc,d,cid,si);_slotMoveSrc=null;}
+    dragType='drop';return;
+  }
+  if(!dragId)return;
+  const ex=SCHED[d]?.[cid]?.[si];
   if(dt==='pick'){
     if(!ex)placePickup(dragId,d,cid,si);
     else toast('Drop pick-up on an empty slot');
@@ -4720,6 +4907,13 @@ function showReportsModal(){
   switchReportTab('student');
   qs('reportsmodal').style.display='flex';
 }
+// Open the Reports modal directly on the Teacher weekly view tab.
+function showTeacherWeeklyView(){
+  populateWeekDropdown();
+  _rptTab='teacher';
+  switchReportTab('teacher');
+  qs('reportsmodal').style.display='flex';
+}
 function closeReportsModal(){qs('reportsmodal').style.display='none';}
 function populateWeekDropdown(){
   const sel=qs('rpt-week');
@@ -6315,6 +6509,9 @@ setSyncIndicator('connecting');
   if(supaOnline)subscribeRealtime();
   // Initialize theme: Home Visits active, Pipeline dashboard hidden
   switchTheme('hv');
+  // Apply any saved custom branding (logo + banner) and seed the undo baseline
+  try{applyCustomBranding();}catch(e){}
+  try{initUndoBaseline();}catch(e){}
   if(_isDevDeploy){
     const badge=qs('env-badge');
     if(badge){badge.textContent='⚠ DEV — testing only';badge.style.display='inline-block';}
