@@ -5184,7 +5184,8 @@ function autoScopeNoteRefresh(){
 // ──── ONE-TIME REPAIR: relocate pickups that start before their session ends ────
 function fixEarlyPickups(){
   let fixed=0,removed=0;
-  DAYS_ACTIVE.forEach(day=>{
+  const daysToScan=activeDays();
+  daysToScan.forEach(day=>{
     CARS.forEach(car=>{
       const slots=SCHED[day]?.[car.id]||[];
       for(let si=0;si<slots.length;si++){
