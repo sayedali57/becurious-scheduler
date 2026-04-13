@@ -5302,9 +5302,10 @@ function runAutoSchedule(){
           for(let si=0;si<slots.length;si++){
             if(slots[si])continue;
             const smin=slotStartMin(day,car.id,si);
-            // Prefer slots at or after ready time; penalize early slots
+            // NEVER place a pickup before the teacher's session ends
+            if(smin<readyMin)continue;
             const timeDiff=smin-readyMin;
-            const score=(timeDiff<0?Math.abs(timeDiff)*3:timeDiff)
+            const score=timeDiff
               +(info&&info.cid===car.id?0:20); // bonus for same car
             if(score<bestScore){bestScore=score;bestCar=car;bestSi=si;}
           }
