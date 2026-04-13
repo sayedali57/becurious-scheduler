@@ -4875,7 +4875,7 @@ function renderTeacherWeeklyReport(){
     byTeacher[tname].push({d,cid,si,sid,s,sl_,startM,car:CARS.find(c=>c.id===cid)});
   });
   const esc=v=>String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
-  const dayOrder={Mon:0,Tue:1,Wed:2,Thu:3};
+  const dayOrder={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4};
   const names=Object.keys(byTeacher).sort((a,b)=>a.localeCompare(b));
   // Count teachers with phone AND at least one scheduled session for the bulk button
   const sendable=names.filter(n=>TEACHERS[n]?.phone&&(byTeacher[n]||[]).length>0).length;
@@ -4931,7 +4931,7 @@ function renderParentNotificationsReport(){
     if(!byStudent[sid])return;
     byStudent[sid].sessions.push({d,cid,si,startM:slotStartMin(d,cid,si)});
   });
-  const dayOrder={Mon:0,Tue:1,Wed:2,Thu:3};
+  const dayOrder={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4};
   const rows=Object.values(byStudent)
     .filter(e=>e.sessions.length>0)
     .sort((a,b)=>a.s.n.localeCompare(b.s.n));
@@ -4979,7 +4979,7 @@ function buildParentMessage(sid){
     sessions.push({d,cid,si,startM:slotStartMin(d,cid,si)});
   });
   if(!sessions.length)return null;
-  const dayOrder={Mon:0,Tue:1,Wed:2,Thu:3};
+  const dayOrder={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4};
   const dayFull={Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday'};
   sessions.sort((a,b)=>(dayOrder[a.d]-dayOrder[b.d])||(a.startM-b.startM));
   const header=`السلام عليكم 🌙\n\nThis is BeCurious. Below is ${s.n}'s tutoring schedule for the week with ${s.t}:`;
