@@ -3,50 +3,58 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BeCurious — Live Schedule Builder</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<title>BeCurious — Schedule &amp; Admissions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--purple:#6366F1;--purple-lt:#EEF2FF;--purple-dk:#4F46E5;--teal:#14B8A6;--teal-lt:#CCFBF1;--orange:#F59E0B;--orange-lt:#FEF3C7;--red:#DC2626;--red-lt:#FEE2E2;--amber:#D97706;--amber-lt:#FEF3C7;--bg:#FAFAFC;--bg2:#F3F4F6;--card:#FFFFFF;--border:#E5E7EB;--text:#1E1B4B;--text2:#475569;--text3:#94A3B8}
+:root{--purple:#6366F1;--purple-lt:#EEF2FF;--purple-dk:#4F46E5;--teal:#14B8A6;--teal-lt:#CCFBF1;--orange:#F59E0B;--orange-lt:#FEF3C7;--green:#10B981;--green-lt:#D1FAE5;--red:#DC2626;--red-lt:#FEE2E2;--amber:#D97706;--amber-lt:#FEF3C7;--bg:#FAFAFC;--bg-dark:#1E1B4B;--bg-mid:#F3F4F6;--card:#FFFFFF;--border:#E5E7EB;--text:#1E1B4B;--text2:#475569;--text3:#94A3B8;
+/* Theme accent — switched by JS */
+--accent:var(--teal);--accent-lt:var(--teal-lt);--accent-dk:#0F766E;--accent-bg:#FAFAFC}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;font-feature-settings:'cv11';background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
-.hdr { background: #fff; border-bottom: 1px solid var(--border); color: var(--text); padding: 10px 16px; display:flex; align-items:center; gap:12px; position:relative; box-shadow: 0 1px 0 rgba(99,102,241,.08); flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
-.hdr::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background: linear-gradient(90deg, #6366F1 0%, #14B8A6 50%, #F59E0B 100%); opacity: .85; }
-.hdr-brand { display:flex; align-items:center; gap:10px; flex-shrink:0; }
-.hdr-logo { width:32px; height:32px; }
-.hdr-title { font-size:16px; font-weight:800; color:var(--text); letter-spacing:-0.02em; }
-.hdr-sub { font-size:10px; color:var(--text3); margin-top:0; font-weight:500; }
-.hdr-stats { display:flex; gap:8px; margin-left:16px; }
-.hstat { background:var(--bg2); padding:6px 12px; border-radius:10px; text-align:center; font-size:10px; color:var(--text2); display:flex; flex-direction:column; gap:1px; }
-.hstat b { font-size:14px; font-weight:700; color:var(--text); display:block; line-height:1.1; }
-.hstat span { font-size:10px; color:var(--text3); font-weight:500; }
-#save-ind { font-size:10px; color:var(--text3); margin-left:auto; }
-#last-edit { font-size:10px; color:var(--text3); }
-.hbtn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:10px; border:1px solid var(--border); background:#fff; color:var(--text); font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap; transition: all .12s; font-family:inherit; }
-.hbtn:hover { background: var(--bg2); border-color: var(--purple); color: var(--purple); }
-.hbtn.primary { background:var(--purple); color:#fff; border-color:var(--purple); box-shadow: 0 1px 2px rgba(99,102,241,.2); }
-.hbtn.primary:hover { background:var(--purple-dk); border-color:var(--purple-dk); color:#fff; }
-.hbtn.warn-btn { color: var(--amber); border-color: var(--amber-lt); }
-.hbtn.warn-btn:hover { background: var(--amber-lt); color: var(--amber); border-color: var(--amber); }
-.hbtn.menu-btn { padding:8px 10px; }
-.menu-wrap { position: relative; }
-.menu-dropdown { position:absolute; top:calc(100% + 6px); right:0; background:#fff; border:1px solid var(--border); border-radius:12px; padding:6px; min-width:200px; box-shadow: 0 10px 30px rgba(30,27,75,.08), 0 4px 10px rgba(30,27,75,.04); z-index: 50; }
-.menu-dropdown button { display:flex; align-items:center; gap:10px; width:100%; padding:9px 12px; border:none; background:none; font-size:13px; font-weight:500; color:var(--text); cursor:pointer; border-radius:8px; text-align:left; font-family:inherit; }
-.menu-dropdown button:hover { background: var(--purple-lt); color: var(--purple-dk); }
-.menu-dropdown button svg { color: var(--text3); flex-shrink: 0; }
-.menu-dropdown button:hover svg { color: var(--purple); }
-.menu-sep { height: 1px; background: var(--border); margin: 4px 8px; }
+body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+/* ===== TOP NAV — theme switcher ===== */
+.topnav{background:#FFFFFF;color:var(--text);padding:0 18px;border-bottom:1px solid var(--border);gap:4px;position:relative;display:flex;align-items:center;flex-shrink:0}
+.topnav::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg, #6366F1 0%, #14B8A6 50%, #F59E0B 100%);opacity:.9}
+.topnav-brand{display:flex;align-items:center;gap:10px;padding:10px 16px 10px 0;margin-right:8px;border-right:1px solid var(--border);color:var(--text);font-weight:800;font-size:15px;letter-spacing:-0.02em}
+.topnav-brand img{width:28px;height:28px}
+.topnav-brand span{color:var(--purple)}
+.theme-tab{padding:12px 18px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;transition:all .12s;letter-spacing:0;display:inline-flex;align-items:center;gap:7px;font-family:inherit}
+.theme-tab:hover{color:var(--text)}
+.theme-tab.active{color:var(--text);font-weight:700}
+.theme-tab.active[data-theme="hv"]{border-bottom-color:var(--teal);color:var(--accent-dk)}
+.theme-tab.active[data-theme="pl"]{border-bottom-color:var(--orange);color:#C2410C}
+.topnav-spacer{flex:1}
+.topnav-shared{display:flex;align-items:center;gap:4px}
+.topnav-btn{padding:8px 12px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;border:1px solid transparent;background:none;border-radius:8px;display:inline-flex;align-items:center;gap:6px;font-family:inherit;transition:all .12s}
+.topnav-btn:hover{color:var(--purple);background:var(--purple-lt)}
+.topnav-btn.active{color:var(--purple);background:var(--purple-lt)}
+.topnav-sync{font-size:10px;padding:4px 10px;border-radius:999px;margin-left:6px;color:var(--text3);background:var(--bg-mid)}
+/* ===== CONTEXTUAL TOOLBAR (per theme) ===== */
+.ctx-bar{background:#fff;color:var(--text);padding:10px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.ctx-bar .ctx-title{font-size:15px;font-weight:700;color:var(--text);display:inline-flex;align-items:center;gap:8px}
+.ctx-bar .ctx-sub{font-size:11px;color:var(--text3);margin-left:6px}
+.hdr{background:var(--purple);color:#fff;padding:8px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;display:none}
+.hdr-title{font-size:15px;font-weight:700}
+.hdr-sub{font-size:9px;opacity:.7;margin-top:1px}
+.hdr-stats{display:flex;gap:6px;margin-left:auto}
+.hstat{background:rgba(255,255,255,.15);padding:2px 8px;border-radius:5px;text-align:center;font-size:9px}
+.hstat b{display:block;font-size:13px;font-weight:600}
+.hbtn{padding:4px 10px;border-radius:5px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:10px;cursor:pointer;white-space:nowrap}
+.hbtn:hover{background:rgba(255,255,255,.2)}
+.hbtn.green{background:rgba(52,211,153,.25);border-color:rgba(52,211,153,.5)}
+.hbtn.amber{background:rgba(251,191,36,.2);border-color:rgba(251,191,36,.4)}
+#save-ind{font-size:9px;color:rgba(255,255,255,.6);margin-left:2px}
 .layout{display:flex;flex:1;overflow:hidden}
-.pool { width:230px; background:#fff; border-right:1px solid var(--border); }
-.pool-hdr { padding:12px 14px; border-bottom:1px solid var(--border); }
-.pool-hdr h3 { font-size:12px; font-weight:700; color:var(--text); text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px; }
-.psearch { width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:10px; font-size:12px; outline:none; background:var(--bg); transition:.12s; font-family:inherit; }
-.psearch:focus { border-color:var(--purple); background:#fff; box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
-.pfilter { display:flex; gap:4px; margin-top:8px; flex-wrap:wrap; }
-.pf { font-size:10px; padding:4px 10px; border-radius:999px; border:1px solid var(--border); background:#fff; cursor:pointer; color:var(--text2); font-weight:500; font-family:inherit; }
-.pf.on { background:var(--purple); color:#fff; border-color:var(--purple); }
-.pool-body { padding:8px; }
-.pool-sect { font-size:10px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.08em; padding:10px 8px 6px; }
-.pool-sect span { background:var(--orange); color:#fff; font-size:9px; padding:2px 7px; border-radius:999px; font-weight:700; }
+.pool{width:230px;background:#fff;border-right:1px solid var(--border)}
+.pool-hdr{padding:12px 14px;border-bottom:1px solid var(--border)}
+.pool-hdr h3{font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.psearch{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:10px;font-size:12px;outline:none;background:var(--bg);transition:.12s;font-family:inherit}
+.psearch:focus{border-color:var(--purple);background:#fff;box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+.pfilter{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.pf{font-size:10px;padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:#fff;cursor:pointer;color:var(--text2);font-weight:500;font-family:inherit}
+.pf.on{background:var(--purple);color:#fff;border-color:var(--purple)}
+.pool-body{padding:8px}
+.pool-sect{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:10px 8px 6px}
+.pool-sect span{background:var(--orange);color:#fff;font-size:9px;padding:2px 7px;border-radius:999px;font-weight:700}
 .pool-empty{text-align:center;color:var(--text3);font-size:10px;padding:14px 5px}
 /* Smart panel */
 .active-info{background:linear-gradient(135deg,#059669,#0F6E56);color:#fff;border-radius:6px;padding:7px 9px;margin-bottom:6px;font-size:10px;line-height:1.5}
@@ -59,65 +67,66 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;fon
 .sb.son{background:#059669;color:#fff;border-color:#059669}
 .teacher-dd{width:100%;padding:3px 7px;border:1px solid var(--border);border-radius:5px;font-size:10px;outline:none;margin-bottom:5px;color:var(--text)}
 /* Session cards */
-.sc { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:6px; cursor:grab; user-select:none; border-left:3px solid var(--purple); transition: all .12s; position:relative; box-shadow: 0 1px 2px rgba(30,27,75,.03); }
-.sc:hover { box-shadow: 0 4px 12px rgba(30,27,75,.08); border-color: var(--purple); transform: translateY(-1px); }
-.sc.dragging { opacity:.3; }
-.sc.pick-card { border-left-color:var(--orange); background:var(--orange-lt); }
-.sc .t { font-size:10px; font-weight:700; color:var(--text2); display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
-.sc .n { font-size:13px; font-weight:700; margin:3px 0; color:var(--text); }
-.sc .a { font-size:10px; color:var(--text3); line-height:1.4; }
+.sc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:6px;cursor:grab;user-select:none;border-left:3px solid var(--purple);transition:all .12s;position:relative;box-shadow:0 1px 2px rgba(30,27,75,.03)}
+.sc:hover{box-shadow:0 4px 12px rgba(30,27,75,.08);border-color:var(--purple);transform:translateY(-1px)}
+.sc.dragging{opacity:.3}
+.sc.pick-card{border-left-color:var(--orange);background:var(--orange-lt)}
+.sc .t{font-size:10px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.sc .n{font-size:13px;font-weight:700;margin:3px 0;color:var(--text)}
+.sc .a{font-size:10px;color:var(--text3);line-height:1.4}
 .sc .tags{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap}
-.tag { font-size:10px; padding:2px 8px; border-radius:999px; font-weight:600; }
-.tag-br { background:var(--purple-lt); color:var(--purple-dk); }
-.tag-far { background:var(--amber-lt); color:var(--amber); }
-.tag-vfar { background:var(--red-lt); color:var(--red); }
-.tag-v { background:#CFFAFE; color:#0E7490; }
-.dist-label { background:var(--teal-lt); color:var(--teal); padding:2px 8px; border-radius:999px; font-weight:600; font-size:10px; margin-left:auto; }
+.tag{font-size:8px;padding:1px 4px;border-radius:3px;font-weight:500}
+.tag-br{background:var(--purple-lt);color:var(--purple-dk)}
+.tag-far{background:var(--amber-lt);color:var(--amber)}
+.tag-vfar{background:var(--red-lt);color:var(--red)}
+.tag-v{font-size:8px;background:#E0F2FE;color:#0369A1;padding:1px 4px;border-radius:3px;font-weight:600}
+.dist-label{font-size:8px;background:var(--teal-lt);color:var(--teal);padding:1px 4px;border-radius:3px;font-weight:600;margin-left:auto}
 .suggest-star{font-size:8px;background:#059669;color:#fff;padding:1px 4px;border-radius:3px;font-weight:700}
 /* Main schedule */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.daytabs { background:#fff; border-bottom:1px solid var(--border); padding: 0 16px; gap:4px; align-items:center; }
-.dt { padding:12px 16px; font-size:12px; font-weight:600; cursor:pointer; color:var(--text3); border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap; transition:.12s; border-radius:0; }
-.dt:hover { color: var(--purple); }
-.dt.on { color:var(--purple); border-bottom-color:var(--purple); font-weight:700; }
-.dt.sun { color:var(--red); opacity:.75; }
-.dt.on.sun { color:var(--red); border-bottom-color:var(--red); opacity:1; }
-.view-toggle { padding:7px 14px; border:1px solid var(--border); border-radius:10px; font-size:11px; font-weight:600; background:#fff; color:var(--text2); cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:6px; }
-.view-toggle:hover { background:var(--bg2); }
-.view-toggle.active { background:var(--purple); color:#fff; border-color:var(--purple); }
+.daytabs{background:#fff;border-bottom:1px solid var(--border);padding:0 18px;gap:4px;align-items:center}
+.dt{padding:12px 16px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:.12s;border-radius:0}
+.dt:hover{color:var(--purple)}
+.dt.on{color:var(--purple);border-bottom-color:var(--purple);font-weight:700}
+.dt.sun{color:var(--red);opacity:.75}
+.dt.on.sun{color:var(--red);border-bottom-color:var(--red);opacity:1}
 .sched-outer{flex:1;overflow:auto;padding:10px}
 .cargrid{display:flex;gap:8px;min-height:100%}
 .carcol{flex:1;display:flex;flex-direction:column;min-width:180px}
-.carhdr { background:#fff; color:var(--text); padding:10px 12px; border-radius:12px 12px 0 0; font-size:12px; font-weight:700; text-align:center; cursor:pointer; border: 1px solid var(--border); border-bottom: 2px solid var(--purple); position:relative; }
-.carhdr:hover { background:var(--bg2); }
-.carhdr small { display:block; opacity:.7; font-size:10px; font-weight:500; margin-top:2px; color:var(--text3); }
-.wa-btn { position:absolute; right:6px; top:50%; transform:translateY(-50%); bottom:auto; background:var(--teal-lt); border:none; color:var(--teal); padding:5px 8px; border-radius:8px; font-size:11px; cursor:pointer; line-height:1; display:flex; align-items:center; }
-.wa-btn:hover { background:var(--teal); color:#fff; }
-.carslots { background:var(--bg); border:1px solid var(--border); border-top:none; border-radius:0 0 12px 12px; padding:10px; gap:6px; }
+.carhdr{background:#fff;color:var(--text);padding:10px 12px;border-radius:12px 12px 0 0;font-size:12px;font-weight:700;text-align:center;cursor:pointer;border:1px solid var(--border);border-bottom:2px solid var(--purple);position:relative}
+.carhdr:hover{background:var(--bg-mid)}
+.carhdr small{display:block;opacity:.7;font-size:10px;font-weight:500;margin-top:2px;color:var(--text3)}
+.wa-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);bottom:auto;background:var(--teal-lt);border:none;color:var(--teal);padding:5px 8px;border-radius:8px;font-size:11px;cursor:pointer;line-height:1;display:flex;align-items:center}
+.wa-btn:hover{background:var(--teal);color:#fff}
+.carslots{background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;padding:10px;gap:6px}
 .carslots.dover{background:var(--purple-lt);border-color:var(--purple)}
 /* Slots */
 .slot-wrap{position:relative;flex-shrink:0}
-.time-gutter { font-size:9px; color:var(--text3); padding:4px 2px 0; margin-bottom:2px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
-.slot { border:1.5px dashed var(--border); border-radius:12px; min-height:70px; transition:.12s; cursor:pointer; background: #fff; }
-.slot.filled { border-style:solid; border-color:var(--border); background:var(--card); box-shadow:0 2px 6px rgba(30,27,75,.04); }
-.slot.filled:hover { box-shadow:0 4px 12px rgba(30,27,75,.08); }
-.slot.paired { border-style:solid; border-color:var(--teal); background:#fff; box-shadow: 0 0 0 2px var(--teal-lt); }
-.slot.pickup-slot { border-style:solid; border-color:var(--orange-lt); background:#fff; }
-.slot.locked-slot { border-color:var(--purple)!important; border-width:2px; border-style:solid; background:#FAFAFF; }
-.slot-empty { color:var(--text3); font-size:11px; font-weight:500; padding:10px; }
+.time-gutter{font-size:8px;color:var(--text3);padding:1px 0 0 2px;margin-bottom:1px;font-weight:500}
+.slot{border:1.5px dashed var(--border);border-radius:12px;min-height:70px;transition:.12s;cursor:pointer;background:#fff}
+.slot.filled{border-style:solid;border-color:var(--border);background:var(--card);box-shadow:0 2px 6px rgba(30,27,75,.04)}
+.slot.filled:hover{box-shadow:0 4px 12px rgba(30,27,75,.08)}
+.slot.paired{border-style:solid;border-color:var(--teal);background:#fff;box-shadow:0 0 0 2px var(--teal-lt)}
+.slot.pickup-slot{border-style:solid;border-color:var(--orange-lt);background:#fff}
 .slot.doverslot{border-color:var(--purple);background:var(--purple-lt);border-style:solid}
 .slot.doverslot.canpair{border-color:var(--teal);background:var(--teal-lt)}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,.4)}50%{box-shadow:0 0 0 5px rgba(99,102,241,.1)}}
-.slot.active-slot{border:2px solid var(--purple);animation:pulse 2s infinite}
-.slot.active-slot .slot-empty{color:var(--purple);font-weight:600}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,.4)}50%{box-shadow:0 0 0 5px rgba(52,211,153,.1)}}
+.slot.active-slot{border:2px solid #34D399;animation:pulse 2s infinite}
+.slot.active-slot .slot-empty{color:#059669;font-weight:600}
+.slot-empty{color:var(--text3);font-size:11px;font-weight:500;padding:10px}
 .slot.other-branch-slot{background:repeating-linear-gradient(45deg,#F6F6F6,#F6F6F6 6px,#EFEFEF 6px,#EFEFEF 12px);border:1.5px dashed #D4D4D4;cursor:not-allowed;opacity:.75}
 .slot.other-branch-slot:hover{border-color:#C4C4C4}
 /* Teacher ride annotation between slots */
 .ride-note{font-size:9px;font-weight:600;color:#4338CA;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:5px;padding:3px 8px;margin:3px 0 1px;text-align:center}
-/* Locked slot */
+/* Locked (mandatory-time) slot */
 .lock-badge{font-size:11px;cursor:help;margin-right:3px}
+.lock-toggle{position:absolute;top:6px;right:6px;cursor:pointer;opacity:0.35;z-index:2;background:none;border:none;padding:3px;line-height:1;border-radius:6px;color:var(--text3);display:inline-flex}
+.slot:hover .lock-toggle{opacity:0.75}
+.lock-toggle.is-locked{opacity:1;color:var(--purple)}
+.lock-toggle:hover{background:var(--purple-lt);opacity:1;color:var(--purple)}
+.slot.locked-slot{border-color:var(--purple) !important;border-width:2px;border-style:solid;background:#FAFAFF}
 .slot.rejected-day-slot{border-color:#DC2626!important;border-style:solid!important;background:#FEF2F2!important;box-shadow:inset 0 0 0 1px #FECACA}
-.slot.rejected-day-slot::before{content:'REJECTED DAY';display:block;font-size:8px;font-weight:700;color:#DC2626;background:#FEE2E2;border-radius:3px;padding:2px 6px;margin-bottom:4px;text-align:center}
+.slot.rejected-day-slot::before{content:'⛔ REJECTED DAY';display:block;font-size:8px;font-weight:700;color:#DC2626;background:#FEE2E2;border-radius:3px;padding:2px 6px;margin-bottom:4px;text-align:center}
 /* Unplaced reason banner in pool cards */
 .unplaced-reason{font-size:8px;color:#B45309;background:#FEF3C7;border:1px solid #FCD34D;border-radius:4px;padding:2px 6px;margin:2px 0}
 /* Car capacity bar */
@@ -185,19 +194,15 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;fon
 .j-arr{color:var(--text3);flex-shrink:0}
 .j-to{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
 /* Slot session content */
-.ss { padding:10px 12px; position:relative; }
-.ss .t { font-size:11px; font-weight:700; color:var(--purple); background:var(--purple-lt); display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:999px; }
-.slot.paired .ss .t { color:var(--teal); background:var(--teal-lt); }
-.slot.pickup-slot .ss .t { color:var(--orange); background:var(--orange-lt); }
-.ss .n { font-size:13px; font-weight:700; margin:6px 0 2px; color:var(--text); line-height:1.3; }
-.ss .a { font-size:10px; color:var(--text3); line-height:1.4; }
-.ss .m { font-size:10px; color:var(--text3); margin-top:4px; }
-.ss .rm { position:absolute; top:6px; right:32px; background:none; border:none; cursor:pointer; color:var(--text3); font-size:14px; line-height:1; padding:2px 4px; border-radius:6px; z-index:2; }
-.ss .rm:hover { color:var(--red); background:var(--red-lt); }
-.lock-toggle { position:absolute; top:6px; right:6px; cursor:pointer; opacity:0.35; z-index:2; background:none; border:none; padding:3px; line-height:1; border-radius:6px; color:var(--text3); display:inline-flex; }
-.slot:hover .lock-toggle { opacity:0.75; }
-.lock-toggle.is-locked { opacity:1; color:var(--purple); }
-.lock-toggle:hover { background:var(--purple-lt); opacity:1; color:var(--purple); }
+.ss{padding:10px 12px;position:relative}
+.ss .t{font-size:11px;font-weight:700;color:var(--purple);background:var(--purple-lt);display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px}
+.slot.paired .ss .t{color:var(--teal);background:var(--teal-lt)}
+.slot.pickup-slot .ss .t{color:var(--orange);background:var(--orange-lt)}
+.ss .n{font-size:13px;font-weight:700;margin:6px 0 2px;color:var(--text);line-height:1.3}
+.ss .a{font-size:10px;color:var(--text3);line-height:1.4}
+.ss .m{font-size:10px;color:var(--text3);margin-top:4px}
+.ss .rm{position:absolute;top:6px;right:32px;background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;line-height:1;padding:2px 4px;border-radius:6px;z-index:2}
+.ss .rm:hover{color:var(--red);background:var(--red-lt)}
 /* Auto-pickup section within a drop card */
 .auto-pick{border-top:1.5px dashed var(--orange);margin:0 7px 5px;padding:4px 0 0}
 .ap-row{display:flex;align-items:center;gap:5px;font-size:9px}
@@ -217,12 +222,12 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;fon
 .legdot{width:7px;height:7px;border-radius:2px;flex-shrink:0}
 /* Modals */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:flex;align-items:center;justify-content:center}
-.mbox { background:#fff; border-radius:16px; padding:20px; box-shadow: 0 20px 60px rgba(30,27,75,.15); }
-.mbox h3 { font-size:16px; font-weight:700; margin-bottom:14px; color:var(--text); }
-.frow { margin-bottom:7px; }
-.frow label { font-size:11px; font-weight:600; color:var(--text2); }
-.frow input, .frow select { padding:8px 12px; border:1px solid var(--border); border-radius:10px; font-size:13px; outline:none; color:var(--text); font-family:inherit; }
-.frow input:focus, .frow select:focus { border-color:var(--purple); box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
+.mbox{background:#fff;border-radius:16px;padding:20px;box-shadow:0 20px 60px rgba(30,27,75,.15)}
+.mbox h3{font-size:16px;font-weight:700;margin-bottom:14px;color:var(--text)}
+.frow{margin-bottom:7px}
+.frow label{display:block;font-size:10px;font-weight:500;color:var(--text2);margin-bottom:2px}
+.frow input,.frow select{width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px;outline:none;color:var(--text)}
+.frow input:focus,.frow select:focus{border-color:var(--purple)}
 .frow2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .mbtns{display:flex;gap:6px;justify-content:flex-end;margin-top:10px}
 .btn{padding:5px 12px;border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text)}
@@ -319,139 +324,303 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;fon
 .st-del:hover{color:var(--red)}
 .sched-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:3px}
 #last-edit{font-size:9px;color:rgba(255,255,255,.6);margin-left:6px;white-space:nowrap}
+/* ===== PIPELINE / CRM ===== */
+#pipeline-outer{display:none;padding:12px;min-height:calc(100vh - 70px);background:var(--bg)}
+.pl-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.pl-toolbar .pl-title{font-weight:700;font-size:14px;color:var(--text)}
+.pl-toolbar .pl-stat{font-size:10px;color:var(--text2);background:#fff;border:1px solid var(--border);border-radius:5px;padding:3px 8px;font-weight:600}
+.pl-toolbar .pl-stat b{color:var(--purple)}
+.pl-add-btn{padding:5px 12px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;background:var(--purple);color:#fff;transition:.15s}
+.pl-add-btn:hover{background:var(--purple-dk)}
+.pl-board{display:flex;gap:8px;overflow-x:auto;align-items:flex-start;padding-bottom:12px}
+.pl-col{min-width:210px;max-width:210px;background:#fff;border-radius:10px;border:1px solid var(--border);display:flex;flex-direction:column;max-height:calc(100vh - 140px)}
+.pl-col-hdr{padding:8px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;border-radius:10px 10px 0 0;z-index:1}
+.pl-col-hdr .pl-col-title{font-size:11px;font-weight:700;color:var(--text)}
+.pl-col-hdr .pl-col-cnt{font-size:9px;background:var(--purple-lt);color:var(--purple);border-radius:10px;padding:2px 7px;font-weight:700}
+.pl-col-body{padding:6px;overflow-y:auto;flex:1;min-height:60px}
+.pl-col-body.drag-over{background:var(--purple-lt);border-radius:0 0 10px 10px}
+.pl-card{background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;cursor:grab;transition:box-shadow .15s,border-color .15s;position:relative}
+.pl-card:hover{border-color:var(--purple);box-shadow:0 2px 8px rgba(106,95,168,.13)}
+.pl-card.dragging{opacity:.4;border-style:dashed}
+.pl-card .pl-card-name{font-size:11px;font-weight:700;color:var(--text);margin-bottom:2px}
+.pl-card .pl-card-child{font-size:10px;color:var(--text2)}
+.pl-card .pl-card-meta{display:flex;align-items:center;gap:6px;margin-top:5px;font-size:9px;color:var(--text3)}
+.pl-card .pl-card-meta .pl-src{background:var(--purple-lt);color:var(--purple);padding:1px 5px;border-radius:4px;font-weight:600}
+.pl-card .pl-card-stale{position:absolute;top:4px;right:6px;font-size:8px;font-weight:700;color:#DC2626;background:#FEE2E2;border-radius:4px;padding:1px 5px}
+.pl-card .pl-card-hot{position:absolute;top:4px;right:6px;font-size:8px;font-weight:700;color:#059669;background:#D1FAE5;border-radius:4px;padding:1px 5px}
+/* Lead detail modal */
+.pl-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600;align-items:center;justify-content:center}
+.pl-modal{background:#fff;border-radius:12px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.2)}
+.pl-modal-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.pl-modal-hdr h3{font-size:14px;font-weight:700;color:var(--text);margin:0}
+.pl-modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3);padding:4px}
+.pl-modal-close:hover{color:var(--red)}
+.pl-modal-body{padding:14px 18px}
+.pl-field{margin-bottom:10px}
+.pl-field label{display:block;font-size:10px;font-weight:600;color:var(--text2);margin-bottom:3px}
+.pl-field input,.pl-field select,.pl-field textarea{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:11px;font-family:inherit;color:var(--text);outline:none;box-sizing:border-box}
+.pl-field input:focus,.pl-field select:focus,.pl-field textarea:focus{border-color:var(--purple);box-shadow:0 0 0 2px rgba(106,95,168,.15)}
+.pl-field textarea{resize:vertical;min-height:50px}
+.pl-field-row{display:flex;gap:8px}
+.pl-field-row .pl-field{flex:1}
+.pl-modal-actions{padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.pl-modal-actions button{padding:6px 14px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text2);transition:.15s}
+.pl-modal-actions button:hover{background:#F3F4F6}
+.pl-modal-actions .pl-save{background:var(--purple);color:#fff;border-color:var(--purple)}
+.pl-modal-actions .pl-save:hover{background:var(--purple-dk)}
+.pl-modal-actions .pl-del{color:var(--red);border-color:var(--red)}
+.pl-modal-actions .pl-del:hover{background:var(--red);color:#fff}
+/* Conversation log inside lead modal */
+.pl-log{margin-top:10px;border-top:1px solid var(--border);padding-top:8px}
+.pl-log-title{font-size:10px;font-weight:700;color:var(--text);margin-bottom:6px}
+.pl-log-list{max-height:180px;overflow-y:auto;margin-bottom:8px}
+.pl-log-entry{padding:5px 8px;border-radius:6px;margin-bottom:4px;font-size:10px;line-height:1.5}
+.pl-log-entry.outgoing{background:#EFF6FF;border-left:3px solid #2563EB}
+.pl-log-entry.incoming{background:#F0FDF4;border-left:3px solid #059669}
+.pl-log-entry.note{background:#FDF4FF;border-left:3px solid #9333EA}
+.pl-log-entry .pl-log-ts{font-size:8px;color:var(--text3);margin-bottom:1px}
+.pl-log-entry .pl-log-text{color:var(--text)}
+.pl-log-add{display:flex;gap:6px}
+.pl-log-add select{width:90px;padding:5px;border:1px solid var(--border);border-radius:5px;font-size:10px}
+.pl-log-add input{flex:1;padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-size:10px}
+.pl-log-add button{padding:5px 10px;background:var(--purple);color:#fff;border:none;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer}
+.pl-search{padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:11px;width:180px;outline:none;font-family:inherit}
+.pl-search:focus{border-color:var(--purple);box-shadow:0 0 0 2px rgba(106,95,168,.15)}
+/* ===== THEME CONTAINERS ===== */
+.theme-panel{display:none;flex:1;overflow:hidden;flex-direction:column}
+.theme-panel.active{display:flex}
+/* Home Visits theme tweaks */
+[data-active-theme="hv"]{--accent:var(--teal);--accent-lt:#E1F5EE;--accent-dk:#0F6E56}
+[data-active-theme="pl"]{--accent:var(--orange);--accent-lt:#FEF3ED;--accent-dk:#C45A2D}
+.hv-toolbar{background:var(--teal);color:#fff;padding:6px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
+.pl-topbar{background:#fff;color:var(--text);padding:10px 18px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.ctx-title{font-size:13px;font-weight:700}
+.ctx-sub{font-size:9px;opacity:.7}
+.ctx-stats{display:flex;gap:8px;margin-left:12px}
+.ctx-stat{background:var(--bg-mid);padding:6px 12px;border-radius:10px;text-align:center;font-size:10px;color:var(--text2);display:flex;flex-direction:column;gap:1px;line-height:1.1}
+.ctx-stat b{font-size:14px;font-weight:700;color:var(--text)}
+.ctx-btn{padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;transition:all .12s;font-family:inherit}
+.ctx-btn:hover{background:var(--bg-mid);border-color:var(--purple);color:var(--purple)}
+.ctx-btn.green{background:var(--purple);color:#fff;border-color:var(--purple);box-shadow:0 1px 2px rgba(99,102,241,.2)}
+.ctx-btn.green:hover{background:var(--purple-dk);border-color:var(--purple-dk);color:#fff}
+.ctx-btn.amber{background:#fff;color:var(--amber);border-color:var(--amber-lt)}
+.ctx-btn.amber:hover{background:var(--amber-lt);color:var(--amber);border-color:var(--amber)}
+#warn-toolbar-btn.has-warns{color:var(--red);border-color:var(--red-lt);font-weight:700}
+#warn-toolbar-btn.has-warns:hover{background:var(--red-lt);border-color:var(--red)}
+/* Sub-tabs within a theme */
+.sub-tabs{display:flex;gap:4px;margin-left:auto;background:var(--bg-mid);padding:3px;border-radius:10px}
+.sub-tab{padding:6px 12px;border-radius:8px;border:none;background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;transition:all .12s}
+.sub-tab:hover{color:var(--text)}
+.sub-tab.active{background:#fff;color:var(--purple);box-shadow:0 1px 2px rgba(30,27,75,.05)}
+/* ===== SHARED PAGES ===== */
+.shared-page{display:none;position:fixed;inset:0;z-index:500;background:var(--bg);overflow-y:auto}
+.shared-page.open{display:block}
+.sp-hdr{background:var(--bg-dark);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:1}
+.sp-hdr h2{font-size:16px;font-weight:700;margin:0}
+.sp-close{background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;padding:4px;margin-left:auto}
+.sp-close:hover{color:#fff}
+.sp-body{max-width:800px;margin:0 auto;padding:20px}
+.sp-section{background:#fff;border-radius:10px;border:1px solid var(--border);padding:16px 20px;margin-bottom:12px}
+.sp-section h3{font-size:13px;font-weight:700;color:var(--purple);margin-bottom:8px}
+.sp-section p{font-size:11px;line-height:1.7;color:var(--text2);margin-bottom:6px}
+.sp-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;margin-right:4px}
+.sp-badge.hv{background:#E1F5EE;color:#0F6E56}
+.sp-badge.pl{background:#FEF3ED;color:#C45A2D}
+.sp-badge.shared{background:var(--purple-lt);color:var(--purple)}
+/* Settings form fields */
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.setting-row:last-child{border-bottom:none}
+.setting-row label{font-size:11px;font-weight:600;color:var(--text)}
+.setting-row .setting-desc{font-size:9px;color:var(--text3);margin-top:1px}
+.setting-row input,.setting-row select{padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px;outline:none}
+.setting-row input:focus,.setting-row select:focus{border-color:var(--purple)}
+/* Pipeline dashboard */
+.pl-dash{padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:8px}
+.pl-dash-card{background:#fff;border-radius:10px;border:1px solid var(--border);padding:14px 16px}
+.pl-dash-card h4{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.pl-dash-card .pl-dash-num{font-size:28px;font-weight:700;color:var(--text)}
+.pl-dash-card .pl-dash-sub{font-size:10px;color:var(--text2);margin-top:2px}
+.pl-funnel{background:#fff;border-radius:10px;border:1px solid var(--border);padding:14px 16px;margin:0 16px 12px}
+.pl-funnel h4{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.pl-funnel-bar{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.pl-funnel-label{font-size:10px;font-weight:600;width:100px;color:var(--text)}
+.pl-funnel-track{flex:1;height:20px;background:#F3F4F6;border-radius:6px;overflow:hidden}
+.pl-funnel-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:6px;font-size:9px;font-weight:700;color:#fff;min-width:0;transition:width .3s}
+.pl-funnel-count{font-size:10px;font-weight:600;width:30px;text-align:right;color:var(--text2)}
+/* Menu styles */
+.menu-wrap{position:relative}
+.menu-dropdown{position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid var(--border);border-radius:12px;padding:6px;min-width:200px;box-shadow:0 10px 30px rgba(30,27,75,.08),0 4px 10px rgba(30,27,75,.04);z-index:120}
+.menu-dropdown button{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border:none;background:none;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;border-radius:8px;text-align:left;font-family:inherit}
+.menu-dropdown button:hover{background:var(--purple-lt);color:var(--purple-dk)}
+.menu-dropdown button svg{color:var(--text3);flex-shrink:0}
+.menu-dropdown button:hover svg{color:var(--purple)}
+.menu-sep{height:1px;background:var(--border);margin:4px 8px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<body>
-<div class="hdr">
-  <div class="hdr-brand">
-    <img src="/favicon.svg" alt="BeCurious" class="hdr-logo">
-    <div>
-      <div class="hdr-title">BeCurious</div>
-      <div class="hdr-sub">Schedule Builder</div>
+<body data-active-theme="hv">
+<!-- ===== TOP NAV ===== -->
+<div class="topnav">
+  <div class="topnav-brand"><img src="/favicon.svg" alt="BeCurious"><span>BE:</span>CURIOUS</div>
+  <div id="env-badge" style="display:none;font-size:9px;font-weight:700;color:#92400E;background:#FEF3C7;padding:3px 10px;border-radius:999px;margin-right:6px;letter-spacing:.4px"></div>
+  <button class="theme-tab active" data-theme="hv" onclick="switchTheme('hv')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home Visits</button>
+  <button class="theme-tab" data-theme="pl" onclick="switchTheme('pl')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Pipeline</button>
+  <div class="topnav-spacer"></div>
+  <div class="topnav-shared">
+    <div class="menu-wrap">
+      <button class="topnav-btn menu-btn" onclick="toggleMainMenu()" title="Menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>Menu</button>
+      <div class="menu-dropdown" id="main-menu" style="display:none">
+        <button onclick="closeMainMenu();showStudentsTable()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Students</button>
+        <button onclick="closeMainMenu();showSettingsModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>Settings</button>
+        <button onclick="closeMainMenu();showSharedHelp()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>Help</button>
+        <div class="menu-sep"></div>
+        <button onclick="closeMainMenu();importState()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Import</button>
+        <button onclick="closeMainMenu();showExport()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>Export</button>
+      </div>
+    </div>
+    <span id="save-ind" class="topnav-sync">Connecting…</span>
+    <span id="last-edit" style="font-size:10px;color:var(--text3)"></span>
+  </div>
+</div>
+
+<!-- ===== THEME: HOME VISITS ===== -->
+<div class="theme-panel active" id="theme-hv">
+  <div class="hv-toolbar">
+    <span class="ctx-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home Visits</span>
+    <span class="ctx-sub">Drag to schedule · Drop on filled slot = double/triple-drop</span>
+    <div class="ctx-stats">
+      <div class="ctx-stat"><b id="st-s">0</b>Dropped</div>
+      <div class="ctx-stat"><b id="st-p">0</b>Pool</div>
+      <div class="ctx-stat"><b id="st-pk">0</b>Pickups</div>
+      <div class="ctx-stat" title="Drivers needed today (cars with at least one session)"><b id="st-drv">0</b>Drivers</div>
+      <div class="ctx-stat"><b id="st-u">0%</b>Done</div>
+    </div>
+    <div style="flex:1"></div>
+    <button class="ctx-btn green" onclick="autoScheduleWeek()" title="Auto-place all pool students"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Auto-schedule</button>
+    <button class="ctx-btn" id="warn-toolbar-btn" onclick="showWarningsPanel()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg><span id="warn-toolbar-count">Warnings</span></button>
+    <button class="ctx-btn" onclick="showReportsModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>Reports</button>
+    <button class="ctx-btn" onclick="showTeachersModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Teachers</button>
+    <button class="ctx-btn" onclick="showCarsModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>Cars</button>
+    <div class="sub-tabs">
+      <button class="sub-tab active" id="vt-daily" onclick="switchView('daily')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Daily</button>
+      <button class="sub-tab" id="vt-week" onclick="switchView('week')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>Week</button>
+      <button class="sub-tab" id="vt-audit" onclick="switchView('audit')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.5.5 0 0 1-.96 0L9.68 3.18a.5.5 0 0 0-.96 0l-2.35 8.36A2 2 0 0 1 4.45 13H2"/></svg>Audit</button>
     </div>
   </div>
-  <div id="env-badge" style="display:none"></div>
-  <div class="hdr-stats">
-    <div class="hstat"><b id="st-s">0</b><span>Dropped</span></div>
-    <div class="hstat"><b id="st-p">0</b><span>Pool</span></div>
-    <div class="hstat"><b id="st-pk">0</b><span>Pickups</span></div>
-    <div class="hstat"><b id="st-drv">0</b><span>Drivers</span></div>
-    <div class="hstat"><b id="st-u">0%</b><span>Done</span></div>
-  </div>
-  <span id="save-ind">Connecting…</span>
-  <span id="last-edit"></span>
-  <button class="hbtn primary" onclick="autoScheduleWeek()" title="Auto-schedule">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-    Auto-schedule
-  </button>
-  <button class="hbtn warn-btn" id="warn-toolbar-btn" onclick="showWarningsPanel()" title="Warnings">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-    <span id="warn-toolbar-count">Warnings</span>
-  </button>
-  <div class="menu-wrap">
-    <button class="hbtn menu-btn" onclick="toggleMainMenu()" title="Menu">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-    </button>
-    <div class="menu-dropdown" id="main-menu" style="display:none">
-      <button onclick="closeMainMenu();showReportsModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>Reports</button>
-      <button onclick="closeMainMenu();showTeachersModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Teachers</button>
-      <button onclick="closeMainMenu();showCarsModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>Cars</button>
-      <button onclick="closeMainMenu();showStudentsTable()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Students</button>
-      <button onclick="closeMainMenu();showSettingsModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>Settings</button>
-      <div class="menu-sep"></div>
-      <button onclick="closeMainMenu();importState()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Import</button>
-      <button onclick="closeMainMenu();showExport()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>Export</button>
-      <button onclick="closeMainMenu();showHelp()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>Help</button>
-      <div class="menu-sep"></div>
-      <button onclick="closeMainMenu();doReset()" style="color:var(--red)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+
+  <div class="layout">
+    <div class="pool" style="display:flex;flex-direction:column">
+      <div class="pool-hdr">
+        <h3>Unscheduled sessions</h3>
+        <input class="psearch" id="psearch" placeholder="Search..." oninput="renderPool()">
+        <div class="pfilter">
+          <button class="pf on" onclick="setB('All',this)">All</button>
+          <button class="pf" onclick="setB('Shuhada',this)">Shuhada</button>
+          <button class="pf" onclick="setB('Salam',this)">Salam</button>
+          <button class="pf" onclick="setB('Salwa',this)">Salwa</button>
+        </div>
+      </div>
+      <div style="padding:5px 8px;border-bottom:1px solid var(--border);flex-shrink:0">
+        <div class="active-info" id="active-info" style="display:none"></div>
+        <div class="sort-row" id="sort-row" style="display:none">
+          <button class="sb on" id="sb-c" onclick="setSort('closest')">Closest<br>stop</button>
+          <button class="sb" id="sb-t" onclick="setSort('teacher')">By<br>teacher</button>
+          <button class="sb" id="sb-s" onclick="setSort('suggest')">Suggest<br>best</button>
+        </div>
+        <select class="teacher-dd" id="teacher-dd" style="display:none" onchange="renderPool()"></select>
+      </div>
+      <div class="pool-body" id="pool-body" style="flex:1" ondragover="ev(event)" ondrop="dropToPool(event)"></div>
+      <div class="pool-sect" id="pick-hdr" style="display:none">Pending pick-ups <span id="pick-count">0</span></div>
+      <div class="pool-body" id="pick-body" style="display:none;max-height:180px;flex-shrink:0" ondragover="ev(event)" ondrop="dropToPool(event)"></div>
+    </div>
+
+    <div class="main">
+      <div class="daytabs">
+        <div class="dt sun" data-day="Sun" onclick="gd('Sun')">Sunday — Admin</div>
+        <div class="dt on" data-day="Mon" onclick="gd('Mon')">Monday</div>
+        <div class="dt" data-day="Tue" onclick="gd('Tue')">Tuesday</div>
+        <div class="dt" data-day="Wed" onclick="gd('Wed')">Wednesday</div>
+        <div class="dt" data-day="Thu" onclick="gd('Thu')">Thursday · Far</div>
+        <div style="flex:1"></div>
+        <div class="week-picker-wrap" style="display:flex;align-items:center;gap:6px;padding:0 10px">
+          <label for="sched-week" style="font-size:10px;color:var(--text2);font-weight:600">Attendance week</label>
+          <select id="sched-week" onchange="setSelectedWeek(this.value)" style="padding:4px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px;background:#fff;outline:none"></select>
+        </div>
+      </div>
+      <div id="sched-week-banner" style="display:none;padding:7px 14px;background:#FEF3CD;border-bottom:1px solid #F59E0B;color:#92400E;font-size:11px;font-weight:600;text-align:center"></div>
+      <div id="br-filter-lbl" style="display:none;padding:6px 14px;background:#EEF2FF;border-bottom:1px solid #C7D2FE;color:#4338CA;font-size:11px;font-weight:600;text-align:center"></div>
+      <div id="sched-search-bar" style="padding:4px 10px;display:flex;align-items:center;gap:8px;background:#F8FAFC;border-bottom:1px solid #E2E8F0">
+        <span style="font-size:11px;color:var(--text3)">🔍</span>
+        <input id="sched-search" type="text" placeholder="Search student, teacher, or address…" style="flex:1;border:1px solid #CBD5E1;border-radius:6px;padding:4px 8px;font-size:11px;outline:none" oninput="filterDayView()">
+        <button onclick="qs('sched-search').value='';filterDayView()" style="font-size:10px;border:none;background:none;color:var(--text3);cursor:pointer">✕ Clear</button>
+      </div>
+      <div class="sched-outer" id="sched-outer"><div class="cargrid" id="cargrid"></div></div>
+      <div id="audit-outer">
+        <div class="audit-bar">
+          <span style="font-weight:600;font-size:12px;color:var(--text)">📊 Weekly Audit</span>
+          <select id="audit-branch" onchange="renderAudit()"><option value="All">All branches</option></select>
+          <select id="audit-teacher" onchange="renderAudit()"><option value="All">All teachers</option></select>
+          <div style="flex:1"></div>
+          <button class="audit-tab active" data-atab="students" onclick="switchAuditTab('students')">Students</button>
+          <button class="audit-tab" data-atab="teachers" onclick="switchAuditTab('teachers')">Teachers</button>
+          <button class="audit-tab" data-atab="idle" onclick="switchAuditTab('idle')">Idle / Waste</button>
+          <button class="audit-tab" data-atab="branch" onclick="switchAuditTab('branch')">Branch summary</button>
+        </div>
+        <div id="audit-body"></div>
+      </div>
+      <div id="week-outer"></div>
+      <div class="legend">
+        <span style="font-size:9px;color:var(--text3);font-weight:500">Legend:</span>
+        <div class="leg"><div class="legdot" style="background:var(--teal)"></div>Double-drop</div>
+        <div class="leg"><div class="legdot" style="background:var(--orange)"></div>Pick-up</div>
+        <div class="leg"><div class="legdot" style="background:var(--amber)"></div>Far &gt;10km</div>
+        <div class="leg"><div class="legdot" style="background:#34D399"></div>Active slot</div>
+        <span style="font-size:9px;color:var(--text3)">· Click slot to set active · Drag pick-up card to move to another car</span>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="layout">
-  <div class="pool" style="display:flex;flex-direction:column">
-    <div class="pool-hdr">
-      <h3>Unscheduled sessions</h3>
-      <input class="psearch" id="psearch" placeholder="Search..." oninput="renderPool()">
-      <div class="pfilter">
-        <button class="pf on" onclick="setB('All',this)">All</button>
-        <button class="pf" onclick="setB('Shuhada',this)">Shuhada</button>
-        <button class="pf" onclick="setB('Salam',this)">Salam</button>
-        <button class="pf" onclick="setB('Salwa',this)">Salwa</button>
-      </div>
+<!-- ===== THEME: PIPELINE ===== -->
+<div class="theme-panel" id="theme-pl">
+  <div class="pl-topbar">
+    <span class="ctx-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Admission Pipeline</span>
+    <span class="ctx-sub">SOP 4.6.4 — Lead Generation &amp; Enrollment Funnel</span>
+    <div style="flex:1"></div>
+    <div class="sub-tabs">
+      <button class="sub-tab active" id="vt-pl-dash" onclick="switchPlView('dashboard')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Dashboard</button>
+      <button class="sub-tab" id="vt-pl-kanban" onclick="switchPlView('kanban')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v11"/><path d="M12 5v6"/><path d="M18 5v14"/></svg>Kanban</button>
     </div>
-    <div style="padding:5px 8px;border-bottom:1px solid var(--border);flex-shrink:0">
-      <div class="active-info" id="active-info" style="display:none"></div>
-      <div class="sort-row" id="sort-row" style="display:none">
-        <button class="sb on" id="sb-c" onclick="setSort('closest')">Closest<br>stop</button>
-        <button class="sb" id="sb-t" onclick="setSort('teacher')">By<br>teacher</button>
-        <button class="sb" id="sb-s" onclick="setSort('suggest')">Suggest<br>best</button>
-      </div>
-      <select class="teacher-dd" id="teacher-dd" style="display:none" onchange="renderPool()"></select>
-    </div>
-    <div class="pool-body" id="pool-body" style="flex:1" ondragover="ev(event)" ondrop="dropToPool(event)"></div>
-    <div class="pool-sect" id="pick-hdr" style="display:none">Pending pick-ups <span id="pick-count">0</span></div>
-    <div class="pool-body" id="pick-body" style="display:none;max-height:180px;flex-shrink:0" ondragover="ev(event)" ondrop="dropToPool(event)"></div>
   </div>
+  <div id="pl-dashboard-outer" style="overflow-y:auto;flex:1"></div>
+  <div id="pipeline-outer" style="overflow-y:auto;flex:1"></div>
+</div>
 
-  <div class="main">
-    <div class="daytabs">
-      <div class="dt sun" data-day="Sun" onclick="gd('Sun')">Sunday — Admin</div>
-      <div class="dt on" data-day="Mon" onclick="gd('Mon')">Monday</div>
-      <div class="dt" data-day="Tue" onclick="gd('Tue')">Tuesday</div>
-      <div class="dt" data-day="Wed" onclick="gd('Wed')">Wednesday</div>
-      <div class="dt" data-day="Thu" onclick="gd('Thu')">Thursday · Far</div>
-      <div style="flex:1"></div>
-      <div style="display:flex;align-items:center;gap:4px;padding:0 6px">
-        <button class="view-toggle active" id="vt-daily" onclick="switchView('daily')">📅 Daily</button>
-        <button class="view-toggle" id="vt-week" onclick="switchView('week')">📆 Week</button>
-        <button class="view-toggle" id="vt-audit" onclick="switchView('audit')">📊 Audit</button>
-      </div>
-      <div class="week-picker-wrap" style="display:flex;align-items:center;gap:6px;padding:0 10px">
-        <label for="sched-week" style="font-size:10px;color:var(--text2);font-weight:600">Attendance week</label>
-        <select id="sched-week" onchange="setSelectedWeek(this.value)" style="padding:4px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px;background:#fff;outline:none"></select>
-      </div>
-    </div>
-    <!-- Banner shown only when viewing a non-current attendance week -->
-    <div id="sched-week-banner" style="display:none;padding:7px 14px;background:#FEF3CD;border-bottom:1px solid #F59E0B;color:#92400E;font-size:11px;font-weight:600;text-align:center"></div>
-    <!-- Branch filter banner: shows when the supervisor has scoped the view -->
-    <div id="br-filter-lbl" style="display:none;padding:6px 14px;background:#EEF2FF;border-bottom:1px solid #C7D2FE;color:#4338CA;font-size:11px;font-weight:600;text-align:center"></div>
-    <div id="sched-search-bar" style="padding:4px 10px;display:flex;align-items:center;gap:8px;background:#F8FAFC;border-bottom:1px solid #E2E8F0">
-      <span style="font-size:11px;color:var(--text3)">🔍</span>
-      <input id="sched-search" type="text" placeholder="Search student, teacher, or address…" style="flex:1;border:1px solid #CBD5E1;border-radius:6px;padding:4px 8px;font-size:11px;outline:none" oninput="filterDayView()">
-      <button onclick="qs('sched-search').value='';filterDayView()" style="font-size:10px;border:none;background:none;color:var(--text3);cursor:pointer">✕ Clear</button>
-    </div>
-    <div class="sched-outer" id="sched-outer"><div class="cargrid" id="cargrid"></div></div>
-    <!-- AUDIT VIEW (hidden by default — toggled via Daily/Audit buttons) -->
-    <div id="audit-outer">
-      <div class="audit-bar">
-        <span style="font-weight:600;font-size:12px;color:var(--text)">📊 Weekly Audit</span>
-        <select id="audit-branch" onchange="renderAudit()"><option value="All">All branches</option></select>
-        <select id="audit-teacher" onchange="renderAudit()"><option value="All">All teachers</option></select>
-        <div style="flex:1"></div>
-        <button class="audit-tab active" data-atab="students" onclick="switchAuditTab('students')">Students</button>
-        <button class="audit-tab" data-atab="teachers" onclick="switchAuditTab('teachers')">Teachers</button>
-        <button class="audit-tab" data-atab="idle" onclick="switchAuditTab('idle')">Idle / Waste</button>
-        <button class="audit-tab" data-atab="branch" onclick="switchAuditTab('branch')">Branch summary</button>
-      </div>
-      <div id="audit-body"></div>
-    </div>
-    <!-- WEEK VIEW -->
-    <div id="week-outer"></div>
-    <div class="legend">
-      <span style="font-size:9px;color:var(--text3);font-weight:500">Legend:</span>
-      <div class="leg"><div class="legdot" style="background:var(--teal)"></div>Double-drop</div>
-      <div class="leg"><div class="legdot" style="background:var(--orange)"></div>Pick-up</div>
-      <div class="leg"><div class="legdot" style="background:var(--amber)"></div>Far &gt;10km</div>
-      <div class="leg"><div class="legdot" style="background:#34D399"></div>Active slot</div>
-      <span style="font-size:9px;color:var(--text3)">· Click slot to set active · Drag pick-up card to move to another car</span>
-    </div>
+<!-- ===== SHARED HELP PAGE ===== -->
+<div class="shared-page" id="shared-help">
+  <div class="sp-hdr"><h2>❓ Help &amp; Guide</h2><button class="sp-close" onclick="closeSharedPage('shared-help')">&times;</button></div>
+  <div class="sp-body" id="help-body"></div>
+</div>
+
+<!-- ===== OLD HDR (hidden — preserved for backward compat with JS refs) ===== -->
+<div class="hdr" style="display:none">
+  <div class="hdr-stats" style="display:none">
+    <div class="hstat"><b id="st-s-old">0</b></div>
+    <div class="hstat"><b id="st-p-old">0</b></div>
   </div>
 </div>
 
 <!-- GLOBAL WARN POPUP -->
 <div id="warn-popup"></div>
+
+<!-- PIPELINE LEAD MODAL -->
+<div class="pl-modal-overlay" id="pl-modal-overlay" onclick="if(event.target===this)closePlModal()">
+  <div class="pl-modal">
+    <div class="pl-modal-hdr"><h3 id="pl-modal-title">New Lead</h3><button class="pl-modal-close" onclick="closePlModal()">&times;</button></div>
+    <div class="pl-modal-body" id="pl-modal-body"></div>
+    <div class="pl-modal-actions" id="pl-modal-actions"></div>
+  </div>
+</div>
 
 <!-- ADD STUDENT -->
 <div class="modal" id="addmodal" style="display:none">
@@ -730,7 +899,7 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;fon
       <div class="set-section-title">Auto-schedule rules</div>
       <div class="frow2">
         <div class="frow"><label>Same-teacher chaining strength</label><input id="set-chainBonus" type="number" min="0" max="500" step="10"><small class="set-help">Higher = auto-schedule tries harder to put same-teacher students back-to-back. 0 = ignore teacher, pure distance.</small></div>
-        <div class="frow"></div>
+        <div class="frow"><label>Teacher-car stickiness (km)</label><input id="set-stickyBonus" type="number" min="0" max="50" step="5"><small class="set-help">How strongly a teacher stays on the same car all day. Higher = fewer branch returns. 0 = off.</small></div>
       </div>
       <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="set-sameBranch"> Only place a student into a car for their own branch</label></div>
       <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="set-autoPickup"> Insert a pickup slot after every drop</label></div>
@@ -861,9 +1030,11 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;fon
 </div>
 
 <script>
-function toggleMainMenu(){ const m=document.getElementById('main-menu'); m.style.display = m.style.display==='none' ? 'block' : 'none'; }
-function closeMainMenu(){ const m=document.getElementById('main-menu'); if(m) m.style.display='none'; }
-document.addEventListener('click', function(e){ const m=document.getElementById('main-menu'); const btn=document.querySelector('.menu-btn'); if(m && m.style.display==='block' && !m.contains(e.target) && !btn.contains(e.target)) m.style.display='none'; });
+// ===== MENU FUNCTIONS =====
+function toggleMainMenu(){const m=document.getElementById('main-menu');m.style.display=m.style.display==='none'?'block':'none'}
+function closeMainMenu(){const m=document.getElementById('main-menu');if(m)m.style.display='none'}
+document.addEventListener('click',function(e){const m=document.getElementById('main-menu');const btn=document.querySelector('.topnav-btn.menu-btn');if(m&&m.style.display==='block'&&!m.contains(e.target)&&btn&&!btn.contains(e.target))m.style.display='none'});
+
 // ===== CONSTANTS =====
 const BP={Shuhada:[29.268183,48.027942],Salam:[29.297843,48.013185],Salwa:[29.295487,48.069256]};
 const TC={'Varti':'#6A5FA8','Safaa':'#0891B2','Nilma':'#0F6E56','Farah':'#EA580C','Maritel':'#DB2777','Siba':'#2563EB','Fatma':'#D97706','Mariya':'#7C3AED','Wafaa':'#047857','Hadeel':'#16A34A','Ann':'#DC2626','Nargis':'#1D4ED8','Soha':'#B45309','Saira/Aswini':'#78350F','Mehjabeen':'#991B1B','Mehjabeen/Manju':'#6D28D9','Khadija':'#0E7490','Mariam':'#4D7C0F','Sharifa':'#92400E','Maliha':'#1E40AF','Sofia':'#9D174D'};
@@ -885,6 +1056,7 @@ const DEFAULT_SETTINGS={
   maxGroupSize:4,       // Max students auto-batched into one group slot
   teacherDefaultMax:6,  // Default per-day max for new teacher records
   chainBonusKm:100,     // How strongly auto-schedule prefers same-teacher chains (higher = stronger)
+  stickyBonusKm:15,     // Teacher-car stickiness: how strongly a teacher stays on the same car all day (km equivalent)
   pickupHandoverMin:8,  // Extra minutes added to each pickup slot for the teacher to get in the car
   sameBranchOnly:1,     // 1 = only place a student into a car whose branch matches theirs
   autoPickup:1,         // 1 = auto-insert a pickup slot after every drop in auto-schedule
@@ -914,7 +1086,7 @@ function migrateSettings(obj){
   if(!obj||typeof obj!=='object'){SETTINGS={...DEFAULT_SETTINGS};applySettings();return;}
   SETTINGS={...DEFAULT_SETTINGS,...obj};
   // Coerce numeric fields
-  ['sessionMin','bufferMin','dayStartMin','dayEndMin','maxSlotsPerCar','maxGroupSize','teacherDefaultMax','chainBonusKm','pickupHandoverMin'].forEach(k=>{
+  ['sessionMin','bufferMin','dayStartMin','dayEndMin','maxSlotsPerCar','maxGroupSize','teacherDefaultMax','chainBonusKm','stickyBonusKm','pickupHandoverMin'].forEach(k=>{
     const v=parseInt(SETTINGS[k]);
     if(!isNaN(v))SETTINGS[k]=v;
     else SETTINGS[k]=DEFAULT_SETTINGS[k];
@@ -960,7 +1132,7 @@ async function _sha256hex(s){
 async function checkPasswordGate(){
   if(localStorage.getItem(PW_KEY)==='ok')return true;
   for(let tries=0;tries<5;tries++){
-    const pw=prompt('BeCurious Scheduler\n\nEnter team password:');
+    const pw=prompt('🔒 BeCurious Scheduler\n\nEnter team password:');
     if(pw==null){document.body.innerHTML='<div style="padding:40px;text-align:center;font-family:system-ui;color:#666">Access required.</div>';return false;}
     const h=await _sha256hex(pw.trim());
     if(h===PW_HASH){localStorage.setItem(PW_KEY,'ok');return true;}
@@ -1446,7 +1618,7 @@ function setLastEdit(name,when){
 
 function saveState(){
   // Always save locally (offline fallback, instant)
-  try{localStorage.setItem(SAVE_KEY,JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,_delT:[..._deletedTeachers],v:5}));}catch(e){}
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,_delT:[..._deletedTeachers],v:5}));}catch(e){}
   // Don't echo remote updates back to Supabase
   if(applyingRemote)return;
   // Debounce pushes so a burst of edits only triggers one network call
@@ -1458,7 +1630,7 @@ function saveState(){
 async function pushToSupabase(){
   if(!supa){setSyncIndicator('offline');return;}
   try{
-    const payload={SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,_delT:[..._deletedTeachers],v:5};
+    const payload={SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,_delT:[..._deletedTeachers],v:5};
     const fp=JSON.stringify(payload);
     if(fp===lastSyncFp){setSyncIndicator('synced');return;}
     const {error}=await supa.from('scheduler_state').update({
@@ -1488,6 +1660,7 @@ function tryLoadState(){
     CARS=data.CARS&&data.CARS.length?data.CARS:defaultCars();
     TEACHERS=data.TEACHERS&&typeof data.TEACHERS==='object'?data.TEACHERS:{};
     ATTEND=data.ATTEND&&typeof data.ATTEND==='object'?data.ATTEND:{};
+    PIPELINE=data.PIPELINE&&typeof data.PIPELINE==='object'?data.PIPELINE:{};
     _deletedTeachers=new Set(data._delT||[]);
     deriveTeachersFromStudents();
     const raw_s=data.SCHED||{};
@@ -1512,6 +1685,7 @@ function applyRemoteData(payload,updatedBy,updatedAt){
     CARS=(payload.CARS&&payload.CARS.length)?payload.CARS:defaultCars();
     TEACHERS=payload.TEACHERS&&typeof payload.TEACHERS==='object'?payload.TEACHERS:{};
     ATTEND=payload.ATTEND&&typeof payload.ATTEND==='object'?payload.ATTEND:{};
+    PIPELINE=payload.PIPELINE&&typeof payload.PIPELINE==='object'?payload.PIPELINE:{};
     _deletedTeachers=new Set(payload._delT||[]);
     deriveTeachersFromStudents();
     const raw_s=payload.SCHED||{};
@@ -1520,7 +1694,7 @@ function applyRemoteData(payload,updatedBy,updatedAt){
       const arr=raw_s[d]?.[car.id]||[];
       SCHED[d][car.id]=arr.length>=MAX_SL?arr:[...arr,...Array(MAX_SL-arr.length).fill(null)];
     });});
-    lastSyncFp=JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,v:5});
+    lastSyncFp=JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,v:5});
     setLastEdit(updatedBy,updatedAt);
     return true;
   }finally{
@@ -1552,7 +1726,7 @@ function subscribeRealtime(){
       (pl)=>{
         const newData=pl.new&&pl.new.data;
         if(!newData)return;
-        const fp=JSON.stringify({SS:newData.SS,SCHED:newData.SCHED,CARS:newData.CARS,TEACHERS:newData.TEACHERS||{},ATTEND:newData.ATTEND||{},SETTINGS:newData.SETTINGS||DEFAULT_SETTINGS,v:5});
+        const fp=JSON.stringify({SS:newData.SS,SCHED:newData.SCHED,CARS:newData.CARS,TEACHERS:newData.TEACHERS||{},ATTEND:newData.ATTEND||{},SETTINGS:newData.SETTINGS||DEFAULT_SETTINGS,PIPELINE:newData.PIPELINE||{},v:5});
         // Ignore our own echo
         if(fp===lastSyncFp)return;
         if(applyRemoteData(newData,pl.new.updated_by,pl.new.updated_at)){
@@ -1583,7 +1757,7 @@ function importState(){
       CARS=data.CARS&&data.CARS.length?data.CARS:defaultCars();
       TEACHERS=data.TEACHERS&&typeof data.TEACHERS==='object'?data.TEACHERS:{};
       ATTEND=data.ATTEND&&typeof data.ATTEND==='object'?data.ATTEND:{};
-      _deletedTeachers=new Set(data._delT||[]);
+      PIPELINE=data.PIPELINE&&typeof data.PIPELINE==='object'?data.PIPELINE:{};
       deriveTeachersFromStudents();
       SCHED={};
       DAYS.forEach(d=>{SCHED[d]={};CARS.forEach(car=>{
@@ -1816,11 +1990,9 @@ function stats(){
   qs('st-p').textContent=poolEntries().length;
   qs('st-pk').textContent=pk;
   qs('st-u').textContent=Math.round(sc/Math.max(1,tot)*100)+'%';
-  // Driver recommendation: count cars with ≥1 session per day
   const drvPerDay={};
   DAYS.forEach(d=>{let n=0;CARS.forEach(car=>{if((SCHED[d]?.[car.id]||[]).some(sl_=>sl_&&(sl_.t==='s'||sl_.t==='d')))n++;});drvPerDay[d]=n;});
-  const drvToday=drvPerDay[curDay]||0;
-  if(qs('st-drv'))qs('st-drv').textContent=drvToday;
+  if(qs('st-drv'))qs('st-drv').textContent=drvPerDay[curDay]||0;
   // Refresh the toolbar warnings count so Saleh sees it change as he edits.
   try{
     const wBtn=qs('warn-toolbar-btn');const wLab=qs('warn-toolbar-count');
@@ -1987,7 +2159,6 @@ function renderCars(){
     return;
   }
   grid.innerHTML='';
-  // Sort cars by branch for visual grouping when branch separation is on
   const carsOrdered=SETTINGS.sameBranchOnly?[...CARS].sort((a,b)=>(a.branch||'').localeCompare(b.branch||'')):CARS;
   carsOrdered.forEach(car=>{
     const col=document.createElement('div');col.className='carcol';col.dataset.cid=car.id;
@@ -2040,7 +2211,7 @@ function filterDayView(){
   grid.querySelectorAll('.carcol').forEach(col=>{
     const cid=parseInt(col.dataset.cid);
     const slots=SCHED[d]?.[cid]||[];
-    let carHasMatch=!q; // show all if empty query
+    let carHasMatch=!q;
     col.querySelectorAll('.slot-wrap').forEach((wrap,si)=>{
       if(!q){wrap.style.display='';return;}
       const sl_=slots[si];
@@ -2149,7 +2320,7 @@ function renderSlot(d,cid,si){
   // Teacher ride annotation: show a banner when a teacher change means
   // the driver must detour back to branch.
   const rideNote=teacherRideNote(d,cid,si);
-  const lockBadge=sl_.locked?'<span class="lock-badge" title="Locked — auto-schedule will skip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>':'';
+  const lockBadge=sl_.locked?'<span class="lock-badge" title="Mandatory time — locked by parent request"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>':'';
   const lockBtn=`<button class="lock-toggle${sl_.locked?' is-locked':''}" onclick="event.stopPropagation();toggleSlotLock('${d}',${cid},${si})" title="${sl_.locked?'Unlock this slot':'Lock — protect from auto-schedule'}">${sl_.locked?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>':'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>'}</button>`;
   // Rejected-day check: any student in this slot on a day their parent rejected?
   const slotIds=slotStudentIds(sl_);
@@ -2613,7 +2784,7 @@ function toggleSlotLock(d,cid,si){
     });
   }
   saveState();renderSched();
-  toast(sl_.locked?'Slot locked — auto-schedule will skip it':'Slot unlocked');
+  toast(sl_.locked?'🔒 Slot locked — auto-schedule will skip it':'🔓 Slot unlocked');
 }
 
 function rmSlot(d,cid,si){
@@ -2785,11 +2956,9 @@ function mandatoryCells(s){
 // house the car drives to. Only shown for group-type students, otherwise "—".
 function groupHostCell(s){
   if((s.sessionType||'1on1')!=='group') return '<span style="color:var(--text3);font-size:9px">—</span>';
-  // Collect group-type peers: same teacher AND same class (guests can only go to hosts in the same class)
   const sCls=(s.cls||'').trim().toLowerCase();
   const peers=Object.values(SS).filter(p=>{
-    if(p.id===s.id)return false;
-    if(p.t!==s.t)return false;
+    if(p.id===s.id||p.t!==s.t)return false;
     if((p.sessionType||'1on1')!=='group')return false;
     const pCls=(p.cls||'').trim().toLowerCase();
     if(sCls&&pCls&&sCls!==pCls)return false;
@@ -3010,7 +3179,7 @@ function parseImportRows(aoa){
     a:headers.indexOf('address'),
     la:headers.findIndex(h=>h==='latitude'||h==='lat'),
     ln:headers.findIndex(h=>h==='longitude'||h==='lng'||h==='long'||h==='lon'),
-    spw:headers.findIndex(h=>h==='sessionsperweek'||h==='sessionsweek'||h==='sessperweek'||h==='sessweek'||h==='sesswk'),
+    spw:headers.findIndex(h=>h==='sessionsperweek'||h==='sessionsweek'||h==='sessperweek'||h==='sessweek'||h==='sessswk'),
     cls:headers.findIndex(h=>h==='class'||h==='grade'||h==='level'),
     typ:headers.findIndex(h=>h==='type'||h==='sessiontype'),
     gh:headers.findIndex(h=>h==='grouphost'||h==='host'),
@@ -3420,7 +3589,7 @@ function buildDispatchMessage(d,cid){
       const travelMin=tm(hv(prevLa,prevLn,useLa,useLn));
       const arrT=ts(startM+travelMin);
       num++;
-      const locked=sl_.locked?' [Locked]':'';
+      const locked=sl_.locked?' 🔒':'';
       lines.push(`${num}. ${depT}  ${s.t||'teacher'} + driver → Drop at ${arrT} ${s.n}: ${useAddr}${locked}`);
       lines.push(`   🗺️ ${mapLink(useLa,useLn)}`);
       prevLa=useLa; prevLn=useLn; prevNm=s.n;
@@ -3541,8 +3710,78 @@ function switchView(view){
   document.querySelectorAll('.legend').forEach(el=>el.style.display=view==='daily'?'':'none');
   qs('audit-outer').style.display=view==='audit'?'block':'none';
   qs('week-outer').style.display=view==='week'?'block':'none';
+  // Show/hide pool sidebar only in daily view
+  const poolEl=document.querySelector('.pool');
+  if(poolEl)poolEl.style.display=view==='daily'?'flex':'none';
   if(view==='audit')renderAudit();
   if(view==='week')renderWeekView();
+}
+
+// ===== THEME SWITCHING =====
+let _activeTheme='hv';
+function switchTheme(theme){
+  _activeTheme=theme;
+  document.body.setAttribute('data-active-theme',theme);
+  // Toggle theme tabs
+  document.querySelectorAll('.theme-tab').forEach(t=>t.classList.toggle('active',t.dataset.theme===theme));
+  // Toggle theme panels
+  document.querySelectorAll('.theme-panel').forEach(p=>p.classList.toggle('active',p.id==='theme-'+theme));
+  // Render appropriate view
+  if(theme==='pl'){renderPlDashboard();renderPipeline();}
+}
+
+let _plView='dashboard';
+function switchPlView(view){
+  _plView=view;
+  const dashBtn=document.getElementById('vt-pl-dash');
+  const kanbanBtn=document.getElementById('vt-pl-kanban');
+  if(dashBtn)dashBtn.classList.toggle('active',view==='dashboard');
+  if(kanbanBtn)kanbanBtn.classList.toggle('active',view==='kanban');
+  const dashOuter=document.getElementById('pl-dashboard-outer');
+  const kanbanOuter=qs('pipeline-outer');
+  if(dashOuter)dashOuter.style.display=view==='dashboard'?'block':'none';
+  if(kanbanOuter)kanbanOuter.style.display=view==='kanban'?'block':'none';
+  if(view==='dashboard')renderPlDashboard();
+  if(view==='kanban')renderPipeline();
+}
+
+// ===== SHARED PAGES =====
+function showSharedHelp(){
+  renderHelpPage();
+  document.getElementById('shared-help').classList.add('open');
+}
+function closeSharedPage(id){document.getElementById(id).classList.remove('open');}
+
+function renderHelpPage(){
+  let h='';
+  // Home Visits section
+  h+='<div class="sp-section"><h3><span class="sp-badge hv">Home Visits</span> Schedule Builder</h3>';
+  h+='<p><b>Daily View</b> — Drag students from the pool into car slots. Each slot is a 45-minute session. Drop on a filled slot to create double/triple drops (same address, same teacher). Click a slot to set it as "active" — the pool re-sorts by proximity.</p>';
+  h+='<p><b>Week View</b> — See the full week at a glance. Use the legend toggles to filter slot types. Branch filter narrows the view.</p>';
+  h+='<p><b>Audit View</b> — Tracks student coverage, teacher workload, idle time, and branch summaries across the week.</p>';
+  h+='<p><b>Auto-schedule</b> — Places all pool students optimally: groups by teacher, minimizes drive distance, respects rejected days and fixed times, creates double-drops for siblings at the same address.</p>';
+  h+='<p><b>Rejected Days</b> — Set in the student roster. The auto-scheduler will never place a student on their rejected days. Manual placements show a red warning banner.</p>';
+  h+='<p><b>Group Host</b> — For group-type students, set the host student. The car drives to the host\'s address; other group members\' addresses are ignored for routing.</p>';
+  h+='</div>';
+
+  // Pipeline section
+  h+='<div class="sp-section"><h3><span class="sp-badge pl">Pipeline</span> Admission CRM</h3>';
+  h+='<p><b>Dashboard</b> — Summary of your admission funnel: total leads, conversion rates, stale alerts, and the 5 Weekly Numbers (new inquiries, tours booked, tours completed, offers made, enrollments).</p>';
+  h+='<p><b>Kanban Board</b> — 7 stages per SOP 4.6.4: Inquiry → Tour Booked → Toured → Offer Made → Enrolled → Retained/Referred → Lost. Drag cards between columns to advance leads.</p>';
+  h+='<p><b>Stale Leads</b> — Any lead sitting in a stage for more than 14 days without action gets a red "stale" badge. The dashboard highlights total stale count.</p>';
+  h+='<p><b>Conversation Log</b> — Click any lead card to open details. Log outgoing messages, incoming messages, or internal notes. Every stage change is auto-logged.</p>';
+  h+='<p><b>3-Contact Rule</b> — Track contact count per lead. After 3 contacts without progression, consider moving to Lost.</p>';
+  h+='</div>';
+
+  // Shared features
+  h+='<div class="sp-section"><h3><span class="sp-badge shared">Shared</span> Common Features</h3>';
+  h+='<p><b>Students</b> — Master roster shared across both themes. Student data (name, branch, teacher, address, phone, session type, etc.) feeds both the schedule builder and pipeline.</p>';
+  h+='<p><b>Settings</b> — Configure rules for both systems: session length, buffer time, day start/end, stale lead threshold, max contacts, etc.</p>';
+  h+='<p><b>Import / Export</b> — Import brings in full state (schedule + pipeline). Export downloads the current state as JSON for backup.</p>';
+  h+='<p><b>Real-time Sync</b> — All data syncs to Supabase in real-time. Multiple users see changes instantly. The sync indicator shows connection status.</p>';
+  h+='</div>';
+
+  document.getElementById('help-body').innerHTML=h;
 }
 // ===== WEEK VIEW =====
 let _wkBranch='All';
@@ -4383,7 +4622,6 @@ function deleteTeacher(name){
   const sc=teacherStudentCount(name);
   if(sc>0&&!confirm(`${name} has ${sc} student${sc===1?'':'s'} assigned. Removing the teacher will also clear this teacher from those students. Continue?`))return;
   if(sc===0&&!confirm(`Remove teacher "${name}"?`))return;
-  // Clear teacher from assigned students so they return to the pool
   Object.values(SS).forEach(s=>{if(s.t===name)s.t='';});
   _deletedTeachers.add(name);
   delete TEACHERS[name];
@@ -4437,6 +4675,7 @@ function switchReportTab(tab){
 }
 function renderReports(){
   _rptWeek=qs('rpt-week').value||currentWeekKey();
+  // Keep the schedule-view picker in sync (both dropdowns drive the same _rptWeek)
   const sw=qs('sched-week');if(sw)sw.value=_rptWeek;
   updateSchedWeekBanner();
   if(_rptTab==='student')renderStudentCompletionReport();
@@ -4444,6 +4683,7 @@ function renderReports(){
   else if(_rptTab==='parent')renderParentNotificationsReport();
   else if(_rptTab==='drivers')renderDriversReport();
 }
+
 function renderDriversReport(){
   const body=qs('rpt-body');if(!body)return;
   const DAYS_ACTIVE=DAYS.filter(d=>{
@@ -4774,17 +5014,17 @@ function renderTeacherWeeklyReport(){
           <div style="font-size:9px;color:var(--text3);margin-bottom:6px">${dayTags} · max ${t.maxPerDay||6}/day${t.active?'':' · <span style="color:#DC2626">INACTIVE</span>'}</div>
           ${sessions.length?`<div style="font-size:10px;line-height:1.6">
             ${sessions.map(x=>{
-              const addr=x.s.a||'';
-              const grpCoords=x.sl_?.t==='g'?resolveGroupCoords(x.s):null;
-              const pickupAddr=grpCoords&&SS[x.sl_?.ids?.[0]]?SS[x.sl_.ids[0]].a:addr;
-              return `<div style="padding:4px 0;border-top:1px solid #F0F0F0">
-              <div style="display:flex;gap:6px;align-items:center">
-                <span style="font-weight:700;color:var(--purple);min-width:60px">${x.d} ${ts(x.startM)}</span>
-                <span style="flex:1">${esc(x.s.n)}</span>
-                <span style="font-size:9px;color:var(--text3)">${esc(x.car?.label||'')}</span>
-              </div>
-              <div style="font-size:9px;color:#6B7280;padding-left:66px;margin-top:1px">📍 ${esc(pickupAddr||'No address')}</div>
-            </div>`;}).join('')}
+  const addr=x.s.a||'';
+  const grpCoords=x.sl_?.t==='g'?resolveGroupCoords(x.s):null;
+  const pickupAddr=grpCoords&&SS[x.sl_?.ids?.[0]]?SS[x.sl_.ids[0]].a:addr;
+  return `<div style="padding:4px 0;border-top:1px solid #F0F0F0">
+  <div style="display:flex;gap:6px;align-items:center">
+    <span style="font-weight:700;color:var(--purple);min-width:60px">${x.d} ${ts(x.startM)}</span>
+    <span style="flex:1">${esc(x.s.n)}</span>
+    <span style="font-size:9px;color:var(--text3)">${esc(x.car?.label||'')}</span>
+  </div>
+  <div style="font-size:9px;color:#6B7280;padding-left:66px;margin-top:1px">📍 ${esc(pickupAddr||'No address')}</div>
+</div>`;}).join('')}
           </div>`:'<div style="font-size:10px;color:var(--text3);font-style:italic">No sessions scheduled this week</div>'}
         </div>`;
       }).join('')}
@@ -4955,6 +5195,7 @@ function showSettingsModal(){
   qs('set-maxGroup').value=SETTINGS.maxGroupSize;
   qs('set-teacherMax').value=SETTINGS.teacherDefaultMax;
   qs('set-chainBonus').value=SETTINGS.chainBonusKm;
+  qs('set-stickyBonus').value=SETTINGS.stickyBonusKm;
   qs('set-sameBranch').checked=!!SETTINGS.sameBranchOnly;
   qs('set-autoPickup').checked=!!SETTINGS.autoPickup;
   qs('set-preventDouble').checked=!!SETTINGS.preventSameDayDouble;
@@ -4987,6 +5228,7 @@ function saveSettingsModal(){
     maxGroupSize:parseInt(qs('set-maxGroup').value)||4,
     teacherDefaultMax:parseInt(qs('set-teacherMax').value)||6,
     chainBonusKm:parseInt(qs('set-chainBonus').value)||100,
+    stickyBonusKm:parseInt(qs('set-stickyBonus').value)||15,
     sameBranchOnly:qs('set-sameBranch').checked?1:0,
     autoPickup:qs('set-autoPickup').checked?1:0,
     preventSameDayDouble:qs('set-preventDouble').checked?1:0,
@@ -5114,7 +5356,6 @@ function runAutoSchedule(){
   qs('automodal').style.display='none';
   if(clearFirst){
     if(scopeBr==='All'){
-      // Preserve locked slots, clear everything else
       DAYS.forEach(d=>CARS.forEach(car=>{
         const s=SCHED[d]?.[car.id];if(!s)return;
         s.forEach((sl_,i)=>{if(sl_&&!sl_.locked)s[i]=null;});
@@ -5186,6 +5427,27 @@ function runAutoSchedule(){
     remain[e.s.id]=e.remaining;
   });
 
+  // Teacher-car affinity: once a teacher is placed on a car for a given day,
+  // strongly prefer keeping them on the same car for subsequent sessions.
+  // This eliminates wasteful branch-return trips between cars and lets
+  // teachers chain sessions back-to-back.
+  const teacherCarAffinity={};  // { 'Mon': { 'Mariya': 'car_1', ... }, ... }
+  DAYS_ACTIVE.forEach(d=>{
+    teacherCarAffinity[d]={};
+    // Prime from already-scheduled slots (manual placements)
+    CARS.forEach(car=>{
+      (SCHED[d]?.[car.id]||[]).forEach(sl_=>{
+        if(!sl_||sl_.t==='pick')return;
+        slotStudentIds(sl_).forEach(sid=>{
+          const s=SS[sid];
+          if(s&&s.t&&!teacherCarAffinity[d][s.t])teacherCarAffinity[d][s.t]=car.id;
+        });
+      });
+    });
+  });
+  const stickyBonus=-(parseInt(SETTINGS.stickyBonusKm)||15);  // strong pull toward same car
+  const stickyPenalty=Math.abs(stickyBonus)*2;                 // push away from different car
+
   function teacherCanTake(tname,day){
     const t=TEACHERS[tname];
     if(t&&!t.active)return false;
@@ -5216,9 +5478,6 @@ function runAutoSchedule(){
   }
 
   // Check if a teacher is already on a different car at an overlapping time.
-  // A session occupies roughly sessionBlockMin() minutes. If teacher T has a
-  // session on CarX starting at 10:00 with a 45-min block, she can't start
-  // on CarY until ~10:45. We check all other cars' slots on the same day.
   function teacherBusyAtTime(tname,day,carId,slotIdx){
     const block=sessionBlockMin();
     const myStart=slotStartMin(day,carId,slotIdx);
@@ -5233,7 +5492,6 @@ function runAutoSchedule(){
         if(!hasTeacher)continue;
         const oStart=slotStartMin(day,otherCar.id,osi);
         const oDur=slotDur(osl,day,otherCar.id,osi);
-        // Overlap: teacher busy from oStart to oStart+oDur
         if(myStart<oStart+oDur && myStart+block>oStart)return true;
       }
     }
@@ -5249,7 +5507,6 @@ function runAutoSchedule(){
       if(preventDouble&&onDay[day].has(sid))return false;
       if(!carServesBranch(car,s))return false;
       if(!teacherCanTake(s.t,day))return false;
-      // Prevent same teacher on two cars at the same time
       if(teacherBusyAtTime(s.t,day,car.id,slotIdx))return false;
       return true;
     });
@@ -5257,14 +5514,20 @@ function runAutoSchedule(){
     // Use spread-compliant candidates first; fall back to all if none available
     // (better to schedule back-to-back than not at all)
     const pool=spread.length?spread:all;
+    const affinity=teacherCarAffinity[day]||{};
     return pool.sort((a,b)=>{
       const sa=SS[a],sb=SS[b];
       const chA=(lastTeacher&&sa.t===lastTeacher)?chainBonus:0;
       const chB=(lastTeacher&&sb.t===lastTeacher)?chainBonus:0;
+      // Teacher-car stickiness: prefer students whose teacher is already on THIS car,
+      // deprioritize students whose teacher is already on a DIFFERENT car
+      let stA=0,stB=0;
+      if(affinity[sa.t]){stA=affinity[sa.t]===car.id?stickyBonus:stickyPenalty;}
+      if(affinity[sb.t]){stB=affinity[sb.t]===car.id?stickyBonus:stickyPenalty;}
       const ca=resolveGroupCoords(sa),cb=resolveGroupCoords(sb);
       const dA=hv(pos.la,pos.ln,ca.la,ca.ln);
       const dB=hv(pos.la,pos.ln,cb.la,cb.ln);
-      return (chA+dA)-(chB+dB);
+      return (chA+stA+dA)-(chB+stB+dB);
     });
   }
 
@@ -5410,6 +5673,8 @@ function runAutoSchedule(){
             onDay[day].add(nearSibling);
             teacherDayCount[day][s2.t]=(teacherDayCount[day][s2.t]||0)+1;
             placed++;
+            // Record affinity for sibling's teacher too
+            if(!teacherCarAffinity[day][s2.t])teacherCarAffinity[day][s2.t]=car.id;
           }
         }
 
@@ -5417,6 +5682,8 @@ function runAutoSchedule(){
         lastTeacher=pickS.t;
         const driveCoords=resolveGroupCoords(pickS);
         pos={la:driveCoords.la,ln:driveCoords.ln,isBase:false};
+        // Record teacher-car affinity so subsequent sessions keep this teacher on this car
+        if(!teacherCarAffinity[day][pickS.t])teacherCarAffinity[day][pickS.t]=car.id;
 
         // Optionally insert pickup slots after this drop.
         // For group sessions (t==='g'), ALL students are at the same location
@@ -5485,7 +5752,6 @@ function runAutoSchedule(){
         // Score cars: prefer same car as drop, then nearest empty slot to ready time
         let bestCar=null,bestSi=-1,bestScore=Infinity;
         CARS.forEach(car=>{
-          // Respect branch separation if enabled
           if(sameBranchOnly&&!carServesBranch(car,s))return;
           const slots=SCHED[day]?.[car.id]||[];
           for(let si=0;si<slots.length;si++){
@@ -5560,6 +5826,398 @@ function toastUndo(msg,onUndo,ms){
   setTimeout(()=>{if(!used)t.remove();},ms||10000);
 }
 
+// ===== PIPELINE / CRM ENGINE (SOP 4.6.4) =====
+const PL_STAGES=[
+  {id:'inquiry',label:'Inquiry',icon:'📨',color:'#2563EB'},
+  {id:'tour_booked',label:'Tour Booked',icon:'📅',color:'#7C3AED'},
+  {id:'toured',label:'Toured',icon:'🏫',color:'#0891B2'},
+  {id:'offer_made',label:'Offer Made',icon:'📝',color:'#D97706'},
+  {id:'enrolled',label:'Enrolled',icon:'✅',color:'#059669'},
+  {id:'retained',label:'Retained / Referred',icon:'⭐',color:'#9333EA'},
+  {id:'lost',label:'Lost',icon:'❌',color:'#DC2626'}
+];
+const PL_SOURCES=['Walk-in','WhatsApp','Instagram','Referral','Website','Phone','Other'];
+const PL_TOUR_OUTCOMES=['strong','undecided','unlikely'];
+const PL_LOST_REASONS=['Pricing','Location','Schedule conflict','Competitor','No response','Other'];
+const PL_STALE_DAYS=14;
+const PL_MAX_CONTACTS=3;
+
+// Pipeline state — synced alongside SS/SCHED/etc
+let PIPELINE={};  // {[leadId]: leadObj}
+let _plSearch='';
+let _plDragId=null;
+
+function plId(){return 'lead_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);}
+
+function newLead(overrides){
+  const id=plId();
+  const now=new Date().toISOString();
+  return Object.assign({
+    id,
+    familyName:'',
+    childName:'',
+    childAge:'',
+    phone:'',
+    email:'',
+    source:'Walk-in',
+    branch:'Salam',
+    stage:'inquiry',
+    tourDate:'',
+    tourOutcome:'',
+    offerNote:'',
+    lostReason:'',
+    lostNote:'',
+    contactCount:0,
+    notes:'',
+    log:[],         // [{ts,type:'outgoing'|'incoming'|'note',text}]
+    createdAt:now,
+    updatedAt:now,
+    stageEnteredAt:now
+  },overrides||{},{id});
+}
+
+function plLeadsByStage(stageId){
+  return Object.values(PIPELINE).filter(l=>l.stage===stageId)
+    .filter(l=>{
+      if(!_plSearch)return true;
+      const q=_plSearch.toLowerCase();
+      return (l.familyName||'').toLowerCase().includes(q)||(l.childName||'').toLowerCase().includes(q)||(l.phone||'').includes(q);
+    })
+    .sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt));
+}
+
+function plDaysSince(isoStr){
+  if(!isoStr)return 999;
+  return Math.floor((Date.now()-new Date(isoStr).getTime())/86400000);
+}
+
+function plIsStale(lead){
+  if(lead.stage==='enrolled'||lead.stage==='retained'||lead.stage==='lost')return false;
+  return plDaysSince(lead.stageEnteredAt)>=PL_STALE_DAYS;
+}
+
+function plIsHot(lead){
+  return plDaysSince(lead.updatedAt)<=2;
+}
+
+function plSavePipeline(){
+  saveState();
+}
+
+// ---- PIPELINE DASHBOARD ----
+function renderPlDashboard(){
+  const el=document.getElementById('pl-dashboard-outer');
+  if(!el)return;
+  const leads=Object.values(PIPELINE);
+  const total=leads.length;
+  const staleCount=leads.filter(plIsStale).length;
+  const now=new Date();
+  const weekAgo=new Date(now.getTime()-7*86400000).toISOString();
+  const monthAgo=new Date(now.getTime()-30*86400000).toISOString();
+
+  // Stage counts
+  const stageCounts={};
+  PL_STAGES.forEach(s=>stageCounts[s.id]=0);
+  leads.forEach(l=>stageCounts[l.stage]=(stageCounts[l.stage]||0)+1);
+
+  // Weekly numbers
+  const wkNew=leads.filter(l=>l.createdAt>=weekAgo).length;
+  const wkTourBooked=leads.filter(l=>l.stage==='tour_booked'&&l.stageEnteredAt>=weekAgo).length;
+  const wkTouredN=leads.filter(l=>l.stage==='toured'&&l.stageEnteredAt>=weekAgo).length;
+  const wkOffers=leads.filter(l=>l.stage==='offer_made'&&l.stageEnteredAt>=weekAgo).length;
+  const wkEnrolled=leads.filter(l=>l.stage==='enrolled'&&l.stageEnteredAt>=weekAgo).length;
+
+  // Source breakdown
+  const srcCounts={};
+  leads.forEach(l=>{srcCounts[l.source]=(srcCounts[l.source]||0)+1;});
+
+  let h='';
+  // KPI cards
+  h+='<div class="pl-dash">';
+  h+='<div class="pl-dash-card"><h4>Total Leads</h4><div class="pl-dash-num">'+total+'</div><div class="pl-dash-sub">'+leads.filter(l=>l.createdAt>=monthAgo).length+' added this month</div></div>';
+  h+='<div class="pl-dash-card"><h4>Active Pipeline</h4><div class="pl-dash-num">'+(total-stageCounts.enrolled-stageCounts.retained-stageCounts.lost)+'</div><div class="pl-dash-sub">In progress (Inquiry → Offer)</div></div>';
+  h+='<div class="pl-dash-card" style="'+(staleCount>0?'border-color:#FCA5A5':'')+'"><h4>Stale Leads</h4><div class="pl-dash-num" style="'+(staleCount>0?'color:#DC2626':'')+'">'+staleCount+'</div><div class="pl-dash-sub">&gt; '+PL_STALE_DAYS+' days without action</div></div>';
+  h+='<div class="pl-dash-card"><h4>Enrolled</h4><div class="pl-dash-num" style="color:var(--green)">'+stageCounts.enrolled+'</div><div class="pl-dash-sub">'+stageCounts.retained+' retained/referred</div></div>';
+  h+='<div class="pl-dash-card"><h4>Lost</h4><div class="pl-dash-num" style="color:var(--red)">'+stageCounts.lost+'</div><div class="pl-dash-sub">'+(total>0?Math.round(stageCounts.lost/total*100):0)+'% loss rate</div></div>';
+  h+='</div>';
+
+  // 5 Weekly Numbers
+  h+='<div class="pl-dash" style="grid-template-columns:repeat(5,1fr)">';
+  h+='<div class="pl-dash-card" style="text-align:center;border-top:3px solid var(--orange)"><h4>New Inquiries</h4><div class="pl-dash-num">'+wkNew+'</div><div class="pl-dash-sub">this week</div></div>';
+  h+='<div class="pl-dash-card" style="text-align:center;border-top:3px solid var(--purple)"><h4>Tours Booked</h4><div class="pl-dash-num">'+wkTourBooked+'</div><div class="pl-dash-sub">this week</div></div>';
+  h+='<div class="pl-dash-card" style="text-align:center;border-top:3px solid var(--teal)"><h4>Tours Done</h4><div class="pl-dash-num">'+wkTouredN+'</div><div class="pl-dash-sub">this week</div></div>';
+  h+='<div class="pl-dash-card" style="text-align:center;border-top:3px solid var(--amber)"><h4>Offers Made</h4><div class="pl-dash-num">'+wkOffers+'</div><div class="pl-dash-sub">this week</div></div>';
+  h+='<div class="pl-dash-card" style="text-align:center;border-top:3px solid var(--green)"><h4>Enrolled</h4><div class="pl-dash-num">'+wkEnrolled+'</div><div class="pl-dash-sub">this week</div></div>';
+  h+='</div>';
+
+  // Funnel visualization
+  const maxCount=Math.max(1,...PL_STAGES.filter(s=>s.id!=='lost').map(s=>stageCounts[s.id]||0));
+  h+='<div class="pl-funnel"><h4>Enrollment Funnel</h4>';
+  PL_STAGES.filter(s=>s.id!=='lost').forEach(stg=>{
+    const cnt=stageCounts[stg.id]||0;
+    const pct=Math.round(cnt/maxCount*100)||0;
+    h+='<div class="pl-funnel-bar">';
+    h+='<div class="pl-funnel-label">'+stg.icon+' '+stg.label+'</div>';
+    h+='<div class="pl-funnel-track"><div class="pl-funnel-fill" style="width:'+Math.max(pct,2)+'%;background:'+stg.color+'">'+cnt+'</div></div>';
+    h+='<div class="pl-funnel-count">'+cnt+'</div>';
+    h+='</div>';
+  });
+  h+='</div>';
+
+  // Source breakdown
+  h+='<div style="padding:0 16px 12px;display:flex;gap:12px;flex-wrap:wrap">';
+  h+='<div class="sp-section" style="flex:1;min-width:250px"><h3>Lead Sources</h3>';
+  const srcSorted=Object.entries(srcCounts).sort((a,b)=>b[1]-a[1]);
+  if(srcSorted.length===0) h+='<p style="color:var(--text3)">No leads yet — add your first lead in the Kanban view</p>';
+  srcSorted.forEach(([src,cnt])=>{
+    h+='<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:11px"><span>'+esc(src)+'</span><b>'+cnt+'</b></div>';
+  });
+  h+='</div>';
+
+  // Recent activity
+  h+='<div class="sp-section" style="flex:1;min-width:250px"><h3>Recent Activity</h3>';
+  const recentLeads=leads.sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt)).slice(0,8);
+  if(recentLeads.length===0) h+='<p style="color:var(--text3)">No activity yet</p>';
+  recentLeads.forEach(l=>{
+    const stg=PL_STAGES.find(s=>s.id===l.stage);
+    const ago=plDaysSince(l.updatedAt);
+    h+='<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:10px;border-bottom:1px solid var(--border)">';
+    h+='<span style="font-weight:700">'+esc(l.familyName||'Unnamed')+'</span>';
+    h+='<span class="sp-badge" style="background:'+((stg&&stg.color)||'#999')+'22;color:'+(stg?stg.color:'#999')+'">'+(stg?stg.label:'?')+'</span>';
+    h+='<span style="margin-left:auto;color:var(--text3)">'+ago+'d ago</span>';
+    h+='</div>';
+  });
+  h+='</div></div>';
+
+  // CTA to Kanban
+  h+='<div style="text-align:center;padding:12px"><button class="pl-add-btn" style="font-size:12px;padding:8px 20px" onclick="switchPlView(\'kanban\')">Open Kanban Board →</button></div>';
+
+  el.innerHTML=h;
+}
+
+// ---- RENDER KANBAN ----
+function renderPipeline(){
+  const el=qs('pipeline-outer');
+  if(!el)return;
+  const total=Object.keys(PIPELINE).length;
+  const staleCount=Object.values(PIPELINE).filter(plIsStale).length;
+
+  let h='<div class="pl-toolbar">';
+  h+='<span class="pl-title">🔗 Admission Pipeline</span>';
+  h+='<span class="pl-stat">Total: <b>'+total+'</b></span>';
+  if(staleCount>0) h+='<span class="pl-stat" style="color:#DC2626;border-color:#FCA5A5">Stale: <b style="color:#DC2626">'+staleCount+'</b></span>';
+  // Weekly numbers
+  const now=new Date();
+  const weekAgo=new Date(now.getTime()-7*86400000).toISOString();
+  const wkInq=Object.values(PIPELINE).filter(l=>l.createdAt>=weekAgo).length;
+  const wkTour=Object.values(PIPELINE).filter(l=>l.stage==='tour_booked'&&l.stageEnteredAt>=weekAgo).length;
+  const wkTouredN=Object.values(PIPELINE).filter(l=>l.stage==='toured'&&l.stageEnteredAt>=weekAgo).length;
+  const wkOffer=Object.values(PIPELINE).filter(l=>l.stage==='offer_made'&&l.stageEnteredAt>=weekAgo).length;
+  const wkEnrolled=Object.values(PIPELINE).filter(l=>l.stage==='enrolled'&&l.stageEnteredAt>=weekAgo).length;
+  h+='<span class="pl-stat" title="5 Weekly Numbers (SOP 4.6.4)">This week: <b>'+wkInq+'</b> inq · <b>'+wkTour+'</b> booked · <b>'+wkTouredN+'</b> toured · <b>'+wkOffer+'</b> offers · <b>'+wkEnrolled+'</b> enrolled</span>';
+  h+='<div style="flex:1"></div>';
+  h+='<input class="pl-search" placeholder="Search leads..." value="'+esc(_plSearch)+'" oninput="_plSearch=this.value;renderPipeline()">';
+  h+='<button class="pl-add-btn" onclick="openPlModal()">+ New Lead</button>';
+  h+='</div>';
+
+  // Kanban board
+  h+='<div class="pl-board">';
+  PL_STAGES.forEach(stg=>{
+    const leads=plLeadsByStage(stg.id);
+    h+='<div class="pl-col">';
+    h+='<div class="pl-col-hdr"><span class="pl-col-title">'+stg.icon+' '+stg.label+'</span><span class="pl-col-cnt">'+leads.length+'</span></div>';
+    h+='<div class="pl-col-body" data-stage="'+stg.id+'" ondragover="plDragOver(event)" ondragleave="plDragLeave(event)" ondrop="plDrop(event,\''+stg.id+'\')">';
+    leads.forEach(lead=>{
+      const stale=plIsStale(lead);
+      const hot=plIsHot(lead)&&!stale;
+      const days=plDaysSince(lead.stageEnteredAt);
+      h+='<div class="pl-card'+(stale?' stale':'')+'" draggable="true" ondragstart="plDragStart(event,\''+lead.id+'\')" ondragend="plDragEnd(event)" onclick="openPlModal(\''+lead.id+'\')">';
+      if(stale) h+='<span class="pl-card-stale">⚠ '+days+'d stale</span>';
+      else if(hot) h+='<span class="pl-card-hot">🔥 new</span>';
+      h+='<div class="pl-card-name">'+esc(lead.familyName||'Unnamed')+'</div>';
+      h+='<div class="pl-card-child">'+esc(lead.childName||'')+(lead.childAge?' ('+esc(lead.childAge)+')':'')+'</div>';
+      h+='<div class="pl-card-meta">';
+      if(lead.source) h+='<span class="pl-src">'+esc(lead.source)+'</span>';
+      h+='<span>'+days+'d in stage</span>';
+      if(lead.contactCount>0) h+='<span>'+lead.contactCount+'/'+PL_MAX_CONTACTS+' contacts</span>';
+      h+='</div>';
+      h+='</div>';
+    });
+    h+='</div></div>';
+  });
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+// ---- DRAG & DROP ----
+function plDragStart(e,leadId){
+  _plDragId=leadId;
+  e.dataTransfer.effectAllowed='move';
+  e.target.classList.add('dragging');
+}
+function plDragEnd(e){
+  _plDragId=null;
+  e.target.classList.remove('dragging');
+  document.querySelectorAll('.pl-col-body.drag-over').forEach(el=>el.classList.remove('drag-over'));
+}
+function plDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  e.currentTarget.classList.add('drag-over');
+}
+function plDragLeave(e){
+  e.currentTarget.classList.remove('drag-over');
+}
+function plDrop(e,newStage){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if(!_plDragId||!PIPELINE[_plDragId])return;
+  const lead=PIPELINE[_plDragId];
+  if(lead.stage===newStage)return;
+  const now=new Date().toISOString();
+  lead.log.push({ts:now,type:'note',text:'Stage changed: '+lead.stage+' → '+newStage});
+  lead.stage=newStage;
+  lead.stageEnteredAt=now;
+  lead.updatedAt=now;
+  // Auto-increment contact count on outbound stage moves (inquiry/tour_booked/offer_made)
+  if(['tour_booked','offer_made'].includes(newStage)) lead.contactCount=Math.min((lead.contactCount||0)+1,PL_MAX_CONTACTS);
+  plSavePipeline();
+  renderPipeline();
+}
+
+// ---- LEAD MODAL ----
+function openPlModal(leadId){
+  const isNew=!leadId;
+  const lead=isNew?newLead():PIPELINE[leadId];
+  if(!lead)return;
+  const overlay=qs('pl-modal-overlay');
+  document.getElementById('pl-modal-title').textContent=isNew?'New Lead':'Edit Lead — '+esc(lead.familyName||'Unnamed');
+
+  let b='';
+  b+='<div class="pl-field-row">';
+  b+='<div class="pl-field"><label>Family Name *</label><input id="pl-f-family" value="'+esc(lead.familyName||'')+'"></div>';
+  b+='<div class="pl-field"><label>Child Name</label><input id="pl-f-child" value="'+esc(lead.childName||'')+'"></div>';
+  b+='</div>';
+  b+='<div class="pl-field-row">';
+  b+='<div class="pl-field"><label>Child Age</label><input id="pl-f-age" value="'+esc(lead.childAge||'')+'" placeholder="e.g. 7"></div>';
+  b+='<div class="pl-field"><label>Phone</label><input id="pl-f-phone" value="'+esc(lead.phone||'')+'" placeholder="+965 ..."></div>';
+  b+='<div class="pl-field"><label>Email</label><input id="pl-f-email" value="'+esc(lead.email||'')+'"></div>';
+  b+='</div>';
+  b+='<div class="pl-field-row">';
+  b+='<div class="pl-field"><label>Source</label><select id="pl-f-source">'+PL_SOURCES.map(s=>'<option'+(lead.source===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div>';
+  b+='<div class="pl-field"><label>Branch</label><select id="pl-f-branch"><option'+(lead.branch==='Salam'?' selected':'')+'>Salam</option><option'+(lead.branch==='Shuhada'?' selected':'')+'>Shuhada</option><option'+(lead.branch==='Salwa'?' selected':'')+'>Salwa</option></select></div>';
+  b+='<div class="pl-field"><label>Stage</label><select id="pl-f-stage">'+PL_STAGES.map(s=>'<option value="'+s.id+'"'+(lead.stage===s.id?' selected':'')+'>'+s.icon+' '+s.label+'</option>').join('')+'</select></div>';
+  b+='</div>';
+
+  // Tour fields (shown for tour_booked and toured stages)
+  b+='<div class="pl-field-row">';
+  b+='<div class="pl-field"><label>Tour Date</label><input id="pl-f-tourdate" type="date" value="'+(lead.tourDate||'')+'"></div>';
+  b+='<div class="pl-field"><label>Tour Outcome</label><select id="pl-f-tourout"><option value="">—</option>'+PL_TOUR_OUTCOMES.map(o=>'<option'+(lead.tourOutcome===o?' selected':'')+'>'+o+'</option>').join('')+'</select></div>';
+  b+='</div>';
+
+  // Lost reason (shown for lost)
+  b+='<div class="pl-field-row">';
+  b+='<div class="pl-field"><label>Lost Reason</label><select id="pl-f-lostreason"><option value="">—</option>'+PL_LOST_REASONS.map(r=>'<option'+(lead.lostReason===r?' selected':'')+'>'+r+'</option>').join('')+'</select></div>';
+  b+='<div class="pl-field"><label>Lost Note</label><input id="pl-f-lostnote" value="'+esc(lead.lostNote||'')+'"></div>';
+  b+='</div>';
+
+  b+='<div class="pl-field"><label>Notes</label><textarea id="pl-f-notes" rows="2">'+esc(lead.notes||'')+'</textarea></div>';
+
+  // Conversation log
+  b+='<div class="pl-log">';
+  b+='<div class="pl-log-title">💬 Conversation Log ('+lead.log.length+' entries)</div>';
+  b+='<div class="pl-log-list" id="pl-log-list">';
+  lead.log.slice().reverse().forEach(entry=>{
+    b+='<div class="pl-log-entry '+entry.type+'">';
+    b+='<div class="pl-log-ts">'+(entry.type==='outgoing'?'📤':entry.type==='incoming'?'📥':'📝')+' '+new Date(entry.ts).toLocaleString()+'</div>';
+    b+='<div class="pl-log-text">'+esc(entry.text)+'</div>';
+    b+='</div>';
+  });
+  if(lead.log.length===0) b+='<div style="text-align:center;color:var(--text3);font-size:10px;padding:12px">No interactions logged yet</div>';
+  b+='</div>';
+  b+='<div class="pl-log-add">';
+  b+='<select id="pl-log-type"><option value="outgoing">📤 Out</option><option value="incoming">📥 In</option><option value="note">📝 Note</option></select>';
+  b+='<input id="pl-log-text" placeholder="Log a message or note...">';
+  b+='<button onclick="plAddLogEntry(\''+lead.id+'\')">Add</button>';
+  b+='</div>';
+  b+='</div>';
+
+  document.getElementById('pl-modal-body').innerHTML=b;
+
+  // Actions
+  let a='';
+  if(!isNew) a+='<button class="pl-del" onclick="plDeleteLead(\''+lead.id+'\')">Delete</button>';
+  a+='<button onclick="closePlModal()">Cancel</button>';
+  a+='<button class="pl-save" onclick="plSaveLead(\''+lead.id+'\','+(isNew?'true':'false')+')">Save</button>';
+  document.getElementById('pl-modal-actions').innerHTML=a;
+
+  overlay.style.display='flex';
+}
+
+function closePlModal(){
+  qs('pl-modal-overlay').style.display='none';
+}
+
+function plSaveLead(leadId,isNew){
+  const family=document.getElementById('pl-f-family').value.trim();
+  if(!family){alert('Family name is required');return;}
+  const now=new Date().toISOString();
+  const existing=isNew?newLead({id:leadId}):PIPELINE[leadId];
+  if(!existing)return;
+
+  const oldStage=existing.stage;
+  const newStage=document.getElementById('pl-f-stage').value;
+
+  existing.familyName=family;
+  existing.childName=document.getElementById('pl-f-child').value.trim();
+  existing.childAge=document.getElementById('pl-f-age').value.trim();
+  existing.phone=document.getElementById('pl-f-phone').value.trim();
+  existing.email=document.getElementById('pl-f-email').value.trim();
+  existing.source=document.getElementById('pl-f-source').value;
+  existing.branch=document.getElementById('pl-f-branch').value;
+  existing.stage=newStage;
+  existing.tourDate=document.getElementById('pl-f-tourdate').value;
+  existing.tourOutcome=document.getElementById('pl-f-tourout').value;
+  existing.lostReason=document.getElementById('pl-f-lostreason').value;
+  existing.lostNote=document.getElementById('pl-f-lostnote').value.trim();
+  existing.notes=document.getElementById('pl-f-notes').value.trim();
+  existing.updatedAt=now;
+
+  if(oldStage!==newStage){
+    existing.stageEnteredAt=now;
+    existing.log.push({ts:now,type:'note',text:'Stage changed: '+oldStage+' → '+newStage});
+  }
+
+  PIPELINE[existing.id]=existing;
+  plSavePipeline();
+  closePlModal();
+  renderPipeline();
+}
+
+function plDeleteLead(leadId){
+  if(!confirm('Delete this lead permanently?'))return;
+  delete PIPELINE[leadId];
+  plSavePipeline();
+  closePlModal();
+  renderPipeline();
+}
+
+function plAddLogEntry(leadId){
+  const lead=PIPELINE[leadId];
+  if(!lead)return;
+  const type=document.getElementById('pl-log-type').value;
+  const text=document.getElementById('pl-log-text').value.trim();
+  if(!text)return;
+  const now=new Date().toISOString();
+  lead.log.push({ts:now,type,text});
+  lead.contactCount=(lead.contactCount||0)+1;
+  lead.updatedAt=now;
+  PIPELINE[leadId]=lead;
+  plSavePipeline();
+  // Re-render just the log section
+  openPlModal(leadId);
+}
+
 // ===== START =====
 init();
 setSyncIndicator('connecting');
@@ -5584,7 +6242,8 @@ setSyncIndicator('connecting');
   if(typeof populateSchedWeekPicker==='function')populateSchedWeekPicker();
   setSyncIndicator(supaOnline?'synced':'offline');
   if(supaOnline)subscribeRealtime();
-  // Show environment badge on non-production deployments
+  // Initialize theme: Home Visits active, Pipeline dashboard hidden
+  switchTheme('hv');
   if(_isDevDeploy){
     const badge=qs('env-badge');
     if(badge){badge.textContent='⚠ DEV — testing only';badge.style.display='inline-block';}
