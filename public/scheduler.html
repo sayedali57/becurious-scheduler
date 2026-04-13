@@ -553,7 +553,6 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 <!-- ===== THEME: HOME VISITS ===== -->
 <div class="theme-panel active" id="theme-hv">
   <div class="hv-toolbar">
-    <span class="ctx-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home Visits</span>
     <!-- hidden stat anchors kept so existing JS that updates these elements doesn't error -->
     <span style="display:none"><b id="st-s">0</b><b id="st-p">0</b><b id="st-pk">0</b><b id="st-drv">0</b><b id="st-u">0%</b></span>
     <div style="flex:1"></div>
@@ -3979,6 +3978,12 @@ function switchView(view){
   qs('week-outer').style.display=view==='week'?'block':'none';
   const teachersOuter=qs('teachers-outer');
   if(teachersOuter)teachersOuter.style.display=view==='teachers'?'block':'none';
+  // Day tabs (Sun/Mon/Tue/Wed/Thu) and the per-day search bar are only meaningful
+  // in the Daily view — hide them for Week / Audit / Teachers.
+  document.querySelectorAll('.daytabs').forEach(el=>el.style.display=view==='daily'?'':'none');
+  const ssb=qs('sched-search-bar');if(ssb)ssb.style.display=view==='daily'?'':'none';
+  const swb=qs('sched-week-banner');if(swb&&view!=='daily')swb.style.display='none';
+  const brf=qs('br-filter-lbl');if(brf&&view!=='daily')brf.style.display='none';
   // Show/hide pool sidebar only in daily view
   const poolEl=document.querySelector('.pool');
   if(poolEl)poolEl.style.display=view==='daily'?'flex':'none';
