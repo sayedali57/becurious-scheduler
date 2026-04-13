@@ -93,9 +93,10 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;bac
 .dt.sun{color:var(--red);opacity:.75}
 .dt.on.sun{color:var(--red);border-bottom-color:var(--red);opacity:1}
 .sched-outer{flex:1;overflow:auto;padding:10px}
-.cargrid{display:flex;gap:8px;min-height:100%}
+.cargrid{display:flex;gap:8px;min-height:100%;align-items:flex-start}
 .carcol{flex:1;display:flex;flex-direction:column;min-width:180px}
-.carhdr{background:#fff;color:var(--text);padding:10px 12px;border-radius:12px 12px 0 0;font-size:12px;font-weight:700;text-align:center;cursor:pointer;border:1px solid var(--border);border-bottom:2px solid var(--purple);position:relative}
+/* Sticky car header — stays visible while scrolling the day view */
+.carhdr{background:#fff;color:var(--text);padding:10px 12px;border-radius:12px 12px 0 0;font-size:12px;font-weight:700;text-align:center;cursor:pointer;border:1px solid var(--border);border-bottom:2px solid var(--purple);position:sticky;top:0;z-index:5;box-shadow:0 2px 6px rgba(30,27,75,.06)}
 .carhdr:hover{background:var(--bg-mid)}
 .carhdr small{display:block;opacity:.7;font-size:10px;font-weight:500;margin-top:2px;color:var(--text3)}
 .wa-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);bottom:auto;background:var(--teal-lt);border:none;color:var(--teal);padding:5px 8px;border-radius:8px;font-size:11px;cursor:pointer;line-height:1;display:flex;align-items:center}
@@ -105,7 +106,10 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;bac
 /* Slots */
 .slot-wrap{position:relative;flex-shrink:0}
 .time-gutter{font-size:8px;color:var(--text3);padding:1px 0 0 2px;margin-bottom:1px;font-weight:500}
-.slot{border:1.5px dashed var(--border);border-radius:12px;min-height:70px;transition:.12s;cursor:pointer;background:#fff}
+.slot{border:1.5px dashed var(--border);border-radius:12px;min-height:70px;transition:.12s;cursor:pointer;background:#fff;overflow:hidden;box-sizing:border-box}
+/* Keep all child blocks inside the slot card boundaries (fixes pickup pills overflowing) */
+.slot > *{box-sizing:border-box;max-width:100%}
+.slot .ss .n,.slot .ss .a,.slot .ss .t{overflow-wrap:anywhere;word-break:break-word}
 .slot.filled{border-style:solid;border-color:var(--border);background:var(--card);box-shadow:0 2px 6px rgba(30,27,75,.04)}
 .slot.filled:hover{box-shadow:0 4px 12px rgba(30,27,75,.08)}
 .slot.paired{border-style:solid;border-color:var(--teal);background:#fff;box-shadow:0 0 0 2px var(--teal-lt)}
@@ -164,7 +168,7 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 .slot.other-branch-slot{background:repeating-linear-gradient(45deg,#F6F6F6,#F6F6F6 6px,#EFEFEF 6px,#EFEFEF 12px);border:1.5px dashed #D4D4D4;cursor:not-allowed;opacity:.75}
 .slot.other-branch-slot:hover{border-color:#C4C4C4}
 /* Teacher ride annotation between slots */
-.ride-note{font-size:9px;font-weight:600;color:#4338CA;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:5px;padding:3px 8px;margin:3px 0 1px;text-align:center}
+.ride-note{font-size:9px;font-weight:600;color:#4338CA;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:5px;padding:3px 8px;margin:3px 4px 1px;text-align:center;box-sizing:border-box;max-width:calc(100% - 8px);word-break:break-word;white-space:normal;line-height:1.3}
 /* Locked (mandatory-time) slot */
 .lock-badge{font-size:11px;cursor:help;margin-right:3px}
 .lock-toggle{position:absolute;top:6px;right:6px;cursor:pointer;opacity:0.35;z-index:2;background:none;border:none;padding:3px;line-height:1;border-radius:6px;color:var(--text3);display:inline-flex}
@@ -181,7 +185,7 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 .car-cap-bar{flex:1;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden}
 .car-cap-fill{height:100%;border-radius:3px;transition:width .3s}
 /* Cross-car pickup indicator */
-.xcar-pick{font-size:9px;font-weight:600;color:#0369A1;background:#E0F2FE;border:1px solid #7DD3FC;border-radius:5px;padding:4px 8px;margin:3px 0;text-align:center}
+.xcar-pick{font-size:9px;font-weight:600;color:#0369A1;background:#E0F2FE;border:1px solid #7DD3FC;border-radius:5px;padding:4px 8px;margin:3px 4px;text-align:center;box-sizing:border-box;max-width:calc(100% - 8px);word-break:break-word;white-space:normal;line-height:1.3}
 /* View toggle buttons */
 .view-toggle{padding:4px 10px;border:1px solid var(--border);border-radius:5px;font-size:10px;font-weight:600;background:#fff;color:var(--text2);cursor:pointer;transition:.15s}
 .view-toggle:hover{background:#F3F4F6}
@@ -528,6 +532,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
   <div class="topnav-spacer"></div>
   <div class="topnav-shared">
     <button id="undo-btn" class="topnav-btn" onclick="undoLast()" title="Nothing to undo" disabled style="opacity:0.4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>Undo</button>
+    <button id="redo-btn" class="topnav-btn" onclick="redoLast()" title="Nothing to redo" disabled style="opacity:0.4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 15-6.7L21 13"/></svg>Redo</button>
     <div class="menu-wrap">
       <button class="topnav-btn menu-btn" onclick="toggleMainMenu()" title="Menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>Menu</button>
       <div class="menu-dropdown" id="main-menu" style="display:none">
@@ -2718,19 +2723,25 @@ function dayTabDrop(e,day){
   if(typeof gd==='function')gd(day);
 }
 
-// ===== UNDO STACK =====
-// Wraps saveState to remember the prior state so a single Cmd-Z reverts the
-// most recent change. Only tracks SCHED (the bulk of operational edits).
-const _undoStack=[];const _UNDO_MAX=40;
+// ===== UNDO / REDO STACK =====
+// Wraps saveState to remember the prior state so Cmd-Z reverts the most recent
+// change and Cmd-Shift-Z (or Ctrl-Y) replays it. Only tracks SCHED (the bulk
+// of operational edits). A new edit performed while there are pending redos
+// drops the redo stack — standard editor behavior.
+const _undoStack=[];
+const _redoStack=[];
+const _UNDO_MAX=40;
 let _undoBaseline=null;          // stringified SCHED at the time of the most recent save
-let _suppressUndoCapture=false;  // true while we're applying an undo, to avoid recursion
+let _suppressUndoCapture=false;  // true while we're applying an undo/redo, to avoid recursion
 const _origSaveState=saveState;
 saveState=function(){
   try{
     if(!_suppressUndoCapture && _undoBaseline){
       _undoStack.push(_undoBaseline);
       if(_undoStack.length>_UNDO_MAX)_undoStack.shift();
-      updateUndoBtn();
+      // A fresh user edit invalidates anything in the redo stack
+      if(_redoStack.length)_redoStack.length=0;
+      updateUndoRedoBtns();
     }
     _undoBaseline=JSON.stringify(SCHED||{});
   }catch(e){/* never break saves over undo bookkeeping */}
@@ -2740,6 +2751,8 @@ function undoLast(){
   if(!_undoStack.length){toast('Nothing to undo');return;}
   const snap=_undoStack.pop();
   let parsed;try{parsed=JSON.parse(snap);}catch(e){toast('Undo failed — bad snapshot');return;}
+  // Push current state onto the redo stack BEFORE we overwrite SCHED
+  if(_undoBaseline)_redoStack.push(_undoBaseline);
   // Replace SCHED contents in place to keep references stable
   Object.keys(SCHED).forEach(k=>{delete SCHED[k];});
   Object.assign(SCHED,parsed);
@@ -2748,25 +2761,50 @@ function undoLast(){
   try{saveState();}finally{_suppressUndoCapture=false;}
   if(typeof renderSched==='function')renderSched();
   if(typeof renderPool==='function')renderPool();
-  updateUndoBtn();
+  updateUndoRedoBtns();
   toast(`↶ Undone — ${_undoStack.length} more available`);
 }
-function updateUndoBtn(){
-  const b=document.getElementById('undo-btn');if(!b)return;
-  if(_undoStack.length){b.disabled=false;b.style.opacity='1';b.title=`Undo (${_undoStack.length} step${_undoStack.length===1?'':'s'})`;}
-  else{b.disabled=true;b.style.opacity='0.4';b.title='Nothing to undo';}
+function redoLast(){
+  if(!_redoStack.length){toast('Nothing to redo');return;}
+  const snap=_redoStack.pop();
+  let parsed;try{parsed=JSON.parse(snap);}catch(e){toast('Redo failed — bad snapshot');return;}
+  // Push the soon-to-be-replaced baseline onto the undo stack so undo still works
+  if(_undoBaseline)_undoStack.push(_undoBaseline);
+  Object.keys(SCHED).forEach(k=>{delete SCHED[k];});
+  Object.assign(SCHED,parsed);
+  _undoBaseline=snap;
+  _suppressUndoCapture=true;
+  try{saveState();}finally{_suppressUndoCapture=false;}
+  if(typeof renderSched==='function')renderSched();
+  if(typeof renderPool==='function')renderPool();
+  updateUndoRedoBtns();
+  toast(`↷ Redone — ${_redoStack.length} more available`);
 }
-// Cmd-Z / Ctrl-Z keyboard shortcut
-document.addEventListener('keydown',function(e){
-  if((e.metaKey||e.ctrlKey)&&!e.shiftKey&&e.key.toLowerCase()==='z'){
-    const tag=(e.target.tagName||'').toLowerCase();
-    if(tag==='input'||tag==='textarea'||tag==='select')return; // let native undo work in fields
-    e.preventDefault();undoLast();
+function updateUndoRedoBtns(){
+  const u=document.getElementById('undo-btn');
+  if(u){
+    if(_undoStack.length){u.disabled=false;u.style.opacity='1';u.title=`Undo (${_undoStack.length} step${_undoStack.length===1?'':'s'})`;}
+    else{u.disabled=true;u.style.opacity='0.4';u.title='Nothing to undo';}
   }
+  const r=document.getElementById('redo-btn');
+  if(r){
+    if(_redoStack.length){r.disabled=false;r.style.opacity='1';r.title=`Redo (${_redoStack.length} step${_redoStack.length===1?'':'s'})`;}
+    else{r.disabled=true;r.style.opacity='0.4';r.title='Nothing to redo';}
+  }
+}
+// Backwards-compat alias: older call sites used updateUndoBtn()
+function updateUndoBtn(){updateUndoRedoBtns();}
+// Cmd-Z = undo, Cmd-Shift-Z (or Ctrl-Y) = redo
+document.addEventListener('keydown',function(e){
+  const tag=(e.target.tagName||'').toLowerCase();
+  if(tag==='input'||tag==='textarea'||tag==='select')return; // let native undo work in fields
+  if((e.metaKey||e.ctrlKey)&&!e.shiftKey&&e.key.toLowerCase()==='z'){e.preventDefault();undoLast();}
+  else if((e.metaKey||e.ctrlKey)&&e.shiftKey&&e.key.toLowerCase()==='z'){e.preventDefault();redoLast();}
+  else if(e.ctrlKey&&!e.metaKey&&e.key.toLowerCase()==='y'){e.preventDefault();redoLast();}
 });
 // Initialize the undo baseline AFTER the initial state load so the first
 // user mutation can be undone. Called from the bottom of init code.
-function initUndoBaseline(){if(!_undoBaseline)_undoBaseline=JSON.stringify(SCHED||{});}
+function initUndoBaseline(){if(!_undoBaseline)_undoBaseline=JSON.stringify(SCHED||{});updateUndoRedoBtns();}
 
 // ===== CUSTOM BRANDING (banner + logo) — stored in localStorage as data URLs =====
 function _readImageAsDataUrl(file,cb){
