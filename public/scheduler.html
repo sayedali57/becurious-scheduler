@@ -1721,7 +1721,7 @@ function droppedSids(){
     if(!sl_)return;
     if(sl_.t==='s')s.add(sl_.id);
     if(sl_.t==='d')sl_.ids?.forEach(i=>s.add(i));
-    if(sl_.t==='g')sl_.ids?.forEach(i=>s.add(i));
+    if(sl_.t==='g'&&sl_.ids?.[0])s.add(sl_.ids[0]); // group: only anchor needs pickup
   })));
   return s;
 }
