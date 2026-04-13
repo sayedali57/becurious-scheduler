@@ -5033,7 +5033,32 @@ function runAutoSchedule(){
     return adjacentDays(day).every(ad=>!onDay[ad]?.has(sid));
   }
 
-  function candidateFor(day,car,pos,lastTeacher){
+  // Check if a teacher is already on a different car at an overlapping time.
+  // A session occupies roughly sessionBlockMin() minutes. If teacher T has a
+  // session on CarX starting at 10:00 with a 45-min block, she can't start
+  // on CarY until ~10:45. We check all other cars' slots on the same day.
+  function teacherBusyAtTime(tname,day,carId,slotIdx){
+    const block=sessionBlockMin();
+    const myStart=slotStartMin(day,carId,slotIdx);
+    for(const otherCar of CARS){
+      if(otherCar.id===carId)continue;
+      const otherSlots=SCHED[day]?.[otherCar.id]||[];
+      for(let osi=0;osi<otherSlots.length;osi++){
+        const osl=otherSlots[osi];
+        if(!osl||osl.t==='pick')continue;
+        const oIds=slotStudentIds(osl);
+        const hasTeacher=oIds.some(id=>SS[id]&&SS[id].t===tname);
+        if(!hasTeacher)continue;
+        const oStart=slotStartMin(day,otherCar.id,osi);
+        const oDur=slotDur(osl,day,otherCar.id,osi);
+        // Overlap: teacher busy from oStart to oStart+oDur
+        if(myStart<oStart+oDur && myStart+block>oStart)return true;
+      }
+    }
+    return false;
+  }
+
+  function candidateFor(day,car,pos,lastTeacher,slotIdx){
     // First pass: candidates that satisfy the spread rule (1-day gap)
     const all=Object.keys(remain).filter(sid=>{
       if(remain[sid]<=0)return false;
@@ -5042,6 +5067,8 @@ function runAutoSchedule(){
       if(preventDouble&&onDay[day].has(sid))return false;
       if(!carServesBranch(car,s))return false;
       if(!teacherCanTake(s.t,day))return false;
+      // Prevent same teacher on two cars at the same time
+      if(teacherBusyAtTime(s.t,day,car.id,slotIdx))return false;
       return true;
     });
     const spread=all.filter(sid=>isSpreadOk(sid,day));
@@ -5131,7 +5158,7 @@ function runAutoSchedule(){
         // 10-minute travel floor from tm() as the minimum arrival time.
         const slotStart=slotStartMin(day,car.id,si);
         if(slotStart+10+sessionLen>endCutoff)break;
-        const cands=candidateFor(day,car,pos,lastTeacher);
+        const cands=candidateFor(day,car,pos,lastTeacher,si);
         if(!cands.length)break; // no-one can ride in this car today — stop filling
 
         const pickSid=cands[0];
@@ -5183,6 +5210,7 @@ function runAutoSchedule(){
             if(!isSpreadOk(sid2,day))return false;
             if(!carServesBranch(car,s2))return false;
             if(!teacherCanTake(s2.t,day))return false;
+            if(teacherBusyAtTime(s2.t,day,car.id,si))return false;
             const dist=hv(pickS.la,pickS.ln,s2.la,s2.ln);
             const sameTeacher=s2.t===pickS.t;
             // Same teacher → must be same house (≤50m); different teachers → up to 500m
