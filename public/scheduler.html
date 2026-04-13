@@ -14,9 +14,8 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;bac
 /* ===== TOP NAV — theme switcher ===== */
 .topnav{background:#FFFFFF;color:var(--text);padding:0 14px;border-bottom:1px solid var(--border);gap:4px;position:relative;display:flex;align-items:center;flex-shrink:0}
 .topnav::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg, #6366F1 0%, #14B8A6 50%, #F59E0B 100%);opacity:.9}
-.topnav-brand{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 0;margin-right:6px;border-right:1px solid var(--border);color:var(--text);font-weight:800;font-size:13px;letter-spacing:-0.02em}
-.topnav-brand img{width:22px;height:22px}
-.topnav-brand span{color:var(--purple)}
+.topnav-brand{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 0;margin-right:6px;border-right:1px solid var(--border)}
+.topnav-brand img{height:28px;width:auto;max-width:140px;display:block;object-fit:contain}
 .theme-tab{padding:8px 14px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;transition:all .12s;letter-spacing:0;display:inline-flex;align-items:center;gap:7px;font-family:inherit}
 .theme-tab:hover{color:var(--text)}
 .theme-tab.active{color:var(--text);font-weight:700}
@@ -440,7 +439,20 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 /* Home Visits theme tweaks */
 [data-active-theme="hv"]{--accent:var(--teal);--accent-lt:#E1F5EE;--accent-dk:#0F6E56}
 [data-active-theme="pl"]{--accent:var(--orange);--accent-lt:#FEF3ED;--accent-dk:#C45A2D}
-.hv-toolbar{background:var(--teal);color:#fff;padding:5px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
+.hv-toolbar{background:var(--teal);color:#fff;padding:5px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;position:relative;background-size:cover;background-position:center}
+/* When user uploads a banner, the toolbar area becomes the banner; buttons sit on top */
+body.has-banner .hv-toolbar,
+body.has-banner .pl-topbar{
+  background-image:var(--bc-banner-url);
+  background-color:var(--purple-lt);
+  min-height:120px;
+  padding-top:14px;padding-bottom:14px;
+  border-bottom:1px solid var(--border);
+}
+/* keep buttons readable on top of any banner */
+body.has-banner .ctx-btn{box-shadow:0 1px 4px rgba(30,27,75,.18)}
+body.has-banner .sub-tabs{background:rgba(255,255,255,.85);backdrop-filter:blur(4px)}
+body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;border-radius:8px;backdrop-filter:blur(4px)}
 .pl-topbar{background:#fff;color:var(--text);padding:5px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;border-bottom:1px solid var(--border)}
 .ctx-title{font-size:12px;font-weight:700}
 .ctx-sub{font-size:9px;opacity:.7}
@@ -507,11 +519,9 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <body data-active-theme="hv" class="compact-slots">
-<!-- ===== CUSTOM BANNER (user-uploaded) — hidden until set in Branding dialog ===== -->
-<div id="bc-banner" style="display:none;width:100%;height:80px;background-size:cover;background-position:center;background-repeat:no-repeat;flex-shrink:0;border-bottom:1px solid var(--border);cursor:pointer" onclick="showBrandingDialog()" title="Click to change banner"></div>
 <!-- ===== TOP NAV ===== -->
 <div class="topnav">
-  <div class="topnav-brand"><img src="/favicon.svg" alt="BeCurious"><span>BE:</span>CURIOUS</div>
+  <div class="topnav-brand" title="Click ☰ Menu → Branding to change logo"><img src="/favicon.svg" alt="BeCurious"></div>
   <div id="env-badge" style="display:none;font-size:9px;font-weight:700;color:#92400E;background:#FEF3C7;padding:3px 10px;border-radius:999px;margin-right:6px;letter-spacing:.4px"></div>
   <button class="theme-tab active" data-theme="hv" onclick="switchTheme('hv')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home Visits</button>
   <button class="theme-tab" data-theme="pl" onclick="switchTheme('pl')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Pipeline</button>
@@ -521,6 +531,9 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
     <div class="menu-wrap">
       <button class="topnav-btn menu-btn" onclick="toggleMainMenu()" title="Menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>Menu</button>
       <div class="menu-dropdown" id="main-menu" style="display:none">
+        <button onclick="closeMainMenu();autoScheduleWeek()" title="Auto-place all pool students"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Auto-schedule week</button>
+        <button onclick="closeMainMenu();showCarsModal()" title="Manage cars / drivers"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>Cars</button>
+        <div class="menu-sep"></div>
         <button onclick="closeMainMenu();showStudentsTable()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Students</button>
         <button onclick="closeMainMenu();showTeachersModal()" title="Add, edit, deactivate teachers"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Manage teachers</button>
         <button onclick="closeMainMenu();showSettingsModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>Settings</button>
@@ -541,24 +554,16 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 <div class="theme-panel active" id="theme-hv">
   <div class="hv-toolbar">
     <span class="ctx-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home Visits</span>
-    <span class="ctx-sub">Drag to schedule · Drop on filled slot = double/triple-drop</span>
-    <div class="ctx-stats">
-      <div class="ctx-stat"><b id="st-s">0</b>Dropped</div>
-      <div class="ctx-stat"><b id="st-p">0</b>Pool</div>
-      <div class="ctx-stat"><b id="st-pk">0</b>Pickups</div>
-      <div class="ctx-stat" title="Drivers needed today (cars with at least one session)"><b id="st-drv">0</b>Drivers</div>
-      <div class="ctx-stat"><b id="st-u">0%</b>Done</div>
-    </div>
+    <!-- hidden stat anchors kept so existing JS that updates these elements doesn't error -->
+    <span style="display:none"><b id="st-s">0</b><b id="st-p">0</b><b id="st-pk">0</b><b id="st-drv">0</b><b id="st-u">0%</b></span>
     <div style="flex:1"></div>
-    <button class="ctx-btn green" onclick="autoScheduleWeek()" title="Auto-place all pool students"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Auto-schedule</button>
     <button class="ctx-btn" id="warn-toolbar-btn" onclick="showWarningsPanel()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg><span id="warn-toolbar-count">Warnings</span></button>
     <button class="ctx-btn" onclick="showReportsModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>Reports</button>
-    <button class="ctx-btn" onclick="showTeacherWeeklyView()" title="Open the weekly view per teacher"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Teachers Weekly View</button>
-    <button class="ctx-btn" onclick="showCarsModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>Cars</button>
     <div class="sub-tabs">
       <button class="sub-tab active" id="vt-daily" onclick="switchView('daily')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Daily</button>
       <button class="sub-tab" id="vt-week" onclick="switchView('week')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>Week</button>
       <button class="sub-tab" id="vt-audit" onclick="switchView('audit')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.5.5 0 0 1-.96 0L9.68 3.18a.5.5 0 0 0-.96 0l-2.35 8.36A2 2 0 0 1 4.45 13H2"/></svg>Audit</button>
+      <button class="sub-tab" id="vt-teachers" onclick="switchView('teachers')" title="Per-teacher weekly view"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Teachers</button>
     </div>
   </div>
 
@@ -623,6 +628,7 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
         <div id="audit-body"></div>
       </div>
       <div id="week-outer"></div>
+      <div id="teachers-outer" style="display:none;padding:0;overflow:auto;background:#fff"></div>
       <div class="legend">
         <span style="font-size:9px;color:var(--text3);font-weight:500">Legend:</span>
         <div class="leg"><div class="legdot" style="background:var(--teal)"></div>Double-drop</div>
@@ -2792,10 +2798,12 @@ function applyCustomBranding(){
   if(logoEl&&logoUrl)logoEl.src=logoUrl;
   else if(logoEl)logoEl.src='/favicon.svg';
   const bannerUrl=localStorage.getItem('bc_banner');
-  const bnEl=document.getElementById('bc-banner');
-  if(bnEl){
-    if(bannerUrl){bnEl.style.display='block';bnEl.style.backgroundImage=`url(${bannerUrl})`;}
-    else{bnEl.style.display='none';bnEl.style.backgroundImage='';}
+  if(bannerUrl){
+    document.documentElement.style.setProperty('--bc-banner-url',`url(${bannerUrl})`);
+    document.body.classList.add('has-banner');
+  }else{
+    document.documentElement.style.removeProperty('--bc-banner-url');
+    document.body.classList.remove('has-banner');
   }
 }
 function showBrandingDialog(){
@@ -3964,15 +3972,43 @@ function switchView(view){
   qs('vt-daily').classList.toggle('active',view==='daily');
   qs('vt-week').classList.toggle('active',view==='week');
   qs('vt-audit').classList.toggle('active',view==='audit');
+  const tt=qs('vt-teachers');if(tt)tt.classList.toggle('active',view==='teachers');
   qs('sched-outer').style.display=view==='daily'?'':'none';
   document.querySelectorAll('.legend').forEach(el=>el.style.display=view==='daily'?'':'none');
   qs('audit-outer').style.display=view==='audit'?'block':'none';
   qs('week-outer').style.display=view==='week'?'block':'none';
+  const teachersOuter=qs('teachers-outer');
+  if(teachersOuter)teachersOuter.style.display=view==='teachers'?'block':'none';
   // Show/hide pool sidebar only in daily view
   const poolEl=document.querySelector('.pool');
   if(poolEl)poolEl.style.display=view==='daily'?'flex':'none';
   if(view==='audit')renderAudit();
   if(view==='week')renderWeekView();
+  if(view==='teachers')renderTeachersInline();
+}
+// Inline teachers panel — same content as the Teacher Weekly tab in Reports modal,
+// but rendered directly into #teachers-outer instead of opening a popup.
+function renderTeachersInline(){
+  const target=qs('teachers-outer');if(!target)return;
+  // renderTeacherWeeklyReport() writes to #rpt-body, so swap a temporary anchor.
+  // We render into a hidden detached div, then move its HTML to teachers-outer.
+  let temp=document.getElementById('_teachers_render_tmp');
+  if(!temp){temp=document.createElement('div');temp.id='_teachers_render_tmp';temp.style.display='none';document.body.appendChild(temp);}
+  // Stash the original rpt-body if present, render into temp by giving it the same id.
+  const realBody=document.getElementById('rpt-body');
+  let restoredId=null;
+  if(realBody){realBody.id='rpt-body__stashed';restoredId='rpt-body';}
+  temp.id='rpt-body';
+  try{
+    // Ensure _rptWeek has a value (renderTeacherWeeklyReport may use it via renderReports)
+    try{if(!_rptWeek&&typeof currentWeekKey==='function')_rptWeek=currentWeekKey();}catch(e){}
+    if(typeof renderTeacherWeeklyReport==='function')renderTeacherWeeklyReport();
+    target.innerHTML=temp.innerHTML;
+  }catch(e){target.innerHTML='<div style="padding:20px;color:#DC2626">Could not load teachers view: '+(e&&e.message||e)+'</div>';}
+  finally{
+    temp.id='_teachers_render_tmp';
+    if(realBody)realBody.id='rpt-body';
+  }
 }
 
 // ===== THEME SWITCHING =====
