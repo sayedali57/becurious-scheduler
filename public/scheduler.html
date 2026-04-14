@@ -1252,7 +1252,8 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .dt.on.sun{color:var(--hv2-err);border-bottom-color:var(--hv2-err)}
 
 /* Car column header — clean */
-[data-active-theme="hv"] .carhdr{background:#fff;border:1px solid var(--hv2-line);border-radius:10px 10px 0 0;box-shadow:none;padding:12px 14px;text-align:left;font-size:14px;font-weight:700;color:var(--hv2-ink)}
+[data-active-theme="hv"] .carhdr{background:var(--hv2-teal-lt);border:1px solid var(--hv2-teal);border-bottom:2px solid var(--hv2-teal);border-radius:10px 10px 0 0;box-shadow:none;padding:12px 14px;text-align:left;font-size:14px;font-weight:700;color:var(--hv2-teal)}
+[data-active-theme="hv"] .carhdr small{color:var(--hv2-ink);opacity:.7;font-weight:500}
 [data-active-theme="hv"] .carhdr small{font-size:11px;color:var(--hv2-muted);opacity:1;font-weight:500;margin-top:3px;display:block}
 [data-active-theme="hv"] .car-cap{padding:6px 14px 10px;font-size:10.5px;color:var(--hv2-muted);font-weight:500;gap:8px;background:#fff;border-left:1px solid var(--hv2-line);border-right:1px solid var(--hv2-line)}
 [data-active-theme="hv"] .car-cap-bar{height:2px;background:var(--hv2-line);border-radius:0}
@@ -3183,36 +3184,57 @@ function renderSlot(d,cid,si){
 
   if(sl_.t==='pick'){
     const s=SS[sl_.id];if(!s)return'';
+    // Mid-day pickups (car picks teacher up from a student's home and continues
+    // to the next session in the same car) are visually redundant: the previous
+    // session showed where they finished and the next session shows where
+    // they're going. We hide those entirely to cut clutter.
+    //
+    // A pickup is KEPT visible only when it represents a real branch
+    // transition, i.e. no more sessions follow for this teacher on this car —
+    // meaning the car is returning the teacher to the BeCurious branch.
+    const slots=SCHED[d]?.[cid]||[];
+    let hasFutureSessionForTeacher=false;
+    for(let j=si+1;j<slots.length;j++){
+      const fs=slots[j];if(!fs)continue;
+      if(fs.t==='pick')continue;
+      const futureIds=slotStudentIds(fs);
+      if(futureIds.some(id=>SS[id]?.t===s.t)){hasFutureSessionForTeacher=true;break;}
+    }
+    // Also render if this is a cross-car pickup (different car picks them up)
     const info=findDropInfo(sl_.id);
+    const isCrossCar=!!(info&&info.cid!==cid);
+    // Skip rendering the pickup line unless it represents a branch-bound trip
+    // or a cross-car handover the user needs to see.
+    if(hasFutureSessionForTeacher&&!isCrossCar){
+      // Return an empty, drop-target-only shell so drag/drop still works but
+      // nothing visible is added to the timeline.
+      return`<div class="hv2-pickup-hidden" ${base} ${handlers} style="display:none"></div>`;
+    }
     const readyMin=info?info.readyMin:startMin;
     const onTime=startMin>=readyMin;
     let xcarLabel='';
-    if(info&&info.cid!==cid){
+    if(isCrossCar){
       const dropCar=CARS.find(c=>c.id===info.cid);
       xcarLabel=` · via ${dropCar?.label||'Car ?'}`;
     }
     const readyWarn=!onTime?` · ⚠ ready ${tsR(readyMin)}`:'';
     const lockMark=sl_.locked?' 🔒':'';
-    // Display pickup time aligned with the preceding session's rounded finish
-    // so "FINISH 12:00" and "PICK 12:00" match visually (no 13-min gap).
     const pickupDisplayTime=tsR(readyMin);
-    // Pickup block: one group of consecutive pickup slots shares a single
-    // "↑ PICK" header at the top, with each teacher name stacked below.
-    // First-in-group renders the header + its own name row; continuations
-    // render just their name row and stack seamlessly via CSS.
     const isFirst=!prevIsPick;
-    const isLast=!nextIsPick;
-    const wrapCls=`hv2-pickup-wrap${isFirst?' hv2-pickup-wrap-first':''}${isLast?' hv2-pickup-wrap-last':''}${prevIsPick?' hv2-pickup-wrap-cont':''}`;
-    const headerHtml=isFirst?`<div class="hv2-pickup-verb-hdr">↑ PICK</div>`:'';
+    const isLastPick=!nextIsPick;
+    const wrapCls=`hv2-pickup-wrap${isFirst?' hv2-pickup-wrap-first':''}${isLastPick?' hv2-pickup-wrap-last':''}${prevIsPick?' hv2-pickup-wrap-cont':''}`;
+    // Header label reflects the purpose: returning the teacher to branch.
+    const headerLabel=isCrossCar?'↑ PICK':`↓ DROP TO ${carBranch(cid).toUpperCase()} BRANCH`;
+    const headerHtml=isFirst?`<div class="hv2-pickup-verb-hdr">${headerLabel}</div>`:'';
     return`<div class="${wrapCls}">
       ${headerHtml}
-      <div class="hv2-pickup-row slot hv2-line-pickup${isActive?' hv2-line-active':''}${rejCls}" ${base} ${handlers} title="Pickup — click to activate, drag a student here to assign">
+      <div class="hv2-pickup-row slot hv2-line-pickup${isActive?' hv2-line-active':''}${rejCls}" ${base} ${handlers} title="${isCrossCar?'Cross-car pickup':'Drop teacher back at branch'}">
         <span class="hv2-pickup-name link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')">${s.t}</span>
         <span class="hv2-pickup-time">· ${pickupDisplayTime}${xcarLabel}${readyWarn}${lockMark}</span>
         <span class="hv2-line-spacer"></span>
         <button class="hv2-line-rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})" title="Remove pickup">×</button>
       </div>
-    </div>${isLast?dropoffLine:''}`;
+    </div>${isLastPick?dropoffLine:''}`;
   }
 
   if(sl_.t==='g'){
