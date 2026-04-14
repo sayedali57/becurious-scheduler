@@ -3022,6 +3022,8 @@ function renderSlot(d,cid,si){
 
   // Drive-time connector — always rendered when there's a previous position so
   // the drive before the first session of the day (from branch) is visible.
+  // Format: Drive "TeacherName" N min — the next session itself shows where
+  // they're going, so we skip the origin address (less clutter per Saleh).
   let driveLine='';
   let travelMin=0;
   if(sl_){
@@ -3029,10 +3031,17 @@ function renderSlot(d,cid,si){
     const prev=lastPos(d,cid,si);
     if(coords&&prev&&prev.la!=null&&prev.ln!=null){
       travelMin=tm(hv(prev.la,prev.ln,coords.la,coords.ln));
-      const fromLabel=prev.isBase?`${prev.a} branch`:sl(prev.a);
-      driveLine=travelMin>0
-        ?_hvConnector('drive',`← ${travelMin} min · ${fromLabel}`)
-        :_hvConnector('drive',`← ${fromLabel}`);
+      // Determine the teacher being transported on this leg:
+      //  - session slots (s/d/g): the teacher heading to that session
+      //  - pickup slots: the teacher being collected from that student's home
+      let driveTeacher='';
+      if(sl_.t==='s'){const s=SS[sl_.id];driveTeacher=s?.t||'';}
+      else if(sl_.t==='d'){const s=SS[(sl_.ids||[])[0]];driveTeacher=s?.t||'';}
+      else if(sl_.t==='g'){const s=SS[(sl_.ids||[])[0]];driveTeacher=s?.t||'';}
+      else if(sl_.t==='pick'){const s=SS[sl_.id];driveTeacher=s?.t||'';}
+      const nameHtml=driveTeacher?` <b>"${driveTeacher}"</b>`:'';
+      const minsHtml=travelMin>0?` ${travelMin} min`:'';
+      driveLine=_hvConnector('drive',`Drive${nameHtml}${minsHtml}`);
     }
   }
   // DISPLAY times represent the actual teaching window:
