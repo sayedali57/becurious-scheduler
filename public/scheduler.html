@@ -6907,18 +6907,49 @@ function plConvertToStudent(leadId){
   // Inline modal — safer than confirm() because the user sees what will be saved.
   const ov=document.createElement('div');
   ov.className='modal';ov.style.cssText='display:flex;z-index:9999';
+  // Teacher dropdown — active teachers only, alphabetical, with a shortcut to Manage teachers.
+  const teacherNames=Object.values(TEACHERS||{}).filter(t=>t&&t.active!==0).map(t=>t.name).filter(Boolean).sort((a,b)=>a.localeCompare(b));
+  const teacherOpts='<option value="">— Assign later —</option>'
+    +teacherNames.map(n=>'<option value="'+esc(n)+'">'+esc(n)+'</option>').join('')
+    +'<option value="__new__">+ Add new teacher…</option>';
   ov.innerHTML='<div class="mbox" style="width:460px">'
     +'<h3>Convert lead to Student</h3>'
     +'<div style="font-size:11px;color:var(--text3);margin-bottom:10px">Review the pre-filled fields before saving. The new student will start with status <b style="color:#059669">Care &amp; Continuity</b> and will appear in the schedule pool immediately.</div>'
     +'<div class="frow"><label>Student name</label><input id="cv-n" value="'+esc(suggestedName)+'"></div>'
     +'<div class="frow"><label>Branch</label><select id="cv-br"><option'+(lead.branch==='Shuhada'?' selected':'')+'>Shuhada</option><option'+(lead.branch==='Salam'?' selected':'')+'>Salam</option><option'+(lead.branch==='Salwa'?' selected':'')+'>Salwa</option></select></div>'
-    +'<div class="frow"><label>Teacher (optional — fill later if unknown)</label><input id="cv-t" placeholder="Teacher name"></div>'
+    +'<div class="frow"><label>Teacher</label><select id="cv-t" onchange="_cvTeacherChange(this,\''+lead.id+'\')">'+teacherOpts+'</select></div>'
     +'<div class="frow"><label>Parent WhatsApp</label><input id="cv-p" value="'+esc(lead.phone||'')+'" placeholder="e.g. 96599887766"></div>'
     +'<div class="frow"><label>Sessions per week</label><input id="cv-spw" type="number" min="1" max="7" value="1"></div>'
     +'<div class="mbtns"><button class="btn" onclick="this.closest(\'.modal\').remove()">Cancel</button>'
     +'<button class="btn btnp" onclick="_plDoConvert(\''+lead.id+'\',this)">Create Student</button></div>'
     +'</div>';
   document.body.appendChild(ov);
+}
+
+// When the user picks "+ Add new teacher…" in the Convert dialog, stash the
+// lead id on the opened Teachers modal so we can resume the conversion after.
+function _cvTeacherChange(sel,leadId){
+  if(sel.value!=='__new__')return;
+  sel.value='';
+  // Close the convert overlay and open Teachers manager. When the user closes
+  // Teachers, we re-open the convert dialog so they can pick the new teacher.
+  const overlay=sel.closest('.modal');if(overlay)overlay.remove();
+  window._pendingConvertLeadId=leadId;
+  if(typeof showTeachersModal==='function'){
+    showTeachersModal();
+    // Patch closeTeachersModal once so we re-open the convert dialog afterwards.
+    if(!window._cvTeachersClosePatched){
+      const original=window.closeTeachersModal;
+      window.closeTeachersModal=function(){
+        if(typeof original==='function')original();
+        const lid=window._pendingConvertLeadId;
+        if(lid){window._pendingConvertLeadId=null;setTimeout(()=>plConvertToStudent(lid),150);}
+      };
+      window._cvTeachersClosePatched=true;
+    }
+  }else{
+    alert('Teachers manager not available. Please reload and try again.');
+  }
 }
 function _plDoConvert(leadId,btn){
   const lead=PIPELINE[leadId];if(!lead)return;
