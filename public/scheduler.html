@@ -1312,7 +1312,10 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .hv2-field-anchor{flex:1;min-width:0}
 [data-active-theme="hv"] .hv2-lbl{font-size:9px;font-weight:700;color:var(--hv2-faint);text-transform:uppercase;letter-spacing:.09em;line-height:1.2}
 [data-active-theme="hv"] .hv2-val{font-size:12.5px;color:var(--hv2-ink);font-weight:500;line-height:1.35;word-break:break-word}
-[data-active-theme="hv"] .hv2-val-time{font-size:16px;font-weight:700;color:var(--hv2-ink);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+[data-active-theme="hv"] .hv2-val-time{font-size:16px;font-weight:700;color:var(--hv2-ink);letter-spacing:-.01em;font-variant-numeric:tabular-nums;white-space:nowrap}
+/* Double-drop sub-card times: compact, single-line, tighter gap */
+[data-active-theme="hv"] .hv2-dd-sub .hv2-times{gap:14px;padding:2px 0 4px}
+[data-active-theme="hv"] .hv2-dd-sub .hv2-val-time{font-size:15px;white-space:nowrap}
 [data-active-theme="hv"] .hv2-addr{color:var(--hv2-muted);font-size:12px;font-weight:500}
 [data-active-theme="hv"] .hv2-anchor{font-size:17px;font-weight:700;color:var(--hv2-teal);letter-spacing:-.01em;line-height:1.2}
 [data-active-theme="hv"] .hv2-anchor-sm{font-size:14px}
@@ -3161,11 +3164,11 @@ function renderSlot(d,cid,si){
         const minsHtml=legMin>0?` ${legMin} min`:'';
         dropSections+=_hvConnector('drive',`Drive${nameHtml}${minsHtml}`);
       }
-      dropSections+=`<div class="hv2-dd-sub" draggable="true" data-sid="${s.id}" data-dtype="drop">
+      dropSections+=`<div class="hv2-dd-sub" draggable="true" data-sid="${s.id}" data-dtype="drop" style="position:relative">
+        <button class="hv2-rm-mini" onclick="event.stopPropagation();unpair('${d}',${cid},${si},${idx})" title="Unpair" style="position:absolute;top:4px;right:4px">×</button>
         <div class="hv2-times">
           <div class="hv2-field"><div class="hv2-lbl">START</div><div class="hv2-val hv2-val-time">${ts(subStart)}</div></div>
           <div class="hv2-field"><div class="hv2-lbl">FINISH</div><div class="hv2-val hv2-val-time">${ts(subEnd)}</div></div>
-          <button class="hv2-rm-mini" onclick="event.stopPropagation();unpair('${d}',${cid},${si},${idx})" title="Unpair" style="margin-left:auto">×</button>
         </div>
         <div class="hv2-field hv2-field-anchor">
           <div class="hv2-lbl">TEACHER</div>
