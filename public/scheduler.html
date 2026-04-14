@@ -1313,6 +1313,8 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .hv2-lbl{font-size:9px;font-weight:700;color:var(--hv2-faint);text-transform:uppercase;letter-spacing:.09em;line-height:1.2}
 [data-active-theme="hv"] .hv2-val{font-size:12.5px;color:var(--hv2-ink);font-weight:500;line-height:1.35;word-break:break-word}
 [data-active-theme="hv"] .hv2-val-time{font-size:16px;font-weight:700;color:var(--hv2-ink);letter-spacing:-.01em;font-variant-numeric:tabular-nums;white-space:nowrap}
+/* "Early" hint under START — teacher will arrive before the clean session time */
+[data-active-theme="hv"] .hv2-early{font-size:10.5px;color:var(--hv2-muted);margin-top:1px;white-space:nowrap;font-style:italic}
 /* Double-drop sub-card times: compact, single-line, tighter gap */
 [data-active-theme="hv"] .hv2-dd-sub .hv2-times{gap:14px;padding:2px 0 4px}
 [data-active-theme="hv"] .hv2-dd-sub .hv2-val-time{font-size:15px;white-space:nowrap}
@@ -3162,6 +3164,11 @@ function renderSlot(d,cid,si){
   const displayStartMin=r>1?Math.ceil(actualStart/r)*r:actualStart;
   const timeStr=ts(displayStartMin);
   const endStr=ts(displayStartMin+sessionMinOnly);
+  // Rounding buffer: teacher arrives at actualStart (which may be several
+  // minutes before the clean, parent-facing display start). They can wait in
+  // the car or knock to start early — it's up to them.
+  const earlyMin=Math.max(0,displayStartMin-actualStart);
+  const earlyTag=earlyMin>0?`<div class="hv2-early" title="Teacher can wait in the car or knock early">⏱ early (${earlyMin} min)</div>`:'';
 
   if(!sl_){
     return`<div class="slot-wrap">
@@ -3207,7 +3214,7 @@ function renderSlot(d,cid,si){
             <div class="hv2-hdr-actions">${lockBadge}${lockBtn}</div>
           </div>
           <div class="hv2-times">
-            <div class="hv2-field"><div class="hv2-lbl">START</div><div class="hv2-val hv2-val-time">${timeStr}</div></div>
+            <div class="hv2-field"><div class="hv2-lbl">START</div><div class="hv2-val hv2-val-time">${timeStr}</div>${earlyTag}</div>
             <div class="hv2-field"><div class="hv2-lbl">FINISH</div><div class="hv2-val hv2-val-time">${endStr}</div></div>
           </div>
           <div class="hv2-field">
@@ -3255,6 +3262,9 @@ function renderSlot(d,cid,si){
     students.forEach((s,idx)=>{
       const subStart=subStarts[idx];
       const subEnd=subStart+sessionMinOnly;
+      const subActual=startMin+travel1+dropOffsets[idx];
+      const subEarly=Math.max(0,subStart-subActual);
+      const subEarlyTag=subEarly>0?`<div class="hv2-early" title="Teacher can wait in the car or knock early">⏱ early (${subEarly} min)</div>`:'';
       const pickSlot=findPickSlot(s.id);
       const pickWarn=!pickSlot?`<div class="hv2-warn-row hv2-warn-inline">⚠ Pickup not assigned</div>`:'';
       if(idx>0){
@@ -3267,7 +3277,7 @@ function renderSlot(d,cid,si){
       dropSections+=`<div class="hv2-dd-sub" draggable="true" data-sid="${s.id}" data-dtype="drop" style="position:relative">
         <button class="hv2-rm-mini" onclick="event.stopPropagation();unpair('${d}',${cid},${si},${idx})" title="Unpair" style="position:absolute;top:4px;right:4px">×</button>
         <div class="hv2-times">
-          <div class="hv2-field"><div class="hv2-lbl">START</div><div class="hv2-val hv2-val-time">${ts(subStart)}</div></div>
+          <div class="hv2-field"><div class="hv2-lbl">START</div><div class="hv2-val hv2-val-time">${ts(subStart)}</div>${subEarlyTag}</div>
           <div class="hv2-field"><div class="hv2-lbl">FINISH</div><div class="hv2-val hv2-val-time">${ts(subEnd)}</div></div>
         </div>
         <div class="hv2-field hv2-field-anchor">
