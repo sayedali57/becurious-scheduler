@@ -1498,7 +1498,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
         <div class="frow"><label>Drop-off handover (minutes)</label><input id="set-bufferMin" type="number" min="0" max="30" step="1"><small class="set-help">Extra minutes added after every drop for the teacher to settle in at the student's home before the session starts.</small></div>
       </div>
       <div class="frow2">
-        <div class="frow"><label>First car departure</label><input id="set-dayStart" type="time"><small class="set-help">When the first car leaves the branch.</small></div>
+        <div class="frow"><label>First session start time</label><input id="set-dayStart" type="time"><small class="set-help">The clock time parents see for the first session of the day. Cars and teachers are scheduled backward from this — each driver departs the branch early enough to arrive at the first student exactly on time.</small></div>
         <div class="frow"><label>Latest session end</label><input id="set-dayEnd" type="time"><small class="set-help">Auto-schedule won't place any session that would finish after this time. Existing slots past this time get a warning but are not removed.</small></div>
       </div>
       <div class="frow2">
@@ -2604,7 +2604,27 @@ function slotStartMin(d,cid,si){
   // them to a specific time of day (in minutes since midnight). If the
   // target slot itself is pinned, return it directly.
   if(slots[si]&&slots[si].fixedStart!=null)return slots[si].fixedStart;
-  let m=SETTINGS.dayStartMin||600;
+  // SETTINGS.dayStartMin now means "target start time for the FIRST SESSION"
+  // (parents get a clean number to plan around). The car's actual departure
+  // from the branch is back-calculated so the driver arrives at the first
+  // student's house exactly at that session start.
+  const firstSessionTarget=SETTINGS.dayStartMin||600;
+  let m=firstSessionTarget;
+  // Find the first drop slot (skipping any lead pickups) and subtract travel
+  // from branch → first student from the target, so slotStartMin(firstDrop) +
+  // travel = firstSessionTarget.
+  for(let i=0;i<slots.length;i++){
+    const sl_=slots[i];if(!sl_||sl_.t==='pick')continue;
+    let la,ln;
+    if(sl_.t==='s'&&SS[sl_.id]){const s=SS[sl_.id];la=sl_.grp?.la??s.la;ln=sl_.grp?.ln??s.ln;}
+    else if(sl_.t==='d'&&SS[sl_.ids?.[0]]){const s=SS[sl_.ids[0]];la=sl_.grp?.la??s.la;ln=sl_.grp?.ln??s.ln;}
+    else if(sl_.t==='g'&&SS[sl_.ids?.[0]]){const s=SS[sl_.ids[0]];la=sl_.grp?.la??s.la;ln=sl_.grp?.ln??s.ln;}
+    if(la!=null&&ln!=null){
+      const[bla,bln]=brCoords(carBranch(cid).split('/')[0]);
+      m=firstSessionTarget-tm(hv(bla,bln,la,ln));
+    }
+    break;
+  }
   for(let i=0;i<si;i++){
     const sl_=slots[i];if(!sl_)continue;
     // If an earlier slot is pinned, reset the running clock to its pin.
