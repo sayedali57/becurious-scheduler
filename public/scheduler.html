@@ -1243,7 +1243,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
    HOME VISITS v2 — Clean labeled-field cards, thin connector lines
    Scoped under [data-active-theme="hv"] so Pipeline/Case are untouched.
    =================================================================== */
-[data-active-theme="hv"]{--hv2-ink:#111827;--hv2-muted:#6B7280;--hv2-faint:#9CA3AF;--hv2-line:#E5E7EB;--hv2-bg:#F9FAFB;--hv2-teal:#0F766E;--hv2-teal-lt:#CCFBF1;--hv2-warn:#B45309;--hv2-warn-lt:#FEF3C7;--hv2-err:#B91C1C;--hv2-err-lt:#FEE2E2;--hv2-lock:#6D28D9;--hv2-lock-lt:#EDE9FE}
+[data-active-theme="hv"]{--hv2-ink:#111827;--hv2-muted:#6B7280;--hv2-faint:#9CA3AF;--hv2-line:#D1D5DB;--hv2-line-soft:#E5E7EB;--hv2-bg:#F9FAFB;--hv2-teal:#0F766E;--hv2-teal-lt:#CCFBF1;--hv2-warn:#B45309;--hv2-warn-lt:#FEF3C7;--hv2-err:#B91C1C;--hv2-err-lt:#FEE2E2;--hv2-lock:#6D28D9;--hv2-lock-lt:#EDE9FE}
 
 /* Neutralize body bg and keep day tabs minimal */
 [data-active-theme="hv"] .daytabs{background:#fff;border-bottom:1px solid var(--hv2-line)}
@@ -1262,26 +1262,25 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 
 /* Thin connector lines between cards (drive / pickup / dropoff) */
 [data-active-theme="hv"] .hv2-line{display:flex;align-items:center;gap:8px;padding:6px 10px;margin:0;font-size:10.5px;color:var(--hv2-muted);font-weight:500;background:transparent}
-[data-active-theme="hv"] .hv2-line-rail{flex:1;height:1px;background:var(--hv2-line)}
+[data-active-theme="hv"] .hv2-line-rail{flex:1;height:1px;background:var(--hv2-line-soft)}
 [data-active-theme="hv"] .hv2-line-text{white-space:nowrap;letter-spacing:.02em}
+/* Drive: plain muted */
 [data-active-theme="hv"] .hv2-line-drive{color:var(--hv2-muted)}
-[data-active-theme="hv"] .hv2-line-drive .hv2-line-rail{background:var(--hv2-line)}
-[data-active-theme="hv"] .hv2-line-dropoff{color:var(--hv2-teal);font-weight:600}
-[data-active-theme="hv"] .hv2-line-dropoff .hv2-line-rail{background:var(--hv2-teal);opacity:.35}
-/* Pickup line — teal and interactive (drop target) */
-[data-active-theme="hv"] .hv2-line-pickup{padding:8px 10px;cursor:pointer;border-radius:6px;transition:background .12s}
-[data-active-theme="hv"] .hv2-line-pickup:hover{background:var(--hv2-teal-lt)}
-[data-active-theme="hv"] .hv2-line-pickup .hv2-line-rail{background:var(--hv2-teal);opacity:.45;height:1px}
-[data-active-theme="hv"] .hv2-line-pickup .hv2-line-text-active{display:flex;align-items:center;gap:10px;flex-wrap:wrap;white-space:normal}
-[data-active-theme="hv"] .hv2-line-pickup .hv2-line-time{font-weight:700;color:var(--hv2-ink);font-size:12px}
-[data-active-theme="hv"] .hv2-line-pickup .hv2-line-verb{color:var(--hv2-teal);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.08em}
-[data-active-theme="hv"] .hv2-line-pickup .hv2-line-name{color:var(--hv2-ink);font-weight:600;font-size:12px;cursor:pointer}
+/* Dropoff: light purple (like pickup) */
+[data-active-theme="hv"] .hv2-line-dropoff{background:var(--hv2-lock-lt);color:var(--hv2-lock);font-weight:600;padding:7px 10px;border-radius:6px;margin:3px 0}
+[data-active-theme="hv"] .hv2-line-dropoff .hv2-line-rail{background:var(--hv2-lock);opacity:.35}
+/* Pickup: light purple, interactive (drop target). Compact single row. */
+[data-active-theme="hv"] .hv2-line-pickup{background:var(--hv2-lock-lt);padding:8px 10px;border-radius:6px;cursor:pointer;transition:background .12s,box-shadow .12s;margin:3px 0;display:flex;align-items:center;gap:8px}
+[data-active-theme="hv"] .hv2-line-pickup:hover{background:#DDD6FE}
+[data-active-theme="hv"] .hv2-line-pickup .hv2-line-verb{color:var(--hv2-lock);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.08em;flex-shrink:0}
+[data-active-theme="hv"] .hv2-line-pickup .hv2-line-name{color:var(--hv2-ink);font-weight:700;font-size:13px;cursor:pointer}
 [data-active-theme="hv"] .hv2-line-pickup .hv2-line-name:hover{text-decoration:underline}
-[data-active-theme="hv"] .hv2-line-pickup .hv2-line-sub{color:var(--hv2-muted);font-size:10.5px;font-weight:500}
-[data-active-theme="hv"] .hv2-line-pickup.hv2-line-active{background:var(--hv2-teal-lt);box-shadow:inset 3px 0 0 var(--hv2-teal)}
-[data-active-theme="hv"] .hv2-line-pickup.doverslot{background:var(--hv2-teal-lt);box-shadow:inset 0 0 0 2px var(--hv2-teal)}
+[data-active-theme="hv"] .hv2-line-pickup .hv2-line-sub{color:var(--hv2-muted);font-size:11px;font-weight:500}
+[data-active-theme="hv"] .hv2-line-pickup .hv2-line-spacer{flex:1}
+[data-active-theme="hv"] .hv2-line-pickup.hv2-line-active{background:#DDD6FE;box-shadow:inset 3px 0 0 var(--hv2-lock)}
+[data-active-theme="hv"] .hv2-line-pickup.doverslot{background:#DDD6FE;box-shadow:inset 0 0 0 2px var(--hv2-lock)}
 [data-active-theme="hv"] .hv2-line-pickup.rejected-day-slot{background:var(--hv2-err-lt);box-shadow:inset 3px 0 0 var(--hv2-err)}
-[data-active-theme="hv"] .hv2-line-rm{background:transparent;border:none;color:var(--hv2-faint);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px}
+[data-active-theme="hv"] .hv2-line-rm{background:transparent;border:none;color:var(--hv2-faint);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px;flex-shrink:0}
 [data-active-theme="hv"] .hv2-line-rm:hover{color:var(--hv2-err);background:var(--hv2-err-lt)}
 
 /* SLOT CONTAINER — override old .slot styles */
@@ -1369,8 +1368,8 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .hv2-ftr-btn:hover{border-color:var(--hv2-teal);color:var(--hv2-teal);background:var(--hv2-teal-lt)}
 [data-active-theme="hv"] .hv2-ftr-btn.hv2-ftr-rm:hover{border-color:var(--hv2-err);color:var(--hv2-err);background:var(--hv2-err-lt)}
 
-/* Ride / cross-car notes */
-[data-active-theme="hv"] .ride-note{background:var(--hv2-warn-lt);color:var(--hv2-warn);border:none;border-left:3px solid var(--hv2-warn);font-size:10.5px;padding:5px 10px;margin:0 0 4px;border-radius:0 4px 4px 0;font-weight:500}
+/* Ride / cross-car notes — light purple (consistent with pickup/dropoff) */
+[data-active-theme="hv"] .ride-note{background:var(--hv2-lock-lt);color:var(--hv2-lock);border:none;border-left:3px solid var(--hv2-lock);font-size:11px;padding:6px 10px;margin:3px 0;border-radius:0 4px 4px 0;font-weight:500}
 
 /* Pool panel — cleaner cards */
 [data-active-theme="hv"] .pool{background:#fff;border-right:1px solid var(--hv2-line)}
@@ -3074,7 +3073,7 @@ function renderSlot(d,cid,si){
           <div class="hv2-hdr">
             <div class="hv2-field hv2-field-anchor">
               <div class="hv2-lbl">${label}${sl_.grp?' · GROUP':''}</div>
-              <div class="hv2-anchor hv2-anchor-dd">${n} students · ${sl_.grp?'same location':`${totalKm}km · ${totalInter}min apart`}</div>
+              <div class="hv2-anchor hv2-anchor-dd">${n} students · ${sl_.grp?'same location':`${totalInter} min apart`}</div>
             </div>
             <div class="hv2-hdr-actions">${lockBadge}${lockBtn}</div>
           </div>
@@ -3095,30 +3094,26 @@ function renderSlot(d,cid,si){
 
   if(sl_.t==='pick'){
     const s=SS[sl_.id];if(!s)return'';
-    const pAddr=sl_.grp?.addr??s.a;
     const info=findDropInfo(sl_.id);
     const readyMin=info?info.readyMin:600;
     const onTime=startMin>=readyMin;
-    const after=nextSlotPos(d,cid,si);
-    const toLabel=after.isBase?`${after.a} branch`:sl(after.a);
+    const prev=lastPos(d,cid,si);
+    const pla=sl_.grp?.la??s.la, pln=sl_.grp?.ln??s.ln;
+    const travelMin=tm(hv(prev.la,prev.ln,pla,pln));
     let xcarLabel='';
     if(info&&info.cid!==cid){
       const dropCar=CARS.find(c=>c.id===info.cid);
-      xcarLabel=` · dropped by ${dropCar?.label||'Car ?'}`;
+      xcarLabel=` · via ${dropCar?.label||'Car ?'}`;
     }
     const readyWarn=!onTime?` · ⚠ ready ${ts(readyMin)}`:'';
     const lockMark=sl_.locked?' 🔒':'';
-    // Pickup is a thin teal line (NOT a card). Still drop-targetable.
+    // Pickup is a thin purple line (NOT a card). Still drop-targetable.
     return`<div class="hv2-line hv2-line-pickup${isActive?' hv2-line-active':''}${rejCls}" ${base} ${handlers} title="Pickup — click to activate, drag a student here to assign">
-      <span class="hv2-line-rail"></span>
-      <span class="hv2-line-text hv2-line-text-active">
-        <span class="hv2-line-time">${timeStr}</span>
-        <span class="hv2-line-verb">▲ Pick up</span>
-        <span class="hv2-line-name link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')">${s.n}</span>
-        <span class="hv2-line-sub">${sl(pAddr)} → ${toLabel}${xcarLabel}${readyWarn}${lockMark}</span>
-      </span>
+      <span class="hv2-line-verb">▲ Pick up</span>
+      <span class="hv2-line-name link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')">${s.t}</span>
+      <span class="hv2-line-sub">· ${travelMin} min${xcarLabel}${readyWarn}${lockMark}</span>
+      <span class="hv2-line-spacer"></span>
       <button class="hv2-line-rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})" title="Remove pickup">×</button>
-      <span class="hv2-line-rail"></span>
     </div>${dropoffLine}`;
   }
 
