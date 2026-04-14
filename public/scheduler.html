@@ -1409,12 +1409,14 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .hv2-pickup-wrap-first:not(.hv2-pickup-wrap-last){border-bottom-left-radius:0;border-bottom-right-radius:0}
 [data-active-theme="hv"] .hv2-pickup-wrap-cont:not(.hv2-pickup-wrap-last){border-radius:0}
 [data-active-theme="hv"] .hv2-pickup-verb-hdr{font-size:10.5px;font-weight:800;color:var(--hv2-lock);letter-spacing:.08em;padding:1px 0 4px}
-[data-active-theme="hv"] .hv2-pickup-row.slot{display:flex;align-items:center;gap:6px;padding:5px 4px 5px 10px;background:transparent !important;border:none !important;border-radius:5px;min-height:0;cursor:pointer;transition:background .1s}
+[data-active-theme="hv"] .hv2-pickup-row.slot{display:flex;flex-direction:column;align-items:stretch;gap:1px;padding:5px 22px 5px 10px;background:transparent !important;border:none !important;border-radius:5px;min-height:0;cursor:pointer;transition:background .1s;position:relative}
 [data-active-theme="hv"] .hv2-pickup-row.slot:hover{background:rgba(255,255,255,.55) !important}
 [data-active-theme="hv"] .hv2-pickup-row.slot.active-slot{background:#fff !important;outline:1.5px solid var(--hv2-lock);outline-offset:-1px}
-[data-active-theme="hv"] .hv2-pickup-name{font-size:13px;font-weight:700;color:var(--hv2-ink);cursor:pointer}
+[data-active-theme="hv"] .hv2-pickup-name{font-size:13px;font-weight:700;color:var(--hv2-ink);cursor:pointer;line-height:1.2}
 [data-active-theme="hv"] .hv2-pickup-name:hover{color:var(--hv2-teal);text-decoration:underline}
-[data-active-theme="hv"] .hv2-pickup-time{font-size:12px;color:var(--hv2-muted);font-weight:500}
+[data-active-theme="hv"] .hv2-pickup-time{font-size:11.5px;color:var(--hv2-muted);font-weight:500;line-height:1.3;word-spacing:1px}
+[data-active-theme="hv"] .hv2-pickup-row.slot>.hv2-line-rm{position:absolute;top:3px;right:4px;margin:0}
+[data-active-theme="hv"] .hv2-pickup-row.slot>.hv2-line-spacer{display:none}
 
 /* Ride / cross-car notes — light purple (consistent with pickup/dropoff) */
 [data-active-theme="hv"] .ride-note{background:var(--hv2-lock-lt);color:var(--hv2-lock);border:none;border-left:3px solid var(--hv2-lock);font-size:11px;padding:6px 10px;margin:3px 0;border-radius:0 4px 4px 0;font-weight:500}
@@ -3367,7 +3369,7 @@ function renderSlot(d,cid,si){
       ${headerHtml}
       <div class="hv2-pickup-row slot hv2-line-pickup${isActive?' hv2-line-active':''}${rejCls}" ${base} ${handlers} title="${isCrossCar?'Cross-car pickup':'Drop teacher back at branch'}">
         <span class="hv2-pickup-name link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')">${s.t}</span>
-        <span class="hv2-pickup-time">· ${pickupDisplayTime}${xcarLabel}${readyWarn}${lockMark}</span>
+        <span class="hv2-pickup-time">${pickupDisplayTime}${xcarLabel}${readyWarn}${lockMark}</span>
         <span class="hv2-line-spacer"></span>
         <button class="hv2-line-rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})" title="Remove pickup">×</button>
       </div>
