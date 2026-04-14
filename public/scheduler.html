@@ -609,68 +609,93 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 .menu-dropdown button:hover svg{color:var(--purple)}
 .menu-sep{height:1px;background:var(--border);margin:4px 8px}
 /* ===== STUDENT PROFILE WINDOW ===== */
-.sp-overlay{display:none;position:fixed;inset:0;background:rgba(15,12,45,.45);z-index:900;align-items:stretch;justify-content:center;padding:24px}
+/* Warm, considered internal-tool feel. One surface, not two boxes. */
+.sp-overlay{display:none;position:fixed;inset:0;background:rgba(40,32,20,.32);z-index:900;align-items:stretch;justify-content:center;padding:28px;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
 .sp-overlay.open{display:flex}
-.sp-panel{background:#fff;border-radius:14px;width:100%;max-width:1180px;max-height:calc(100vh - 48px);display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.22);overflow:hidden}
-.sp-hdr{display:flex;align-items:flex-start;gap:12px;padding:20px 28px 16px;border-bottom:1px solid #F1F0F7;background:#fff}
-.sp-back{background:#fff;border:1px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;color:var(--text2);display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;margin-top:4px}
-.sp-back:hover{background:var(--bg-mid);color:var(--text);border-color:#D1D5DB}
+.sp-panel{background:#F9F8F6;border-radius:16px;width:100%;max-width:1180px;max-height:calc(100vh - 56px);display:flex;flex-direction:column;box-shadow:0 30px 80px -20px rgba(60,45,30,.28),0 4px 16px rgba(60,45,30,.06);overflow:hidden;border:1px solid rgba(60,45,30,.05)}
+/* Header — warm, confident, uncluttered */
+.sp-hdr{display:flex;align-items:flex-start;gap:14px;padding:26px 36px 22px;background:transparent}
+.sp-back{background:transparent;border:1px solid rgba(60,45,30,.12);border-radius:8px;width:34px;height:34px;cursor:pointer;color:#7D6E5C;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;flex-shrink:0;margin-top:6px;transition:all .15s}
+.sp-back:hover{background:rgba(60,45,30,.04);color:#3E342A;border-color:rgba(60,45,30,.22)}
 .sp-title{flex:1;min-width:0}
-.sp-title h2{font-size:22px;font-weight:700;color:var(--text);margin:0;line-height:1.2;letter-spacing:-.01em}
-.sp-title .sp-name-ar{font-size:16px;font-weight:500;color:var(--text2);margin-top:2px;direction:rtl;font-family:'Segoe UI Arabic','Arial','Tahoma',sans-serif}
-.sp-title .sp-sub{font-size:12px;color:var(--text3);margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.sp-title .sp-sub .sp-dot{color:#D1D5DB}
-.sp-status-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.01em}
-.sp-status-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
-.sp-close{background:#fff;border:1px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;color:var(--text3);font-size:20px;line-height:1;padding:0;flex-shrink:0;margin-top:4px}
-.sp-close:hover{background:var(--bg-mid);color:var(--text)}
-/* 2-column body: left (wider) content, right (narrower) activity log */
-.sp-body{flex:1;display:flex;overflow:hidden;background:#fff}
-.sp-col-main{flex:1 1 auto;overflow-y:auto;padding:8px 28px 28px;min-width:0}
-.sp-col-side{width:360px;flex-shrink:0;border-left:1px solid #F1F0F7;background:#FBFAFD;display:flex;flex-direction:column;overflow:hidden}
-/* Section: minimal, no filled header, just a hairline */
-.sp-section{padding:18px 0 4px;border-bottom:1px solid #F1F0F7}
-.sp-section:last-child{border-bottom:none}
-.sp-section-hdr{font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px}
-.sp-row{display:grid;gap:14px 18px;margin-bottom:14px}
+.sp-title h2{font-size:26px;font-weight:600;color:#2B2420;margin:0;line-height:1.2;letter-spacing:-.015em}
+.sp-title .sp-name-ar{font-size:17px;font-weight:500;color:#7D6E5C;margin-top:3px;direction:rtl;font-family:'Segoe UI Arabic','Arial','Tahoma',sans-serif}
+.sp-title .sp-sub{font-size:13px;color:#8A7B69;margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-weight:500}
+.sp-title .sp-sub .sp-dot{color:#CEC3B2;font-weight:400}
+.sp-status-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:600;letter-spacing:.005em}
+.sp-status-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.85}
+.sp-close{background:transparent;border:none;cursor:pointer;color:#A89886;font-size:22px;line-height:1;padding:4px 10px;flex-shrink:0;margin-top:2px;border-radius:6px;transition:all .15s;font-weight:300}
+.sp-close:hover{background:rgba(60,45,30,.06);color:#3E342A}
+/* Body — single surface with a hairline spine */
+.sp-body{flex:1;display:flex;overflow:hidden;background:transparent;padding:0 12px 12px}
+.sp-col-main{flex:1 1 auto;overflow-y:auto;padding:4px 28px 28px;min-width:0;scrollbar-color:rgba(60,45,30,.15) transparent}
+.sp-col-side{width:360px;flex-shrink:0;border-left:1px solid rgba(60,45,30,.08);display:flex;flex-direction:column;overflow:hidden;margin-left:4px}
+/* Section — thin warm hairline only under the heading, generous breathing room */
+.sp-section{padding:28px 0 8px}
+.sp-section:first-child{padding-top:8px}
+.sp-section-hdr{font-size:11px;font-weight:600;color:#5A8F85;letter-spacing:.08em;text-transform:uppercase;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid rgba(60,45,30,.08);display:inline-block;min-width:140px}
+.sp-row{display:grid;gap:20px 22px;margin-bottom:20px}
+.sp-row:last-child{margin-bottom:0}
 .sp-row.cols-2{grid-template-columns:1fr 1fr}
 .sp-row.cols-3{grid-template-columns:1fr 1fr 1fr}
 .sp-row.cols-4{grid-template-columns:1fr 1fr 1fr 1fr}
 @media (max-width:900px){.sp-row.cols-2,.sp-row.cols-3,.sp-row.cols-4{grid-template-columns:1fr}}
-.sp-field{display:flex;flex-direction:column;gap:4px;min-width:0}
-.sp-field label{font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:.05em}
-.sp-field input,.sp-field select,.sp-field textarea{width:100%;padding:6px 2px;border:none;border-bottom:1px solid transparent;border-radius:0;font-size:14px;font-family:inherit;color:var(--text);background:transparent;transition:border-color .15s,background .15s;box-sizing:border-box}
-.sp-field input::placeholder,.sp-field textarea::placeholder{color:#D1D5DB;font-style:italic}
-.sp-field input:hover,.sp-field select:hover,.sp-field textarea:hover{border-bottom-color:#E5E7EB}
-.sp-field input:focus,.sp-field select:focus,.sp-field textarea:focus{outline:none;border-bottom-color:var(--teal);background:transparent}
-.sp-field input.sp-saved,.sp-field select.sp-saved,.sp-field textarea.sp-saved{background:rgba(204,251,241,.35)}
+/* Fields — warm labels, inputs that breathe */
+.sp-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.sp-field label{font-size:11px;font-weight:500;color:#9A8B78;letter-spacing:.02em;text-transform:none}
+.sp-field input,.sp-field select,.sp-field textarea{width:100%;height:34px;padding:6px 2px;border:none;border-bottom:1px solid rgba(60,45,30,.1);border-radius:0;font-size:14px;font-family:inherit;color:#2B2420;background:transparent;transition:border-color .2s,color .2s;box-sizing:border-box;line-height:1.4}
+.sp-field textarea{height:auto;min-height:72px;resize:vertical;padding:8px 2px}
+/* Empty state: placeholder is warm italic, fields recede */
+.sp-field input::placeholder,.sp-field textarea::placeholder{color:#BDAF9B;font-style:italic;opacity:1}
+.sp-field input:placeholder-shown,.sp-field textarea:placeholder-shown{color:#BDAF9B}
+.sp-field input:hover,.sp-field select:hover,.sp-field textarea:hover{border-bottom-color:rgba(60,45,30,.2)}
+.sp-field input:focus,.sp-field select:focus,.sp-field textarea:focus{outline:none;border-bottom-color:#5A8F85;box-shadow:0 1px 0 0 #5A8F85}
+.sp-field input.sp-saved,.sp-field select.sp-saved,.sp-field textarea.sp-saved{background:rgba(204,251,241,.4);transition:background .6s}
 .sp-field input.sp-ar,.sp-field textarea.sp-ar{direction:rtl;text-align:right;font-family:'Segoe UI Arabic','Arial','Tahoma',sans-serif}
-.sp-field select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%239CA3AF' d='M0 0l5 6 5-6z'/></svg>");background-repeat:no-repeat;background-position:right 4px center;padding-right:18px;cursor:pointer}
-.sp-field .sp-readonly{padding:6px 2px;font-size:14px;color:var(--text2);min-height:18px;border-bottom:1px solid transparent}
-/* Linked records — quiet single-line navigation */
-.sp-linked-list{display:flex;flex-direction:column;gap:4px}
-.sp-linked-row{display:flex;align-items:center;gap:10px;padding:8px 2px;font-size:13px;cursor:pointer;border-bottom:1px solid #F5F4F8}
+/* Dropdowns — match inputs exactly, warm chevron */
+.sp-field select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%239A8B78' d='M0 0l5 6 5-6z'/></svg>");background-repeat:no-repeat;background-position:right 2px center;padding-right:18px;cursor:pointer}
+.sp-field select:invalid,.sp-field select.sp-empty{color:#BDAF9B;font-style:italic}
+.sp-field select option{color:#2B2420;font-style:normal}
+.sp-field select option[value=""]{color:#BDAF9B;font-style:italic}
+/* Date inputs — tame the native calendar icon to match warmth */
+.sp-field input[type="date"]{color-scheme:light}
+.sp-field input[type="date"]:not([value=""]):not(:focus){color:#2B2420}
+.sp-field input[type="date"][value=""]{color:#BDAF9B}
+.sp-field input[type="date"]::-webkit-calendar-picker-indicator{opacity:.45;cursor:pointer;filter:sepia(.3) hue-rotate(-20deg)}
+.sp-field input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:.75}
+/* Read-only derived values (e.g. Age) */
+.sp-field .sp-readonly{height:34px;padding:6px 2px;font-size:14px;color:#2B2420;display:flex;align-items:center;border-bottom:1px dashed rgba(60,45,30,.08)}
+.sp-field .sp-readonly.sp-readonly-empty{color:#BDAF9B;font-style:italic}
+/* Linked records — quiet navigation lines */
+.sp-linked-list{display:flex;flex-direction:column;gap:2px}
+.sp-linked-row{display:flex;align-items:center;gap:12px;padding:10px 0;font-size:13px;cursor:pointer;border-bottom:1px solid rgba(60,45,30,.06);transition:background .15s}
 .sp-linked-row:last-child{border-bottom:none}
-.sp-linked-row:hover .sp-linked-title{text-decoration:underline;text-decoration-color:#CBD5E1;text-underline-offset:2px}
-.sp-linked-row .sp-linked-type{font-size:9px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:.08em;min-width:48px}
-.sp-linked-row .sp-linked-title{flex:1;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sp-linked-row .sp-linked-badge{font-size:10px;padding:2px 8px;border-radius:999px;font-weight:600;white-space:nowrap}
-.sp-linked-row .sp-linked-meta{color:var(--text3);font-size:11px;white-space:nowrap}
-.sp-linked-empty{color:#C0BED0;font-size:12px;font-style:italic;padding:4px 2px}
-/* Activity Log — right column */
-.sp-log-hdr{padding:18px 22px 10px;border-bottom:1px solid #F1F0F7;background:#FBFAFD}
-.sp-log-hdr h3{font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.08em;text-transform:uppercase;margin:0}
-.sp-log-hdr .sp-log-count{font-size:11px;color:var(--text3);margin-top:2px}
-.sp-log-list{flex:1;overflow-y:auto;padding:14px 22px 18px;display:flex;flex-direction:column;gap:12px}
-.sp-log-item{padding:2px 0 2px 12px;border-left:2px solid #E5E7EB;font-size:13px;line-height:1.5}
-.sp-log-item .sp-log-when{font-size:10px;color:#9CA3AF;margin-bottom:3px;font-weight:500;letter-spacing:.02em}
-.sp-log-item .sp-log-text{color:var(--text);font-weight:400}
-.sp-log-empty{color:#C0BED0;font-size:12px;font-style:italic;text-align:center;padding:40px 14px}
-.sp-log-add{padding:12px 22px 18px;border-top:1px solid #F1F0F7;background:#fff;display:flex;gap:8px;flex-shrink:0}
-.sp-log-add input{flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit;background:#fff}
-.sp-log-add input:focus{outline:none;border-color:var(--teal)}
-.sp-log-add button{padding:9px 16px;background:var(--text);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
-.sp-log-add button:hover{background:var(--purple-dk)}
+.sp-linked-row:hover{background:rgba(60,45,30,.025)}
+.sp-linked-row:hover .sp-linked-title{color:#2B2420}
+.sp-linked-row .sp-linked-type{font-size:10px;font-weight:600;color:#9A8B78;text-transform:uppercase;letter-spacing:.06em;min-width:52px}
+.sp-linked-row .sp-linked-title{flex:1;color:#3E342A;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color .15s}
+.sp-linked-row .sp-linked-badge{font-size:10px;padding:3px 10px;border-radius:999px;font-weight:600;white-space:nowrap}
+.sp-linked-row .sp-linked-meta{color:#9A8B78;font-size:11px;white-space:nowrap}
+.sp-linked-empty{color:#BDAF9B;font-size:12px;font-style:italic;padding:6px 2px}
+/* Activity Log — right column, blends with panel */
+.sp-log-hdr{padding:22px 26px 14px;background:transparent}
+.sp-log-hdr h3{font-size:11px;font-weight:600;color:#5A8F85;letter-spacing:.08em;text-transform:uppercase;margin:0;padding-bottom:10px;border-bottom:1px solid rgba(60,45,30,.08);display:inline-block;min-width:120px}
+.sp-log-hdr .sp-log-count{font-size:11px;color:#9A8B78;margin-top:6px;font-weight:500}
+.sp-log-list{flex:1;overflow-y:auto;padding:10px 26px 14px;display:flex;flex-direction:column;gap:14px;scrollbar-color:rgba(60,45,30,.15) transparent}
+.sp-log-item{padding:2px 0 2px 14px;border-left:2px solid #D7D0C2;font-size:13px;line-height:1.55}
+.sp-log-item .sp-log-when{font-size:10px;color:#9A8B78;margin-bottom:3px;font-weight:500;letter-spacing:.02em}
+.sp-log-item .sp-log-text{color:#2B2420;font-weight:400}
+/* Empty activity log — warm and inviting, not a void */
+.sp-log-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;gap:12px;color:#A89886}
+.sp-log-empty-icon{width:40px;height:40px;border-radius:50%;background:rgba(90,143,133,.08);display:inline-flex;align-items:center;justify-content:center;color:#5A8F85}
+.sp-log-empty-text{font-size:12.5px;color:#9A8B78;font-style:italic;max-width:220px;line-height:1.5}
+/* Add-entry row — inviting, not a form */
+.sp-log-add{padding:14px 26px 22px;display:flex;gap:8px;flex-shrink:0;background:transparent}
+.sp-log-add input{flex:1;padding:10px 14px;border:1px solid rgba(60,45,30,.12);border-radius:9px;font-size:13px;font-family:inherit;background:#fff;color:#2B2420;transition:border-color .15s,box-shadow .15s}
+.sp-log-add input::placeholder{color:#BDAF9B;font-style:italic}
+.sp-log-add input:focus{outline:none;border-color:#5A8F85;box-shadow:0 0 0 3px rgba(90,143,133,.12)}
+.sp-log-add button{padding:10px 18px;background:#3E342A;color:#F9F8F6;border:none;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s}
+.sp-log-add button:hover{background:#2B2420}
 /* System-wide clickable student-name links */
 .link-name{cursor:pointer;color:inherit;transition:color .15s}
 .link-name:hover{color:var(--text);text-decoration:underline;text-decoration-color:#CBD5E1;text-underline-offset:2px}
@@ -3872,7 +3897,7 @@ function _spRenderLog(sid){
   if(!listEl||!cntEl)return;
   const n=s.log?s.log.length:0;
   cntEl.textContent=n+' '+(n===1?'entry':'entries');
-  if(!n){listEl.innerHTML='<div class="sp-log-empty">No activity yet.</div>';return;}
+  if(!n){listEl.innerHTML='<div class="sp-log-empty"><div class="sp-log-empty-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></div><div class="sp-log-empty-text">No activity yet — log the first note below.</div></div>';return;}
   listEl.innerHTML=s.log.map(e=>{
     const when=e.at?new Date(e.at).toLocaleString():'';
     return '<div class="sp-log-item"><div class="sp-log-when">'+esc(when)+'</div><div class="sp-log-text">'+esc(e.text||'')+'</div></div>';
@@ -3899,14 +3924,14 @@ function renderStudentProfile(sid){
   const field=(label,fieldId,type,value,opts)=>{
     opts=opts||{};
     const cls=(opts.ar?'sp-ar':'');
-    const placeholder=opts.placeholder||'—';
+    const placeholder=opts.placeholder||'Not added yet';
     const oc=`onchange="(function(el){_spSaveField('${sid}','${fieldId}',el.value);_spFlashSaved(el);})(this)"`;
     if(type==='select'){
       let h='<select class="'+cls+'" '+oc+'>';
       (opts.options||[]).forEach(o=>{
         const v=typeof o==='string'?o:o.v;
         const l=typeof o==='string'?o:o.l;
-        h+='<option value="'+esc(v)+'"'+((value||'')===v?' selected':'')+'>'+esc(l||'—')+'</option>';
+        h+='<option value="'+esc(v)+'"'+((value||'')===v?' selected':'')+'>'+esc(l||'Select…')+'</option>';
       });
       h+='</select>';
       return '<div class="sp-field"><label>'+esc(label)+'</label>'+h+'</div>';
@@ -3927,15 +3952,15 @@ function renderStudentProfile(sid){
     }
   }
 
-  const teacherOpts=[{v:'',l:'—'}].concat(
+  const teacherOpts=[{v:'',l:'Select…'}].concat(
     Object.keys(TEACHERS||{}).filter(t=>TEACHERS[t]&&TEACHERS[t].active!==0).sort().map(t=>({v:t,l:t}))
   );
-  const branchOpts=[{v:'',l:'—'},{v:'Shuhada',l:'Shuhada'},{v:'Salam',l:'Salam'},{v:'Salwa',l:'Salwa'}];
-  const classGroupOpts=[{v:'',l:'—'},{v:'Toddlers',l:'Toddlers'},{v:'PreK',l:'PreK'},{v:'KG1',l:'KG1'},{v:'KG2',l:'KG2'}];
+  const branchOpts=[{v:'',l:'Select…'},{v:'Shuhada',l:'Shuhada'},{v:'Salam',l:'Salam'},{v:'Salwa',l:'Salwa'}];
+  const classGroupOpts=[{v:'',l:'Select…'},{v:'Toddlers',l:'Toddlers'},{v:'PreK',l:'PreK'},{v:'KG1',l:'KG1'},{v:'KG2',l:'KG2'}];
   const statusOpts=STUDENT_STATUSES.map(x=>({v:x.id,l:x.label}));
-  const genderOpts=[{v:'',l:'—'},{v:'F',l:'Female'},{v:'M',l:'Male'}];
-  const segmentOpts=[{v:'',l:'—'},{v:'loyal',l:'Loyal'},{v:'hesitant',l:'Hesitant'},{v:'highrisk',l:'High risk'}];
-  const paymentOpts=[{v:'',l:'—'},{v:'paid',l:'Paid'},{v:'partial',l:'Partial'},{v:'unpaid',l:'Unpaid'}];
+  const genderOpts=[{v:'',l:'Select…'},{v:'F',l:'Female'},{v:'M',l:'Male'}];
+  const segmentOpts=[{v:'',l:'Select…'},{v:'loyal',l:'Loyal'},{v:'hesitant',l:'Hesitant'},{v:'highrisk',l:'High risk'}];
+  const paymentOpts=[{v:'',l:'Select…'},{v:'paid',l:'Paid'},{v:'partial',l:'Partial'},{v:'unpaid',l:'Unpaid'}];
   const sessionTypeOpts=[{v:'1on1',l:'1-on-1'},{v:'group',l:'Group'}];
 
   let h='';
@@ -3949,7 +3974,7 @@ function renderStudentProfile(sid){
   h+='</div>';
   h+='<div class="sp-row cols-3">';
   h+=field('Date of Birth','dob','date',s.dob);
-  h+='<div class="sp-field"><label>Age</label><div class="sp-readonly">'+esc(age||'—')+'</div></div>';
+  h+='<div class="sp-field"><label>Age</label><div class="sp-readonly'+(age?'':' sp-readonly-empty')+'">'+esc(age||'From date of birth')+'</div></div>';
   h+=field('Gender','gender','select',s.gender,{options:genderOpts});
   h+='</div>';
   h+='<div class="sp-row cols-3">';
@@ -4017,8 +4042,8 @@ function renderStudentProfile(sid){
     : '';
   const rejSummary=(Array.isArray(s.rejectedDays)&&s.rejectedDays.length)?s.rejectedDays.join(', '):'None';
   h+='<div class="sp-row cols-2">';
-  h+='<div class="sp-field"><label>Fixed Times</label><div class="sp-readonly">'+esc(fixedSummary||'Flexible')+'</div></div>';
-  h+='<div class="sp-field"><label>Rejected Days</label><div class="sp-readonly">'+esc(rejSummary)+'</div></div>';
+  h+='<div class="sp-field"><label>Fixed Times</label><div class="sp-readonly'+(fixedSummary?'':' sp-readonly-empty')+'">'+esc(fixedSummary||'Flexible')+'</div></div>';
+  h+='<div class="sp-field"><label>Rejected Days</label><div class="sp-readonly'+(rejSummary==='None'?' sp-readonly-empty':'')+'">'+esc(rejSummary)+'</div></div>';
   h+='</div>';
   h+='<div class="sp-row cols-2">';
   h+=field('Group Host','groupHost','text',s.groupHost,{placeholder:'Whose house (for group sessions)'});
