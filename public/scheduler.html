@@ -2912,17 +2912,18 @@ function teacherRideNote(d,cid,si){
   const br=carBranch(cid);
   // No previous drop → first drop of the day. Show who the driver picks up.
   if(!prevT.length){
-    return`<div class="ride-note">🚗 Pick up <b>${curT.join(' + ')}</b> from ${br} branch</div>`;
+    return`<div class="ride-note">🚗 ${br} · ↑ <b>${curT.join(' + ')}</b></div>`;
   }
   // Check for teacher change
   const prevSet=new Set(prevT), curSet=new Set(curT);
   const returning=[...prevSet].filter(t=>!curSet.has(t));
   const pickingUp=[...curSet].filter(t=>!prevSet.has(t));
   if(!returning.length&&!pickingUp.length)return''; // same teacher(s), no change
-  let note='🚗 ';
-  if(returning.length)note+=`↩ ${returning.join(' + ')} → ${br} branch`;
-  if(returning.length&&pickingUp.length)note+=' · ';
-  if(pickingUp.length)note+=`Pick up <b>${pickingUp.join(' + ')}</b> from ${br} branch`;
+  let note=`🚗 ${br} · `;
+  const parts=[];
+  if(returning.length)parts.push(`↓ ${returning.join(' + ')}`);
+  if(pickingUp.length)parts.push(`↑ <b>${pickingUp.join(' + ')}</b>`);
+  note+=parts.join(' · ');
   return`<div class="ride-note">${note}</div>`;
 }
 
@@ -2959,7 +2960,7 @@ function renderSlot(d,cid,si){
     if(coords&&prev&&prev.la!=null&&prev.ln!=null){
       const travelMin=tm(hv(prev.la,prev.ln,coords.la,coords.ln));
       const fromLabel=prev.isBase?`${prev.a} branch`:sl(prev.a);
-      driveLine=_hvConnector('drive',`${travelMin?travelMin+' min drive · ':''}← ${fromLabel}`);
+      driveLine=_hvConnector('drive',`← ${travelMin?travelMin+' min · ':''}${fromLabel}`);
     }
   }
 
@@ -2985,7 +2986,7 @@ function renderSlot(d,cid,si){
   const slotIds=slotStudentIds(sl_);
   const rejCls=slotIds.some(sid=>isRejectedDay(sid,d))?' rejected-day-slot':'';
   // If this is the last non-pickup slot, append a dropoff-to-branch line after the card
-  const dropoffLine=isLast&&sl_.t!=='pick'?_hvConnector('dropoff',`drop off → ${carBranch(cid)} branch`):'';
+  const dropoffLine=isLast&&sl_.t!=='pick'?_hvConnector('dropoff',`↓ Drop · ${carBranch(cid)}`):'';
 
   if(sl_.t==='s'){
     const s=SS[sl_.id];if(!s)return'';
@@ -3097,9 +3098,6 @@ function renderSlot(d,cid,si){
     const info=findDropInfo(sl_.id);
     const readyMin=info?info.readyMin:600;
     const onTime=startMin>=readyMin;
-    const prev=lastPos(d,cid,si);
-    const pla=sl_.grp?.la??s.la, pln=sl_.grp?.ln??s.ln;
-    const travelMin=tm(hv(prev.la,prev.ln,pla,pln));
     let xcarLabel='';
     if(info&&info.cid!==cid){
       const dropCar=CARS.find(c=>c.id===info.cid);
@@ -3109,9 +3107,9 @@ function renderSlot(d,cid,si){
     const lockMark=sl_.locked?' 🔒':'';
     // Pickup is a thin purple line (NOT a card). Still drop-targetable.
     return`<div class="hv2-line hv2-line-pickup${isActive?' hv2-line-active':''}${rejCls}" ${base} ${handlers} title="Pickup — click to activate, drag a student here to assign">
-      <span class="hv2-line-verb">▲ Pick up</span>
+      <span class="hv2-line-verb">↑ Pick</span>
       <span class="hv2-line-name link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')">${s.t}</span>
-      <span class="hv2-line-sub">· ${travelMin} min${xcarLabel}${readyWarn}${lockMark}</span>
+      <span class="hv2-line-sub">· ${timeStr}${xcarLabel}${readyWarn}${lockMark}</span>
       <span class="hv2-line-spacer"></span>
       <button class="hv2-line-rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})" title="Remove pickup">×</button>
     </div>${dropoffLine}`;
@@ -4877,8 +4875,8 @@ function buildDispatchMessage(d,cid){
       const pickUpT=[...needT].filter(t=>!inCar.has(t));
       if(returnT.length||pickUpT.length){
         const parts=[];
-        if(returnT.length)parts.push(`↩ Return ${returnT.join(' + ')} to ${brKey} branch`);
-        if(pickUpT.length)parts.push(`🚗 Pick up ${pickUpT.join(' + ')} from ${brKey} branch`);
+        if(returnT.length)parts.push(`↓ ${returnT.join(' + ')} · ${brKey}`);
+        if(pickUpT.length)parts.push(`↑ ${pickUpT.join(' + ')} · ${brKey}`);
         lines.push(`   ── ${parts.join(' · ')} ──`);
         // If we returned someone, the car went back to the branch first
         if(returnT.length){prevLa=bLa;prevLn=bLn;prevNm='BeCurious '+brKey;}
