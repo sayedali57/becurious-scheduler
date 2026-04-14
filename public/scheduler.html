@@ -1267,10 +1267,9 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .hv2-line-text{letter-spacing:.02em;text-align:center;min-width:0;overflow-wrap:break-word;word-break:normal}
 /* Drive: plain muted */
 [data-active-theme="hv"] .hv2-line-drive{color:var(--hv2-muted)}
-[data-active-theme="hv"] .hv2-line-pickup-text{color:var(--hv2-lock);font-weight:600;cursor:pointer;padding:2px 4px;border-radius:4px}
-[data-active-theme="hv"] .hv2-line-pickup-text:hover{background:var(--hv2-lock-lt)}
-[data-active-theme="hv"] .hv2-line-pickup-text.hv2-line-active{background:var(--hv2-lock-lt);box-shadow:inset 2px 0 0 var(--hv2-lock)}
-[data-active-theme="hv"] .hv2-line-rm-inline{background:transparent;border:none;color:var(--hv2-muted);cursor:pointer;font-size:14px;padding:0 4px;opacity:.6}
+[data-active-theme="hv"] .hv2-line-xcar-pickup{color:var(--hv2-muted);cursor:pointer;background:transparent;border:none}
+[data-active-theme="hv"] .hv2-line-xcar-pickup:hover{color:var(--hv2-teal)}
+[data-active-theme="hv"] .hv2-line-rm-inline{background:transparent;border:none;color:var(--hv2-muted);cursor:pointer;font-size:13px;padding:0 4px;opacity:.5}
 [data-active-theme="hv"] .hv2-line-rm-inline:hover{opacity:1;color:var(--hv2-err)}
 /* Dropoff: light purple (like pickup) */
 [data-active-theme="hv"] .hv2-line-dropoff{background:var(--hv2-lock-lt);color:var(--hv2-lock);font-weight:600;padding:7px 10px;border-radius:6px;margin:3px 0}
@@ -1307,6 +1306,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 /* CARD INTERIOR */
 [data-active-theme="hv"] .hv2-card{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
 [data-active-theme="hv"] .hv2-empty{padding:14px 10px;text-align:center;font-size:11px;color:var(--hv2-faint);font-weight:500}
+[data-active-theme="hv"] .hv2-empty-time{color:var(--hv2-muted);font-weight:700;margin-right:4px}
 [data-active-theme="hv"] .slot.hv2.active-slot .hv2-empty{color:var(--hv2-teal);font-weight:600}
 
 /* Header row (anchor + action icons) */
@@ -1412,7 +1412,6 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .hv2-grp-nrow .hv2-rm-mini{position:static;padding:0 5px;font-size:13px;flex-shrink:0}
 [data-active-theme="hv"] .hv2-grp-nrow.hv2-grp-host{background:var(--hv2-teal-lt);box-shadow:inset 2px 0 0 var(--hv2-teal)}
 [data-active-theme="hv"] .hv2-grp-nrow.hv2-grp-host .hv2-grp-n{color:var(--hv2-teal);font-weight:800}
-[data-active-theme="hv"] .hv2-grp-hostbadge{font-size:9px;font-weight:800;color:var(--hv2-teal);background:#fff;border:1px solid var(--hv2-teal);padding:1px 5px;border-radius:3px;letter-spacing:.05em;flex-shrink:0}
 
 /* Pickup block — consecutive pickups share ONE "↑ PICK" header, names stack below */
 [data-active-theme="hv"] .hv2-pickup-wrap{background:var(--hv2-lock-lt);padding:0 10px;border-radius:8px;margin-top:2px;margin-bottom:2px}
@@ -3240,9 +3239,16 @@ function renderSlot(d,cid,si){
   const earlyTag=earlyMin>0?`<div class="hv2-early" title="Teacher can wait in the car or knock early">⏱ early (${earlyMin} min)</div>`:'';
 
   if(!sl_){
+    // Empty slot — show a rough clock hint so Saleh can eyeball where in the
+    // day a gap falls. Earliest start = SETTINGS.dayStartMin; each empty slot
+    // adds 30 minutes. Purely visual — the real start time is computed from
+    // the actual schedule when something is dropped in.
+    const emptySlotStep=30;
+    const emptyBase=parseInt(SETTINGS.dayStartMin)||600;
+    const emptyTime=ts(emptyBase+si*emptySlotStep);
     return`<div class="slot-wrap">
       <div class="slot hv2${isActive?' active-slot':''}" ${base} ${handlers}>
-        <div class="hv2-empty">${isActive?'▸ drop here':'drop here'}</div>
+        <div class="hv2-empty"><span class="hv2-empty-time">${emptyTime}</span> ${isActive?'▸ drop here':'drop here'}</div>
       </div></div>`;
   }
 
@@ -3439,7 +3445,9 @@ function renderSlot(d,cid,si){
     const warnTxt=!onTime?` · ⚠ ready ${ts(readyMin)}`:'';
     const lockTxt=sl_.locked?' 🔒':'';
     const pickText=`↑ Pick up ${esc(s.t)} · ${pickupDisplayTime}${xcarTxt}${warnTxt}${lockTxt}`;
-    return`<div class="hv2-line hv2-line-pickup-text slot${isActive?' hv2-line-active':''}${rejCls}" ${base} ${handlers} title="Cross-car pickup">
+    // Plain drive-line-style connector — no purple card, no `.slot` border.
+    // Inherits `.hv2-line` base styling (thin gray text between cards).
+    return`<div class="hv2-line hv2-line-xcar-pickup" ${base} ${handlers} title="Cross-car pickup">
       <span class="hv2-line-rail"></span>
       <span class="hv2-line-text">${pickText}</span>
       <button class="hv2-line-rm-inline" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})" title="Remove pickup">×</button>
@@ -3475,9 +3483,9 @@ function renderSlot(d,cid,si){
       const namesHtml=kids.map(({s,idx})=>{
         const isHost=s.id===hostId;
         const hostCls=isHost?' hv2-grp-host':'';
-        const hostMark=isHost?'<span class="hv2-grp-hostbadge" title="Host — group meets at this student\'s home">🏠 HOST</span>':'';
+        const hostTitle=isHost?'Host — group meets at this student\'s home':s.n;
         return `<div class="hv2-grp-nrow${hostCls}">
-        <span class="hv2-grp-n link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')" title="${s.n}">${s.n}</span>${hostMark}
+        <span class="hv2-grp-n link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')" title="${hostTitle}">${s.n}</span>
         <button class="hv2-rm-mini" onclick="event.stopPropagation();removeFromGroup('${d}',${cid},${si},${idx})" title="Remove from group">&#215;</button>
       </div>`;
       }).join('');
@@ -3498,7 +3506,7 @@ function renderSlot(d,cid,si){
       <div class="slot hv2${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" ${base} ${handlers}>
         <div class="hv2-card">
           <div class="hv2-dd-banner hv2-grp-banner" draggable="true" ondragstart="dsSlotMove(event,'${d}',${cid},${si})" title="Drag to move entire group" style="cursor:grab">
-            <span>GROUP · ${sl_.ids.length}/7${hostName?` · 🏠 ${esc(hostName)}'s home`:''}</span>
+            <span>GROUP · ${sl_.ids.length}/7</span>
             <span class="hv2-hdr-actions">${lockBadge}${lockBtn}</span>
           </div>
           <div class="hv2-field hv2-field-anchor" style="padding:0 2px 4px">
