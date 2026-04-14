@@ -3278,30 +3278,17 @@ function renderSlot(d,cid,si){
 
   if(sl_.t==='pick'){
     const s=SS[sl_.id];if(!s)return'';
-    // Mid-day pickups (car picks teacher up from a student's home and continues
-    // to the next session in the same car) are visually redundant: the previous
-    // session showed where they finished and the next session shows where
-    // they're going. We hide those entirely to cut clutter.
-    //
-    // A pickup is KEPT visible only when it represents a real branch
-    // transition, i.e. no more sessions follow for this teacher on this car —
-    // meaning the car is returning the teacher to the BeCurious branch.
+    // All same-car pickups are now hidden from the timeline. The info they
+    // used to show (who is being dropped at branch / swapped) is already
+    // visible on the NEXT session card's ride-note (🏠 Branch · ↓ Name · ↑
+    // Name · HH:MM), and end-of-day branch returns are covered by the car's
+    // final "Return to branch" step in the driver route.
+    // Only cross-car pickups (different car picks the teacher up) remain
+    // visible because they represent a real inter-car handover.
     const slots=SCHED[d]?.[cid]||[];
-    let hasFutureSessionForTeacher=false;
-    for(let j=si+1;j<slots.length;j++){
-      const fs=slots[j];if(!fs)continue;
-      if(fs.t==='pick')continue;
-      const futureIds=slotStudentIds(fs);
-      if(futureIds.some(id=>SS[id]?.t===s.t)){hasFutureSessionForTeacher=true;break;}
-    }
-    // Also render if this is a cross-car pickup (different car picks them up)
     const info=findDropInfo(sl_.id);
     const isCrossCar=!!(info&&info.cid!==cid);
-    // Skip rendering the pickup line unless it represents a branch-bound trip
-    // or a cross-car handover the user needs to see.
-    if(hasFutureSessionForTeacher&&!isCrossCar){
-      // Return an empty, drop-target-only shell so drag/drop still works but
-      // nothing visible is added to the timeline.
+    if(!isCrossCar){
       return`<div class="hv2-pickup-hidden" ${base} ${handlers} style="display:none"></div>`;
     }
     const readyMin=info?info.readyMin:startMin;
