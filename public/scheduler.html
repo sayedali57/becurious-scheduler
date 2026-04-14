@@ -3306,7 +3306,10 @@ function renderSlot(d,cid,si){
     const prev=lastPos(d,cid,si);
     const s1=students[0];
     const eff1La=sl_.grp?.la??s1.la, eff1Ln=sl_.grp?.ln??s1.ln;
-    const travel1=tm(hv(prev.la,prev.ln,eff1La,eff1Ln));
+    // Use legTravelMin so any teacher-swap branch detour (and handover) is
+    // included — otherwise the first sub-card's "early" indicator shows a
+    // minute count that ignores the real drive via the branch.
+    const travel1=legTravelMin(d,cid,si,eff1La,eff1Ln);
     const legs=sl_.grp?students.slice(1).map(()=>0):ddLegs(sl_);
     const dropOffsets=[0];
     for(let i=0;i<legs.length;i++)dropOffsets.push(dropOffsets[dropOffsets.length-1]+(legs[i]||0));
