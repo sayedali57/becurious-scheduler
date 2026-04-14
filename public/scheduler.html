@@ -1317,6 +1317,10 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .hv2-anchor{font-size:17px;font-weight:700;color:var(--hv2-teal);letter-spacing:-.01em;line-height:1.2}
 [data-active-theme="hv"] .hv2-anchor-sm{font-size:14px}
 [data-active-theme="hv"] .hv2-anchor-dd{font-size:13px;color:var(--hv2-ink)}
+/* Double-drop outer banner (clear, big label sitting above the sub-cards) */
+[data-active-theme="hv"] .hv2-dd-banner{font-size:15px;font-weight:800;letter-spacing:.06em;color:var(--hv2-teal);background:var(--hv2-teal-lt);padding:8px 10px;border-radius:8px;margin:0 0 6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+[data-active-theme="hv"] .hv2-dd-sub{background:#fff;border:1.5px solid var(--hv2-card-border);border-radius:8px;padding:8px 10px;margin:0}
+[data-active-theme="hv"] .hv2-dd-wrap{display:flex;flex-direction:column;gap:0}
 
 /* Times row — two columns */
 [data-active-theme="hv"] .hv2-times{display:flex;gap:24px;padding:4px 0}
@@ -3137,40 +3141,52 @@ function renderSlot(d,cid,si){
     for(let i=0;i<legs.length;i++)dropOffsets.push(dropOffsets[dropOffsets.length-1]+(legs[i]||0));
     const totalInter=legs.reduce((a,b)=>a+b,0);
     const totalKm=(sl_.km||ddTotalKm(sl_)||0).toFixed(1);
-    const studentBlocks=students.map((s,idx)=>{
-      const dropT=idx===0?timeStr:tsR(startMin+travel1+dropOffsets[idx]);
+    // Per-student display start/finish (each sub-session gets its own clock,
+    // just like a regular single-drop card).
+    const subStarts=students.map((_,idx)=>{
+      const raw=startMin+travel1+dropOffsets[idx];
+      return r>1?Math.ceil(raw/r)*r:raw;
+    });
+    // Build interleaved sub-cards and inter-leg drive lines.
+    let dropSections='';
+    students.forEach((s,idx)=>{
+      const subStart=subStarts[idx];
+      const subEnd=subStart+sessionMinOnly;
       const pickSlot=findPickSlot(s.id);
       const pickWarn=!pickSlot?`<div class="hv2-warn-row hv2-warn-inline">⚠ Pickup not assigned</div>`:'';
-      return `<div class="hv2-paired-item" draggable="true" data-sid="${s.id}" data-dtype="drop">
+      if(idx>0){
+        // Inter-leg drive: driver drops teacher[idx] at student[idx]'s home.
+        const legMin=legs[idx-1]||0;
+        const nameHtml=s.t?` <b>"${s.t}"</b>`:'';
+        const minsHtml=legMin>0?` ${legMin} min`:'';
+        dropSections+=_hvConnector('drive',`Drive${nameHtml}${minsHtml}`);
+      }
+      dropSections+=`<div class="hv2-dd-sub" draggable="true" data-sid="${s.id}" data-dtype="drop">
+        <div class="hv2-times">
+          <div class="hv2-field"><div class="hv2-lbl">START</div><div class="hv2-val hv2-val-time">${ts(subStart)}</div></div>
+          <div class="hv2-field"><div class="hv2-lbl">FINISH</div><div class="hv2-val hv2-val-time">${ts(subEnd)}</div></div>
+          <button class="hv2-rm-mini" onclick="event.stopPropagation();unpair('${d}',${cid},${si},${idx})" title="Unpair" style="margin-left:auto">×</button>
+        </div>
         <div class="hv2-field hv2-field-anchor">
           <div class="hv2-lbl">TEACHER</div>
           <div class="hv2-anchor hv2-anchor-sm">${s.t}</div>
         </div>
         <div class="hv2-field">
           <div class="hv2-lbl">STUDENT</div>
-          <div class="hv2-val"><span class="link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')" title="${s.n}">${shortName(s.n,18)}</span>${idx>0&&!sl_.grp?` <span class="hv2-off">(+${dropOffsets[idx]}min)</span>`:''}</div>
+          <div class="hv2-val"><span class="link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')" title="${s.n}">${shortName(s.n,18)}</span></div>
         </div>
         <div class="hv2-addr-only" title="${sl(s.a)}">${sl(s.a)}</div>
         ${pickWarn}
-        <button class="hv2-rm-mini" onclick="event.stopPropagation();unpair('${d}',${cid},${si},${idx})" title="Unpair">×</button>
-      </div>${idx<n-1?'<div class="hv2-paired-sep"></div>':''}`;
-    }).join('');
+      </div>`;
+    });
     return`${rideNote}${driveLine}<div class="slot-wrap">
-
       <div class="slot hv2${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" ${base} ${handlers}>
         <div class="hv2-card">
-          <div class="hv2-hdr">
-            <div class="hv2-field hv2-field-anchor">
-              <div class="hv2-lbl">${label}${sl_.grp?' · GROUP':''}</div>
-              <div class="hv2-anchor hv2-anchor-dd">${n} students · ${sl_.grp?'same location':`${totalInter} min apart`}</div>
-            </div>
-            <div class="hv2-hdr-actions">${lockBadge}${lockBtn}</div>
+          <div class="hv2-dd-banner">
+            <span>${label}${sl_.grp?' · GROUP':''}</span>
+            <span class="hv2-hdr-actions">${lockBadge}${lockBtn}</span>
           </div>
-          <div class="hv2-times">
-            <div class="hv2-field"><div class="hv2-lbl">START</div><div class="hv2-val hv2-val-time">${timeStr}</div></div>
-            <div class="hv2-field"><div class="hv2-lbl">FINISH</div><div class="hv2-val hv2-val-time">${endStr}</div></div>
-          </div>
-          ${studentBlocks}
+          <div class="hv2-dd-wrap">${dropSections}</div>
           ${warns?`<div class="hv2-warn-row">${warns}</div>`:''}
           <div class="hv2-collapsible">
             ${attRowHtml(d,cid,si)}
@@ -3220,7 +3236,24 @@ function renderSlot(d,cid,si){
     }
     const readyWarn=!onTime?` · ⚠ ready ${tsR(readyMin)}`:'';
     const lockMark=sl_.locked?' 🔒':'';
-    const pickupDisplayTime=tsR(readyMin);
+    // For branch-return pickup blocks (same car, same destination branch), all
+    // teachers arrive at the branch at the SAME time — compute once and share.
+    let pickupDisplayTime=tsR(readyMin);
+    if(!isCrossCar){
+      // Walk to the end of the contiguous branch-return block
+      let k=si;
+      while(k+1<slots.length && slots[k+1]?.t==='pick'){
+        const ni=findDropInfo(slots[k+1].id);
+        if(ni&&ni.cid!==cid)break; // cross-car ends the branch-return block
+        k++;
+      }
+      const lastSl=slots[k];
+      const lastCoords=_slotCoords(lastSl);
+      const afterLast=slotStartMin(d,cid,k)+slotDur(lastSl,d,cid,k);
+      const [bla,bln]=brCoords(carBranch(cid));
+      const driveBack=lastCoords?tm(hv(lastCoords.la,lastCoords.ln,bla,bln)):0;
+      pickupDisplayTime=tsR(afterLast+driveBack);
+    }
     const isFirst=!prevIsPick;
     const isLastPick=!nextIsPick;
     const wrapCls=`hv2-pickup-wrap${isFirst?' hv2-pickup-wrap-first':''}${isLastPick?' hv2-pickup-wrap-last':''}${prevIsPick?' hv2-pickup-wrap-cont':''}`;
