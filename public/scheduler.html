@@ -2549,6 +2549,55 @@ function lastPos(d,cid,si){
   return{la,ln,a:br+' branch',isBase:true};
 }
 
+// When this drop-slot requires a teacher different from the one currently in
+// the car, the driver must detour back to the branch to swap teachers. We need
+// to charge that detour to the schedule so downstream times are honest.
+//
+// Returns:
+//   { swap: true, branch: {la,ln}, handover: N }   if a branch detour is needed
+//   { swap: false }                                  otherwise
+//
+// A swap is required when:
+//  - The current drop needs a teacher that's not in the car yet, OR
+//  - A teacher currently in the car isn't needed for the current drop.
+function swapDetour(d,cid,si){
+  const sl_=SCHED[d]?.[cid]?.[si];
+  if(!sl_||sl_.t==='pick')return{swap:false};
+  const slots=SCHED[d]?.[cid]||[];
+  // Find the previous DROP slot (skip pickups). Its teachers represent who is
+  // currently in the car. If there's no previous drop, the car is starting
+  // from the branch with no teachers on board yet — we treat that as "pickup
+  // at branch is already budgeted via dayStart" and do NOT add a swap here.
+  let prevDrop=null;
+  for(let i=si-1;i>=0;i--){
+    const p=slots[i];if(!p||p.t==='pick')continue;
+    prevDrop=p;break;
+  }
+  if(!prevDrop)return{swap:false};
+  const prevTeachers=new Set(slotStudentIds(prevDrop).map(id=>SS[id]?.t).filter(Boolean));
+  const needed=new Set(slotStudentIds(sl_).map(id=>SS[id]?.t).filter(Boolean));
+  let changed=false;
+  for(const t of prevTeachers)if(!needed.has(t)){changed=true;break;}
+  if(!changed)for(const t of needed)if(!prevTeachers.has(t)){changed=true;break;}
+  if(!changed)return{swap:false};
+  const br=carBranch(cid).split('/')[0];
+  const[bla,bln]=brCoords(br);
+  return{swap:true,branch:{la:bla,ln:bln,name:br},handover:parseInt(SETTINGS.pickupHandoverMin)||0};
+}
+// Travel minutes for the leg into this slot, honouring any branch detour
+// needed for a teacher swap. Used by slotDur/renderSlot/route printer so all
+// three stay in sync.
+function legTravelMin(d,cid,si,targetLa,targetLn){
+  const prev=lastPos(d,cid,si);
+  const det=swapDetour(d,cid,si);
+  if(det.swap){
+    return tm(hv(prev.la,prev.ln,det.branch.la,det.branch.ln))
+         + det.handover
+         + tm(hv(det.branch.la,det.branch.ln,targetLa,targetLn));
+  }
+  return tm(hv(prev.la,prev.ln,targetLa,targetLn));
+}
+
 function slotStartMin(d,cid,si){
   const slots=SCHED[d]?.[cid]||[];
   // Mandatory / locked slots may have a fixedStart override that pins
@@ -2576,21 +2625,23 @@ function slotDur(sl_,d,cid,si){
   const block=sessionBlockMin();
   if(sl_.t==='s'){
     const s=SS[sl_.id];if(!s)return block+15;
-    return tm(hv(prev.la,prev.ln,s.la,s.ln))+block;
+    const la=sl_.grp?.la??s.la, ln=sl_.grp?.ln??s.ln;
+    return legTravelMin(d,cid,si,la,ln)+block;
   }
   if(sl_.t==='d'){
     const s1=SS[sl_.ids?.[0]];if(!s1)return block+15;
-    const travel1=tm(hv(prev.la,prev.ln,s1.la,s1.ln));
+    const la1=sl_.grp?.la??s1.la, ln1=sl_.grp?.ln??s1.ln;
+    const travel1=legTravelMin(d,cid,si,la1,ln1);
     const interTotal=ddTotalInter(sl_);
-    // Duration: travel to first + total inter-home legs + block (parallel
-    // sessions done by then). Works for 2- or 3-student drops.
+    // Duration: travel to first (via branch if teacher swap) + inter-home legs
+    // + block (parallel sessions done by then). Works for 2- or 3-student drops.
     return travel1+interTotal+block;
   }
   if(sl_.t==='g'){
     // Group slot: travel to first student + one session block (children share the slot)
     const first=SS[sl_.ids?.[0]];if(!first)return block+15;
     const la=sl_.grp?.la??first.la, ln=sl_.grp?.ln??first.ln;
-    return tm(hv(prev.la,prev.ln,la,ln))+block;
+    return legTravelMin(d,cid,si,la,ln)+block;
   }
   if(sl_.t==='pick'){
     const s=SS[sl_.id];
@@ -2982,10 +3033,20 @@ function teacherRideNote(d,cid,si){
     }
   }
   const br=carBranch(cid);
-  // Pickup time = when the car is at the branch to pick up/swap teachers.
-  // slotStartMin is the cumulative leg-start time (minutes-of-day), i.e. the
-  // moment the car departs with the teacher on board.
-  const pickupT=ts(slotStartMin(d,cid,si));
+  // Branch arrival time = when the car actually reaches Shuhada (etc.) to
+  // drop the old teacher and/or pick up the new one.
+  //  - First drop of day: car leaves branch at dayStart; pickup happens then.
+  //  - Mid-day swap: car drives from prev drop location to branch; pickup
+  //    happens after that travel leg.
+  let branchArriveMin;
+  if(!prevT.length){
+    branchArriveMin=slotStartMin(d,cid,si);
+  }else{
+    const prev=lastPos(d,cid,si);
+    const[bla,bln]=brCoords(br.split('/')[0]);
+    branchArriveMin=slotStartMin(d,cid,si)+tm(hv(prev.la,prev.ln,bla,bln));
+  }
+  const pickupT=ts(branchArriveMin);
   // No previous drop → first drop of the day. Show who the driver picks up.
   if(!prevT.length){
     return`<div class="ride-note">🏠 ${br} · ↑ <b>${curT.join(' + ')}</b> · ${pickupT}</div>`;
@@ -3042,15 +3103,28 @@ function renderSlot(d,cid,si){
     const coords=_slotCoords(sl_);
     const prev=lastPos(d,cid,si);
     if(coords&&prev&&prev.la!=null&&prev.ln!=null){
-      travelMin=tm(hv(prev.la,prev.ln,coords.la,coords.ln));
+      // Total travel INTO this slot — includes any branch detour for a swap.
+      travelMin=sl_.t==='pick'
+        ?tm(hv(prev.la,prev.ln,coords.la,coords.ln))
+        :legTravelMin(d,cid,si,coords.la,coords.ln);
       let driveTeacher='';
       if(sl_.t==='s'){const s=SS[sl_.id];driveTeacher=s?.t||'';}
       else if(sl_.t==='d'){const s=SS[(sl_.ids||[])[0]];driveTeacher=s?.t||'';}
       else if(sl_.t==='g'){const s=SS[(sl_.ids||[])[0]];driveTeacher=s?.t||'';}
       else if(sl_.t==='pick'){const s=SS[sl_.id];driveTeacher=s?.t||'';}
       const nameHtml=driveTeacher?` <b>"${driveTeacher}"</b>`:'';
-      const minsHtml=travelMin>0?` ${travelMin} min`:'';
-      driveLine=_hvConnector('drive',`Drive${nameHtml}${minsHtml}`);
+      // When a teacher swap forces a branch detour, show both legs so the
+      // minutes on screen match what the driver actually does.
+      const det=sl_.t==='pick'?{swap:false}:swapDetour(d,cid,si);
+      if(det.swap){
+        const leg1=tm(hv(prev.la,prev.ln,det.branch.la,det.branch.ln));
+        const leg2=tm(hv(det.branch.la,det.branch.ln,coords.la,coords.ln));
+        driveLine=_hvConnector('drive',
+          `↩ Return to ${det.branch.name} ${leg1} min · Drive${nameHtml} ${leg2} min`);
+      }else{
+        const minsHtml=travelMin>0?` ${travelMin} min`:'';
+        driveLine=_hvConnector('drive',`Drive${nameHtml}${minsHtml}`);
+      }
     }
   }
   // DISPLAY times: session START = actual arrival rounded UP to 10 min.
@@ -5040,33 +5114,57 @@ function buildDispatchMessage(d,cid){
     return[...new Set(slotStudentIds(sl_).map(sid=>SS[sid]?.t).filter(Boolean))];
   }
 
+  const handoverMin=parseInt(SETTINGS.pickupHandoverMin)||0;
   slots.forEach((sl_,si)=>{
     if(!sl_)return;
     const startM=slotStartMin(d,cid,si);
-    const depT=ts(startM);
+    // legDep = wall-clock time the car actually leaves its previous location
+    // for this slot. Equals startM unless a branch detour pushes it later.
+    let legDep=startM;
 
     // ─── Teacher ride management ───
-    // Before every drop slot, check if we need to pick up / return teachers.
+    // Before every drop slot, check if we need to swap teachers. A swap
+    // means the driver must physically detour back to the branch — we emit
+    // an explicit numbered step for it so the minutes are honest.
     if(sl_.t!=='pick'){
       const needT=new Set(slotTeachers(sl_));
       const returnT=[...inCar].filter(t=>!needT.has(t));
       const pickUpT=[...needT].filter(t=>!inCar.has(t));
       if(returnT.length||pickUpT.length){
-        const parts=[];
-        if(returnT.length)parts.push(`↓ ${returnT.join(' + ')} · ${brKey}`);
-        if(pickUpT.length)parts.push(`↑ ${pickUpT.join(' + ')} · ${brKey}`);
-        lines.push(`   ── ${parts.join(' · ')} ──`);
-        // If we returned someone, the car went back to the branch first
-        if(returnT.length){prevLa=bLa;prevLn=bLn;prevNm='BeCurious '+brKey;}
+        // Mid-day swap (there was a prev drop and someone is being swapped).
+        // On day 1 (no prev drop) just emit the header — the pickup happens
+        // at branch at dayStart and the forward leg's travel covers it.
+        const isMidDay=inCar.size>0;
+        if(isMidDay){
+          const detourTravel=tm(hv(prevLa,prevLn,bLa,bLn));
+          const detourDep=ts(startM);
+          const detourArr=ts(startM+detourTravel);
+          const parts=[];
+          if(returnT.length)parts.push(`↓ ${returnT.join(' + ')}`);
+          if(pickUpT.length)parts.push(`↑ ${pickUpT.join(' + ')}`);
+          num++;
+          lines.push(`${num}. ${detourDep}  Return to ${brKey} branch from ${prevNm}  → Arrive at ${detourArr} · ${parts.join(' · ')}`);
+          lines.push(`   🗺️ ${mapLink(bLa,bLn)}`);
+          prevLa=bLa;prevLn=bLn;prevNm=`BeCurious ${brKey}`;
+          // Advance wall clock past the detour + handover so the next drop's
+          // departure time reflects that the driver was actually at branch.
+          legDep=startM+detourTravel+handoverMin;
+        }else{
+          const parts=[];
+          if(returnT.length)parts.push(`↓ ${returnT.join(' + ')} · ${brKey}`);
+          if(pickUpT.length)parts.push(`↑ ${pickUpT.join(' + ')} · ${brKey}`);
+          lines.push(`   ── ${parts.join(' · ')} ──`);
+        }
       }
       inCar=needT;
     }
+    const depT=ts(legDep);
 
     if(sl_.t==='s'){
       const s=SS[sl_.id];if(!s)return;
       const useLa=sl_.grp?.la??s.la, useLn=sl_.grp?.ln??s.ln, useAddr=sl_.grp?.addr||s.a;
       const travelMin=tm(hv(prevLa,prevLn,useLa,useLn));
-      const arrT=ts(startM+travelMin);
+      const arrT=ts(legDep+travelMin);
       num++;
       const locked=sl_.locked?' 🔒':'';
       lines.push(`${num}. ${depT}  ${s.t||'teacher'} + driver → Drop at ${arrT} ${s.n}: ${useAddr}${locked}`);
@@ -5080,7 +5178,7 @@ function buildDispatchMessage(d,cid){
       const s1=students[0];
       const travel1=tm(hv(prevLa,prevLn,s1.la,s1.ln));
       const legs=ddLegs(sl_);
-      let cursor=startM+travel1;
+      let cursor=legDep+travel1;
       num++;
       lines.push(`${num}. ${depT}  ${s1.t||'teacher'} + driver → Drop at ${ts(cursor)} ${s1.n}: ${s1.a}`);
       lines.push(`   🗺️ ${mapLink(s1.la,s1.ln)}`);
@@ -5106,7 +5204,7 @@ function buildDispatchMessage(d,cid){
       const names=ids.map(id=>SS[id]?.n).filter(Boolean).join(', ');
       const teachers=[...new Set(ids.map(id=>SS[id]?.t).filter(Boolean))].join('/');
       const travelMin=tm(hv(prevLa,prevLn,la,ln));
-      const arrT=ts(startM+travelMin);
+      const arrT=ts(legDep+travelMin);
       num++;
       lines.push(`${num}. ${depT}  ${teachers||'teachers'} + driver → Drop at ${arrT} group [${names}]: ${addr}`);
       lines.push(`   🗺️ ${mapLink(la,ln)}`);
@@ -5115,7 +5213,7 @@ function buildDispatchMessage(d,cid){
     else if(sl_.t==='pick'){
       const s=SS[sl_.id];if(!s)return;
       const travelMin=tm(hv(prevLa,prevLn,s.la,s.ln));
-      const arrT=ts(startM+travelMin);
+      const arrT=ts(legDep+travelMin);
       num++;
       lines.push(`${num}. ${depT}  Return to ${s.n} from ${prevNm}  → Pickup ${s.t||'teacher'} at ${arrT}: ${s.a}`);
       lines.push(`   🗺️ ${mapLink(s.la,s.ln)}`);
