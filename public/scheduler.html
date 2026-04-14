@@ -1368,6 +1368,30 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .hv2-ftr-btn:hover{border-color:var(--hv2-teal);color:var(--hv2-teal);background:var(--hv2-teal-lt)}
 [data-active-theme="hv"] .hv2-ftr-btn.hv2-ftr-rm:hover{border-color:var(--hv2-err);color:var(--hv2-err);background:var(--hv2-err-lt)}
 
+/* Collapsible actions — attendance + footer hidden until card expanded.
+   Expand is toggled by the "⋯" button in the card header. */
+[data-active-theme="hv"] .hv2-collapsible{display:none;margin-top:6px}
+[data-active-theme="hv"] .slot.hv2[data-expanded="true"] .hv2-collapsible{display:block}
+[data-active-theme="hv"] .hv2-expand-btn{background:transparent;border:1px solid transparent;color:var(--hv2-muted);cursor:pointer;font-size:16px;line-height:1;padding:0 6px;border-radius:5px;font-weight:700;letter-spacing:1px}
+[data-active-theme="hv"] .hv2-expand-btn:hover{border-color:var(--hv2-line);background:var(--hv2-bg);color:var(--hv2-teal)}
+[data-active-theme="hv"] .slot.hv2[data-expanded="true"] .hv2-expand-btn{color:var(--hv2-teal);background:var(--hv2-teal-lt);border-color:var(--hv2-teal)}
+
+/* Address as a thin subtle line — no ADDRESS label (per Saleh's feedback) */
+[data-active-theme="hv"] .hv2-addr-only{color:var(--hv2-muted);font-size:12px;font-weight:500;line-height:1.4;padding:2px 0 2px 0;border-top:1px dashed var(--hv2-line);margin-top:2px;padding-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Grouped-by-teacher rows in group cards — teacher name shown once, then students */
+[data-active-theme="hv"] .hv2-grp-trow{display:flex;align-items:flex-start;gap:8px;padding:6px 8px;background:var(--hv2-bg);border-radius:6px;font-size:12px;flex-wrap:wrap}
+[data-active-theme="hv"] .hv2-grp-trow .hv2-grp-dot{margin-top:6px}
+[data-active-theme="hv"] .hv2-grp-trow .hv2-grp-t{min-width:auto;flex-shrink:0;margin-top:4px}
+[data-active-theme="hv"] .hv2-grp-names{display:flex;flex-wrap:wrap;gap:4px 8px;flex:1;min-width:0}
+[data-active-theme="hv"] .hv2-grp-n-item{display:inline-flex;align-items:center;gap:2px;background:#fff;border:1px solid var(--hv2-line);border-radius:12px;padding:2px 4px 2px 10px;max-width:100%}
+[data-active-theme="hv"] .hv2-grp-n-item .hv2-grp-n{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+[data-active-theme="hv"] .hv2-grp-n-item .hv2-rm-mini{position:static;padding:0 4px;font-size:12px}
+
+/* Consecutive pickup: tighter vertical spacing, no repeated verb */
+[data-active-theme="hv"] .hv2-line-pickup-cont{margin-top:-2px}
+[data-active-theme="hv"] .hv2-line-verb-cont{color:var(--hv2-lock);opacity:.55;font-weight:700;min-width:auto}
+
 /* Ride / cross-car notes — light purple (consistent with pickup/dropoff) */
 [data-active-theme="hv"] .ride-note{background:var(--hv2-lock-lt);color:var(--hv2-lock);border:none;border-left:3px solid var(--hv2-lock);font-size:11px;padding:6px 10px;margin:3px 0;border-radius:0 4px 4px 0;font-weight:500}
 
@@ -1753,6 +1777,20 @@ function hv(a,b,c,d){const R=6371,p=Math.PI/180,da=(c-a)*p,db=(d-b)*p;return+(2*
 function tm(km){return Math.max(10,Math.round(km/25*60));}
 function ts(m){return`${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;}
 function sl(a){if(!a)return'?';const p=a.split(',').map(x=>x.trim());return p.length>=2?`${p[0]}, ${p[1]}`:p[0];}
+// Shorten a student name for compact display. Keeps first name + initial of last.
+// e.g. "Fatimah Almahmeed" → "Fatimah A."  |  "Saleh al zayed" → "Saleh a. z."
+// Does NOT mutate underlying data; purely for rendering.
+function shortName(n,max=14){
+  if(!n)return'';
+  n=String(n).trim();
+  if(n.length<=max)return n;
+  const parts=n.split(/\s+/);
+  if(parts.length===1)return parts[0].slice(0,max-1)+'…';
+  const first=parts[0];
+  const rest=parts.slice(1).map(p=>p[0].toLowerCase()+'.').join(' ');
+  const compact=`${first} ${rest}`;
+  return compact.length<=max?compact:first.slice(0,max-1)+'…';
+}
 function carBranch(cid){return(CARS.find(c=>c.id===cid)||{branch:'Shuhada'}).branch;}
 function brCoords(br){return BP[br]||[29.268183,48.027942];}
 function dbBr(s,br){const[la,ln]=brCoords(br||s.br||'Shuhada');return hv(la,ln,s.la,s.ln);}
@@ -2949,6 +2987,10 @@ function renderSlot(d,cid,si){
   const timeStr=ts(startMin);
   const endStr=ts(startMin+sessionBlockMin());
   const expAttr=_expandedSlots.has(slotKey(d,cid,si))?' data-expanded="true"':'';
+  // Check if previous slot is also a pickup — if so, render this pickup without
+  // repeating the "↑ PICK" verb (visually group consecutive pickups).
+  const prevSl=si>0?SCHED[d]?.[cid]?.[si-1]:null;
+  const prevIsPick=!!(prevSl&&prevSl.t==='pick');
   const base=`id="sl-${d}-${cid}-${si}" data-d="${d}" data-cid="${cid}" data-si="${si}"${expAttr}`;
   const handlers=`onclick="slotClick(event,'${d}',${cid},${si})" ondragover="slotOver(event,this)" ondragleave="slotLeave(this)" ondrop="slotDrop(event,this)"`;
 
@@ -3005,7 +3047,7 @@ function renderSlot(d,cid,si){
               <div class="hv2-lbl">TEACHER</div>
               <div class="hv2-anchor">${s.t}</div>
             </div>
-            <div class="hv2-hdr-actions">${lockBadge}${lockBtn}</div>
+            <div class="hv2-hdr-actions">${lockBadge}${lockBtn}<button class="hv2-expand-btn" onclick="toggleSlotExpand(event,'${d}',${cid},${si})" title="More options">⋯</button></div>
           </div>
           <div class="hv2-times">
             <div class="hv2-field"><div class="hv2-lbl">START</div><div class="hv2-val hv2-val-time">${timeStr}</div></div>
@@ -3013,19 +3055,18 @@ function renderSlot(d,cid,si){
           </div>
           <div class="hv2-field">
             <div class="hv2-lbl">STUDENT</div>
-            <div class="hv2-val"><span class="link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')">${s.n}</span>${farLabel}</div>
+            <div class="hv2-val"><span class="link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')" title="${s.n}">${shortName(s.n,18)}</span>${farLabel}</div>
           </div>
-          <div class="hv2-field">
-            <div class="hv2-lbl">ADDRESS</div>
-            <div class="hv2-val hv2-addr">${sl(effAddr)}${grpBadge}</div>
-          </div>
+          <div class="hv2-addr-only" title="${sl(effAddr)}">${sl(effAddr)}${grpBadge}</div>
           ${warns?`<div class="hv2-warn-row">${warns}</div>`:''}
           ${pickWarn}
-          ${attRowHtml(d,cid,si)}
-          <div class="hv2-ftr">
-            <button class="hv2-ftr-btn" onclick="event.stopPropagation();editStudent('${s.id}')" title="Edit student">Edit student</button>
-            <button class="hv2-ftr-btn" onclick="event.stopPropagation();openGroup('${d}',${cid},${si})" title="Group location">${sl_.grp?'Group on':'Group'}</button>
-            <button class="hv2-ftr-btn hv2-ftr-rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})" title="Remove">Remove</button>
+          <div class="hv2-collapsible">
+            ${attRowHtml(d,cid,si)}
+            <div class="hv2-ftr">
+              <button class="hv2-ftr-btn" onclick="event.stopPropagation();editStudent('${s.id}')" title="Edit student">Edit student</button>
+              <button class="hv2-ftr-btn" onclick="event.stopPropagation();openGroup('${d}',${cid},${si})" title="Group location">${sl_.grp?'Group on':'Group'}</button>
+              <button class="hv2-ftr-btn hv2-ftr-rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})" title="Remove">Remove</button>
+            </div>
           </div>
         </div>
       </div></div>${dropoffLine}`;
@@ -3056,13 +3097,10 @@ function renderSlot(d,cid,si){
           <div class="hv2-anchor hv2-anchor-sm">${s.t}</div>
         </div>
         <div class="hv2-field">
-          <div class="hv2-lbl">STUDENT · START</div>
-          <div class="hv2-val"><span class="link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')">${s.n}</span> · ${dropT}${idx>0&&!sl_.grp?` <span class="hv2-off">(+${dropOffsets[idx]}min)</span>`:''}</div>
+          <div class="hv2-lbl">STUDENT</div>
+          <div class="hv2-val"><span class="link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')" title="${s.n}">${shortName(s.n,18)}</span>${idx>0&&!sl_.grp?` <span class="hv2-off">(+${dropOffsets[idx]}min)</span>`:''}</div>
         </div>
-        <div class="hv2-field">
-          <div class="hv2-lbl">ADDRESS</div>
-          <div class="hv2-val hv2-addr">${sl(s.a)}</div>
-        </div>
+        <div class="hv2-addr-only" title="${sl(s.a)}">${sl(s.a)}</div>
         ${pickWarn}
         <button class="hv2-rm-mini" onclick="event.stopPropagation();unpair('${d}',${cid},${si},${idx})" title="Unpair">×</button>
       </div>${idx<n-1?'<div class="hv2-paired-sep"></div>':''}`;
@@ -3076,7 +3114,7 @@ function renderSlot(d,cid,si){
               <div class="hv2-lbl">${label}${sl_.grp?' · GROUP':''}</div>
               <div class="hv2-anchor hv2-anchor-dd">${n} students · ${sl_.grp?'same location':`${totalInter} min apart`}</div>
             </div>
-            <div class="hv2-hdr-actions">${lockBadge}${lockBtn}</div>
+            <div class="hv2-hdr-actions">${lockBadge}${lockBtn}<button class="hv2-expand-btn" onclick="toggleSlotExpand(event,'${d}',${cid},${si})" title="More options">⋯</button></div>
           </div>
           <div class="hv2-times">
             <div class="hv2-field"><div class="hv2-lbl">START</div><div class="hv2-val hv2-val-time">${timeStr}</div></div>
@@ -3084,10 +3122,12 @@ function renderSlot(d,cid,si){
           </div>
           ${studentBlocks}
           ${warns?`<div class="hv2-warn-row">${warns}</div>`:''}
-          ${attRowHtml(d,cid,si)}
-          <div class="hv2-ftr">
-            <button class="hv2-ftr-btn" onclick="event.stopPropagation();openGroup('${d}',${cid},${si})">${sl_.grp?'Group on':'Group'}</button>
-            <button class="hv2-ftr-btn hv2-ftr-rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})">Remove</button>
+          <div class="hv2-collapsible">
+            ${attRowHtml(d,cid,si)}
+            <div class="hv2-ftr">
+              <button class="hv2-ftr-btn" onclick="event.stopPropagation();openGroup('${d}',${cid},${si})">${sl_.grp?'Group on':'Group'}</button>
+              <button class="hv2-ftr-btn hv2-ftr-rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})">Remove</button>
+            </div>
           </div>
         </div>
       </div></div>${dropoffLine}`;
@@ -3106,8 +3146,13 @@ function renderSlot(d,cid,si){
     const readyWarn=!onTime?` · ⚠ ready ${ts(readyMin)}`:'';
     const lockMark=sl_.locked?' 🔒':'';
     // Pickup is a thin purple line (NOT a card). Still drop-targetable.
-    return`<div class="hv2-line hv2-line-pickup${isActive?' hv2-line-active':''}${rejCls}" ${base} ${handlers} title="Pickup — click to activate, drag a student here to assign">
-      <span class="hv2-line-verb">↑ Pick</span>
+    // If the previous slot is also a pickup, suppress the "↑ PICK" verb so
+    // consecutive pickups read as one grouped block (per Saleh's feedback).
+    const verbHtml=prevIsPick
+      ?`<span class="hv2-line-verb hv2-line-verb-cont">↑</span>`
+      :`<span class="hv2-line-verb">↑ Pick</span>`;
+    return`<div class="hv2-line hv2-line-pickup${prevIsPick?' hv2-line-pickup-cont':''}${isActive?' hv2-line-active':''}${rejCls}" ${base} ${handlers} title="Pickup — click to activate, drag a student here to assign">
+      ${verbHtml}
       <span class="hv2-line-name link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')">${s.t}</span>
       <span class="hv2-line-sub">· ${timeStr}${xcarLabel}${readyWarn}${lockMark}</span>
       <span class="hv2-line-spacer"></span>
@@ -3116,15 +3161,29 @@ function renderSlot(d,cid,si){
   }
 
   if(sl_.t==='g'){
-    const children=(sl_.ids||[]).map(id=>SS[id]).filter(Boolean);
+    const children=(sl_.ids||[]).map((id,idx)=>({s:SS[id],idx})).filter(x=>x.s);
     const grpAddr=sl_.grp?.addr||'';
     const canAdd=sl_.ids.length<7;
-    const childRows=children.map((ch,idx)=>`<div class="hv2-grp-child">
-      <span class="hv2-grp-dot" style="background:${TC[ch.t]||'#6A5FA8'}"></span>
-      <span class="hv2-grp-t">${ch.t.split('/')[0].substring(0,12)}</span>
-      <span class="hv2-grp-n link-name" onclick="event.stopPropagation();openStudentProfile('${ch.id}')">${ch.n}</span>
-      <button class="hv2-rm-mini" onclick="event.stopPropagation();removeFromGroup('${d}',${cid},${si},${idx})">&#215;</button>
-    </div>`).join('');
+    // Group children by teacher so the teacher name appears once per group,
+    // not once per student (per Saleh's feedback on wasted space).
+    const byTeacher=new Map();
+    children.forEach(({s,idx})=>{
+      const tname=(s.t||'?').split('/')[0];
+      if(!byTeacher.has(tname))byTeacher.set(tname,[]);
+      byTeacher.get(tname).push({s,idx});
+    });
+    const childRows=[...byTeacher.entries()].map(([tname,kids])=>{
+      const col=TC[tname]||'#6A5FA8';
+      const namesHtml=kids.map(({s,idx})=>`<span class="hv2-grp-n-item">
+        <span class="hv2-grp-n link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')" title="${s.n}">${shortName(s.n,16)}</span>
+        <button class="hv2-rm-mini" onclick="event.stopPropagation();removeFromGroup('${d}',${cid},${si},${idx})" title="Remove from group">&#215;</button>
+      </span>`).join('');
+      return `<div class="hv2-grp-trow">
+        <span class="hv2-grp-dot" style="background:${col}"></span>
+        <span class="hv2-grp-t" style="color:${col}">${tname.substring(0,14)}</span>
+        <span class="hv2-grp-names">${namesHtml}</span>
+      </div>`;
+    }).join('');
     const dropZone=canAdd
       ?`<div class="hv2-grp-drop" ondragover="grpOver(event,this)" ondragleave="grpLeave(this)" ondrop="grpDrop(event,this,'${d}',${cid},${si})">+ Drop child here · ${sl_.ids.length}/7</div>`
       :`<div class="hv2-grp-full">Group full — 7/7</div>`;
@@ -3137,7 +3196,7 @@ function renderSlot(d,cid,si){
               <div class="hv2-lbl">GROUP · ${sl_.ids.length}/7 CHILDREN</div>
               <div class="hv2-anchor hv2-anchor-dd">${grpAddr?sl(grpAddr):'Set location →'}</div>
             </div>
-            <div class="hv2-hdr-actions">${lockBadge}${lockBtn}</div>
+            <div class="hv2-hdr-actions">${lockBadge}${lockBtn}<button class="hv2-expand-btn" onclick="toggleSlotExpand(event,'${d}',${cid},${si})" title="More options">⋯</button></div>
           </div>
           <div class="hv2-times">
             <div class="hv2-field"><div class="hv2-lbl">START</div><div class="hv2-val hv2-val-time">${timeStr}</div></div>
@@ -3146,10 +3205,12 @@ function renderSlot(d,cid,si){
           <div class="hv2-grp-children">${childRows}</div>
           ${dropZone}
           ${warns?`<div class="hv2-warn-row">${warns}</div>`:''}
-          ${attRowHtml(d,cid,si)}
-          <div class="hv2-ftr">
-            <button class="hv2-ftr-btn" onclick="event.stopPropagation();openGroup('${d}',${cid},${si})">Edit location</button>
-            <button class="hv2-ftr-btn hv2-ftr-rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})">Remove group</button>
+          <div class="hv2-collapsible">
+            ${attRowHtml(d,cid,si)}
+            <div class="hv2-ftr">
+              <button class="hv2-ftr-btn" onclick="event.stopPropagation();openGroup('${d}',${cid},${si})">Edit location</button>
+              <button class="hv2-ftr-btn hv2-ftr-rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})">Remove group</button>
+            </div>
           </div>
         </div>
       </div></div>${dropoffLine}`;
