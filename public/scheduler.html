@@ -3247,7 +3247,6 @@ function renderSlot(d,cid,si){
 
   const warns=warnHtml(d,cid,si);
   const isLast=isLastSlot(d,cid,si);
-  const rideNote=teacherRideNote(d,cid,si);
   const lockBadge=sl_.locked?'<svg class="hv2-lock-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>':'';
   const lockBtn=`<button class="lock-toggle${sl_.locked?' is-locked':''}" onclick="event.stopPropagation();toggleSlotLock('${d}',${cid},${si})" title="${sl_.locked?'Unlock':'Lock — protect from auto-schedule'}">${sl_.locked?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>':'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>'}</button>`;
   const slotIds=slotStudentIds(sl_);
@@ -3263,7 +3262,7 @@ function renderSlot(d,cid,si){
     const pickSlot=findPickSlot(sl_.id);
     const pickWarn=!pickSlot?`<div class="hv2-warn-row">⚠ Pickup not assigned for ${s.n}</div>`:'';
     const grpBadge=sl_.grp?`<span class="hv2-grp-tag">Group · ${sl(sl_.grp.addr)}</span>`:'';
-    return`${rideNote}${driveLine}<div class="slot-wrap">
+    return`${driveLine}<div class="slot-wrap">
 
       <div class="slot hv2${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" ${base} ${handlers}>
         <div class="hv2-card" draggable="true" data-sid="${s.id}" data-dtype="drop">
@@ -3356,7 +3355,7 @@ function renderSlot(d,cid,si){
         ${pickWarn}
       </div>`;
     });
-    return`${rideNote}${driveLine}<div class="slot-wrap">
+    return`${driveLine}<div class="slot-wrap">
       <div class="slot hv2${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" ${base} ${handlers}>
         <div class="hv2-card">
           <div class="hv2-dd-banner">
@@ -3468,7 +3467,7 @@ function renderSlot(d,cid,si){
     const dropZone=canAdd
       ?`<div class="hv2-grp-drop" ondragover="grpOver(event,this)" ondragleave="grpLeave(this)" ondrop="grpDrop(event,this,'${d}',${cid},${si})">+ Drop child here · ${sl_.ids.length}/7</div>`
       :`<div class="hv2-grp-full">Group full — 7/7</div>`;
-    return`${rideNote}${driveLine}<div class="slot-wrap">
+    return`${driveLine}<div class="slot-wrap">
 
       <div class="slot hv2${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" ${base} ${handlers}>
         <div class="hv2-card">
