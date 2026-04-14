@@ -610,30 +610,31 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 .menu-sep{height:1px;background:var(--border);margin:4px 8px}
 /* ===== STUDENT PROFILE WINDOW ===== */
 /* Warm, considered internal-tool feel. One surface, not two boxes. */
-.sp-overlay{display:none;position:fixed;inset:0;background:rgba(40,32,20,.32);z-index:900;align-items:stretch;justify-content:center;padding:28px;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+.sp-overlay{display:none;position:fixed;inset:0;background:rgba(249,248,246,.92);z-index:900;align-items:stretch;justify-content:center;padding:32px;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
 .sp-overlay.open{display:flex}
-.sp-panel{background:#F9F8F6;border-radius:16px;width:100%;max-width:1180px;max-height:calc(100vh - 56px);display:flex;flex-direction:column;box-shadow:0 30px 80px -20px rgba(60,45,30,.28),0 4px 16px rgba(60,45,30,.06);overflow:hidden;border:1px solid rgba(60,45,30,.05)}
-/* Header — warm, confident, uncluttered */
-.sp-hdr{display:flex;align-items:flex-start;gap:14px;padding:26px 36px 22px;background:transparent}
-.sp-back{background:transparent;border:1px solid rgba(60,45,30,.12);border-radius:8px;width:34px;height:34px;cursor:pointer;color:#7D6E5C;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;flex-shrink:0;margin-top:6px;transition:all .15s}
-.sp-back:hover{background:rgba(60,45,30,.04);color:#3E342A;border-color:rgba(60,45,30,.22)}
+.sp-panel{background:#FFFFFF;border-radius:14px;width:100%;max-width:1180px;max-height:calc(100vh - 64px);display:flex;flex-direction:column;box-shadow:0 24px 70px -18px rgba(60,45,30,.22),0 2px 10px rgba(60,45,30,.05);overflow:hidden;border:1px solid rgba(60,45,30,.06)}
+/* Header — name large, status pill on its own line below */
+.sp-hdr{display:flex;align-items:flex-start;gap:14px;padding:32px 36px 22px 36px;background:transparent;border-bottom:1px solid rgba(60,45,30,.06)}
+.sp-back{background:transparent;border:1px solid rgba(60,45,30,.1);border-radius:8px;width:32px;height:32px;cursor:pointer;color:#7D6E5C;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;flex-shrink:0;margin-top:8px;transition:all .15s}
+.sp-back:hover{background:rgba(60,45,30,.04);color:#3E342A;border-color:rgba(60,45,30,.2)}
 .sp-title{flex:1;min-width:0}
-.sp-title h2{font-size:26px;font-weight:600;color:#2B2420;margin:0;line-height:1.2;letter-spacing:-.015em}
-.sp-title .sp-name-ar{font-size:17px;font-weight:500;color:#7D6E5C;margin-top:3px;direction:rtl;font-family:'Segoe UI Arabic','Arial','Tahoma',sans-serif}
-.sp-title .sp-sub{font-size:13px;color:#8A7B69;margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-weight:500}
+.sp-title h2{font-size:28px;font-weight:700;color:#1F1A16;margin:0;line-height:1.15;letter-spacing:-.02em}
+.sp-title .sp-name-ar{font-size:17px;font-weight:500;color:#7D6E5C;margin-top:4px;direction:rtl;font-family:'Segoe UI Arabic','Arial','Tahoma',sans-serif}
+.sp-title .sp-sub{font-size:12px;color:#8A7B69;margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-weight:500}
 .sp-title .sp-sub .sp-dot{color:#CEC3B2;font-weight:400}
-.sp-status-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:600;letter-spacing:.005em}
-.sp-status-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.85}
-.sp-close{background:transparent;border:none;cursor:pointer;color:#A89886;font-size:22px;line-height:1;padding:4px 10px;flex-shrink:0;margin-top:2px;border-radius:6px;transition:all .15s;font-weight:300}
-.sp-close:hover{background:rgba(60,45,30,.06);color:#3E342A}
-/* Body — single surface with a hairline spine */
-.sp-body{flex:1;display:flex;overflow:hidden;background:transparent;padding:0 12px 12px}
-.sp-col-main{flex:1 1 auto;overflow-y:auto;padding:4px 28px 28px;min-width:0;scrollbar-color:rgba(60,45,30,.15) transparent}
-.sp-col-side{width:360px;flex-shrink:0;border-left:1px solid rgba(60,45,30,.08);display:flex;flex-direction:column;overflow:hidden;margin-left:4px}
-/* Section — thin warm hairline only under the heading, generous breathing room */
-.sp-section{padding:28px 0 8px}
-.sp-section:first-child{padding-top:8px}
-.sp-section-hdr{font-size:11px;font-weight:600;color:#5A8F85;letter-spacing:.08em;text-transform:uppercase;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid rgba(60,45,30,.08);display:inline-block;min-width:140px}
+.sp-status-pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:500;letter-spacing:.01em;text-transform:lowercase}
+.sp-status-pill::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.9}
+.sp-close{background:transparent;border:none;cursor:pointer;color:#BDAF9B;font-size:20px;line-height:1;padding:4px 10px;flex-shrink:0;margin-top:4px;border-radius:6px;transition:all .15s;font-weight:300}
+.sp-close:hover{background:rgba(60,45,30,.05);color:#3E342A}
+/* Body — two columns flush on one white surface, hairline spine */
+.sp-body{flex:1;display:flex;overflow:hidden;background:transparent;padding:0}
+.sp-col-main{flex:1 1 auto;overflow-y:auto;padding:8px 36px 32px;min-width:0;scrollbar-color:rgba(60,45,30,.15) transparent}
+.sp-col-side{width:340px;flex-shrink:0;border-left:1px solid rgba(60,45,30,.08);display:flex;flex-direction:column;overflow:hidden;background:transparent}
+/* Sections — hairline BETWEEN sections, label sits just above it */
+.sp-section{padding:24px 0}
+.sp-section:first-child{padding-top:20px}
+.sp-section+.sp-section{border-top:1px solid rgba(60,45,30,.07)}
+.sp-section-hdr{font-size:10.5px;font-weight:600;color:#5A8F85;letter-spacing:.1em;text-transform:uppercase;margin-bottom:18px;padding-bottom:0;border-bottom:none;display:block}
 .sp-row{display:grid;gap:20px 22px;margin-bottom:20px}
 .sp-row:last-child{margin-bottom:0}
 .sp-row.cols-2{grid-template-columns:1fr 1fr}
@@ -677,25 +678,25 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 .sp-linked-row .sp-linked-badge{font-size:10px;padding:3px 10px;border-radius:999px;font-weight:600;white-space:nowrap}
 .sp-linked-row .sp-linked-meta{color:#9A8B78;font-size:11px;white-space:nowrap}
 .sp-linked-empty{color:#BDAF9B;font-size:12px;font-style:italic;padding:6px 2px}
-/* Activity Log — right column, blends with panel */
-.sp-log-hdr{padding:22px 26px 14px;background:transparent}
-.sp-log-hdr h3{font-size:11px;font-weight:600;color:#5A8F85;letter-spacing:.08em;text-transform:uppercase;margin:0;padding-bottom:10px;border-bottom:1px solid rgba(60,45,30,.08);display:inline-block;min-width:120px}
+/* Activity Log — right column, same white surface as left */
+.sp-log-hdr{padding:28px 26px 10px;background:transparent}
+.sp-log-hdr h3{font-size:10.5px;font-weight:600;color:#5A8F85;letter-spacing:.1em;text-transform:uppercase;margin:0;padding:0;border:none;display:block}
 .sp-log-hdr .sp-log-count{font-size:11px;color:#9A8B78;margin-top:6px;font-weight:500}
-.sp-log-list{flex:1;overflow-y:auto;padding:10px 26px 14px;display:flex;flex-direction:column;gap:14px;scrollbar-color:rgba(60,45,30,.15) transparent}
-.sp-log-item{padding:2px 0 2px 14px;border-left:2px solid #D7D0C2;font-size:13px;line-height:1.55}
+.sp-log-list{flex:1;overflow-y:auto;padding:14px 26px 14px;display:flex;flex-direction:column;gap:14px;scrollbar-color:rgba(60,45,30,.15) transparent}
+.sp-log-item{padding:2px 0 2px 14px;border-left:2px solid #E6DFD2;font-size:13px;line-height:1.55}
 .sp-log-item .sp-log-when{font-size:10px;color:#9A8B78;margin-bottom:3px;font-weight:500;letter-spacing:.02em}
 .sp-log-item .sp-log-text{color:#2B2420;font-weight:400}
-/* Empty activity log — warm and inviting, not a void */
-.sp-log-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;gap:12px;color:#A89886}
-.sp-log-empty-icon{width:40px;height:40px;border-radius:50%;background:rgba(90,143,133,.08);display:inline-flex;align-items:center;justify-content:center;color:#5A8F85}
+/* Empty activity log — soft icon + one warm line, upper-portion centered */
+.sp-log-empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:36px 20px 0;gap:14px;color:#A89886}
+.sp-log-empty-icon{width:44px;height:44px;border-radius:50%;background:rgba(90,143,133,.1);display:inline-flex;align-items:center;justify-content:center;color:#5A8F85}
 .sp-log-empty-text{font-size:12.5px;color:#9A8B78;font-style:italic;max-width:220px;line-height:1.5}
-/* Add-entry row — inviting, not a form */
-.sp-log-add{padding:14px 26px 22px;display:flex;gap:8px;flex-shrink:0;background:transparent}
-.sp-log-add input{flex:1;padding:10px 14px;border:1px solid rgba(60,45,30,.12);border-radius:9px;font-size:13px;font-family:inherit;background:#fff;color:#2B2420;transition:border-color .15s,box-shadow .15s}
+/* Add-entry row — pinned bottom, warm input, soft teal button */
+.sp-log-add{padding:14px 26px 22px;display:flex;gap:8px;flex-shrink:0;background:transparent;border-top:1px solid rgba(60,45,30,.05)}
+.sp-log-add input{flex:1;padding:10px 14px;border:1px solid rgba(60,45,30,.12);border-radius:9px;font-size:13px;font-family:inherit;background:#FAF8F4;color:#2B2420;transition:border-color .15s,box-shadow .15s,background .15s}
 .sp-log-add input::placeholder{color:#BDAF9B;font-style:italic}
-.sp-log-add input:focus{outline:none;border-color:#5A8F85;box-shadow:0 0 0 3px rgba(90,143,133,.12)}
-.sp-log-add button{padding:10px 18px;background:#3E342A;color:#F9F8F6;border:none;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s}
-.sp-log-add button:hover{background:#2B2420}
+.sp-log-add input:focus{outline:none;border-color:#5A8F85;background:#fff;box-shadow:0 0 0 3px rgba(90,143,133,.12)}
+.sp-log-add button{padding:10px 18px;background:#5A8F85;color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s,box-shadow .15s;letter-spacing:.01em}
+.sp-log-add button:hover{background:#4A7A71;box-shadow:0 2px 8px rgba(90,143,133,.25)}
 /* System-wide clickable student-name links */
 .link-name{cursor:pointer;color:inherit;transition:color .15s}
 .link-name:hover{color:var(--text);text-decoration:underline;text-decoration-color:#CBD5E1;text-underline-offset:2px}
