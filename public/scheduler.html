@@ -1291,6 +1291,11 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .slot.hv2.rejected-day-slot{border:1px solid var(--hv2-err) !important;background:var(--hv2-err-lt) !important;box-shadow:none}
 [data-active-theme="hv"] .slot.hv2.rejected-day-slot::before{content:'⛔ Rejected day';display:block;font-size:9.5px;font-weight:700;color:var(--hv2-err);padding:5px 12px 0;letter-spacing:.05em;text-transform:uppercase}
 [data-active-theme="hv"] .slot.hv2.doverslot{border:1px solid var(--hv2-teal) !important;background:var(--hv2-teal-lt)}
+[data-active-theme="hv"] .hv2-insert-above,[data-active-theme="hv"] .hv2-insert-below{position:relative}
+[data-active-theme="hv"] .hv2-insert-above{box-shadow:inset 0 4px 0 var(--hv2-lock)!important}
+[data-active-theme="hv"] .hv2-insert-below{box-shadow:inset 0 -4px 0 var(--hv2-lock)!important}
+[data-active-theme="hv"] .hv2-insert-above::after{content:"↑ Insert above · pushes sessions down";position:absolute;top:-20px;left:6px;font-size:10px;color:#fff;background:var(--hv2-lock);padding:2px 7px;border-radius:4px;z-index:99;pointer-events:none;white-space:nowrap;font-weight:700;letter-spacing:.02em}
+[data-active-theme="hv"] .hv2-insert-below::after{content:"↓ Insert below · pushes next sessions down";position:absolute;bottom:-20px;left:6px;font-size:10px;color:#fff;background:var(--hv2-lock);padding:2px 7px;border-radius:4px;z-index:99;pointer-events:none;white-space:nowrap;font-weight:700;letter-spacing:.02em}
 [data-active-theme="hv"] .slot.hv2.other-branch-slot{background:repeating-linear-gradient(45deg,#F3F4F6,#F3F4F6 6px,#E5E7EB 6px,#E5E7EB 12px);border:1px dashed #D1D5DB}
 [data-active-theme="hv"] .hv2-other{padding:14px 8px;text-align:center;font-size:11px;color:var(--hv2-muted);font-style:italic}
 
@@ -2629,10 +2634,45 @@ function slotStartMin(d,cid,si){
     }
     break;
   }
+  const rr=parseInt(SETTINGS.displayRoundMin)||10;
   for(let i=0;i<si;i++){
     const sl_=slots[i];if(!sl_)continue;
     // If an earlier slot is pinned, reset the running clock to its pin.
     if(sl_.fixedStart!=null)m=sl_.fixedStart;
+    // Respect the ROUNDED (parent-facing) finish: if a teacher arrives early,
+    // the session still ends at roundedStart + sessionBlock, and subsequent
+    // slots plan against that — not against the early arrival.
+    if(sl_.t==='s'){
+      const s=SS[sl_.id];
+      if(s){
+        const la=sl_.grp?.la??s.la, ln=sl_.grp?.ln??s.ln;
+        const travel=legTravelMin(d,cid,i,la,ln);
+        const actual=m+travel;
+        const disp=rr>1?Math.ceil(actual/rr)*rr:actual;
+        m=disp+sessionBlockMin();
+        continue;
+      }
+    } else if(sl_.t==='g'){
+      const first=SS[sl_.ids?.[0]];
+      if(first){
+        const la=sl_.grp?.la??first.la, ln=sl_.grp?.ln??first.ln;
+        const travel=legTravelMin(d,cid,i,la,ln);
+        const actual=m+travel;
+        const disp=rr>1?Math.ceil(actual/rr)*rr:actual;
+        m=disp+sessionBlockMin();
+        continue;
+      }
+    } else if(sl_.t==='d'){
+      const s1=SS[sl_.ids?.[0]];
+      if(s1){
+        const la1=sl_.grp?.la??s1.la, ln1=sl_.grp?.ln??s1.ln;
+        const travel1=legTravelMin(d,cid,i,la1,ln1);
+        const actual=m+travel1;
+        const disp=rr>1?Math.ceil(actual/rr)*rr:actual;
+        m=disp+ddTotalInter(sl_)+sessionBlockMin();
+        continue;
+      }
+    }
     m+=slotDur(sl_,d,cid,i);
   }
   return m;
@@ -2691,23 +2731,42 @@ function findDropInfo(sid){
       const sl_=slots[si];if(!sl_)continue;
       if((sl_.t==='s'&&sl_.id===sid)||(sl_.t==='d'&&sl_.ids?.includes(sid))||(sl_.t==='g'&&sl_.ids?.includes(sid))){
         const startMin=slotStartMin(d,car.id,si);
-        // readyMin = when this student is done with the session + buffer.
-        // slotDur already accounts for travel + session + buffer, so for the
-        // simple + group case it IS the slot end. For double-drop we overwrite
-        // with the per-student ready time below.
+        const rr=parseInt(SETTINGS.displayRoundMin)||10;
+        const block=sessionBlockMin();
+        // readyMin = when this student is done with the session + buffer,
+        // anchored on the ROUNDED (displayed) start so early arrivals don't
+        // shift the finish earlier than the parent-facing schedule.
         let readyMin=startMin+slotDur(sl_,d,car.id,si);
-        if(sl_.t==='d'&&sl_.ids){
-          const block=sessionBlockMin();
+        if(sl_.t==='s'){
+          const s=SS[sl_.id];
+          if(s){
+            const la=sl_.grp?.la??s.la, ln=sl_.grp?.ln??s.ln;
+            const travel=legTravelMin(d,car.id,si,la,ln);
+            const actual=startMin+travel;
+            const disp=rr>1?Math.ceil(actual/rr)*rr:actual;
+            readyMin=disp+block;
+          }
+        } else if(sl_.t==='g'){
+          const first=SS[sl_.ids?.[0]];
+          if(first){
+            const la=sl_.grp?.la??first.la, ln=sl_.grp?.ln??first.ln;
+            const travel=legTravelMin(d,car.id,si,la,ln);
+            const actual=startMin+travel;
+            const disp=rr>1?Math.ceil(actual/rr)*rr:actual;
+            readyMin=disp+block;
+          }
+        } else if(sl_.t==='d'&&sl_.ids){
           const s1=SS[sl_.ids[0]];
-          const prev=lastPos(d,car.id,si);
-          const travel1=s1?tm(hv(prev.la,prev.ln,s1.la,s1.ln)):0;
-          const legs=ddLegs(sl_);
-          const idx=sl_.ids.indexOf(sid);
-          let offset=0;for(let i=0;i<idx;i++)offset+=legs[i]||0;
-          // Each student's ready time = arrival at their home + one session block.
-          // For a 3-student drop: student[1] ready = travel1 + leg0 + block,
-          // student[2] ready = travel1 + leg0 + leg1 + block.
-          readyMin=startMin+travel1+offset+block;
+          if(s1){
+            const la1=sl_.grp?.la??s1.la, ln1=sl_.grp?.ln??s1.ln;
+            const travel1=legTravelMin(d,car.id,si,la1,ln1);
+            const actual=startMin+travel1;
+            const disp=rr>1?Math.ceil(actual/rr)*rr:actual;
+            const legs=ddLegs(sl_);
+            const idx=sl_.ids.indexOf(sid);
+            let offset=0;for(let i=0;i<idx;i++)offset+=legs[i]||0;
+            readyMin=disp+offset+block;
+          }
         }
         return{d,cid:car.id,si,startMin,readyMin};
       }
@@ -3705,31 +3764,50 @@ function dropToPool(e){
   dragId=null;dragSrc=null;
 }
 
+let _dropZone='pair'; // 'above' | 'pair' | 'below'
+function _detectDropZone(e,el){
+  const r=el.getBoundingClientRect();
+  const y=e.clientY-r.top;
+  const h=r.height||1;
+  if(y<h*0.28)return'above';
+  if(y>h*0.72)return'below';
+  return'pair';
+}
 function slotOver(e,el){
-  e.preventDefault();e.stopPropagation();el.classList.add('doverslot');
+  e.preventDefault();e.stopPropagation();
+  el.classList.remove('hv2-insert-above','hv2-insert-below','doverslot','canpair');
   if(dragType==='slotmove'&&_slotMoveSrc){
-    // Whole-slot move — highlight only empty target slots
     const sl_=SCHED[el.dataset.d]?.[+el.dataset.cid]?.[+el.dataset.si];
-    if(sl_)el.classList.remove('doverslot');
+    if(!sl_)el.classList.add('doverslot');
     return;
   }
-  if(dragType==='drop'&&dragId&&el.dataset.si!==undefined){
-    const sl_=SCHED[el.dataset.d]?.[+el.dataset.cid]?.[+el.dataset.si];
-    if(sl_&&sl_.t==='s'&&sl_.id!==dragId){
-      const s1=SS[sl_.id],s2=SS[dragId];
-      if(s1&&s2&&hv(s1.la,s1.ln,s2.la,s2.ln)<=3.5)el.classList.add('canpair');
-    }
-    // Group slot with space
-    if(sl_&&sl_.t==='g'&&sl_.ids?.length<7&&!sl_.ids?.includes(dragId))el.classList.add('canpair');
+  if(dragType!=='drop'||!dragId||el.dataset.si===undefined){
+    el.classList.add('doverslot');return;
   }
+  const sl_=SCHED[el.dataset.d]?.[+el.dataset.cid]?.[+el.dataset.si];
+  // Empty slot — plain drop (no zone logic)
+  if(!sl_){_dropZone='pair';el.classList.add('doverslot');return;}
+  // Occupied slot — detect zone
+  const zone=_detectDropZone(e,el);
+  _dropZone=zone;
+  if(zone==='above'){el.classList.add('hv2-insert-above');return;}
+  if(zone==='below'){el.classList.add('hv2-insert-below');return;}
+  // Middle: existing pair / group / double-drop semantics
+  el.classList.add('doverslot');
+  if(sl_.t==='s'&&sl_.id!==dragId){
+    const s1=SS[sl_.id],s2=SS[dragId];
+    if(s1&&s2&&hv(s1.la,s1.ln,s2.la,s2.ln)<=3.5)el.classList.add('canpair');
+  }
+  if(sl_.t==='g'&&sl_.ids?.length<7&&!sl_.ids?.includes(dragId))el.classList.add('canpair');
 }
-function slotLeave(el){el.classList.remove('doverslot','canpair');}
+function slotLeave(el){el.classList.remove('doverslot','canpair','hv2-insert-above','hv2-insert-below');}
 
 function slotDrop(e,el){
   e.preventDefault();e.stopPropagation();
-  el.classList.remove('doverslot','canpair');
+  el.classList.remove('doverslot','canpair','hv2-insert-above','hv2-insert-below');
   const d=el.dataset.d,cid=+el.dataset.cid,si=+el.dataset.si;
   const dt=e.dataTransfer.getData('dtype')||dragType;
+  const zone=_dropZone;_dropZone='pair';
   // Whole-slot move (e.g. group dragged by header) — separate path, no dragId required.
   if(dt==='slotmove'){
     if(_slotMoveSrc){moveSlotTo(_slotMoveSrc,d,cid,si);_slotMoveSrc=null;}
@@ -3740,13 +3818,42 @@ function slotDrop(e,el){
   if(dt==='pick'){
     if(!ex)placePickup(dragId,d,cid,si);
     else toast('Drop pick-up on an empty slot');
-  } else {
-    if(!ex)placeIn(dragId,d,cid,si);
-    else if(ex.t==='s'&&ex.id!==dragId)tryPair(dragId,ex.id,d,cid,si);
-    else if(ex.t==='d'&&!(ex.ids||[]).includes(dragId))tryExtendPair(dragId,d,cid,si);
-    else if(ex.t==='g')addToGroup(dragId,d,cid,si);
+    dragId=null;dragSrc=null;return;
   }
+  // Insert-above / insert-below only when target slot is occupied.
+  if(ex&&(zone==='above'||zone==='below')){
+    const insertAt=zone==='above'?si:si+1;
+    insertDropAt(dragId,d,cid,insertAt);
+    dragId=null;dragSrc=null;return;
+  }
+  if(!ex)placeIn(dragId,d,cid,si);
+  else if(ex.t==='s'&&ex.id!==dragId)tryPair(dragId,ex.id,d,cid,si);
+  else if(ex.t==='d'&&!(ex.ids||[]).includes(dragId))tryExtendPair(dragId,d,cid,si);
+  else if(ex.t==='g')addToGroup(dragId,d,cid,si);
   dragId=null;dragSrc=null;
+}
+
+// Insert a new drop slot at position `si`, shifting existing slots at si..end
+// down by one. Used by the top-edge / bottom-edge drag zones.
+function insertDropAt(sid,d,cid,si){
+  const slots=SCHED[d]?.[cid];if(!slots)return;
+  const maxSlots=parseInt(SETTINGS.maxSlotsPerCar)||14;
+  // Room check: if the tail is already occupied and we're at capacity, refuse.
+  const occupied=slots.filter(x=>x).length;
+  if(occupied>=maxSlots){toast('No room — this car is full for the day');return;}
+  // If dragging from the same car+day, clear the source first so indices stay sane.
+  if(!_clearDragSrc(sid))rmFromSched(sid,{onlyDay:d});
+  // Re-fetch slots (rm may have nulled something) and splice in the new slot.
+  const fresh=SCHED[d][cid];
+  const clampedSi=Math.max(0,Math.min(si,fresh.length));
+  fresh.splice(clampedSi,0,{t:'s',id:sid});
+  // Trim trailing nulls beyond maxSlots so the array doesn't grow unbounded.
+  while(fresh.length>maxSlots&&fresh[fresh.length-1]==null)fresh.pop();
+  // Auto-insert a pickup in the next empty slot after the new drop.
+  const nextEmpty=fresh.findIndex((s,i)=>i>clampedSi&&!s);
+  if(nextEmpty>=0)fresh[nextEmpty]={t:'pick',id:sid};
+  setActive(d,cid,clampedSi);renderSched();renderPool();saveState();
+  toast(`Inserted — ${(fresh.length-clampedSi-1)} slot(s) below pushed down`);
 }
 
 function slotClick(e,d,cid,si){
@@ -6625,12 +6732,23 @@ function renderTeacherWeeklyReport(){
   // For each teacher, collect their sessions across the week
   const byTeacher={};
   Object.keys(TEACHERS).forEach(n=>{byTeacher[n]=[];});
+  const r=parseInt(SETTINGS.displayRoundMin)||10;
+  const sessionLen=parseInt(SETTINGS.sessionMin)||60;
   forEachScheduledSlot(({d,cid,si,sid,sl_})=>{
     const s=SS[sid];if(!s)return;
     const tname=s.t||'(unassigned)';
     if(!byTeacher[tname])byTeacher[tname]=[];
+    let la=null,ln=null;
+    if(sl_.t==='s'||sl_.t==='d'||sl_.t==='g'){la=sl_.grp?.la??s.la;ln=sl_.grp?.ln??s.ln;}
     const startM=slotStartMin(d,cid,si);
-    byTeacher[tname].push({d,cid,si,sid,s,sl_,startM,car:CARS.find(c=>c.id===cid)});
+    let displayStart=startM,finish=startM+sessionLen;
+    if(la!=null&&ln!=null){
+      const travelMin=legTravelMin(d,cid,si,la,ln);
+      const actualStart=startM+travelMin;
+      displayStart=r>1?Math.ceil(actualStart/r)*r:actualStart;
+      finish=displayStart+sessionLen;
+    }
+    byTeacher[tname].push({d,cid,si,sid,s,sl_,startM,displayStart,finish,car:CARS.find(c=>c.id===cid)});
   });
   const esc=v=>String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
   const dayOrder={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4};
@@ -6666,19 +6784,49 @@ function renderTeacherWeeklyReport(){
             ${waBtn}
           </div>
           <div style="font-size:9px;color:var(--text3);margin-bottom:6px">${dayTags} · max ${t.maxPerDay||6}/day${t.active?'':' · <span style="color:#DC2626">INACTIVE</span>'}</div>
-          ${sessions.length?`<div style="font-size:10px;line-height:1.6">
-            ${sessions.map(x=>{
-  const addr=x.s.a||'';
-  const grpCoords=x.sl_?.t==='g'?resolveGroupCoords(x.s):null;
-  const pickupAddr=grpCoords&&SS[x.sl_?.ids?.[0]]?SS[x.sl_.ids[0]].a:addr;
-  return `<div style="padding:4px 0;border-top:1px solid #F0F0F0">
-  <div style="display:flex;gap:6px;align-items:center">
-    <span style="font-weight:700;color:var(--purple);min-width:60px">${x.d} ${ts(x.startM)}</span>
-    <span style="flex:1">${esc(x.s.n)}</span>
-    <span style="font-size:9px;color:var(--text3)">${esc(x.car?.label||'')}</span>
-  </div>
-  <div style="font-size:9px;color:#6B7280;padding-left:66px;margin-top:1px">📍 ${esc(pickupAddr||'No address')}</div>
-</div>`;}).join('')}
+          ${sessions.length?`<div style="font-size:10px;line-height:1.5">
+            ${(()=>{
+              // Group by day; inject a "Be at [branch] by HH:MM" header per day.
+              const groups={};
+              sessions.forEach(x=>{(groups[x.d]=groups[x.d]||[]).push(x);});
+              return Object.keys(groups).sort((a,b)=>dayOrder[a]-dayOrder[b]).map(d=>{
+                const list=groups[d];
+                const first=list[0];
+                // Boarding time: walk back from her first slot to detect cross-car pickup
+                let boardBranch=carBranch(first.cid).split('/')[0];
+                let boardTime=slotStartMin(d,first.cid,0);
+                const slots_=SCHED[d]?.[first.cid]||[];
+                for(let k=first.si-1;k>=0;k--){
+                  const sl=slots_[k];if(!sl)continue;
+                  if(sl.t==='pick'&&SS[sl.id]?.t===name){
+                    const info=findDropInfo(sl.id);
+                    if(info&&info.cid!==first.cid){
+                      boardBranch=carBranch(first.cid).split('/')[0];
+                      boardTime=slotStartMin(d,first.cid,k);
+                    }
+                    break;
+                  }
+                }
+                const head=`<div style="padding:5px 0 2px;margin-top:4px;border-top:2px solid #EDE9FE;display:flex;align-items:center;gap:6px">
+                  <span style="font-weight:800;color:var(--purple);font-size:10px">${d}</span>
+                  <span style="font-size:9px;color:#6D28D9;background:#EDE9FE;padding:1px 6px;border-radius:4px">🚗 ${esc(boardBranch)} ${ts(boardTime)}</span>
+                </div>`;
+                const rows=list.map(x=>{
+                  const addr=x.s.a||'';
+                  const grpCoords=x.sl_?.t==='g'?resolveGroupCoords(x.s):null;
+                  const pickupAddr=grpCoords&&SS[x.sl_?.ids?.[0]]?SS[x.sl_.ids[0]].a:addr;
+                  return `<div style="padding:3px 0">
+                    <div style="display:flex;gap:6px;align-items:center">
+                      <span style="font-weight:700;color:var(--text);min-width:80px">${ts(x.displayStart)}–${ts(x.finish)}</span>
+                      <span style="flex:1">${esc(x.s.n)}</span>
+                      <span style="font-size:9px;color:var(--text3)">${esc(x.car?.label||'')}</span>
+                    </div>
+                    <div style="font-size:9px;color:#6B7280;padding-left:86px;margin-top:1px">📍 ${esc(pickupAddr||'No address')}</div>
+                  </div>`;
+                }).join('');
+                return head+rows;
+              }).join('');
+            })()}
           </div>`:'<div style="font-size:10px;color:var(--text3);font-style:italic">No sessions scheduled this week</div>'}
         </div>`;
       }).join('')}
@@ -6784,15 +6932,26 @@ function sendAllParentMessages(){
 // Format mirrors buildParentMessage() so tone stays consistent across the app.
 function buildTeacherMessage(tname){
   const t=TEACHERS[tname];if(!t)return null;
+  const r=parseInt(SETTINGS.displayRoundMin)||10;
+  const sessionLen=parseInt(SETTINGS.sessionMin)||60;
   const sessions=[];
   forEachScheduledSlot(({d,cid,si,sid,sl_})=>{
     const s=SS[sid];if(!s||s.t!==tname)return;
-    sessions.push({d,cid,si,sid,s,startM:slotStartMin(d,cid,si),car:CARS.find(c=>c.id===cid)});
+    let la=null,ln=null;
+    if(sl_.t==='s'){la=sl_.grp?.la??s.la;ln=sl_.grp?.ln??s.ln;}
+    else if(sl_.t==='d'||sl_.t==='g'){la=sl_.grp?.la??s.la;ln=sl_.grp?.ln??s.ln;}
+    if(la==null||ln==null)return;
+    const startM=slotStartMin(d,cid,si);
+    const travelMin=legTravelMin(d,cid,si,la,ln);
+    const actualStart=startM+travelMin;
+    const displayStart=r>1?Math.ceil(actualStart/r)*r:actualStart;
+    const finish=displayStart+sessionLen;
+    sessions.push({d,cid,si,sid,s,sl_,displayStart,finish,car:CARS.find(c=>c.id===cid)});
   });
   if(!sessions.length)return null;
   const dayOrder={Sun:-1,Mon:0,Tue:1,Wed:2,Thu:3};
   const dayFull={Sun:'Sunday',Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday'};
-  sessions.sort((a,b)=>(dayOrder[a.d]-dayOrder[b.d])||(a.startM-b.startM));
+  sessions.sort((a,b)=>(dayOrder[a.d]-dayOrder[b.d])||(a.displayStart-b.displayStart));
   const firstName=tname.split(' ')[0];
   const header=`Salam\n\nHi ${firstName}, here is your BeCurious home visit schedule for the week (${sessions.length} session${sessions.length===1?'':'s'}):`;
   // Group lines by day so the message reads cleanly on WhatsApp
@@ -6801,11 +6960,32 @@ function buildTeacherMessage(tname){
   const lines=[];
   Object.keys(byDay).sort((a,b)=>dayOrder[a]-dayOrder[b]).forEach(d=>{
     lines.push(`\n*${dayFull[d]||d}*`);
+    // "Be at branch by" = that day's first car's departure time (when her car leaves).
+    // Walk back from her first session to find if she boarded via cross-car pickup;
+    // otherwise she boards at the branch when the car starts its day.
+    const first=byDay[d][0];
+    let boardBranch=carBranch(first.cid).split('/')[0];
+    let boardTime=slotStartMin(d,first.cid,0);
+    const slots=SCHED[d]?.[first.cid]||[];
+    for(let k=first.si-1;k>=0;k--){
+      const sl=slots[k];if(!sl)continue;
+      if(sl.t==='pick'&&SS[sl.id]?.t===tname){
+        const info=findDropInfo(sl.id);
+        if(info&&info.cid!==first.cid){
+          boardBranch=carBranch(first.cid).split('/')[0];
+          boardTime=slotStartMin(d,first.cid,k);
+        }
+        break;
+      }
+    }
+    lines.push(`🚗 Be at *${boardBranch}* branch by ${ts(boardTime)}`);
+    lines.push('');
     byDay[d].forEach(x=>{
-      lines.push(`- ${ts(x.startM)} — ${x.s.n}${x.car?` (${x.car.label})`:''}`);
+      lines.push(`• ${ts(x.displayStart)} – ${ts(x.finish)}  ${x.s.n}${x.car?`  (${x.car.label})`:''}`);
+      if(x.s.a)lines.push(`   📍 ${x.s.a}`);
     });
   });
-  const footer=`\n\nPlease be ready 30 minutes before the first pickup each day. Reply here if any issues regarding the schedule.\n\n— BeCurious`;
+  const footer=`\n\nReply here if any issues regarding the schedule.\n\n— BeCurious`;
   return header+'\n'+lines.join('\n')+footer;
 }
 function sendTeacherWhatsApp(tname){
