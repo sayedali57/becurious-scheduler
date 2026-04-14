@@ -3516,7 +3516,7 @@ function renderStudentsTable(){
   }).join('');
 }
 
-function esc(v){return(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
 
 // Status cell for the Students table: coloured pill + dropdown. Changing to
 // Exited is gated — there must be a closed Case linked to this student.
