@@ -608,6 +608,50 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 .menu-dropdown button svg{color:var(--text3);flex-shrink:0}
 .menu-dropdown button:hover svg{color:var(--purple)}
 .menu-sep{height:1px;background:var(--border);margin:4px 8px}
+/* ===== STUDENT PROFILE WINDOW ===== */
+.sp-overlay{display:none;position:fixed;inset:0;background:rgba(15,12,45,.55);z-index:900;align-items:stretch;justify-content:center;padding:24px}
+.sp-overlay.open{display:flex}
+.sp-panel{background:#fff;border-radius:14px;width:100%;max-width:1100px;max-height:calc(100vh - 48px);display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
+.sp-hdr{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#FAF8FF 0%,#F5F1FF 100%)}
+.sp-back{background:#fff;border:1px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;color:var(--text2);display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:700}
+.sp-back:hover{background:var(--purple-lt);color:var(--purple-dk);border-color:var(--purple)}
+.sp-title{flex:1;min-width:0}
+.sp-title h2{font-size:17px;font-weight:700;color:var(--text);margin:0;line-height:1.3}
+.sp-title .sp-sub{font-size:11px;color:var(--text3);margin-top:2px;display:flex;gap:10px;flex-wrap:wrap}
+.sp-title .sp-sub-ar{font-family:'Segoe UI Arabic','Arial','Tahoma',sans-serif;direction:rtl}
+.sp-close{background:#fff;border:1px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;color:var(--text3);font-size:20px;line-height:1;padding:0}
+.sp-close:hover{background:#FEE2E2;color:#DC2626;border-color:#FCA5A5}
+.sp-body{flex:1;overflow-y:auto;padding:20px 24px;background:#FCFAFF}
+.sp-section{background:#fff;border:1px solid var(--border);border-radius:10px;margin-bottom:14px;overflow:hidden}
+.sp-section-hdr{padding:10px 16px;background:linear-gradient(180deg,#F5F1FF 0%,#EEE7FF 100%);border-bottom:1px solid var(--border);font-size:12px;font-weight:700;color:var(--purple-dk);letter-spacing:.3px;text-transform:uppercase}
+.sp-section-body{padding:14px 16px}
+.sp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.sp-field{display:flex;flex-direction:column;gap:3px}
+.sp-field label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px}
+.sp-field input,.sp-field select,.sp-field textarea{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;color:var(--text);background:#fff;transition:border-color .15s,background .15s}
+.sp-field input:focus,.sp-field select:focus,.sp-field textarea:focus{outline:none;border-color:var(--purple);background:#fff}
+.sp-field input.sp-saved,.sp-field select.sp-saved,.sp-field textarea.sp-saved{background:#ECFDF5;border-color:#A7F3D0}
+.sp-field input.sp-ar,.sp-field textarea.sp-ar{direction:rtl;text-align:right;font-family:'Segoe UI Arabic','Arial','Tahoma',sans-serif}
+.sp-field .sp-readonly{padding:7px 10px;background:var(--bg-mid);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);min-height:16px}
+.sp-linked-list{display:flex;flex-direction:column;gap:6px}
+.sp-linked-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--border);border-radius:7px;background:#fff;font-size:12px;cursor:pointer;transition:background .15s,border-color .15s}
+.sp-linked-row:hover{background:var(--purple-lt);border-color:var(--purple)}
+.sp-linked-row .sp-linked-type{font-size:10px;font-weight:700;color:var(--purple-dk);text-transform:uppercase;letter-spacing:.3px;background:var(--purple-lt);padding:2px 7px;border-radius:4px;flex-shrink:0}
+.sp-linked-row .sp-linked-title{flex:1;color:var(--text);font-weight:500}
+.sp-linked-row .sp-linked-meta{color:var(--text3);font-size:10px}
+.sp-linked-empty{color:var(--text3);font-size:11px;font-style:italic}
+.sp-log-add{display:flex;gap:6px;margin-bottom:10px}
+.sp-log-add input{flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit}
+.sp-log-add button{padding:7px 14px;background:var(--purple);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
+.sp-log-add button:hover{background:var(--purple-dk)}
+.sp-log-list{display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto}
+.sp-log-item{padding:8px 12px;background:#FCFAFF;border:1px solid var(--border);border-radius:6px;font-size:11px;line-height:1.5}
+.sp-log-item .sp-log-when{font-size:10px;color:var(--text3);margin-bottom:2px}
+.sp-log-item .sp-log-text{color:var(--text)}
+.sp-log-empty{color:var(--text3);font-size:11px;font-style:italic;text-align:center;padding:14px}
+/* System-wide clickable student-name links */
+.link-name{cursor:pointer;color:inherit;transition:color .15s}
+.link-name:hover{color:var(--purple-dk);text-decoration:underline;text-decoration-color:var(--purple);text-underline-offset:2px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -772,6 +816,21 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
   </div>
 </div>
 
+<!-- ===== STUDENT PROFILE OVERLAY ===== -->
+<div class="sp-overlay" id="sp-overlay" onclick="if(event.target===this)closeStudentProfile()">
+  <div class="sp-panel" role="dialog" aria-modal="true" aria-labelledby="sp-title-main">
+    <div class="sp-hdr">
+      <button class="sp-back" id="sp-back" onclick="profileBack()" style="display:none" title="Back">&larr;</button>
+      <div class="sp-title">
+        <h2 id="sp-title-main">Student</h2>
+        <div class="sp-sub" id="sp-title-sub"></div>
+      </div>
+      <button class="sp-close" onclick="closeStudentProfile()" title="Close (Esc)">&times;</button>
+    </div>
+    <div class="sp-body" id="sp-body"></div>
+  </div>
+</div>
+
 <!-- ===== THEME: PIPELINE ===== -->
 <div class="theme-panel" id="theme-pl">
   <div class="pl-topbar">
@@ -910,6 +969,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap" title="Days the parent says NO to — auto-scheduler will skip these">Rejected days</th>
             <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Visits</th>
             <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Scheduled</th>
+            <th style="padding:8px 6px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap" title="Open full student profile">Profile</th>
             <th style="padding:8px 6px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">WA</th>
             <th style="padding:8px 6px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Del</th>
           </tr>
@@ -1785,6 +1845,25 @@ function migrateStudents(){
     if(s.nameAr==null)s.nameAr='';
     if(s.parentNameAr==null)s.parentNameAr='';
     if(s.parentNameEn==null)s.parentNameEn='';
+    // Profile fields — extended identity, enrollment, financial data.
+    if(s.dob==null)s.dob='';                             // YYYY-MM-DD
+    if(s.classGroup==null)s.classGroup='';               // Toddlers / PreK / KG1 / KG2
+    if(s.civilId==null)s.civilId='';
+    if(s.passport==null)s.passport='';
+    if(s.nationality==null)s.nationality='';
+    if(s.gender==null)s.gender='';
+    if(s.secondaryContactName==null)s.secondaryContactName='';
+    if(s.secondaryContactPhone==null)s.secondaryContactPhone='';
+    if(s.secondaryContactRelation==null)s.secondaryContactRelation='';
+    if(s.enrollmentDate==null)s.enrollmentDate='';
+    if(s.contractStart==null)s.contractStart='';
+    if(s.contractEnd==null)s.contractEnd='';
+    if(s.programme==null)s.programme='';
+    if(s.feeAmount==null)s.feeAmount='';
+    if(s.segment==null)s.segment='';
+    if(s.paymentStatus==null)s.paymentStatus='';
+    if(s.unsettledKwd==null)s.unsettledKwd='';
+    if(!Array.isArray(s.log))s.log=[];                   // activity log entries (newest first)
   });
 }
 
@@ -2319,7 +2398,7 @@ function renderPool(){
       const distL=distP!==null?`<span class="dist-label">${distP.toFixed(1)}km</span>`:'';
       return`<div class="sc pick-card" draggable="true" data-sid="${sid}" data-dtype="pick" style="border-left-color:${col}">
         <div class="t" style="color:${col}">▲ Pick-up · ${s.t}${suggest}${distL}</div>
-        <div class="n">${s.n}</div>
+        <div class="n link-name" onclick="event.stopPropagation();openStudentProfile('${sid}')" title="Open profile">${s.n}</div>
         <div class="a">${sl(s.a)}</div>
         <div class="tags">${badge}</div>
       </div>`;
@@ -2391,7 +2470,7 @@ function dropCard(s,scheduled,total,distN,isSug){
   const reasonHtml=reason?`<div class="unplaced-reason">⚠ ${reason}</div>`:'';
   return`<div class="sc" draggable="true" data-sid="${s.id}" data-dtype="drop" style="border-left-color:${col};${border}">
     <div class="t" style="color:${col};display:flex;align-items:center;gap:4px;flex-wrap:wrap">▼ ${s.t}${sug}${distL}<span style="margin-left:auto">${pillHtml}</span></div>
-    <div class="n">${s.n}</div>
+    <div class="n link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')" title="Open profile">${s.n}</div>
     <div class="a">${s.a}</div>
     ${barHtml}
     ${reasonHtml}
@@ -2621,7 +2700,7 @@ function renderSlot(d,cid,si){
         <div class="slot-toprow">${lockBadge}${warns}<button class="edit-ico" onclick="event.stopPropagation();editStudent('${s.id}')" title="Edit student">✏</button></div>
         <div class="ss" ${sl_.locked?'':'draggable="true"'} data-sid="${s.id}" data-dtype="drop" style="border-left:3px solid ${col};padding-top:2px">
           <div class="t" style="color:${col}">▼ ${s.t}</div>
-          <div class="n">${s.n}</div>
+          <div class="n link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')" title="Open profile">${s.n}</div>
           <div class="a">${s.a}</div>
           <div class="m">${timeStr} · ${travelMin}min drive · ${dist}km${fl?` · <span class="tag ${ft}" style="font-size:7px;padding:0 3px">${fl}</span>`:''}</div>
           <button class="rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})">×</button>
@@ -2675,7 +2754,7 @@ function renderSlot(d,cid,si){
       const offsetLabel=idx===0?timeStr:`<b>${dropT}</b>${sl_.grp?'':` (+${dropOffsets[idx]}min)`}`;
       return `<div class="ss" draggable="true" data-sid="${s.id}" data-dtype="drop" style="border-left:3px solid ${col};margin:${idx===0?'3px 6px 0':idx===n-1?'0 6px 2px':'0 6px 0'}">
           <div class="t" style="color:${col}">▼ ${s.t} · ${offsetLabel}</div>
-          <div class="n">${s.n}</div><div class="a">${s.a}</div>
+          <div class="n link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')" title="Open profile">${s.n}</div><div class="a">${s.a}</div>
           <button class="rm" onclick="event.stopPropagation();unpair('${d}',${cid},${si},${idx})">×</button>
         </div>${idx<n-1?'<div class="dd-sep"></div>':''}`;
     }).join('');
@@ -2731,7 +2810,7 @@ function renderSlot(d,cid,si){
         <div class="slot-toprow">${warns}<button class="edit-ico" onclick="event.stopPropagation();editStudent('${s.id}')" title="Edit student">✏</button></div>
         <div class="ss" draggable="true" data-sid="${s.id}" data-dtype="pick" style="border-left:3px solid ${col};padding-top:2px">
           <div class="t" style="color:${col}">▲ Pick-up · ${s.t}${sl_.grp?' (group)':''}</div>
-          <div class="n">${s.n}</div>
+          <div class="n link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')" title="Open profile">${s.n}</div>
           <div class="a">${sl(pAddr)} → ${toLabel}</div>
           <div class="m">${timeStr} · ${travelMin}min drive · ${onTime?'✓ On time':`⚠ Ready at ${ts(readyMin)}`}</div>
           <button class="rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})">×</button>
@@ -2755,7 +2834,7 @@ function renderSlot(d,cid,si){
     const childRows=children.map((ch,idx)=>`<div class="grp-child-row">
       <div class="grp-child-dot" style="background:${TC[ch.t]||'#6A5FA8'}"></div>
       <span class="grp-child-t">${ch.t.split('/')[0].substring(0,9)}</span>
-      <span class="grp-child-n">${ch.n}</span>
+      <span class="grp-child-n link-name" onclick="event.stopPropagation();openStudentProfile('${ch.id}')" title="Open profile">${ch.n}</span>
       <button class="grp-child-rm" onclick="event.stopPropagation();removeFromGroup('${d}',${cid},${si},${idx})">&#215;</button>
     </div>`).join('');
     const dropZone=canAdd
@@ -3430,6 +3509,7 @@ function renderStudentsTable(){
         <span class="sched-dot" style="background:${dotCol}"></span>${sched}/${total}
         ${total>1?`<div style="width:40px;height:3px;background:var(--border);border-radius:2px;margin:3px auto 0;overflow:hidden"><div style="width:${pct}%;height:100%;background:${dotCol};border-radius:2px"></div></div>`:''}
       </td>
+      <td class="st-cell" style="text-align:center"><button class="st-del" title="Open student profile" onclick="openStudentProfile('${s.id}')" style="color:#6A5FA8;font-size:14px">👤</button></td>
       <td class="st-cell" style="text-align:center"><button class="st-del" title="Send weekly schedule to parent on WhatsApp" onclick="sendParentWhatsApp('${s.id}')" ${s.parentPhone?'':'style="opacity:.3;cursor:not-allowed"'}>💬</button></td>
       <td class="st-cell" style="text-align:center"><button class="st-del" onclick="deleteStudent('${s.id}')" title="Delete student">&#10005;</button></td>
     </tr>`;
@@ -3652,6 +3732,274 @@ function patchStudent(sid,field,val){
   // Highlight row briefly to confirm
   const row=qs('strow-'+sid);
   if(row){row.style.background='#EAF3DE';setTimeout(()=>row.style.background='',800);}
+}
+
+// ===== STUDENT PROFILE WINDOW =====
+// Full-panel overlay that is the single source of truth for a student.
+// Navigation stack allows back-arrow when opened from a Case or Lead.
+let _profileStack=[];  // entries: {type:'student'|'case'|'lead', id}
+let _spEscBound=false;
+
+function openStudentProfile(sid,opts){
+  opts=opts||{};
+  const s=SS[sid];
+  if(!s){alert('Student not found.');return;}
+  if(opts.push===false){
+    // Replace top of stack without pushing history
+    if(_profileStack.length)_profileStack[_profileStack.length-1]={type:'student',id:sid};
+    else _profileStack.push({type:'student',id:sid});
+  }else{
+    // Avoid consecutive duplicates
+    const top=_profileStack[_profileStack.length-1];
+    if(!top||top.type!=='student'||top.id!==sid)_profileStack.push({type:'student',id:sid});
+  }
+  renderStudentProfile(sid);
+  document.getElementById('sp-overlay').classList.add('open');
+  if(!_spEscBound){
+    document.addEventListener('keydown',_spKeydown);
+    _spEscBound=true;
+  }
+  _refreshSpBackBtn();
+}
+function _spKeydown(e){
+  if(e.key==='Escape'&&document.getElementById('sp-overlay').classList.contains('open')){
+    closeStudentProfile();
+  }
+}
+function closeStudentProfile(){
+  document.getElementById('sp-overlay').classList.remove('open');
+  _profileStack=[];
+  if(_spEscBound){document.removeEventListener('keydown',_spKeydown);_spEscBound=false;}
+}
+function profileBack(){
+  if(_profileStack.length<=1){closeStudentProfile();return;}
+  _profileStack.pop();
+  const prev=_profileStack[_profileStack.length-1];
+  if(prev.type==='student'){
+    // Re-render without re-pushing
+    renderStudentProfile(prev.id);
+    _refreshSpBackBtn();
+  }else if(prev.type==='case'){
+    document.getElementById('sp-overlay').classList.remove('open');
+    if(_spEscBound){document.removeEventListener('keydown',_spKeydown);_spEscBound=false;}
+    const stack=_profileStack.slice(0,-1);  // preserve ancestors below
+    _profileStack=[];
+    if(typeof openCsModal==='function')openCsModal(prev.id);
+    // restore stack ancestors so nested back still works if we re-open a student
+    _profileStack=stack;
+  }else if(prev.type==='lead'){
+    document.getElementById('sp-overlay').classList.remove('open');
+    if(_spEscBound){document.removeEventListener('keydown',_spKeydown);_spEscBound=false;}
+    const stack=_profileStack.slice(0,-1);
+    _profileStack=[];
+    if(typeof openPlModal==='function')openPlModal(prev.id);
+    _profileStack=stack;
+  }
+}
+function _refreshSpBackBtn(){
+  const b=document.getElementById('sp-back');
+  if(!b)return;
+  b.style.display=_profileStack.length>1?'inline-flex':'none';
+}
+// External-record openers can pre-push their record onto the stack before
+// opening a student so back-arrow returns correctly.
+function profileStackPushExternal(type,id){_profileStack.push({type,id});}
+
+function _spSaveField(sid,field,value){
+  if(!SS[sid])return;
+  SS[sid][field]=value;
+  saveState();
+}
+function _spFlashSaved(el){
+  if(!el)return;
+  el.classList.add('sp-saved');
+  setTimeout(()=>el.classList.remove('sp-saved'),700);
+}
+function spAddLogEntry(sid){
+  const inp=document.getElementById('sp-log-input');
+  if(!inp)return;
+  const txt=(inp.value||'').trim();
+  if(!txt)return;
+  if(!Array.isArray(SS[sid].log))SS[sid].log=[];
+  SS[sid].log.unshift({at:new Date().toISOString(),text:txt});
+  saveState();
+  inp.value='';
+  renderStudentProfile(sid);
+}
+
+function renderStudentProfile(sid){
+  const s=SS[sid];
+  if(!s)return;
+  document.getElementById('sp-title-main').innerHTML=esc(s.n||'Unnamed student');
+  const sub=[];
+  if(s.nameAr)sub.push('<span class="sp-sub-ar">'+esc(s.nameAr)+'</span>');
+  if(s.br)sub.push(esc(s.br));
+  const meta=studentStatusMeta(s.status||'active');
+  sub.push('<span style="color:'+meta.color+';font-weight:700">'+esc(meta.label)+'</span>');
+  document.getElementById('sp-title-sub').innerHTML=sub.join(' &middot; ');
+
+  const field=(label,fieldId,type,value,opts)=>{
+    opts=opts||{};
+    const extra=opts.ar?' sp-ar':'';
+    const oc=`onchange="(function(el){_spSaveField('${sid}','${fieldId}',el.value);_spFlashSaved(el);})(this)"`;
+    if(type==='select'){
+      let h='<select id="spf-'+fieldId+'" class="'+extra.trim()+'" '+oc+'>';
+      (opts.options||[]).forEach(o=>{
+        const v=typeof o==='string'?o:o.v;
+        const l=typeof o==='string'?o:o.l;
+        h+='<option value="'+esc(v)+'"'+((value||'')===v?' selected':'')+'>'+esc(l||'(none)')+'</option>';
+      });
+      h+='</select>';
+      return '<div class="sp-field"><label>'+esc(label)+'</label>'+h+'</div>';
+    }
+    if(type==='textarea'){
+      return '<div class="sp-field" style="grid-column:1/-1"><label>'+esc(label)+'</label><textarea rows="3" class="'+extra.trim()+'" '+oc+'>'+esc(value||'')+'</textarea></div>';
+    }
+    return '<div class="sp-field"><label>'+esc(label)+'</label><input type="'+type+'" value="'+esc(value||'')+'" class="'+extra.trim()+'" '+oc+'></div>';
+  };
+
+  // Age derived from DOB (read-only)
+  let age='';
+  if(s.dob){
+    const d=new Date(s.dob);
+    if(!isNaN(d)){
+      const now=new Date();
+      let yrs=now.getFullYear()-d.getFullYear();
+      const m=now.getMonth()-d.getMonth();
+      if(m<0||(m===0&&now.getDate()<d.getDate()))yrs--;
+      age=yrs>=0?(yrs+' years old'):'';
+    }
+  }
+
+  const teacherOpts=[{v:'',l:'(none)'}].concat(
+    Object.keys(TEACHERS||{}).filter(t=>TEACHERS[t]&&TEACHERS[t].active!==0).sort().map(t=>({v:t,l:t}))
+  );
+  const branchOpts=[{v:'',l:'(none)'},{v:'Shuhada',l:'Shuhada'},{v:'Jabriya',l:'Jabriya'},{v:'Salwa',l:'Salwa'},{v:'Rawda',l:'Rawda'}];
+  const classGroupOpts=[{v:'',l:'(none)'},{v:'Toddlers',l:'Toddlers'},{v:'PreK',l:'PreK'},{v:'KG1',l:'KG1'},{v:'KG2',l:'KG2'}];
+  const statusOpts=STUDENT_STATUSES.map(x=>({v:x.id,l:x.label}));
+  const genderOpts=[{v:'',l:'(none)'},{v:'F',l:'Female'},{v:'M',l:'Male'}];
+  const segmentOpts=[{v:'',l:'(none)'},{v:'loyal',l:'Loyal'},{v:'hesitant',l:'Hesitant'},{v:'highrisk',l:'High risk'}];
+  const paymentOpts=[{v:'',l:'(none)'},{v:'paid',l:'Paid'},{v:'partial',l:'Partial'},{v:'unpaid',l:'Unpaid'}];
+  const sessionTypeOpts=[{v:'1on1',l:'1-on-1'},{v:'group',l:'Group'}];
+
+  let h='';
+  // Identity
+  h+='<div class="sp-section"><div class="sp-section-hdr">Identity</div><div class="sp-section-body"><div class="sp-grid">';
+  h+=field('Student Name (EN)','n','text',s.n);
+  h+=field('Student Name (AR)','nameAr','text',s.nameAr,{ar:true});
+  h+=field('Date of Birth','dob','date',s.dob);
+  h+='<div class="sp-field"><label>Age</label><div class="sp-readonly">'+esc(age||'—')+'</div></div>';
+  h+=field('Class Group','classGroup','select',s.classGroup,{options:classGroupOpts});
+  h+=field('Gender','gender','select',s.gender,{options:genderOpts});
+  h+=field('Nationality','nationality','text',s.nationality);
+  h+=field('Civil ID','civilId','text',s.civilId);
+  h+=field('Passport','passport','text',s.passport);
+  h+='</div></div></div>';
+  // Parent & Guardian
+  h+='<div class="sp-section"><div class="sp-section-hdr">Parent &amp; Guardian</div><div class="sp-section-body"><div class="sp-grid">';
+  h+=field('Parent Name (AR)','parentNameAr','text',s.parentNameAr,{ar:true});
+  h+=field('Parent Name (EN)','parentNameEn','text',s.parentNameEn);
+  h+=field('Parent Phone','parentPhone','tel',s.parentPhone);
+  h+=field('Address','addr','text',s.addr);
+  h+=field('Secondary Contact Name','secondaryContactName','text',s.secondaryContactName);
+  h+=field('Secondary Contact Phone','secondaryContactPhone','tel',s.secondaryContactPhone);
+  h+=field('Secondary Contact Relation','secondaryContactRelation','text',s.secondaryContactRelation);
+  h+='</div></div></div>';
+  // Enrollment
+  h+='<div class="sp-section"><div class="sp-section-hdr">Enrollment</div><div class="sp-section-body"><div class="sp-grid">';
+  // Status change goes through validation (enforces Exited-requires-closed-Case, etc.)
+  {
+    let opts='';
+    statusOpts.forEach(o=>{opts+='<option value="'+esc(o.v)+'"'+((s.status||'active')===o.v?' selected':'')+'>'+esc(o.l)+'</option>';});
+    h+='<div class="sp-field"><label>Status</label><select onchange="spChangeStatus(\''+sid+'\',this)">'+opts+'</select></div>';
+  }
+  h+=field('Branch','br','select',s.br,{options:branchOpts});
+  h+=field('Programme','programme','text',s.programme);
+  h+=field('Segment','segment','select',s.segment,{options:segmentOpts});
+  h+=field('Enrollment Date','enrollmentDate','date',s.enrollmentDate);
+  h+=field('Contract Start','contractStart','date',s.contractStart);
+  h+=field('Contract End','contractEnd','date',s.contractEnd);
+  h+='</div></div></div>';
+  // Scheduling
+  h+='<div class="sp-section"><div class="sp-section-hdr">Scheduling</div><div class="sp-section-body"><div class="sp-grid">';
+  h+=field('Teacher','t','select',s.t,{options:teacherOpts});
+  h+=field('Session Type','sessionType','select',s.sessionType||'1on1',{options:sessionTypeOpts});
+  h+=field('Sessions per Week','sessionsPerWeek','number',s.sessionsPerWeek);
+  h+=field('Class / Grade','cls','text',s.cls);
+  h+='</div></div></div>';
+  // Financial
+  h+='<div class="sp-section"><div class="sp-section-hdr">Financial</div><div class="sp-section-body"><div class="sp-grid">';
+  h+=field('Fee Amount (KWD)','feeAmount','number',s.feeAmount);
+  h+=field('Payment Status','paymentStatus','select',s.paymentStatus,{options:paymentOpts});
+  h+=field('Unsettled Amount (KWD)','unsettledKwd','number',s.unsettledKwd);
+  h+='</div></div></div>';
+  // Linked Records
+  h+='<div class="sp-section"><div class="sp-section-hdr">Linked Records</div><div class="sp-section-body">';
+  h+=_spRenderLinkedRecords(sid);
+  h+='</div></div>';
+  // Activity Log
+  h+='<div class="sp-section"><div class="sp-section-hdr">Activity Log <span style="font-weight:500;color:var(--text3);text-transform:none;letter-spacing:0">('+(s.log?s.log.length:0)+' entries)</span></div><div class="sp-section-body">';
+  h+='<div class="sp-log-add"><input id="sp-log-input" placeholder="Add a log entry…" onkeydown="if(event.key===\'Enter\')spAddLogEntry(\''+sid+'\')"><button onclick="spAddLogEntry(\''+sid+'\')">Add</button></div>';
+  h+='<div class="sp-log-list">';
+  if(!s.log||!s.log.length){
+    h+='<div class="sp-log-empty">No activity yet.</div>';
+  }else{
+    s.log.forEach(e=>{
+      const when=e.at?new Date(e.at).toLocaleString():'';
+      h+='<div class="sp-log-item"><div class="sp-log-when">'+esc(when)+'</div><div class="sp-log-text">'+esc(e.text||'')+'</div></div>';
+    });
+  }
+  h+='</div></div></div>';
+
+  document.getElementById('sp-body').innerHTML=h;
+}
+
+function _spRenderLinkedRecords(sid){
+  const rows=[];
+  // Cases linked to this student
+  if(typeof CASES==='object'&&CASES){
+    Object.values(CASES).forEach(c=>{
+      if(!c||c.studentId!==sid)return;
+      const title=c.parentFullName||'Unnamed case';
+      const meta=[c.status||'Open',c.branch||''].filter(Boolean).join(' · ');
+      rows.push('<div class="sp-linked-row" onclick="spGotoCase(\''+c.id+'\')"><span class="sp-linked-type">Case</span><span class="sp-linked-title">'+esc(title)+'</span><span class="sp-linked-meta">'+esc(meta)+'</span></div>');
+    });
+  }
+  // Pipeline leads that converted to this student
+  if(typeof PIPELINE==='object'&&PIPELINE){
+    Object.values(PIPELINE).forEach(l=>{
+      if(!l||l.convertedStudentId!==sid)return;
+      const title=(l.familyName||'Unnamed lead')+(l.childName?(' — '+l.childName):'');
+      rows.push('<div class="sp-linked-row" onclick="spGotoLead(\''+l.id+'\')"><span class="sp-linked-type">Lead</span><span class="sp-linked-title">'+esc(title)+'</span><span class="sp-linked-meta">Pipeline · '+esc(l.stage||'')+'</span></div>');
+    });
+  }
+  if(!rows.length)return '<div class="sp-linked-empty">No linked cases or leads.</div>';
+  return '<div class="sp-linked-list">'+rows.join('')+'</div>';
+}
+function spChangeStatus(sid,sel){
+  const newStatus=sel.value;
+  if(typeof changeStudentStatus==='function'){
+    changeStudentStatus(sid,newStatus,sel);
+  }else{
+    SS[sid].status=newStatus;saveState();
+  }
+  // Re-render to reflect any rejection / revert
+  setTimeout(()=>renderStudentProfile(sid),50);
+}
+function spGotoCase(caseId){
+  // Close profile and open case; preserve ancestry so back returns here
+  const stack=_profileStack.slice();
+  document.getElementById('sp-overlay').classList.remove('open');
+  if(_spEscBound){document.removeEventListener('keydown',_spKeydown);_spEscBound=false;}
+  _profileStack=stack;  // keep ancestry; openCsModal is not profile-aware
+  if(typeof openCsModal==='function')openCsModal(caseId);
+}
+function spGotoLead(leadId){
+  const stack=_profileStack.slice();
+  document.getElementById('sp-overlay').classList.remove('open');
+  if(_spEscBound){document.removeEventListener('keydown',_spKeydown);_spEscBound=false;}
+  _profileStack=stack;
+  if(typeof openPlModal==='function')openPlModal(leadId);
 }
 
 function deleteStudent(sid){
@@ -6714,7 +7062,12 @@ function renderPipeline(){
       if(stale) h+='<span class="pl-card-stale">⚠ '+days+'d stale</span>';
       else if(hot) h+='<span class="pl-card-hot">🔥 new</span>';
       h+='<div class="pl-card-name">'+esc(lead.familyName||'Unnamed')+'</div>';
-      h+='<div class="pl-card-child">'+esc(lead.childName||'')+(lead.childAge?' ('+esc(lead.childAge)+')':'')+'</div>';
+      if(lead.convertedStudentId&&SS[lead.convertedStudentId]){
+        const sid=lead.convertedStudentId;
+        h+='<div class="pl-card-child"><span class="link-name" onclick="event.stopPropagation();profileStackPushExternal(\'lead\',\''+lead.id+'\');openStudentProfile(\''+sid+'\',{push:true})" title="Open student profile">'+esc(SS[sid].n||lead.childName||'')+'</span>'+(lead.childAge?' ('+esc(lead.childAge)+')':'')+'</div>';
+      }else{
+        h+='<div class="pl-card-child">'+esc(lead.childName||'')+(lead.childAge?' ('+esc(lead.childAge)+')':'')+'</div>';
+      }
       h+='<div class="pl-card-meta">';
       if(lead.source) h+='<span class="pl-src">'+esc(lead.source)+'</span>';
       h+='<span>'+days+'d in stage</span>';
@@ -7478,10 +7831,12 @@ function csDrop(e,newLevel,specialCol){
 }
 
 // ---- MODAL ----
+let _csEditingId='';
 function openCsModal(caseId){
   const isNew=!caseId;
   const c=isNew?newCase():CASES[caseId];
   if(!c)return;
+  _csEditingId=c.id||'';
   // Fresh modal session — clear any previously-queued script choice
   _csSelectedScript=null;
   document.getElementById('cs-modal-title').textContent=isNew?'New Case':'Case &middot; '+esc(c.parentFullName||'Unnamed');
@@ -7694,7 +8049,10 @@ function csRenderLinkedSummary(sid){
   h+='<span style="font-size:10px;font-weight:600;color:#5B21B6;text-transform:uppercase;letter-spacing:.04em">Linked student</span>';
   h+='<span style="font-size:9px;font-weight:600;padding:1px 6px;border-radius:3px;color:'+stMeta.color+';background:'+stMeta.bg+';border:1px solid '+stMeta.border+'">'+esc(stMeta.label)+'</span>';
   h+='</div>';
-  h+='<div><b>'+esc(s.n||'(no EN name)')+'</b>'+(s.nameAr?' &middot; '+ar(s.nameAr):'')+(s.br?' &middot; <span style="color:var(--text3)">'+esc(s.br)+'</span>':'')+'</div>';
+  // Clickable name — opens Student Profile, pushing current case onto back-stack
+  const caseId=(typeof _csEditingId!=='undefined'&&_csEditingId)?_csEditingId:'';
+  const openAttr=caseId?(' onclick="profileStackPushExternal(\'case\',\''+caseId+'\');closeCsModal();openStudentProfile(\''+sid+'\',{push:true})"'):(' onclick="openStudentProfile(\''+sid+'\')"');
+  h+='<div><b class="link-name"'+openAttr+' title="Open student profile">'+esc(s.n||'(no EN name)')+'</b>'+(s.nameAr?' &middot; <span class="link-name"'+openAttr+'>'+ar(s.nameAr).replace(/^<span /,'<span ')+'</span>':'')+(s.br?' &middot; <span style="color:var(--text3)">'+esc(s.br)+'</span>':'')+'</div>';
   h+='<div style="margin-top:3px"><span style="color:var(--text3)">Parent (AR):</span> '+ar(s.parentNameAr)+(s.parentNameEn?' <span style="color:var(--text3)">&middot; EN:</span> '+esc(s.parentNameEn):'')+'</div>';
   if(s.parentPhone)h+='<div style="margin-top:3px"><span style="color:var(--text3)">Parent phone:</span> '+esc(s.parentPhone)+'</div>';
   h+='</div>';
