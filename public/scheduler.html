@@ -1243,7 +1243,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
    HOME VISITS v2 — Clean labeled-field cards, thin connector lines
    Scoped under [data-active-theme="hv"] so Pipeline/Case are untouched.
    =================================================================== */
-[data-active-theme="hv"]{--hv2-ink:#111827;--hv2-muted:#6B7280;--hv2-faint:#9CA3AF;--hv2-line:#D1D5DB;--hv2-line-soft:#E5E7EB;--hv2-bg:#F9FAFB;--hv2-teal:#0F766E;--hv2-teal-lt:#CCFBF1;--hv2-warn:#B45309;--hv2-warn-lt:#FEF3C7;--hv2-err:#B91C1C;--hv2-err-lt:#FEE2E2;--hv2-lock:#6D28D9;--hv2-lock-lt:#EDE9FE}
+[data-active-theme="hv"]{--hv2-ink:#111827;--hv2-muted:#6B7280;--hv2-faint:#9CA3AF;--hv2-line:#D1D5DB;--hv2-line-soft:#E5E7EB;--hv2-card-border:#1F2937;--hv2-bg:#F9FAFB;--hv2-teal:#0F766E;--hv2-teal-lt:#CCFBF1;--hv2-warn:#B45309;--hv2-warn-lt:#FEF3C7;--hv2-err:#B91C1C;--hv2-err-lt:#FEE2E2;--hv2-lock:#6D28D9;--hv2-lock-lt:#EDE9FE}
 
 /* Neutralize body bg and keep day tabs minimal */
 [data-active-theme="hv"] .daytabs{background:#fff;border-bottom:1px solid var(--hv2-line)}
@@ -1284,7 +1284,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .hv2-line-rm:hover{color:var(--hv2-err);background:var(--hv2-err-lt)}
 
 /* SLOT CONTAINER — override old .slot styles */
-[data-active-theme="hv"] .slot.hv2{border:1px solid var(--hv2-line);background:#fff;border-radius:10px;box-shadow:none;min-height:0;overflow:visible;cursor:default;padding:0;margin:0}
+[data-active-theme="hv"] .slot.hv2{border:1.5px solid var(--hv2-card-border);background:#fff;border-radius:10px;box-shadow:none;min-height:0;overflow:visible;cursor:default;padding:0;margin:0}
 [data-active-theme="hv"] .slot.hv2.active-slot{border:1px solid var(--hv2-teal) !important;box-shadow:0 0 0 3px var(--hv2-teal-lt);animation:none}
 [data-active-theme="hv"] .slot.hv2.locked-slot{border:1px solid var(--hv2-lock) !important;background:#fff}
 [data-active-theme="hv"] .slot.hv2.rejected-day-slot{border:1px solid var(--hv2-err) !important;background:var(--hv2-err-lt) !important;box-shadow:none}
@@ -1368,29 +1368,43 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .hv2-ftr-btn:hover{border-color:var(--hv2-teal);color:var(--hv2-teal);background:var(--hv2-teal-lt)}
 [data-active-theme="hv"] .hv2-ftr-btn.hv2-ftr-rm:hover{border-color:var(--hv2-err);color:var(--hv2-err);background:var(--hv2-err-lt)}
 
-/* Collapsible actions — attendance + footer hidden until card expanded.
-   Expand is toggled by the "⋯" button in the card header. */
+/* Collapsible actions — attendance + footer hidden until card is ACTIVE (clicked).
+   Card becomes active on click via slotClick → .active-slot class. */
 [data-active-theme="hv"] .hv2-collapsible{display:none;margin-top:6px}
+[data-active-theme="hv"] .slot.hv2.active-slot .hv2-collapsible,
 [data-active-theme="hv"] .slot.hv2[data-expanded="true"] .hv2-collapsible{display:block}
-[data-active-theme="hv"] .hv2-expand-btn{background:transparent;border:1px solid transparent;color:var(--hv2-muted);cursor:pointer;font-size:16px;line-height:1;padding:0 6px;border-radius:5px;font-weight:700;letter-spacing:1px}
-[data-active-theme="hv"] .hv2-expand-btn:hover{border-color:var(--hv2-line);background:var(--hv2-bg);color:var(--hv2-teal)}
-[data-active-theme="hv"] .slot.hv2[data-expanded="true"] .hv2-expand-btn{color:var(--hv2-teal);background:var(--hv2-teal-lt);border-color:var(--hv2-teal)}
 
 /* Address as a thin subtle line — no ADDRESS label (per Saleh's feedback) */
 [data-active-theme="hv"] .hv2-addr-only{color:var(--hv2-muted);font-size:12px;font-weight:500;line-height:1.4;padding:2px 0 2px 0;border-top:1px dashed var(--hv2-line);margin-top:2px;padding-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* Grouped-by-teacher rows in group cards — teacher name shown once, then students */
-[data-active-theme="hv"] .hv2-grp-trow{display:flex;align-items:flex-start;gap:8px;padding:6px 8px;background:var(--hv2-bg);border-radius:6px;font-size:12px;flex-wrap:wrap}
-[data-active-theme="hv"] .hv2-grp-trow .hv2-grp-dot{margin-top:6px}
-[data-active-theme="hv"] .hv2-grp-trow .hv2-grp-t{min-width:auto;flex-shrink:0;margin-top:4px}
-[data-active-theme="hv"] .hv2-grp-names{display:flex;flex-wrap:wrap;gap:4px 8px;flex:1;min-width:0}
-[data-active-theme="hv"] .hv2-grp-n-item{display:inline-flex;align-items:center;gap:2px;background:#fff;border:1px solid var(--hv2-line);border-radius:12px;padding:2px 4px 2px 10px;max-width:100%}
-[data-active-theme="hv"] .hv2-grp-n-item .hv2-grp-n{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
-[data-active-theme="hv"] .hv2-grp-n-item .hv2-rm-mini{position:static;padding:0 4px;font-size:12px}
+/* Group card — teacher name as a section heading with students stacked below */
+[data-active-theme="hv"] .hv2-grp-tblock{background:var(--hv2-bg);border:1px solid var(--hv2-line);border-radius:7px;padding:7px 9px;margin-bottom:6px}
+[data-active-theme="hv"] .hv2-grp-tblock:last-child{margin-bottom:0}
+[data-active-theme="hv"] .hv2-grp-thead{display:flex;align-items:center;gap:7px;padding-bottom:5px;border-bottom:1px dashed var(--hv2-line);margin-bottom:5px}
+[data-active-theme="hv"] .hv2-grp-thead .hv2-grp-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+[data-active-theme="hv"] .hv2-grp-thead .hv2-grp-t{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;flex:1}
+[data-active-theme="hv"] .hv2-grp-thead .hv2-grp-count{font-size:10px;color:var(--hv2-muted);background:#fff;border:1px solid var(--hv2-line);border-radius:10px;padding:1px 7px;font-weight:600}
+[data-active-theme="hv"] .hv2-grp-nlist{display:flex;flex-direction:column;gap:3px}
+[data-active-theme="hv"] .hv2-grp-nrow{display:flex;align-items:center;gap:6px;padding:3px 4px;border-radius:4px;position:relative}
+[data-active-theme="hv"] .hv2-grp-nrow:hover{background:#fff}
+[data-active-theme="hv"] .hv2-grp-nrow .hv2-grp-n{font-size:13px;font-weight:600;color:var(--hv2-ink);flex:1;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-active-theme="hv"] .hv2-grp-nrow .hv2-grp-n:hover{color:var(--hv2-teal);text-decoration:underline}
+[data-active-theme="hv"] .hv2-grp-nrow .hv2-rm-mini{position:static;padding:0 5px;font-size:13px;flex-shrink:0}
 
-/* Consecutive pickup: tighter vertical spacing, no repeated verb */
-[data-active-theme="hv"] .hv2-line-pickup-cont{margin-top:-2px}
-[data-active-theme="hv"] .hv2-line-verb-cont{color:var(--hv2-lock);opacity:.55;font-weight:700;min-width:auto}
+/* Pickup block — consecutive pickups share ONE "↑ PICK" header, names stack below */
+[data-active-theme="hv"] .hv2-pickup-wrap{background:var(--hv2-lock-lt);padding:0 10px;border-radius:8px;margin-top:2px;margin-bottom:2px}
+[data-active-theme="hv"] .hv2-pickup-wrap-first{padding-top:7px}
+[data-active-theme="hv"] .hv2-pickup-wrap-last{padding-bottom:7px}
+[data-active-theme="hv"] .hv2-pickup-wrap-cont{margin-top:-3px;border-top-left-radius:0;border-top-right-radius:0}
+[data-active-theme="hv"] .hv2-pickup-wrap-first:not(.hv2-pickup-wrap-last){border-bottom-left-radius:0;border-bottom-right-radius:0}
+[data-active-theme="hv"] .hv2-pickup-wrap-cont:not(.hv2-pickup-wrap-last){border-radius:0}
+[data-active-theme="hv"] .hv2-pickup-verb-hdr{font-size:10.5px;font-weight:800;color:var(--hv2-lock);letter-spacing:.08em;padding:1px 0 4px}
+[data-active-theme="hv"] .hv2-pickup-row.slot{display:flex;align-items:center;gap:6px;padding:5px 4px 5px 10px;background:transparent !important;border:none !important;border-radius:5px;min-height:0;cursor:pointer;transition:background .1s}
+[data-active-theme="hv"] .hv2-pickup-row.slot:hover{background:rgba(255,255,255,.55) !important}
+[data-active-theme="hv"] .hv2-pickup-row.slot.active-slot{background:#fff !important;outline:1.5px solid var(--hv2-lock);outline-offset:-1px}
+[data-active-theme="hv"] .hv2-pickup-name{font-size:13px;font-weight:700;color:var(--hv2-ink);cursor:pointer}
+[data-active-theme="hv"] .hv2-pickup-name:hover{color:var(--hv2-teal);text-decoration:underline}
+[data-active-theme="hv"] .hv2-pickup-time{font-size:12px;color:var(--hv2-muted);font-weight:500}
 
 /* Ride / cross-car notes — light purple (consistent with pickup/dropoff) */
 [data-active-theme="hv"] .ride-note{background:var(--hv2-lock-lt);color:var(--hv2-lock);border:none;border-left:3px solid var(--hv2-lock);font-size:11px;padding:6px 10px;margin:3px 0;border-radius:0 4px 4px 0;font-weight:500}
@@ -1482,6 +1496,10 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
       <div class="frow2">
         <div class="frow"><label>Pick-up handover (minutes)</label><input id="set-pickHandover" type="number" min="0" max="30" step="1"><small class="set-help">Extra minutes added to every pick-up slot for the teacher to gather their things and get in the car.</small></div>
         <div class="frow"><label>Max slots per car per day</label><input id="set-maxSlots" type="number" min="4" max="24"><small class="set-help">How many visits one car can do in a day.</small></div>
+      </div>
+      <div class="frow2">
+        <div class="frow"><label>Round displayed times to</label><input id="set-displayRound" type="number" min="1" max="30" step="1"><small class="set-help">Session start/pickup times round UP to nearest N minutes for display (e.g. 12:03 → 12:10). Driver still plans around the true travel time.</small></div>
+        <div class="frow"></div>
       </div>
     </div>
 
@@ -1656,6 +1674,7 @@ const DEFAULT_SETTINGS={
   chainBonusKm:100,     // How strongly auto-schedule prefers same-teacher chains (higher = stronger)
   stickyBonusKm:15,     // Teacher-car stickiness: how strongly a teacher stays on the same car all day (km equivalent)
   pickupHandoverMin:8,  // Extra minutes added to each pickup slot for the teacher to get in the car
+  displayRoundMin:10,   // Round DISPLAYED session start/pickup times up to nearest N min (e.g. 12:03 → 12:10). Does not affect scheduling math — driver plans around actual travel.
   sameBranchOnly:1,     // 1 = only place a student into a car whose branch matches theirs
   autoPickup:1,         // 1 = auto-insert a pickup slot after every drop in auto-schedule
   preventSameDayDouble:1,// 1 = never place the same student twice on the same day
@@ -1684,7 +1703,7 @@ function migrateSettings(obj){
   if(!obj||typeof obj!=='object'){SETTINGS={...DEFAULT_SETTINGS};applySettings();return;}
   SETTINGS={...DEFAULT_SETTINGS,...obj};
   // Coerce numeric fields
-  ['sessionMin','bufferMin','dayStartMin','dayEndMin','maxSlotsPerCar','maxGroupSize','teacherDefaultMax','chainBonusKm','stickyBonusKm','pickupHandoverMin'].forEach(k=>{
+  ['sessionMin','bufferMin','dayStartMin','dayEndMin','maxSlotsPerCar','maxGroupSize','teacherDefaultMax','chainBonusKm','stickyBonusKm','pickupHandoverMin','displayRoundMin'].forEach(k=>{
     const v=parseInt(SETTINGS[k]);
     if(!isNaN(v))SETTINGS[k]=v;
     else SETTINGS[k]=DEFAULT_SETTINGS[k];
@@ -1776,6 +1795,13 @@ function weekKeyOffset(offset){
 function hv(a,b,c,d){const R=6371,p=Math.PI/180,da=(c-a)*p,db=(d-b)*p;return+(2*R*Math.asin(Math.sqrt(Math.sin(da/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(db/2)**2))).toFixed(2);}
 function tm(km){return Math.max(10,Math.round(km/25*60));}
 function ts(m){return`${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;}
+// Rounded time string — rounds UP to nearest SETTINGS.displayRoundMin (default 10 min).
+// Used for DISPLAY only (session start, finish, pickup time). Scheduling math uses true minutes.
+function tsR(m){
+  const r=parseInt(SETTINGS?.displayRoundMin)||10;
+  if(r<=1)return ts(m);
+  return ts(Math.ceil(m/r)*r);
+}
 function sl(a){if(!a)return'?';const p=a.split(',').map(x=>x.trim());return p.length>=2?`${p[0]}, ${p[1]}`:p[0];}
 // Shorten a student name for compact display. Keeps first name + initial of last.
 // e.g. "Fatimah Almahmeed" → "Fatimah A."  |  "Saleh al zayed" → "Saleh a. z."
@@ -2984,27 +3010,40 @@ function renderSlot(d,cid,si){
   const sl_=SCHED[d]?.[cid]?.[si];
   const startMin=slotStartMin(d,cid,si);
   const isActive=activeSlot&&activeSlot.d===d&&activeSlot.cid===cid&&activeSlot.si===si;
-  const timeStr=ts(startMin);
-  const endStr=ts(startMin+sessionBlockMin());
   const expAttr=_expandedSlots.has(slotKey(d,cid,si))?' data-expanded="true"':'';
-  // Check if previous slot is also a pickup — if so, render this pickup without
-  // repeating the "↑ PICK" verb (visually group consecutive pickups).
+  // Adjacency flags for grouping consecutive pickup rows into one block with
+  // a single "↑ PICK" header at top and the teacher names stacked below.
   const prevSl=si>0?SCHED[d]?.[cid]?.[si-1]:null;
+  const nextSl=SCHED[d]?.[cid]?.[si+1];
   const prevIsPick=!!(prevSl&&prevSl.t==='pick');
+  const nextIsPick=!!(nextSl&&nextSl.t==='pick');
   const base=`id="sl-${d}-${cid}-${si}" data-d="${d}" data-cid="${cid}" data-si="${si}"${expAttr}`;
   const handlers=`onclick="slotClick(event,'${d}',${cid},${si})" ondragover="slotOver(event,this)" ondragleave="slotLeave(this)" ondrop="slotDrop(event,this)"`;
 
-  // Drive-time connector to THIS slot (thin line, rendered above card)
+  // Drive-time connector — always rendered when there's a previous position so
+  // the drive before the first session of the day (from branch) is visible.
   let driveLine='';
+  let travelMin=0;
   if(sl_){
     const coords=_slotCoords(sl_);
     const prev=lastPos(d,cid,si);
     if(coords&&prev&&prev.la!=null&&prev.ln!=null){
-      const travelMin=tm(hv(prev.la,prev.ln,coords.la,coords.ln));
+      travelMin=tm(hv(prev.la,prev.ln,coords.la,coords.ln));
       const fromLabel=prev.isBase?`${prev.a} branch`:sl(prev.a);
-      driveLine=_hvConnector('drive',`← ${travelMin?travelMin+' min · ':''}${fromLabel}`);
+      driveLine=travelMin>0
+        ?_hvConnector('drive',`← ${travelMin} min · ${fromLabel}`)
+        :_hvConnector('drive',`← ${fromLabel}`);
     }
   }
+  // DISPLAY times represent the actual teaching window:
+  //   startTime = arrival at student (startMin + travel), rounded UP to 10-min
+  //   finishTime = start + session minutes (teaching only, no travel buffer)
+  // Scheduling math remains unchanged — driver leaves earlier so teacher
+  // arrives for the displayed sharp time (e.g. 12:10 rather than 12:03).
+  const sessionMinOnly=parseInt(SETTINGS.sessionMin)||60;
+  const actualStart=startMin+travelMin;
+  const timeStr=tsR(actualStart);
+  const endStr=tsR(actualStart+sessionMinOnly);
 
   if(!sl_){
     return`<div class="slot-wrap">
@@ -3047,7 +3086,7 @@ function renderSlot(d,cid,si){
               <div class="hv2-lbl">TEACHER</div>
               <div class="hv2-anchor">${s.t}</div>
             </div>
-            <div class="hv2-hdr-actions">${lockBadge}${lockBtn}<button class="hv2-expand-btn" onclick="toggleSlotExpand(event,'${d}',${cid},${si})" title="More options">⋯</button></div>
+            <div class="hv2-hdr-actions">${lockBadge}${lockBtn}</div>
           </div>
           <div class="hv2-times">
             <div class="hv2-field"><div class="hv2-lbl">START</div><div class="hv2-val hv2-val-time">${timeStr}</div></div>
@@ -3088,7 +3127,7 @@ function renderSlot(d,cid,si){
     const totalInter=legs.reduce((a,b)=>a+b,0);
     const totalKm=(sl_.km||ddTotalKm(sl_)||0).toFixed(1);
     const studentBlocks=students.map((s,idx)=>{
-      const dropT=idx===0?timeStr:ts(startMin+travel1+dropOffsets[idx]);
+      const dropT=idx===0?timeStr:tsR(startMin+travel1+dropOffsets[idx]);
       const pickSlot=findPickSlot(s.id);
       const pickWarn=!pickSlot?`<div class="hv2-warn-row hv2-warn-inline">⚠ Pickup not assigned</div>`:'';
       return `<div class="hv2-paired-item" draggable="true" data-sid="${s.id}" data-dtype="drop">
@@ -3114,7 +3153,7 @@ function renderSlot(d,cid,si){
               <div class="hv2-lbl">${label}${sl_.grp?' · GROUP':''}</div>
               <div class="hv2-anchor hv2-anchor-dd">${n} students · ${sl_.grp?'same location':`${totalInter} min apart`}</div>
             </div>
-            <div class="hv2-hdr-actions">${lockBadge}${lockBtn}<button class="hv2-expand-btn" onclick="toggleSlotExpand(event,'${d}',${cid},${si})" title="More options">⋯</button></div>
+            <div class="hv2-hdr-actions">${lockBadge}${lockBtn}</div>
           </div>
           <div class="hv2-times">
             <div class="hv2-field"><div class="hv2-lbl">START</div><div class="hv2-val hv2-val-time">${timeStr}</div></div>
@@ -3136,28 +3175,35 @@ function renderSlot(d,cid,si){
   if(sl_.t==='pick'){
     const s=SS[sl_.id];if(!s)return'';
     const info=findDropInfo(sl_.id);
-    const readyMin=info?info.readyMin:600;
+    const readyMin=info?info.readyMin:startMin;
     const onTime=startMin>=readyMin;
     let xcarLabel='';
     if(info&&info.cid!==cid){
       const dropCar=CARS.find(c=>c.id===info.cid);
       xcarLabel=` · via ${dropCar?.label||'Car ?'}`;
     }
-    const readyWarn=!onTime?` · ⚠ ready ${ts(readyMin)}`:'';
+    const readyWarn=!onTime?` · ⚠ ready ${tsR(readyMin)}`:'';
     const lockMark=sl_.locked?' 🔒':'';
-    // Pickup is a thin purple line (NOT a card). Still drop-targetable.
-    // If the previous slot is also a pickup, suppress the "↑ PICK" verb so
-    // consecutive pickups read as one grouped block (per Saleh's feedback).
-    const verbHtml=prevIsPick
-      ?`<span class="hv2-line-verb hv2-line-verb-cont">↑</span>`
-      :`<span class="hv2-line-verb">↑ Pick</span>`;
-    return`<div class="hv2-line hv2-line-pickup${prevIsPick?' hv2-line-pickup-cont':''}${isActive?' hv2-line-active':''}${rejCls}" ${base} ${handlers} title="Pickup — click to activate, drag a student here to assign">
-      ${verbHtml}
-      <span class="hv2-line-name link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')">${s.t}</span>
-      <span class="hv2-line-sub">· ${timeStr}${xcarLabel}${readyWarn}${lockMark}</span>
-      <span class="hv2-line-spacer"></span>
-      <button class="hv2-line-rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})" title="Remove pickup">×</button>
-    </div>${dropoffLine}`;
+    // Display pickup time aligned with the preceding session's rounded finish
+    // so "FINISH 12:00" and "PICK 12:00" match visually (no 13-min gap).
+    const pickupDisplayTime=tsR(readyMin);
+    // Pickup block: one group of consecutive pickup slots shares a single
+    // "↑ PICK" header at the top, with each teacher name stacked below.
+    // First-in-group renders the header + its own name row; continuations
+    // render just their name row and stack seamlessly via CSS.
+    const isFirst=!prevIsPick;
+    const isLast=!nextIsPick;
+    const wrapCls=`hv2-pickup-wrap${isFirst?' hv2-pickup-wrap-first':''}${isLast?' hv2-pickup-wrap-last':''}${prevIsPick?' hv2-pickup-wrap-cont':''}`;
+    const headerHtml=isFirst?`<div class="hv2-pickup-verb-hdr">↑ PICK</div>`:'';
+    return`<div class="${wrapCls}">
+      ${headerHtml}
+      <div class="hv2-pickup-row slot hv2-line-pickup${isActive?' hv2-line-active':''}${rejCls}" ${base} ${handlers} title="Pickup — click to activate, drag a student here to assign">
+        <span class="hv2-pickup-name link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')">${s.t}</span>
+        <span class="hv2-pickup-time">· ${pickupDisplayTime}${xcarLabel}${readyWarn}${lockMark}</span>
+        <span class="hv2-line-spacer"></span>
+        <button class="hv2-line-rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})" title="Remove pickup">×</button>
+      </div>
+    </div>${isLast?dropoffLine:''}`;
   }
 
   if(sl_.t==='g'){
@@ -3174,14 +3220,17 @@ function renderSlot(d,cid,si){
     });
     const childRows=[...byTeacher.entries()].map(([tname,kids])=>{
       const col=TC[tname]||'#6A5FA8';
-      const namesHtml=kids.map(({s,idx})=>`<span class="hv2-grp-n-item">
-        <span class="hv2-grp-n link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')" title="${s.n}">${shortName(s.n,16)}</span>
+      const namesHtml=kids.map(({s,idx})=>`<div class="hv2-grp-nrow">
+        <span class="hv2-grp-n link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')" title="${s.n}">${s.n}</span>
         <button class="hv2-rm-mini" onclick="event.stopPropagation();removeFromGroup('${d}',${cid},${si},${idx})" title="Remove from group">&#215;</button>
-      </span>`).join('');
-      return `<div class="hv2-grp-trow">
-        <span class="hv2-grp-dot" style="background:${col}"></span>
-        <span class="hv2-grp-t" style="color:${col}">${tname.substring(0,14)}</span>
-        <span class="hv2-grp-names">${namesHtml}</span>
+      </div>`).join('');
+      return `<div class="hv2-grp-tblock">
+        <div class="hv2-grp-thead">
+          <span class="hv2-grp-dot" style="background:${col}"></span>
+          <span class="hv2-grp-t" style="color:${col}">${tname}</span>
+          <span class="hv2-grp-count">${kids.length}</span>
+        </div>
+        <div class="hv2-grp-nlist">${namesHtml}</div>
       </div>`;
     }).join('');
     const dropZone=canAdd
@@ -3196,7 +3245,7 @@ function renderSlot(d,cid,si){
               <div class="hv2-lbl">GROUP · ${sl_.ids.length}/7 CHILDREN</div>
               <div class="hv2-anchor hv2-anchor-dd">${grpAddr?sl(grpAddr):'Set location →'}</div>
             </div>
-            <div class="hv2-hdr-actions">${lockBadge}${lockBtn}<button class="hv2-expand-btn" onclick="toggleSlotExpand(event,'${d}',${cid},${si})" title="More options">⋯</button></div>
+            <div class="hv2-hdr-actions">${lockBadge}${lockBtn}</div>
           </div>
           <div class="hv2-times">
             <div class="hv2-field"><div class="hv2-lbl">START</div><div class="hv2-val hv2-val-time">${timeStr}</div></div>
@@ -6603,6 +6652,7 @@ function showSettingsModal(){
   qs('set-dayEnd').value=ts(SETTINGS.dayEndMin);
   qs('set-maxSlots').value=SETTINGS.maxSlotsPerCar;
   qs('set-pickHandover').value=SETTINGS.pickupHandoverMin;
+  qs('set-displayRound').value=SETTINGS.displayRoundMin||10;
   qs('set-maxGroup').value=SETTINGS.maxGroupSize;
   qs('set-teacherMax').value=SETTINGS.teacherDefaultMax;
   qs('set-chainBonus').value=SETTINGS.chainBonusKm;
@@ -6636,6 +6686,7 @@ function saveSettingsModal(){
     dayEndMin:parseTimeToMin(qs('set-dayEnd').value),
     maxSlotsPerCar:parseInt(qs('set-maxSlots').value)||14,
     pickupHandoverMin:parseInt(qs('set-pickHandover').value)||0,
+    displayRoundMin:parseInt(qs('set-displayRound').value)||10,
     maxGroupSize:parseInt(qs('set-maxGroup').value)||4,
     teacherDefaultMax:parseInt(qs('set-teacherMax').value)||6,
     chainBonusKm:parseInt(qs('set-chainBonus').value)||100,
