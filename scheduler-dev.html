@@ -114,7 +114,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .ride-note{font-size:9px;font-weight:600;color:#4338CA;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:5px;padding:3px 8px;margin:3px 0 1px;text-align:center}
 /* Locked (mandatory-time) slot */
 .lock-badge{font-size:11px;cursor:help;margin-right:3px}
-.slot.locked-slot{border-color:#7C3AED;border-style:solid;background:#FAF5FF}
+.lock-toggle{position:absolute;top:3px;right:3px;font-size:10px;cursor:pointer;opacity:0.3;z-index:2;background:none;border:none;padding:2px;line-height:1}
+.slot:hover .lock-toggle{opacity:0.7}
+.lock-toggle.is-locked{opacity:1;font-size:12px}
+.slot.locked-slot{border-color:#7C3AED;border-width:2px;border-style:solid;background:#FAF5FF}
 .slot.rejected-day-slot{border-color:#DC2626!important;border-style:solid!important;background:#FEF2F2!important;box-shadow:inset 0 0 0 1px #FECACA}
 .slot.rejected-day-slot::before{content:'⛔ REJECTED DAY';display:block;font-size:8px;font-weight:700;color:#DC2626;background:#FEE2E2;border-radius:3px;padding:2px 6px;margin-bottom:4px;text-align:center}
 /* Unplaced reason banner in pool cards */
@@ -519,6 +522,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
       </div>
       <div id="sched-week-banner" style="display:none;padding:7px 14px;background:#FEF3CD;border-bottom:1px solid #F59E0B;color:#92400E;font-size:11px;font-weight:600;text-align:center"></div>
       <div id="br-filter-lbl" style="display:none;padding:6px 14px;background:#EEF2FF;border-bottom:1px solid #C7D2FE;color:#4338CA;font-size:11px;font-weight:600;text-align:center"></div>
+      <div id="sched-search-bar" style="padding:4px 10px;display:flex;align-items:center;gap:8px;background:#F8FAFC;border-bottom:1px solid #E2E8F0">
+        <span style="font-size:11px;color:var(--text3)">🔍</span>
+        <input id="sched-search" type="text" placeholder="Search student, teacher, or address…" style="flex:1;border:1px solid #CBD5E1;border-radius:6px;padding:4px 8px;font-size:11px;outline:none" oninput="filterDayView()">
+        <button onclick="qs('sched-search').value='';filterDayView()" style="font-size:10px;border:none;background:none;color:var(--text3);cursor:pointer">✕ Clear</button>
+      </div>
       <div class="sched-outer" id="sched-outer"><div class="cargrid" id="cargrid"></div></div>
       <div id="audit-outer">
         <div class="audit-bar">
@@ -1115,6 +1123,7 @@ function getUserName(){
 
 // ===== STATE =====
 let SS={},SCHED={},CARS=[],TEACHERS={},ATTEND={},curDay='Mon',curBr='All',curSort='closest';
+let _deletedTeachers=new Set(); // persisted – prevents auto-recreation after explicit delete
 let dragId=null,dragType='drop',activeSlot=null,dragSrc=null;
 // Supabase sync state
 let supaOnline=false,applyingRemote=false,lastSyncFp='',saveTimer=null;
@@ -1550,7 +1559,7 @@ function deriveTeachersFromStudents(){
   });
   Object.values(SS).forEach(s=>{
     if(!s.t)return;
-    if(!TEACHERS[s.t]){
+    if(!TEACHERS[s.t]&&!_deletedTeachers.has(s.t)){
       TEACHERS[s.t]={
         name:s.t, phone:'', branch:s.br||'Shuhada',
         days:{Sun:0,Mon:1,Tue:1,Wed:1,Thu:1},
@@ -1577,7 +1586,7 @@ function setLastEdit(name,when){
 
 function saveState(){
   // Always save locally (offline fallback, instant)
-  try{localStorage.setItem(SAVE_KEY,JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,v:5}));}catch(e){}
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,_delT:[..._deletedTeachers],v:5}));}catch(e){}
   // Don't echo remote updates back to Supabase
   if(applyingRemote)return;
   // Debounce pushes so a burst of edits only triggers one network call
@@ -1589,7 +1598,7 @@ function saveState(){
 async function pushToSupabase(){
   if(!supa){setSyncIndicator('offline');return;}
   try{
-    const payload={SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,v:5};
+    const payload={SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,_delT:[..._deletedTeachers],v:5};
     const fp=JSON.stringify(payload);
     if(fp===lastSyncFp){setSyncIndicator('synced');return;}
     const {error}=await supa.from('scheduler_state').update({
@@ -1620,6 +1629,7 @@ function tryLoadState(){
     TEACHERS=data.TEACHERS&&typeof data.TEACHERS==='object'?data.TEACHERS:{};
     ATTEND=data.ATTEND&&typeof data.ATTEND==='object'?data.ATTEND:{};
     PIPELINE=data.PIPELINE&&typeof data.PIPELINE==='object'?data.PIPELINE:{};
+    _deletedTeachers=new Set(data._delT||[]);
     deriveTeachersFromStudents();
     const raw_s=data.SCHED||{};
     SCHED={};
@@ -1644,6 +1654,7 @@ function applyRemoteData(payload,updatedBy,updatedAt){
     TEACHERS=payload.TEACHERS&&typeof payload.TEACHERS==='object'?payload.TEACHERS:{};
     ATTEND=payload.ATTEND&&typeof payload.ATTEND==='object'?payload.ATTEND:{};
     PIPELINE=payload.PIPELINE&&typeof payload.PIPELINE==='object'?payload.PIPELINE:{};
+    _deletedTeachers=new Set(payload._delT||[]);
     deriveTeachersFromStudents();
     const raw_s=payload.SCHED||{};
     SCHED={};
@@ -2116,8 +2127,9 @@ function renderCars(){
     return;
   }
   grid.innerHTML='';
-  CARS.forEach(car=>{
-    const col=document.createElement('div');col.className='carcol';
+  const carsOrdered=SETTINGS.sameBranchOnly?[...CARS].sort((a,b)=>(a.branch||'').localeCompare(b.branch||'')):CARS;
+  carsOrdered.forEach(car=>{
+    const col=document.createElement('div');col.className='carcol';col.dataset.cid=car.id;
     const slots=SCHED[d]?.[car.id]||[];
     const driverStr=car.driver?` · ${car.driver}`:'';
     // Capacity: count filled vs total slots (exclude pickup-only slots from "drop" capacity)
@@ -2156,6 +2168,33 @@ function renderCars(){
   grid.querySelectorAll('[draggable]').forEach(el=>{
     const t=el.dataset.dtype;
     el.addEventListener('dragstart',t==='pick'?dsPick:dsDrop);
+  });
+}
+
+// ──── DAY VIEW SEARCH / FILTER ────
+function filterDayView(){
+  const q=(qs('sched-search')?.value||'').toLowerCase().trim();
+  const grid=qs('cargrid');if(!grid)return;
+  const d=curDay;
+  grid.querySelectorAll('.carcol').forEach(col=>{
+    const cid=parseInt(col.dataset.cid);
+    const slots=SCHED[d]?.[cid]||[];
+    let carHasMatch=!q;
+    col.querySelectorAll('.slot-wrap').forEach((wrap,si)=>{
+      if(!q){wrap.style.display='';return;}
+      const sl_=slots[si];
+      let text='';
+      if(sl_){
+        if(sl_.t==='s'){const s=SS[sl_.id];if(s)text=`${s.n} ${s.t} ${s.a} ${s.br}`;}
+        else if(sl_.t==='d'){(sl_.ids||[]).forEach(id=>{const s=SS[id];if(s)text+=`${s.n} ${s.t} ${s.a} ${s.br} `;});}
+        else if(sl_.t==='g'){(sl_.ids||[]).forEach(id=>{const s=SS[id];if(s)text+=`${s.n} ${s.t} ${s.a} ${s.br} `;});}
+        else if(sl_.t==='pick'){const s=SS[sl_.id];if(s)text=`${s.n} ${s.t} ${s.a} pickup ${sl_.grp?.addr||''}`;}
+      }
+      const match=text.toLowerCase().includes(q);
+      wrap.style.display=match?'':'none';
+      if(match)carHasMatch=true;
+    });
+    col.style.display=carHasMatch?'':'none';
   });
 }
 
@@ -2250,6 +2289,7 @@ function renderSlot(d,cid,si){
   // the driver must detour back to branch.
   const rideNote=teacherRideNote(d,cid,si);
   const lockBadge=sl_.locked?'<span class="lock-badge" title="Mandatory time — locked by parent request">🔒</span>':'';
+  const lockBtn=`<button class="lock-toggle${sl_.locked?' is-locked':''}" onclick="event.stopPropagation();toggleSlotLock('${d}',${cid},${si})" title="${sl_.locked?'Unlock this slot':'Lock — protect from auto-schedule'}">${sl_.locked?'🔒':'🔓'}</button>`;
   // Rejected-day check: any student in this slot on a day their parent rejected?
   const slotIds=slotStudentIds(sl_);
   const rejCls=slotIds.some(sid=>isRejectedDay(sid,d))?' rejected-day-slot':'';
@@ -2286,7 +2326,8 @@ function renderSlot(d,cid,si){
       </div></div>`;
     return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
       ${rideNote}
-      <div class="slot filled${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" ${base} ${handlers}>
+      <div class="slot filled${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" style="position:relative" ${base} ${handlers}>
+        ${lockBtn}
         ${sl_.grp?`<div class="grp-banner">🏠 Group: <span class="grp-loc">${sl(sl_.grp.addr)}</span></div>`:''}
         <div class="journey drop-j"><span class="j-from">${fromLabel}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
         <div class="slot-toprow">${lockBadge}${warns}<button class="edit-ico" onclick="event.stopPropagation();editStudent('${s.id}')" title="Edit student">✏</button></div>
@@ -2357,10 +2398,11 @@ function renderSlot(d,cid,si){
     }).join('');
     return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
       ${rideNote}
-      <div class="slot paired${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" ${base} ${handlers}>
+      <div class="slot paired${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" style="position:relative" ${base} ${handlers}>
+        ${lockBtn}
         ${sl_.grp?`<div class="grp-banner">🏠 Group: <span class="grp-loc">${sl(sl_.grp.addr)}</span> — all teachers same location</div>`:''}
         <div class="journey drop-j"><span class="j-from">${fromLabel}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
-        <div class="slot-toprow">${warns}</div>
+        <div class="slot-toprow">${lockBadge}${warns}</div>
         <div class="dd-hdr"><span class="dd-badge">${label}</span><span class="dd-km">${headerDetail}</span></div>
         ${studentCards}
         ${pickRows}
@@ -2395,7 +2437,8 @@ function renderSlot(d,cid,si){
     return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
       ${pickRideNote}
       ${xcarNote}
-      <div class="slot pickup-slot${isActive?' active-slot':''}${rejCls}" ${base} ${handlers}>
+      <div class="slot pickup-slot${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" style="position:relative" ${base} ${handlers}>
+        ${lockBtn}
         <div class="journey pick-j"><span class="j-from">${sl(pAddr)}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
         <div class="slot-toprow">${warns}<button class="edit-ico" onclick="event.stopPropagation();editStudent('${s.id}')" title="Edit student">✏</button></div>
         <div class="ss" draggable="true" data-sid="${s.id}" data-dtype="pick" style="border-left:3px solid ${col};padding-top:2px">
@@ -2442,7 +2485,8 @@ function renderSlot(d,cid,si){
     }).join('');
     return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
       ${rideNote}
-      <div class="slot group-slot${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" ${base} ${handlers}>
+      <div class="slot group-slot${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" style="position:relative" ${base} ${handlers}>
+        ${lockBtn}
         <div class="grp-hdr">
           <span style="font-size:9px;font-weight:700;color:#92400E">&#127968; GROUP</span>
           <span class="grp-count-pill">${sl_.ids.length}/7 children</span>
@@ -2676,7 +2720,7 @@ function clearBranchFromSched(br){
   DAYS.forEach(d=>CARS.forEach(car=>{
     const s=SCHED[d]?.[car.id];if(!s)return;
     s.forEach((sl_,i)=>{
-      if(!sl_)return;
+      if(!sl_||sl_.locked)return;
       if(sl_.t==='s'&&SS[sl_.id]&&SS[sl_.id].br===br)s[i]=null;
       else if(sl_.t==='d'&&Array.isArray(sl_.ids)){
         const remaining=sl_.ids.filter(x=>!(SS[x]&&SS[x].br===br));
@@ -2691,6 +2735,24 @@ function clearBranchFromSched(br){
       else if(sl_.t==='pick'&&SS[sl_.id]&&SS[sl_.id].br===br)s[i]=null;
     });
   }));
+}
+
+function toggleSlotLock(d,cid,si){
+  const sl_=SCHED[d]?.[cid]?.[si];
+  if(!sl_)return;
+  sl_.locked=!sl_.locked;
+  // Also lock/unlock the corresponding pickup slot(s)
+  if(sl_.t!=='pick'){
+    slotStudentIds(sl_).forEach(sid=>{
+      const pick=findPickSlot(sid);
+      if(pick){
+        const psl=SCHED[pick.d]?.[pick.cid]?.[pick.si];
+        if(psl)psl.locked=sl_.locked;
+      }
+    });
+  }
+  saveState();renderSched();
+  toast(sl_.locked?'🔒 Slot locked — auto-schedule will skip it':'🔓 Slot unlocked');
 }
 
 function rmSlot(d,cid,si){
@@ -2938,10 +3000,17 @@ function patchMandatory(sid,idx,field,val){
 
 function patchStudent(sid,field,val){
   if(!SS[sid])return;
+  const oldVal=SS[sid][field];
   SS[sid][field]=val;
   // If the teacher name changed and the new name isn't in TEACHERS, create a default record
   if(field==='t'&&val&&!TEACHERS[val]){
+    _deletedTeachers.delete(val);
     TEACHERS[val]={name:val,phone:'',branch:SS[sid].br||'Shuhada',days:{Sun:0,Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:6,active:1,note:''};
+  }
+  // When session type changes (group↔1on1), remove from schedule so they re-enter the pool
+  if(field==='sessionType'&&val!==oldVal){
+    rmFromSched(sid);
+    renderSched();
   }
   saveState();
   renderPool();
@@ -4519,14 +4588,17 @@ function renameTeacher(oldName,newName){
 }
 function deleteTeacher(name){
   const sc=teacherStudentCount(name);
-  if(sc>0&&!confirm(`${name} has ${sc} student${sc===1?'':'s'} assigned. Removing the teacher record will NOT delete the students — they'll keep the teacher name but won't have availability data. Continue?`))return;
+  if(sc>0&&!confirm(`${name} has ${sc} student${sc===1?'':'s'} assigned. Removing the teacher will also clear this teacher from those students. Continue?`))return;
   if(sc===0&&!confirm(`Remove teacher "${name}"?`))return;
+  Object.values(SS).forEach(s=>{if(s.t===name)s.t='';});
+  _deletedTeachers.add(name);
   delete TEACHERS[name];
-  saveState();renderTeachersTable();
+  saveState();renderTeachersTable();renderPool();
 }
 function addTeacherRow(){
   let base='New teacher',name=base,i=1;
   while(TEACHERS[name]){name=base+' '+(++i);}
+  _deletedTeachers.delete(name);
   TEACHERS[name]={name,phone:'',branch:'Shuhada',days:{Sun:0,Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:6,active:1,note:''};
   saveState();renderTeachersTable();
   // Focus the name cell of the new row for quick editing
@@ -4909,11 +4981,18 @@ function renderTeacherWeeklyReport(){
           </div>
           <div style="font-size:9px;color:var(--text3);margin-bottom:6px">${dayTags} · max ${t.maxPerDay||6}/day${t.active?'':' · <span style="color:#DC2626">INACTIVE</span>'}</div>
           ${sessions.length?`<div style="font-size:10px;line-height:1.6">
-            ${sessions.map(x=>`<div style="padding:3px 0;border-top:1px solid #F0F0F0;display:flex;gap:6px">
-              <span style="font-weight:700;color:var(--purple);min-width:60px">${x.d} ${ts(x.startM)}</span>
-              <span style="flex:1">${esc(x.s.n)}</span>
-              <span style="font-size:9px;color:var(--text3)">${esc(x.car?.label||'')}</span>
-            </div>`).join('')}
+            ${sessions.map(x=>{
+  const addr=x.s.a||'';
+  const grpCoords=x.sl_?.t==='g'?resolveGroupCoords(x.s):null;
+  const pickupAddr=grpCoords&&SS[x.sl_?.ids?.[0]]?SS[x.sl_.ids[0]].a:addr;
+  return `<div style="padding:4px 0;border-top:1px solid #F0F0F0">
+  <div style="display:flex;gap:6px;align-items:center">
+    <span style="font-weight:700;color:var(--purple);min-width:60px">${x.d} ${ts(x.startM)}</span>
+    <span style="flex:1">${esc(x.s.n)}</span>
+    <span style="font-size:9px;color:var(--text3)">${esc(x.car?.label||'')}</span>
+  </div>
+  <div style="font-size:9px;color:#6B7280;padding-left:66px;margin-top:1px">📍 ${esc(pickupAddr||'No address')}</div>
+</div>`;}).join('')}
           </div>`:'<div style="font-size:10px;color:var(--text3);font-style:italic">No sessions scheduled this week</div>'}
         </div>`;
       }).join('')}
@@ -5184,7 +5263,8 @@ function autoScopeNoteRefresh(){
 // ──── ONE-TIME REPAIR: relocate pickups that start before their session ends ────
 function fixEarlyPickups(){
   let fixed=0,removed=0;
-  DAYS_ACTIVE.forEach(day=>{
+  const daysToScan=activeDays();
+  daysToScan.forEach(day=>{
     CARS.forEach(car=>{
       const slots=SCHED[day]?.[car.id]||[];
       for(let si=0;si<slots.length;si++){
@@ -5243,8 +5323,13 @@ function runAutoSchedule(){
   const scopeBr=(qs('auto-branch')?.value)||'All';
   qs('automodal').style.display='none';
   if(clearFirst){
-    if(scopeBr==='All'){SCHED=blankSched();ensureSchedCoverage();}
-    else clearBranchFromSched(scopeBr);
+    if(scopeBr==='All'){
+      DAYS.forEach(d=>CARS.forEach(car=>{
+        const s=SCHED[d]?.[car.id];if(!s)return;
+        s.forEach((sl_,i)=>{if(sl_&&!sl_.locked)s[i]=null;});
+      }));
+      ensureSchedCoverage();
+    } else clearBranchFromSched(scopeBr);
   }
   deriveTeachersFromStudents();
 
@@ -5635,6 +5720,7 @@ function runAutoSchedule(){
         // Score cars: prefer same car as drop, then nearest empty slot to ready time
         let bestCar=null,bestSi=-1,bestScore=Infinity;
         CARS.forEach(car=>{
+          if(sameBranchOnly&&!carServesBranch(car,s))return;
           const slots=SCHED[day]?.[car.id]||[];
           for(let si=0;si<slots.length;si++){
             if(slots[si])continue;

@@ -437,6 +437,95 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 .pl-log-add button{padding:5px 10px;background:var(--purple);color:#fff;border:none;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer}
 .pl-search{padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:11px;width:180px;outline:none;font-family:inherit}
 .pl-search:focus{border-color:var(--purple);box-shadow:0 0 0 2px rgba(106,95,168,.15)}
+/* ===== CASES (Retention & Refund Defense) ===== */
+[data-active-theme="cs"]{--accent:#DC2626;--accent-lt:#FEE2E2;--accent-dk:#991B1B}
+.cs-topbar{background:#fff;color:var(--text);padding:5px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+#cs-dashboard-outer,#cs-kanban-outer,#cs-scripts-outer{overflow-y:auto;flex:1;padding:14px;background:var(--bg)}
+#cs-dashboard-outer,#cs-scripts-outer{display:none}
+/* Dashboard cards reuse pl-dash classes for visual consistency */
+.cs-dash-headline{padding:14px 16px;background:linear-gradient(135deg,#FEE2E2 0%,#FEF3CD 100%);border:1px solid #FCA5A5;border-radius:10px;margin-bottom:12px;font-size:11px;line-height:1.6;color:#7F1D1D}
+.cs-dash-headline b{color:#991B1B}
+/* Segment badges */
+.cs-seg-loyal{background:#D1FAE5;color:#065F46}
+.cs-seg-hesitant{background:#FEF3CD;color:#92400E}
+.cs-seg-highrisk{background:#FEE2E2;color:#991B1B}
+.cs-seg{display:inline-block;font-size:8px;font-weight:700;padding:1px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:.4px}
+/* Type badges */
+.cs-type{display:inline-block;font-size:8px;font-weight:700;padding:1px 6px;border-radius:4px}
+.cs-type-refund{background:#FEE2E2;color:#991B1B}
+.cs-type-cancel{background:#FEF3CD;color:#92400E}
+.cs-type-incident{background:#EDE9FE;color:#5B21B6}
+.cs-type-complaint{background:#DBEAFE;color:#1E40AF}
+.cs-type-other{background:#F3F4F6;color:#374151}
+/* Level pill (escalation) */
+.cs-lvl{display:inline-block;font-size:8px;font-weight:700;padding:1px 6px;border-radius:4px;border:1px solid}
+.cs-lvl-1{background:#ECFDF5;color:#065F46;border-color:#A7F3D0}
+.cs-lvl-2{background:#EFF6FF;color:#1E40AF;border-color:#BFDBFE}
+.cs-lvl-3{background:#FEF3CD;color:#92400E;border-color:#FDE68A}
+.cs-lvl-4{background:#FEE2E2;color:#991B1B;border-color:#FCA5A5}
+/* Card */
+.cs-card{background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;cursor:grab;transition:box-shadow .15s,border-color .15s;position:relative}
+.cs-card:hover{border-color:var(--accent);box-shadow:0 2px 8px rgba(220,38,38,.13)}
+.cs-card.dragging{opacity:.4;border-style:dashed}
+.cs-card.stale{border-color:#FCA5A5;background:#FFFBFB}
+.cs-card .cs-card-name{font-size:11px;font-weight:700;color:var(--text);margin-bottom:2px}
+.cs-card .cs-card-amount{font-size:10px;color:var(--text2);font-weight:600}
+.cs-card .cs-card-meta{display:flex;align-items:center;gap:5px;margin-top:5px;flex-wrap:wrap}
+.cs-card .cs-card-foot{display:flex;align-items:center;gap:6px;margin-top:5px;font-size:9px;color:var(--text3)}
+.cs-card .cs-card-stale{position:absolute;top:4px;right:6px;font-size:8px;font-weight:700;color:#DC2626;background:#FEE2E2;border-radius:4px;padding:1px 5px}
+/* Modal — reuse pl-modal classes; this just expands width slightly */
+.cs-modal{width:620px}
+/* Scripts */
+.cs-script-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px}
+.cs-script-card h4{font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.cs-script-card .cs-script-when{font-size:10px;color:var(--text3);margin-bottom:8px}
+.cs-script-text{background:var(--bg-mid);border-radius:8px;padding:10px 12px;font-size:11px;line-height:1.7;color:var(--text);white-space:pre-wrap;direction:rtl;text-align:right;font-family:'Tahoma','Arial',sans-serif;border-right:3px solid var(--accent)}
+.cs-script-text.ltr{direction:ltr;text-align:left;font-family:inherit;border-right:none;border-left:3px solid var(--accent)}
+.cs-script-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.cs-script-actions button{padding:4px 10px;border:1px solid var(--border);background:#fff;color:var(--text2);font-size:10px;border-radius:5px;cursor:pointer;font-weight:600;font-family:inherit}
+.cs-script-actions button:hover{background:var(--accent-lt);border-color:var(--accent);color:var(--accent-dk)}
+/* Value-stack chips inside modal */
+.cs-vs-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.cs-vs-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border:1px solid var(--border);border-radius:14px;font-size:10px;color:var(--text2);cursor:pointer;background:#fff;user-select:none}
+.cs-vs-chip:hover{border-color:var(--accent);color:var(--accent-dk)}
+.cs-vs-chip.on{background:var(--accent-lt);border-color:var(--accent);color:var(--accent-dk);font-weight:600}
+.cs-vs-chip input{display:none}
+/* Card activity preview */
+.cs-card-activities{margin-top:6px;padding-top:5px;border-top:1px dashed var(--border);font-size:9px;line-height:1.45;color:var(--text2)}
+.cs-card-todos{font-weight:600;color:var(--accent-dk);margin-bottom:2px}
+.cs-card-lastlog{color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Next-action checklist (modal) */
+.cs-na-list{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.cs-na-item{display:flex;align-items:center;gap:8px;padding:6px 8px;background:#fff;border:1px solid var(--border);border-radius:6px;font-size:11px}
+/* Override .pl-field input{width:100%} so the checkbox stays a checkbox */
+.cs-na-item input[type="checkbox"]{margin:0;cursor:pointer;flex-shrink:0;width:auto;padding:0;border:1px solid var(--border)}
+.cs-na-item.done .cs-na-text{text-decoration:line-through;color:var(--text3)}
+.cs-na-text{flex:1;min-width:0;color:var(--text);word-break:break-word}
+.cs-na-when{font-size:9px;color:var(--text3);flex-shrink:0}
+.cs-na-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0 4px;line-height:1}
+.cs-na-del:hover{color:var(--accent)}
+/* Settings modal sections */
+.cs-settings-section{background:#FAFAFA;border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:10px}
+.cs-settings-section h4{font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+.cs-settings-add{display:flex;gap:6px;margin-top:6px}
+.cs-settings-add input{flex:1;padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px;font-family:inherit}
+.cs-settings-add button{padding:5px 10px;border:1px solid var(--accent);background:var(--accent);color:#fff;font-size:10px;border-radius:5px;cursor:pointer;font-weight:600;font-family:inherit}
+.cs-set-list{display:flex;flex-wrap:wrap;gap:5px}
+.cs-set-item{display:inline-flex;align-items:center;gap:5px;padding:3px 4px 3px 8px;background:#fff;border:1px solid var(--border);border-radius:14px;font-size:10px;color:var(--text)}
+.cs-set-item button{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:0 3px;line-height:1}
+.cs-set-item button:hover{color:var(--accent)}
+/* Day tracker table */
+.cs-tracker{background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px}
+.cs-tracker table{width:100%;border-collapse:collapse;font-size:10px}
+.cs-tracker th{background:var(--bg-mid);text-align:left;padding:8px 10px;font-weight:700;color:var(--text2);font-size:9px;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border)}
+.cs-tracker td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text)}
+.cs-tracker tr:last-child td{border-bottom:none}
+.cs-tracker tr:hover td{background:#FAFAFA;cursor:pointer}
+/* Outcome badges (resolved cases) */
+.cs-out-paid{background:#D1FAE5;color:#065F46}
+.cs-out-partial{background:#FEF3CD;color:#92400E}
+.cs-out-cancelled{background:#FEE2E2;color:#991B1B}
+.cs-out-lost{background:#F3F4F6;color:#374151}
 /* ===== THEME CONTAINERS ===== */
 .theme-panel{display:none;flex:1;overflow:hidden;flex-direction:column}
 .theme-panel.active{display:flex}
@@ -528,6 +617,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
   <div class="topnav-brand" title="Click ☰ Menu → Branding to change logo"><img src="/favicon.svg" alt="BeCurious"></div>
   <div id="env-badge" style="display:none;font-size:9px;font-weight:700;color:#92400E;background:#FEF3C7;padding:3px 10px;border-radius:999px;margin-right:6px;letter-spacing:.4px"></div>
   <button class="theme-tab active" data-theme="hv" onclick="switchTheme('hv')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home Visits</button>
+  <button class="theme-tab" data-theme="cs" onclick="switchTheme('cs')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>Cases<span id="cs-tab-badge" style="display:none;background:#DC2626;color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:999px;margin-left:6px"></span></button>
   <button class="theme-tab" data-theme="pl" onclick="switchTheme('pl')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Pipeline</button>
   <div class="topnav-spacer"></div>
   <div class="topnav-shared">
@@ -645,16 +735,53 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
   </div>
 </div>
 
+<!-- ===== THEME: CASES (Retention & Refund Defense) ===== -->
+<div class="theme-panel" id="theme-cs">
+  <div class="cs-topbar">
+    <div style="flex:1"></div>
+    <button class="ctx-btn" onclick="openCsModal()" style="background:#DC2626;color:#fff;border-color:#DC2626"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>New Case</button>
+    <div class="sub-tabs">
+      <button class="sub-tab" id="vt-cs-dash" onclick="switchCsView('dashboard')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Dashboard</button>
+      <button class="sub-tab active" id="vt-cs-kanban" onclick="switchCsView('kanban')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v11"/><path d="M12 5v6"/><path d="M18 5v14"/></svg>Kanban</button>
+      <button class="sub-tab" id="vt-cs-scripts" onclick="switchCsView('scripts')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>Scripts</button>
+    </div>
+  </div>
+  <div id="cs-dashboard-outer"></div>
+  <div id="cs-kanban-outer"></div>
+  <div id="cs-scripts-outer"></div>
+</div>
+
+<!-- ===== CASES MODAL ===== -->
+<div class="pl-modal-overlay" id="cs-modal-overlay">
+  <div class="pl-modal cs-modal">
+    <div class="pl-modal-hdr"><h3 id="cs-modal-title">New Case</h3><button class="pl-modal-close" onclick="closeCsModal()">&times;</button></div>
+    <div class="pl-modal-body" id="cs-modal-body"></div>
+    <div class="pl-modal-actions" id="cs-modal-actions"></div>
+  </div>
+</div>
+
+<!-- ===== CASES SETTINGS MODAL ===== -->
+<div class="pl-modal-overlay" id="cs-settings-overlay" onclick="if(event.target===this)csCloseSettings()">
+  <div class="pl-modal cs-modal">
+    <div class="pl-modal-hdr"><h3>Cases Settings</h3><button class="pl-modal-close" onclick="csCloseSettings()">&times;</button></div>
+    <div class="pl-modal-body" id="cs-settings-body"></div>
+    <div class="pl-modal-actions">
+      <button class="pl-btn-secondary" onclick="csResetSettings()">Reset to defaults</button>
+      <button class="pl-btn-primary" onclick="csCloseSettings()">Done</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== THEME: PIPELINE ===== -->
 <div class="theme-panel" id="theme-pl">
   <div class="pl-topbar">
     <div style="flex:1"></div>
     <div class="sub-tabs">
-      <button class="sub-tab active" id="vt-pl-dash" onclick="switchPlView('dashboard')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Dashboard</button>
-      <button class="sub-tab" id="vt-pl-kanban" onclick="switchPlView('kanban')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v11"/><path d="M12 5v6"/><path d="M18 5v14"/></svg>Kanban</button>
+      <button class="sub-tab" id="vt-pl-dash" onclick="switchPlView('dashboard')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Dashboard</button>
+      <button class="sub-tab active" id="vt-pl-kanban" onclick="switchPlView('kanban')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v11"/><path d="M12 5v6"/><path d="M18 5v14"/></svg>Kanban</button>
     </div>
   </div>
-  <div id="pl-dashboard-outer" style="overflow-y:auto;flex:1"></div>
+  <div id="pl-dashboard-outer" style="overflow-y:auto;flex:1;display:none"></div>
   <div id="pipeline-outer" style="overflow-y:auto;flex:1"></div>
 </div>
 
@@ -1617,6 +1744,7 @@ function init(){
   SS={};RAW.forEach(([id,n,br,t,la,ln,a])=>SS[id]={id,n,br,t,la,ln,a,visits:0,parentPhone:'',sessionsPerWeek:1,sessionType:'1on1'});
   SCHED=blankSched();activeSlot=null;
   TEACHERS={};ATTEND={};
+  if(typeof CASES==='undefined')window.CASES={};
   deriveTeachersFromStudents();
 }
 // Ensure any newly introduced per-student fields exist on loaded records
@@ -1680,7 +1808,7 @@ function setLastEdit(name,when){
 
 function saveState(){
   // Always save locally (offline fallback, instant)
-  try{localStorage.setItem(SAVE_KEY,JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,_delT:[..._deletedTeachers],v:5}));}catch(e){}
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,CASES,CASE_SETTINGS:(typeof CASE_SETTINGS!=='undefined'?CASE_SETTINGS:null),_delT:[..._deletedTeachers],v:5}));}catch(e){}
   // Don't echo remote updates back to Supabase
   if(applyingRemote)return;
   // Debounce pushes so a burst of edits only triggers one network call
@@ -1692,7 +1820,7 @@ function saveState(){
 async function pushToSupabase(){
   if(!supa){setSyncIndicator('offline');return;}
   try{
-    const payload={SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,_delT:[..._deletedTeachers],v:5};
+    const payload={SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,CASES,CASE_SETTINGS:(typeof CASE_SETTINGS!=='undefined'?CASE_SETTINGS:null),_delT:[..._deletedTeachers],v:5};
     const fp=JSON.stringify(payload);
     if(fp===lastSyncFp){setSyncIndicator('synced');return;}
     const {error}=await supa.from('scheduler_state').update({
@@ -1723,6 +1851,10 @@ function tryLoadState(){
     TEACHERS=data.TEACHERS&&typeof data.TEACHERS==='object'?data.TEACHERS:{};
     ATTEND=data.ATTEND&&typeof data.ATTEND==='object'?data.ATTEND:{};
     PIPELINE=data.PIPELINE&&typeof data.PIPELINE==='object'?data.PIPELINE:{};
+    CASES=data.CASES&&typeof data.CASES==='object'?data.CASES:{};
+    if(data.CASE_SETTINGS&&typeof data.CASE_SETTINGS==='object'&&typeof CASE_SETTINGS!=='undefined')CASE_SETTINGS=mergeCaseSettings(data.CASE_SETTINGS);
+    if(typeof migrateCases==='function')migrateCases();
+    if(typeof migratePipeline==='function')migratePipeline();
     _deletedTeachers=new Set(data._delT||[]);
     deriveTeachersFromStudents();
     const raw_s=data.SCHED||{};
@@ -1748,6 +1880,10 @@ function applyRemoteData(payload,updatedBy,updatedAt){
     TEACHERS=payload.TEACHERS&&typeof payload.TEACHERS==='object'?payload.TEACHERS:{};
     ATTEND=payload.ATTEND&&typeof payload.ATTEND==='object'?payload.ATTEND:{};
     PIPELINE=payload.PIPELINE&&typeof payload.PIPELINE==='object'?payload.PIPELINE:{};
+    CASES=payload.CASES&&typeof payload.CASES==='object'?payload.CASES:{};
+    if(payload.CASE_SETTINGS&&typeof payload.CASE_SETTINGS==='object'&&typeof CASE_SETTINGS!=='undefined')CASE_SETTINGS=mergeCaseSettings(payload.CASE_SETTINGS);
+    if(typeof migrateCases==='function')migrateCases();
+    if(typeof migratePipeline==='function')migratePipeline();
     _deletedTeachers=new Set(payload._delT||[]);
     deriveTeachersFromStudents();
     const raw_s=payload.SCHED||{};
@@ -1756,7 +1892,7 @@ function applyRemoteData(payload,updatedBy,updatedAt){
       const arr=raw_s[d]?.[car.id]||[];
       SCHED[d][car.id]=arr.length>=MAX_SL?arr:[...arr,...Array(MAX_SL-arr.length).fill(null)];
     });});
-    lastSyncFp=JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,v:5});
+    lastSyncFp=JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,CASES,CASE_SETTINGS:(typeof CASE_SETTINGS!=='undefined'?CASE_SETTINGS:null),v:5});
     setLastEdit(updatedBy,updatedAt);
     return true;
   }finally{
@@ -1788,7 +1924,7 @@ function subscribeRealtime(){
       (pl)=>{
         const newData=pl.new&&pl.new.data;
         if(!newData)return;
-        const fp=JSON.stringify({SS:newData.SS,SCHED:newData.SCHED,CARS:newData.CARS,TEACHERS:newData.TEACHERS||{},ATTEND:newData.ATTEND||{},SETTINGS:newData.SETTINGS||DEFAULT_SETTINGS,PIPELINE:newData.PIPELINE||{},v:5});
+        const fp=JSON.stringify({SS:newData.SS,SCHED:newData.SCHED,CARS:newData.CARS,TEACHERS:newData.TEACHERS||{},ATTEND:newData.ATTEND||{},SETTINGS:newData.SETTINGS||DEFAULT_SETTINGS,PIPELINE:newData.PIPELINE||{},CASES:newData.CASES||{},CASE_SETTINGS:newData.CASE_SETTINGS||null,v:5});
         // Ignore our own echo
         if(fp===lastSyncFp)return;
         if(applyRemoteData(newData,pl.new.updated_by,pl.new.updated_at)){
@@ -1820,6 +1956,10 @@ function importState(){
       TEACHERS=data.TEACHERS&&typeof data.TEACHERS==='object'?data.TEACHERS:{};
       ATTEND=data.ATTEND&&typeof data.ATTEND==='object'?data.ATTEND:{};
       PIPELINE=data.PIPELINE&&typeof data.PIPELINE==='object'?data.PIPELINE:{};
+      CASES=data.CASES&&typeof data.CASES==='object'?data.CASES:{};
+      if(data.CASE_SETTINGS&&typeof data.CASE_SETTINGS==='object'&&typeof CASE_SETTINGS!=='undefined')CASE_SETTINGS=mergeCaseSettings(data.CASE_SETTINGS);
+      if(typeof migrateCases==='function')migrateCases();
+      if(typeof migratePipeline==='function')migratePipeline();
       deriveTeachersFromStudents();
       SCHED={};
       DAYS.forEach(d=>{SCHED[d]={};CARS.forEach(car=>{
@@ -4061,11 +4201,19 @@ function switchTheme(theme){
   document.querySelectorAll('.theme-tab').forEach(t=>t.classList.toggle('active',t.dataset.theme===theme));
   // Toggle theme panels
   document.querySelectorAll('.theme-panel').forEach(p=>p.classList.toggle('active',p.id==='theme-'+theme));
-  // Render appropriate view
-  if(theme==='pl'){renderPlDashboard();renderPipeline();}
+  // Render appropriate view — both pipeline and cases default to kanban
+  if(theme==='pl'){
+    if(_plView==='dashboard')renderPlDashboard();
+    else renderPipeline();
+  }
+  if(theme==='cs'){
+    if(_csView==='dashboard')renderCsDashboard();
+    else if(_csView==='kanban')renderCsKanban();
+    else if(_csView==='scripts')renderCsScripts();
+  }
 }
 
-let _plView='dashboard';
+let _plView='kanban';
 function switchPlView(view){
   _plView=view;
   const dashBtn=document.getElementById('vt-pl-dash');
@@ -6210,12 +6358,25 @@ function newLead(overrides){
     lostReason:'',
     lostNote:'',
     contactCount:0,
+    paymentStatus:'unpaid',          // unpaid | partial | paid
+    enrollmentStatus:'enrolled',     // enrolled | withdraw_request | withdrew
     notes:'',
     log:[],         // [{ts,type:'outgoing'|'incoming'|'note',text}]
     createdAt:now,
     updatedAt:now,
     stageEnteredAt:now
   },overrides||{},{id});
+}
+
+// Migrate any legacy leads so they always have payment/enrollment fields
+function migratePipeline(){
+  if(!PIPELINE||typeof PIPELINE!=='object')return;
+  Object.values(PIPELINE).forEach(l=>{
+    if(!l)return;
+    if(typeof l.paymentStatus!=='string')l.paymentStatus='unpaid';
+    if(typeof l.enrollmentStatus!=='string')l.enrollmentStatus='enrolled';
+    if(!Array.isArray(l.log))l.log=[];
+  });
 }
 
 function plLeadsByStage(stageId){
@@ -6359,6 +6520,8 @@ function renderPipeline(){
   h+='<span class="pl-stat" title="5 Weekly Numbers (SOP 4.6.4)">This week: <b>'+wkInq+'</b> inq · <b>'+wkTour+'</b> booked · <b>'+wkTouredN+'</b> toured · <b>'+wkOffer+'</b> offers · <b>'+wkEnrolled+'</b> enrolled</span>';
   h+='<div style="flex:1"></div>';
   h+='<input class="pl-search" placeholder="Search leads..." value="'+esc(_plSearch)+'" oninput="_plSearch=this.value;renderPipeline()">';
+  h+='<button class="pl-add-btn" onclick="plExportCsv()" title="Export leads to CSV" style="background:#fff;color:var(--text);border:1px solid var(--border)">&darr; Export</button>';
+  h+='<button class="pl-add-btn" onclick="plImportCsvDialog()" title="Import leads from CSV" style="background:#fff;color:var(--text);border:1px solid var(--border)">&uarr; Import</button>';
   h+='<button class="pl-add-btn" onclick="openPlModal()">+ New Lead</button>';
   h+='</div>';
 
@@ -6382,6 +6545,14 @@ function renderPipeline(){
       if(lead.source) h+='<span class="pl-src">'+esc(lead.source)+'</span>';
       h+='<span>'+days+'d in stage</span>';
       if(lead.contactCount>0) h+='<span>'+lead.contactCount+'/'+PL_MAX_CONTACTS+' contacts</span>';
+      // Payment + enrollment chips
+      const _ps=lead.paymentStatus||'';
+      if(_ps==='paid')h+='<span class="pl-src" style="background:#D1FAE5;color:#065F46;border-color:#A7F3D0">Paid</span>';
+      else if(_ps==='partial')h+='<span class="pl-src" style="background:#FEF3CD;color:#92400E;border-color:#FDE68A">Partial</span>';
+      else if(_ps==='unpaid')h+='<span class="pl-src" style="background:#FEE2E2;color:#991B1B;border-color:#FCA5A5">Unpaid</span>';
+      const _es=lead.enrollmentStatus||'';
+      if(_es==='withdraw_request')h+='<span class="pl-src" style="background:#FEF3CD;color:#92400E;border-color:#FDE68A">Withdraw req.</span>';
+      else if(_es==='withdrew')h+='<span class="pl-src" style="background:#FEE2E2;color:#991B1B;border-color:#FCA5A5">Withdrew</span>';
       h+='</div>';
       h+='</div>';
     });
@@ -6463,6 +6634,14 @@ function openPlModal(leadId){
   b+='<div class="pl-field"><label>Lost Note</label><input id="pl-f-lostnote" value="'+esc(lead.lostNote||'')+'"></div>';
   b+='</div>';
 
+  // Payment + enrollment status (shared truth across Pipeline and Cases)
+  b+='<div class="pl-field-row">';
+  const _payOpts=(typeof CS_PAYMENT_STATUSES!=='undefined'?CS_PAYMENT_STATUSES:[{id:'unpaid',label:'Unpaid'},{id:'partial',label:'Partial'},{id:'paid',label:'Paid'}]);
+  const _enrOpts=(typeof CS_ENROLLMENT_STATUSES!=='undefined'?CS_ENROLLMENT_STATUSES:[{id:'enrolled',label:'Enrolled'},{id:'withdraw_request',label:'Withdraw request'},{id:'withdrew',label:'Withdrew'}]);
+  b+='<div class="pl-field"><label>Payment Status</label><select id="pl-f-payment">'+_payOpts.map(p=>'<option value="'+p.id+'"'+((lead.paymentStatus||'unpaid')===p.id?' selected':'')+'>'+esc(p.label)+'</option>').join('')+'</select></div>';
+  b+='<div class="pl-field"><label>Enrollment Status</label><select id="pl-f-enrollment">'+_enrOpts.map(e=>'<option value="'+e.id+'"'+((lead.enrollmentStatus||'enrolled')===e.id?' selected':'')+'>'+esc(e.label)+'</option>').join('')+'</select></div>';
+  b+='</div>';
+
   b+='<div class="pl-field"><label>Notes</label><textarea id="pl-f-notes" rows="2">'+esc(lead.notes||'')+'</textarea></div>';
 
   // Conversation log
@@ -6522,6 +6701,8 @@ function plSaveLead(leadId,isNew){
   existing.tourOutcome=document.getElementById('pl-f-tourout').value;
   existing.lostReason=document.getElementById('pl-f-lostreason').value;
   existing.lostNote=document.getElementById('pl-f-lostnote').value.trim();
+  const _payEl=document.getElementById('pl-f-payment');if(_payEl)existing.paymentStatus=_payEl.value;
+  const _enrEl=document.getElementById('pl-f-enrollment');if(_enrEl)existing.enrollmentStatus=_enrEl.value;
   existing.notes=document.getElementById('pl-f-notes').value.trim();
   existing.updatedAt=now;
 
@@ -6560,6 +6741,1013 @@ function plAddLogEntry(leadId){
   openPlModal(leadId);
 }
 
+// ---- Pipeline CSV import / export ----
+// Shared CSV helpers (defined once, also used by Cases). If Cases already
+// defined them we re-use; otherwise we define here.
+if(typeof csCsvField==='undefined'){
+  window.csCsvField=function(v){
+    if(v==null)return '';
+    const s=String(v);
+    if(/[",\n\r]/.test(s))return '"'+s.replace(/"/g,'""')+'"';
+    return s;
+  };
+}
+if(typeof csParseCsv==='undefined'){
+  window.csParseCsv=function(text){
+    const rows=[];let row=[],cur='',inQ=false;
+    for(let i=0;i<text.length;i++){
+      const ch=text[i];
+      if(inQ){
+        if(ch==='"'){
+          if(text[i+1]==='"'){cur+='"';i++;}
+          else inQ=false;
+        }else cur+=ch;
+      }else{
+        if(ch==='"')inQ=true;
+        else if(ch===','){row.push(cur);cur='';}
+        else if(ch==='\n'){row.push(cur);rows.push(row);row=[];cur='';}
+        else if(ch==='\r'){/* skip */}
+        else cur+=ch;
+      }
+    }
+    if(cur.length||row.length){row.push(cur);rows.push(row);}
+    return rows;
+  };
+}
+
+const PL_CSV_COLS=['id','familyName','childName','childAge','phone','email','source','branch','stage','tourDate','tourOutcome','lostReason','lostNote','contactCount','paymentStatus','enrollmentStatus','notes','createdAt','updatedAt','stageEnteredAt'];
+
+function plExportCsv(){
+  const leads=Object.values(PIPELINE||{});
+  const lines=[PL_CSV_COLS.join(',')];
+  leads.forEach(l=>{
+    lines.push(PL_CSV_COLS.map(k=>csCsvField(l[k])).join(','));
+  });
+  const blob=new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='BeCurious_Pipeline_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  URL.revokeObjectURL(url);
+  if(typeof toast==='function')toast('Exported '+leads.length+' leads to CSV');
+}
+
+function plImportCsvDialog(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.csv,text/csv';
+  inp.onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=ev=>{plImportCsvText(ev.target.result);};
+    r.readAsText(f);
+  };
+  inp.click();
+}
+
+function plImportCsvText(text){
+  if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);
+  const rows=csParseCsv(text).filter(r=>r.length>1||(r.length===1&&r[0]));
+  if(rows.length<2){alert('CSV is empty');return;}
+  const header=rows[0].map(h=>h.trim());
+  let added=0,updated=0;
+  for(let i=1;i<rows.length;i++){
+    const row=rows[i];
+    const obj={};
+    header.forEach((h,j)=>{obj[h]=row[j]!=null?row[j]:'';});
+    const id=obj.id&&obj.id.trim()?obj.id.trim():plId();
+    const existing=PIPELINE[id];
+    const lead=existing||newLead({id});
+    PL_CSV_COLS.forEach(k=>{
+      if(obj[k]!=null&&obj[k]!==''){
+        if(k==='contactCount')lead[k]=parseInt(obj[k],10)||0;
+        else lead[k]=obj[k];
+      }
+    });
+    if(!lead.id)lead.id=id;
+    if(!lead.createdAt)lead.createdAt=new Date().toISOString();
+    if(!lead.updatedAt)lead.updatedAt=new Date().toISOString();
+    if(!lead.stageEnteredAt)lead.stageEnteredAt=lead.createdAt;
+    if(!Array.isArray(lead.log))lead.log=[];
+    if(!lead.paymentStatus)lead.paymentStatus='unpaid';
+    if(!lead.enrollmentStatus)lead.enrollmentStatus='enrolled';
+    PIPELINE[id]=lead;
+    if(existing)updated++;else added++;
+  }
+  plSavePipeline();renderPipeline();
+  alert('Pipeline import complete: '+added+' added, '+updated+' updated.');
+}
+
+// ===== CASES / RETENTION & REFUND DEFENSE ENGINE =====
+// Tracks every escalation: refund requests, cancellations, complaints, incidents.
+// Lookup lists (types, segments, levels, statuses, outcomes, complaint reasons)
+// live in CASE_SETTINGS so the user can add/remove options from the Settings panel.
+const CS_DEFAULT_SETTINGS={
+  types:[
+    {id:'refund',label:'Refund Request'},
+    {id:'cancel',label:'Cancellation'},
+    {id:'incident',label:'Incident'},
+    {id:'complaint',label:'Complaint'},
+    {id:'other',label:'Other'}
+  ],
+  segments:[
+    {id:'loyal',label:'Loyal'},
+    {id:'hesitant',label:'Hesitant'},
+    {id:'highrisk',label:'High-risk'}
+  ],
+  levels:[
+    {id:1,label:'Teacher'},
+    {id:2,label:'Customer Service'},
+    {id:3,label:'Branch Manager'},
+    {id:4,label:'Leadership / Bashayer'}
+  ],
+  statuses:['Open','Awaiting reply','Awaiting payment','Escalated','Resolved'],
+  outcomes:[
+    {id:'paid',label:'Paid in full'},
+    {id:'partial',label:'Paid 50% - balance later'},
+    {id:'cancelled',label:'Cancelled with settlement'},
+    {id:'lost',label:'Lost (no resolution)'}
+  ],
+  complaintReasons:['Pricing','Quality of service','Teacher concern','Communication','Schedule conflict','Health/safety','Refund timeline','Program content','Transport / pickup','Facility / cleanliness','Other']
+};
+let CASE_SETTINGS=JSON.parse(JSON.stringify(CS_DEFAULT_SETTINGS));
+// Merge a remotely-loaded settings object onto defaults so newly-added
+// default keys appear even when the saved blob is older.
+function mergeCaseSettings(loaded){
+  const out=JSON.parse(JSON.stringify(CS_DEFAULT_SETTINGS));
+  if(!loaded||typeof loaded!=='object')return out;
+  Object.keys(out).forEach(k=>{
+    if(Array.isArray(loaded[k]))out[k]=loaded[k];
+  });
+  return out;
+}
+function csTypes(){return CASE_SETTINGS.types||[];}
+function csSegments(){return CASE_SETTINGS.segments||[];}
+function csLevels(){return CASE_SETTINGS.levels||[];}
+function csStatuses(){return CASE_SETTINGS.statuses||[];}
+function csOutcomes(){return CASE_SETTINGS.outcomes||[];}
+function csComplaintReasons(){return CASE_SETTINGS.complaintReasons||[];}
+
+// Payment + enrollment status (single source of truth, also added to Pipeline leads)
+const CS_PAYMENT_STATUSES=[
+  {id:'unpaid',label:'Unpaid',color:'#DC2626',bg:'#FEE2E2'},
+  {id:'partial',label:'Partial',color:'#92400E',bg:'#FEF3CD'},
+  {id:'paid',label:'Paid',color:'#065F46',bg:'#D1FAE5'}
+];
+const CS_ENROLLMENT_STATUSES=[
+  {id:'enrolled',label:'Enrolled',color:'#065F46',bg:'#D1FAE5'},
+  {id:'withdraw_request',label:'Withdraw request',color:'#92400E',bg:'#FEF3CD'},
+  {id:'withdrew',label:'Withdrew',color:'#7F1D1D',bg:'#FEE2E2'}
+];
+
+const CS_STALE_DAYS=4;
+let CASES={};
+let _csView='kanban';
+let _csDragId=null;
+let _csSearch='';
+let _csFilter='all';
+
+function csId(){return 'case_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);}
+function newCase(o){
+  const id=csId();const now=new Date().toISOString();
+  const firstType=(csTypes()[0]||{}).id||'other';
+  const firstSeg=(csSegments()[0]||{}).id||'hesitant';
+  const firstLvl=(csLevels()[0]||{}).id||1;
+  const firstStatus=csStatuses()[0]||'Open';
+  return Object.assign({
+    id,
+    parentFullName:'',
+    studentId:'',
+    childName:'',
+    branch:'Salam',
+    type:firstType,
+    segment:firstSeg,
+    level:firstLvl,
+    status:firstStatus,
+    paymentStatus:'unpaid',
+    enrollmentStatus:'enrolled',
+    amountKwd:300,
+    nextActions:[],          // [{id,text,done,doneAt}]
+    complaintReasons:[],     // array of strings from settings
+    dueDate:'',
+    assignedTo:'',
+    notes:'',
+    log:[],
+    outcome:'',
+    createdAt:now,
+    updatedAt:now,
+    resolvedAt:''
+  },o||{},{id});
+}
+function csDaysSince(iso){if(!iso)return 999;return Math.floor((Date.now()-new Date(iso).getTime())/86400000);}
+function csIsResolved(c){return c.status==='Resolved';}
+function csIsStale(c){if(csIsResolved(c))return false;return csDaysSince(c.updatedAt)>=CS_STALE_DAYS;}
+function csSaveCases(){saveState();updateCsTabBadge();}
+function updateCsTabBadge(){
+  const badge=document.getElementById('cs-tab-badge');if(!badge)return;
+  const open=Object.values(CASES).filter(c=>!csIsResolved(c)).length;
+  if(open>0){badge.textContent=open;badge.style.display='inline-block';}
+  else{badge.style.display='none';}
+}
+
+// Migrate legacy case records (familyName -> parentFullName, nextAction string -> nextActions[])
+function migrateCases(){
+  Object.values(CASES||{}).forEach(c=>{
+    if(c.familyName&&!c.parentFullName){c.parentFullName=c.familyName;delete c.familyName;}
+    if(typeof c.nextAction==='string'){
+      if(c.nextAction.trim())c.nextActions=[{id:'na_'+Math.random().toString(36).slice(2,7),text:c.nextAction.trim(),done:false,doneAt:''}];
+      else c.nextActions=[];
+      delete c.nextAction;
+    }
+    if(!Array.isArray(c.nextActions))c.nextActions=[];
+    if(!Array.isArray(c.complaintReasons))c.complaintReasons=[];
+    if(!c.paymentStatus)c.paymentStatus='unpaid';
+    if(!c.enrollmentStatus)c.enrollmentStatus='enrolled';
+    if(c.valueOffered)delete c.valueOffered; // no longer used
+    if(!Array.isArray(c.log))c.log=[];
+    // Heal log entries that were saved with raw HTML entities (&check; / &#10003;)
+    // before we switched to a real Unicode checkmark — render those as the
+    // actual character so the log reads cleanly.
+    c.log.forEach(entry=>{
+      if(entry&&typeof entry.text==='string'){
+        if(entry.text.indexOf('&check;')!==-1)entry.text=entry.text.replace(/&check;/g,'\u2713');
+        if(entry.text.indexOf('&#10003;')!==-1)entry.text=entry.text.replace(/&#10003;/g,'\u2713');
+      }
+    });
+  });
+}
+
+// ---- VIEW SWITCH ----
+function switchCsView(view){
+  _csView=view;
+  ['dashboard','kanban','scripts'].forEach(v=>{
+    const btn=document.getElementById('vt-cs-'+(v==='dashboard'?'dash':v));
+    if(btn)btn.classList.toggle('active',v===view);
+    const out=document.getElementById('cs-'+(v==='dashboard'?'dashboard':v)+'-outer');
+    if(out)out.style.display=v===view?'block':'none';
+  });
+  if(view==='dashboard')renderCsDashboard();
+  else if(view==='kanban')renderCsKanban();
+  else if(view==='scripts')renderCsScripts();
+}
+
+// ---- DASHBOARD ----
+function renderCsDashboard(){
+  const el=document.getElementById('cs-dashboard-outer');if(!el)return;
+  const cases=Object.values(CASES);
+  const open=cases.filter(c=>!csIsResolved(c));
+  const resolved=cases.filter(csIsResolved);
+  const stale=cases.filter(csIsStale);
+  const refunds=open.filter(c=>c.type==='refund');
+  const highrisk=open.filter(c=>c.segment==='highrisk');
+  const lvl4=open.filter(c=>c.level===4);
+  const moneyAtRisk=open.filter(c=>c.paymentStatus!=='paid').reduce((s,c)=>s+(parseFloat(c.amountKwd)||0)*(c.paymentStatus==='partial'?0.5:1),0);
+  const moneyRecovered=cases.filter(c=>c.paymentStatus==='paid').reduce((s,c)=>s+(parseFloat(c.amountKwd)||0),0)+cases.filter(c=>c.paymentStatus==='partial').reduce((s,c)=>s+(parseFloat(c.amountKwd)||0)*0.5,0);
+
+  const segCount={};csSegments().forEach(s=>segCount[s.id]=open.filter(c=>c.segment===s.id).length);
+  const lvlCount={};csLevels().forEach(l=>lvlCount[l.id]=open.filter(c=>c.level===l.id).length);
+
+  let h='';
+  h+='<div class="cs-dash-headline"><b>The real problem isn&#x2019;t collection - it&#x2019;s the value equation.</b> Parents don&#x2019;t refuse to pay 300 KWD; they refuse to pay 300 KWD for something that feels worth less than what they signed up for.</div>';
+
+  h+='<div class="pl-dash">';
+  h+='<div class="pl-dash-card" style="border-top:3px solid #DC2626"><h4>Open Cases</h4><div class="pl-dash-num" style="color:#DC2626">'+open.length+'</div><div class="pl-dash-sub">'+stale.length+' stale (no action &gt;'+CS_STALE_DAYS+'d)</div></div>';
+  h+='<div class="pl-dash-card" style="border-top:3px solid #D97706"><h4>Money at Risk</h4><div class="pl-dash-num">'+Math.round(moneyAtRisk)+' <span style="font-size:13px;color:var(--text2)">KWD</span></div><div class="pl-dash-sub">unpaid + partial balances</div></div>';
+  h+='<div class="pl-dash-card" style="border-top:3px solid #059669"><h4>Recovered</h4><div class="pl-dash-num" style="color:#059669">'+Math.round(moneyRecovered)+' <span style="font-size:13px;color:var(--text2)">KWD</span></div><div class="pl-dash-sub">paid + partial collected</div></div>';
+  h+='<div class="pl-dash-card" style="border-top:3px solid #7C3AED"><h4>Refund Requests</h4><div class="pl-dash-num">'+refunds.length+'</div><div class="pl-dash-sub">'+lvl4.length+' at leadership level</div></div>';
+  h+='<div class="pl-dash-card" style="border-top:3px solid #991B1B"><h4>High-Risk Families</h4><div class="pl-dash-num" style="color:#991B1B">'+highrisk.length+'</div><div class="pl-dash-sub">need defense script</div></div>';
+  h+='</div>';
+
+  h+='<div class="pl-funnel"><h4>Open cases by parent segment</h4>';
+  const maxSeg=Math.max(1,...csSegments().map(s=>segCount[s.id]||0));
+  const segColors={loyal:'#059669',hesitant:'#D97706',highrisk:'#DC2626'};
+  csSegments().forEach(s=>{
+    const cnt=segCount[s.id]||0;const pct=Math.round(cnt/maxSeg*100)||0;
+    h+='<div class="pl-funnel-bar"><div class="pl-funnel-label">'+esc(s.label)+'</div>';
+    h+='<div class="pl-funnel-track"><div class="pl-funnel-fill" style="width:'+Math.max(pct,2)+'%;background:'+(segColors[s.id]||'#6B7280')+'">'+cnt+'</div></div>';
+    h+='<div class="pl-funnel-count">'+cnt+'</div></div>';
+  });
+  h+='</div>';
+
+  h+='<div class="pl-funnel"><h4>Escalation ladder</h4>';
+  const maxLvl=Math.max(1,...csLevels().map(l=>lvlCount[l.id]||0));
+  const lvlColors={1:'#059669',2:'#2563EB',3:'#D97706',4:'#DC2626'};
+  csLevels().forEach(l=>{
+    const cnt=lvlCount[l.id]||0;const pct=Math.round(cnt/maxLvl*100)||0;
+    h+='<div class="pl-funnel-bar"><div class="pl-funnel-label">L'+l.id+' &middot; '+esc(l.label)+'</div>';
+    h+='<div class="pl-funnel-track"><div class="pl-funnel-fill" style="width:'+Math.max(pct,2)+'%;background:'+(lvlColors[l.id]||'#6B7280')+'">'+cnt+'</div></div>';
+    h+='<div class="pl-funnel-count">'+cnt+'</div></div>';
+  });
+  h+='</div>';
+
+  h+='<div class="cs-tracker"><table>';
+  h+='<thead><tr><th>Parent</th><th>Segment</th><th>Type</th><th>Payment</th><th>Enrollment</th><th>Last contact</th><th>Status</th><th>Amount</th></tr></thead><tbody>';
+  const staleSorted=[...stale].sort((a,b)=>new Date(a.updatedAt)-new Date(b.updatedAt));
+  if(staleSorted.length===0){
+    h+='<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:18px">No stale cases &mdash; nice work staying on top of every family.</td></tr>';
+  }else{
+    staleSorted.slice(0,12).forEach(c=>{
+      const seg=csSegments().find(s=>s.id===c.segment);
+      const tp=csTypes().find(t=>t.id===c.type);
+      const ps=CS_PAYMENT_STATUSES.find(p=>p.id===c.paymentStatus);
+      const es=CS_ENROLLMENT_STATUSES.find(e=>e.id===c.enrollmentStatus);
+      h+='<tr onclick="openCsModal(\''+c.id+'\')">';
+      h+='<td><b>'+esc(c.parentFullName||'(no name)')+'</b>'+(c.childName?'<br><span style="font-size:9px;color:var(--text3)">child: '+esc(c.childName)+'</span>':'')+'</td>';
+      h+='<td><span class="cs-seg cs-seg-'+c.segment+'">'+(seg?esc(seg.label):c.segment)+'</span></td>';
+      h+='<td>'+(tp?esc(tp.label):c.type)+'</td>';
+      h+='<td>'+(ps?'<span class="cs-seg" style="background:'+ps.bg+';color:'+ps.color+'">'+esc(ps.label)+'</span>':'')+'</td>';
+      h+='<td>'+(es?'<span class="cs-seg" style="background:'+es.bg+';color:'+es.color+'">'+esc(es.label)+'</span>':'')+'</td>';
+      h+='<td style="color:#DC2626;font-weight:600">'+csDaysSince(c.updatedAt)+'d ago</td>';
+      h+='<td>'+esc(c.status)+'</td>';
+      h+='<td>'+(c.amountKwd?Math.round(c.amountKwd)+' KWD':'-')+'</td>';
+      h+='</tr>';
+    });
+  }
+  h+='</tbody></table></div>';
+
+  h+='<div style="display:flex;gap:10px;justify-content:center;padding:8px">';
+  h+='<button class="pl-add-btn" style="background:#DC2626;font-size:12px;padding:8px 18px" onclick="openCsModal()">+ New Case</button>';
+  h+='<button class="pl-add-btn" style="background:#fff;color:var(--text);border:1px solid var(--border);font-size:12px;padding:8px 18px" onclick="switchCsView(\'kanban\')">Open Kanban &rarr;</button>';
+  h+='<button class="pl-add-btn" style="background:#fff;color:var(--text);border:1px solid var(--border);font-size:12px;padding:8px 18px" onclick="switchCsView(\'scripts\')">View Scripts &rarr;</button>';
+  h+='</div>';
+
+  el.innerHTML=h;
+  updateCsTabBadge();
+}
+
+// ---- KANBAN ----
+function renderCsKanban(){
+  const el=document.getElementById('cs-kanban-outer');if(!el)return;
+  const all=Object.values(CASES);
+  const total=all.length;
+  const open=all.filter(c=>!csIsResolved(c)).length;
+  const stale=all.filter(csIsStale).length;
+
+  const matches=c=>{
+    if(_csSearch){
+      const q=_csSearch.toLowerCase();
+      if(!(c.parentFullName||'').toLowerCase().includes(q)&&!(c.childName||'').toLowerCase().includes(q)&&!(c.notes||'').toLowerCase().includes(q))return false;
+    }
+    if(_csFilter==='open'&&csIsResolved(c))return false;
+    if(_csFilter==='resolved'&&!csIsResolved(c))return false;
+    if(_csFilter==='stale'&&!csIsStale(c))return false;
+    if(_csFilter==='highrisk'&&c.segment!=='highrisk')return false;
+    if(_csFilter==='unpaid'&&c.paymentStatus==='paid')return false;
+    if(_csFilter==='withdraw'&&c.enrollmentStatus!=='withdraw_request'&&c.enrollmentStatus!=='withdrew')return false;
+    return true;
+  };
+
+  let h='<div class="pl-toolbar">';
+  h+='<span class="pl-title" style="color:#DC2626">&#128737;&#65039; Cases</span>';
+  h+='<span class="pl-stat">Total: <b>'+total+'</b></span>';
+  h+='<span class="pl-stat">Open: <b>'+open+'</b></span>';
+  if(stale>0)h+='<span class="pl-stat" style="color:#DC2626;border-color:#FCA5A5">Stale: <b style="color:#DC2626">'+stale+'</b></span>';
+  h+='<div style="flex:1"></div>';
+  ['all','open','stale','highrisk','unpaid','withdraw','resolved'].forEach(f=>{
+    const lbl={all:'All',open:'Open',stale:'Stale',highrisk:'High-risk',unpaid:'Unpaid',withdraw:'Withdraw',resolved:'Resolved'}[f];
+    h+='<button class="ctx-btn" style="padding:4px 10px;font-size:10px;'+(_csFilter===f?'background:#DC2626;color:#fff;border-color:#DC2626':'')+'" onclick="_csFilter=\''+f+'\';renderCsKanban()">'+lbl+'</button>';
+  });
+  h+='<input class="pl-search" placeholder="Search cases..." value="'+esc(_csSearch)+'" oninput="_csSearch=this.value;renderCsKanban()">';
+  h+='<button class="ctx-btn" onclick="csOpenSettings()" title="Manage case lookups"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</button>';
+  h+='<button class="ctx-btn" onclick="csExportCsv()" title="Export cases to CSV">&darr; Export</button>';
+  h+='<button class="ctx-btn" onclick="csImportCsvDialog()" title="Import cases from CSV">&uarr; Import</button>';
+  h+='<button class="pl-add-btn" style="background:#DC2626" onclick="openCsModal()">+ New Case</button>';
+  h+='</div>';
+
+  h+='<div class="pl-board">';
+  csLevels().forEach(lvl=>{
+    const list=all.filter(c=>!csIsResolved(c)&&c.level===lvl.id&&matches(c)).sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt));
+    h+='<div class="pl-col">';
+    h+='<div class="pl-col-hdr"><span class="pl-col-title"><span class="cs-lvl cs-lvl-'+lvl.id+'" style="margin-right:4px">L'+lvl.id+'</span>'+esc(lvl.label)+'</span><span class="pl-col-cnt">'+list.length+'</span></div>';
+    h+='<div class="pl-col-body" data-level="'+lvl.id+'" ondragover="csDragOver(event)" ondragleave="csDragLeave(event)" ondrop="csDrop(event,'+lvl.id+',\'\')">';
+    list.forEach(c=>{h+=renderCsCard(c);});
+    if(list.length===0)h+='<div style="text-align:center;color:var(--text3);font-size:9px;padding:14px 6px">No cases at this level</div>';
+    h+='</div></div>';
+  });
+  const resolvedList=all.filter(c=>csIsResolved(c)&&matches(c)).sort((a,b)=>new Date(b.resolvedAt||b.updatedAt)-new Date(a.resolvedAt||a.updatedAt));
+  h+='<div class="pl-col" style="background:#F9FAFB">';
+  h+='<div class="pl-col-hdr"><span class="pl-col-title">&#10003; Resolved</span><span class="pl-col-cnt">'+resolvedList.length+'</span></div>';
+  h+='<div class="pl-col-body" data-level="resolved" ondragover="csDragOver(event)" ondragleave="csDragLeave(event)" ondrop="csDrop(event,0,\'resolved\')">';
+  resolvedList.slice(0,30).forEach(c=>{h+=renderCsCard(c);});
+  if(resolvedList.length===0)h+='<div style="text-align:center;color:var(--text3);font-size:9px;padding:14px 6px">Nothing resolved yet</div>';
+  h+='</div></div>';
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+function renderCsCard(c){
+  const seg=csSegments().find(s=>s.id===c.segment);
+  const tp=csTypes().find(t=>t.id===c.type);
+  const ps=CS_PAYMENT_STATUSES.find(p=>p.id===c.paymentStatus);
+  const es=CS_ENROLLMENT_STATUSES.find(e=>e.id===c.enrollmentStatus);
+  const stale=csIsStale(c);
+  const days=csDaysSince(c.updatedAt);
+  const lastLog=(c.log&&c.log.length)?c.log[c.log.length-1]:null;
+  const openTodos=(c.nextActions||[]).filter(a=>!a.done).length;
+  let h='<div class="cs-card'+(stale?' stale':'')+'" draggable="true" ondragstart="csDragStart(event,\''+c.id+'\')" ondragend="csDragEnd(event)" onclick="openCsModal(\''+c.id+'\')">';
+  if(stale)h+='<span class="cs-card-stale">&#9888; '+days+'d</span>';
+  h+='<div class="cs-card-name">'+esc(c.parentFullName||'Unnamed')+(c.childName?' <span style="color:var(--text3);font-weight:500">&middot; '+esc(c.childName)+'</span>':'')+'</div>';
+  if(c.amountKwd)h+='<div class="cs-card-amount">'+Math.round(c.amountKwd)+' KWD</div>';
+  h+='<div class="cs-card-meta">';
+  if(seg)h+='<span class="cs-seg cs-seg-'+c.segment+'">'+esc(seg.label)+'</span>';
+  if(tp)h+='<span class="cs-type cs-type-'+c.type+'">'+esc(tp.label)+'</span>';
+  if(ps)h+='<span class="cs-seg" style="background:'+ps.bg+';color:'+ps.color+'">'+esc(ps.label)+'</span>';
+  if(es&&c.enrollmentStatus!=='enrolled')h+='<span class="cs-seg" style="background:'+es.bg+';color:'+es.color+'">'+esc(es.label)+'</span>';
+  if(csIsResolved(c)&&c.outcome){
+    const oc=csOutcomes().find(o=>o.id===c.outcome);
+    h+='<span class="cs-type cs-out-'+c.outcome+'">'+(oc?esc(oc.label):c.outcome)+'</span>';
+  }
+  h+='</div>';
+  if(openTodos>0||lastLog){
+    h+='<div class="cs-card-activities">';
+    if(openTodos>0)h+='<div class="cs-card-todos">&#9744; '+openTodos+' open action'+(openTodos>1?'s':'')+'</div>';
+    if(lastLog){
+      const icon=lastLog.type==='outgoing'?'&#128228;':lastLog.type==='incoming'?'&#128229;':lastLog.type==='system'?'&#9881;&#65039;':'&#128221;';
+      const txt=(lastLog.text||'').slice(0,80);
+      h+='<div class="cs-card-lastlog">'+icon+' '+esc(txt)+(lastLog.text&&lastLog.text.length>80?'&hellip;':'')+'</div>';
+    }
+    h+='</div>';
+  }
+  h+='<div class="cs-card-foot">';
+  h+='<span>'+esc(c.status)+'</span>';
+  h+='<span style="margin-left:auto">'+days+'d</span>';
+  h+='</div></div>';
+  return h;
+}
+
+function csDragStart(e,id){_csDragId=id;e.dataTransfer.effectAllowed='move';e.target.classList.add('dragging');}
+function csDragEnd(e){_csDragId=null;e.target.classList.remove('dragging');document.querySelectorAll('.pl-col-body.drag-over').forEach(el=>el.classList.remove('drag-over'));}
+function csDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';e.currentTarget.classList.add('drag-over');}
+function csDragLeave(e){e.currentTarget.classList.remove('drag-over');}
+function csDrop(e,newLevel,specialCol){
+  e.preventDefault();e.currentTarget.classList.remove('drag-over');
+  if(!_csDragId||!CASES[_csDragId])return;
+  const c=CASES[_csDragId];const now=new Date().toISOString();
+  if(specialCol==='resolved'){
+    if(csIsResolved(c))return;
+    const out=prompt('Outcome ('+csOutcomes().map(o=>o.id).join(' / ')+'):',(csOutcomes()[0]||{}).id||'paid');
+    if(!out)return;
+    if(!csOutcomes().find(o=>o.id===out)){alert('Invalid outcome.');return;}
+    c.outcome=out;c.status='Resolved';c.resolvedAt=now;
+    c.log.push({ts:now,type:'system',text:'Resolved &middot; outcome: '+out});
+  }else{
+    if(c.level===newLevel)return;
+    const lvl=csLevels().find(l=>l.id===newLevel);
+    c.log.push({ts:now,type:'system',text:'Escalated -> L'+newLevel+' '+(lvl?lvl.label:'')});
+    c.level=newLevel;
+  }
+  c.updatedAt=now;
+  csSaveCases();renderCsKanban();
+}
+
+// ---- MODAL ----
+function openCsModal(caseId){
+  const isNew=!caseId;
+  const c=isNew?newCase():CASES[caseId];
+  if(!c)return;
+  // Fresh modal session — clear any previously-queued script choice
+  _csSelectedScript=null;
+  document.getElementById('cs-modal-title').textContent=isNew?'New Case':'Case &middot; '+esc(c.parentFullName||'Unnamed');
+
+  const studentsList=Object.values(SS||{}).map(s=>({id:s.id,name:s.n,branch:s.b||''})).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+
+  let b='';
+  // Parent + linked child
+  b+='<div class="pl-field"><label>Parent Full Name *</label><input id="cs-f-parent" value="'+esc(c.parentFullName||'')+'" placeholder="e.g. Mariam Al-Ghanim"></div>';
+  b+='<div class="pl-field-row">';
+  b+='<div class="pl-field"><label>Linked Child (existing student)</label>';
+  b+='<select id="cs-f-student" onchange="csOnStudentChange()"><option value="">- none -</option>';
+  studentsList.forEach(s=>{b+='<option value="'+s.id+'"'+(c.studentId===s.id?' selected':'')+'>'+esc(s.name)+(s.branch?' &middot; '+esc(s.branch):'')+'</option>';});
+  b+='</select></div>';
+  b+='<div class="pl-field"><label>Or enter child name (free text)</label><input id="cs-f-child" value="'+esc(c.childName||'')+'" placeholder="if not in student list"></div>';
+  b+='<div class="pl-field"><label>Branch</label><select id="cs-f-branch"><option'+(c.branch==='Salam'?' selected':'')+'>Salam</option><option'+(c.branch==='Shuhada'?' selected':'')+'>Shuhada</option><option'+(c.branch==='Salwa'?' selected':'')+'>Salwa</option></select></div>';
+  b+='</div>';
+
+  // Type / Segment / Level / Status
+  b+='<div class="pl-field-row">';
+  b+='<div class="pl-field"><label>Case Type</label><select id="cs-f-type">'+csTypes().map(t=>'<option value="'+t.id+'"'+(c.type===t.id?' selected':'')+'>'+esc(t.label)+'</option>').join('')+'</select></div>';
+  b+='<div class="pl-field"><label>Payment Segment</label><select id="cs-f-segment">'+csSegments().map(s=>'<option value="'+s.id+'"'+(c.segment===s.id?' selected':'')+'>'+esc(s.label)+'</option>').join('')+'</select></div>';
+  b+='<div class="pl-field"><label>Escalation Level</label><select id="cs-f-level">'+csLevels().map(l=>'<option value="'+l.id+'"'+(c.level===l.id?' selected':'')+'>L'+l.id+' &middot; '+esc(l.label)+'</option>').join('')+'</select></div>';
+  b+='</div>';
+  b+='<div class="pl-field-row">';
+  b+='<div class="pl-field"><label>Status</label><select id="cs-f-status">'+csStatuses().map(s=>'<option'+(c.status===s?' selected':'')+'>'+esc(s)+'</option>').join('')+'</select></div>';
+  b+='<div class="pl-field"><label>Payment Status</label><select id="cs-f-pstatus">'+CS_PAYMENT_STATUSES.map(p=>'<option value="'+p.id+'"'+(c.paymentStatus===p.id?' selected':'')+'>'+p.label+'</option>').join('')+'</select></div>';
+  b+='<div class="pl-field"><label>Enrollment Status</label><select id="cs-f-estatus">'+CS_ENROLLMENT_STATUSES.map(e=>'<option value="'+e.id+'"'+(c.enrollmentStatus===e.id?' selected':'')+'>'+e.label+'</option>').join('')+'</select></div>';
+  b+='<div class="pl-field"><label>Unsettled amount (KWD)</label><input id="cs-f-amount" type="number" step="1" value="'+esc(String(c.amountKwd||300))+'"></div>';
+  b+='</div>';
+
+  // Multi-select complaint reasons
+  b+='<div class="pl-field"><label>Reasons of complaint (tick all that apply)</label><div id="cs-cr-chips" class="cs-vs-chips">';
+  csComplaintReasons().forEach(r=>{
+    const on=(c.complaintReasons||[]).includes(r);
+    b+='<label class="cs-vs-chip'+(on?' on':'')+'" data-cr="'+esc(r)+'"><input type="checkbox" '+(on?'checked':'')+' onchange="this.parentNode.classList.toggle(\'on\',this.checked)"> '+esc(r)+'</label>';
+  });
+  b+='</div></div>';
+
+  // Due / Assigned
+  b+='<div class="pl-field-row">';
+  b+='<div class="pl-field"><label>Due Date</label><input id="cs-f-due" type="date" value="'+(c.dueDate||'')+'"></div>';
+  b+='<div class="pl-field"><label>Assigned To</label><input id="cs-f-assigned" value="'+esc(c.assignedTo||'')+'" placeholder="who is on this"></div>';
+  b+='<div class="pl-field"><label>Outcome (only if Resolved)</label><select id="cs-f-outcome"><option value="">-</option>'+csOutcomes().map(o=>'<option value="'+o.id+'"'+(c.outcome===o.id?' selected':'')+'>'+esc(o.label)+'</option>').join('')+'</select></div>';
+  b+='</div>';
+
+  // Next-action checklist
+  b+='<div class="pl-field"><label>Next Actions (checklist)</label>';
+  b+='<div style="display:flex;gap:6px;margin-bottom:6px"><input id="cs-na-input" placeholder="e.g. call mother tomorrow 10am" style="flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:11px;font-family:inherit" onkeydown="if(event.key===\'Enter\'){event.preventDefault();csInsertNextAction(\''+c.id+'\');}"><button type="button" class="pl-add-btn" style="background:#DC2626" onclick="csInsertNextAction(\''+c.id+'\')">+ Insert</button></div>';
+  b+='<div id="cs-na-list" class="cs-na-list">'+renderCsNextActionsList(c)+'</div>';
+  b+='</div>';
+
+  // Notes (also has Insert -> append to log as note)
+  b+='<div class="pl-field"><label>Notes</label>';
+  b+='<div style="display:flex;gap:6px;align-items:flex-start"><textarea id="cs-f-notes" rows="2" style="flex:1">'+esc(c.notes||'')+'</textarea><button type="button" class="pl-add-btn" style="background:#7C3AED;height:fit-content" onclick="csInsertNote(\''+c.id+'\')">+ Insert into log</button></div>';
+  b+='</div>';
+
+  // Quick-paste scripts
+  b+='<div class="pl-field" style="background:var(--bg-mid);padding:10px;border-radius:8px"><label style="margin-bottom:6px">&#128203; Quick-paste scripts</label>';
+  b+='<div style="font-size:10px;color:var(--text3);margin-bottom:6px">Pick a script &rarr; then click <b>Open in WhatsApp</b> to send it to the parent\'s number on file.</div>';
+  b+='<div style="display:flex;gap:6px;flex-wrap:wrap">';
+  b+='<button type="button" class="ctx-btn" data-cs-script="4.1" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'4.1\')">4.1 Payment WhatsApp</button>';
+  b+='<button type="button" class="ctx-btn" data-cs-script="4.2" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'4.2\')">4.2 Refund Defense</button>';
+  b+='<button type="button" class="ctx-btn" data-cs-script="4.3" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'4.3\')">4.3 Cancellation</button>';
+  b+='<button type="button" class="ctx-btn" data-cs-script="4.4" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'4.4\')">4.4 Teacher Call</button>';
+  b+='<button type="button" class="ctx-btn" data-cs-script="bashayer" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'bashayer\')">Bashayer Personal</button>';
+  b+='<button type="button" class="ctx-btn" style="padding:5px 10px;font-size:10px;background:#DC2626;color:#fff;border-color:#DC2626" onclick="csOpenWhatsAppForCase(\''+c.id+'\')">&#128241; Open in WhatsApp</button>';
+  b+='</div>';
+  b+='<div id="cs-script-hint" style="font-size:10px;color:#7C3AED;margin-top:6px;font-weight:600"></div>';
+  b+='</div>';
+
+  // Activity log
+  b+='<div class="pl-log">';
+  b+='<div class="pl-log-title">&#128172; Activity Log (<span id="cs-log-count">'+(c.log||[]).length+'</span> entries)</div>';
+  b+='<div class="pl-log-list" id="cs-log-list">'+renderCsLogList(c)+'</div>';
+  b+='<div class="pl-log-add">';
+  b+='<select id="cs-log-type"><option value="outgoing">Out</option><option value="incoming">In</option><option value="note">Note</option></select>';
+  b+='<input id="cs-log-text" placeholder="Log a contact, reply, or note...">';
+  b+='<button onclick="csAddLogEntry(\''+c.id+'\')">Add</button>';
+  b+='</div>';
+  b+='</div>';
+
+  document.getElementById('cs-modal-body').innerHTML=b;
+
+  let a='';
+  if(!isNew){
+    a+='<button class="pl-del" onclick="csDeleteCase(\''+c.id+'\')">Delete</button>';
+    if(!csIsResolved(c)){
+      a+='<button onclick="csQuickResolve(\''+c.id+'\')" style="background:#059669;color:#fff;border-color:#059669">&#10003; Resolve</button>';
+      const maxLvl=Math.max(...csLevels().map(l=>l.id));
+      if(c.level<maxLvl)a+='<button onclick="csQuickEscalate(\''+c.id+'\')" style="background:#D97706;color:#fff;border-color:#D97706">&uarr; Escalate</button>';
+    }
+  }
+  a+='<button onclick="closeCsModal()">Cancel</button>';
+  a+='<button class="pl-save" style="background:#DC2626;border-color:#DC2626" onclick="csSaveCase(\''+c.id+'\','+(isNew?'true':'false')+')">Save</button>';
+  document.getElementById('cs-modal-actions').innerHTML=a;
+
+  document.getElementById('cs-modal-overlay').style.display='flex';
+}
+function closeCsModal(){document.getElementById('cs-modal-overlay').style.display='none';}
+
+function renderCsNextActionsList(c){
+  const items=c.nextActions||[];
+  if(items.length===0)return '<div style="font-size:10px;color:var(--text3);padding:6px">No actions yet &mdash; type one above and click Insert.</div>';
+  let h='';
+  items.forEach(a=>{
+    h+='<div class="cs-na-item'+(a.done?' done':'')+'">';
+    h+='<input type="checkbox" '+(a.done?'checked':'')+' onchange="csToggleNextAction(\''+c.id+'\',\''+a.id+'\',this.checked)">';
+    h+='<span class="cs-na-text">'+esc(a.text)+'</span>';
+    if(a.done&&a.doneAt)h+='<span class="cs-na-when">'+new Date(a.doneAt).toLocaleString()+'</span>';
+    h+='<button class="cs-na-del" onclick="csDeleteNextAction(\''+c.id+'\',\''+a.id+'\')" title="remove">&times;</button>';
+    h+='</div>';
+  });
+  return h;
+}
+function renderCsLogList(c){
+  const log=c.log||[];
+  if(log.length===0)return '<div style="text-align:center;color:var(--text3);font-size:10px;padding:12px">No activity logged yet</div>';
+  let h='';
+  log.slice().reverse().forEach(entry=>{
+    const icon=entry.type==='outgoing'?'&#128228;':entry.type==='incoming'?'&#128229;':entry.type==='system'?'&#9881;&#65039;':'&#128221;';
+    h+='<div class="pl-log-entry '+(entry.type==='system'?'note':entry.type)+'">';
+    h+='<div class="pl-log-ts">'+icon+' '+new Date(entry.ts).toLocaleString()+(entry.by?' &middot; '+esc(entry.by):'')+'</div>';
+    h+='<div class="pl-log-text">'+esc(entry.text)+'</div></div>';
+  });
+  return h;
+}
+// Re-paint both the log list and the live "(N entries)" counter
+function csRefreshLogUI(c){
+  const list=document.getElementById('cs-log-list');
+  const cnt=document.getElementById('cs-log-count');
+  if(list)list.innerHTML=renderCsLogList(c);
+  if(cnt)cnt.textContent=(c.log||[]).length;
+}
+
+function csInsertNextAction(caseId){
+  const c=CASES[caseId];if(!c)return;
+  const inp=document.getElementById('cs-na-input');
+  const txt=(inp.value||'').trim();if(!txt)return;
+  const a={id:'na_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),text:txt,done:false,doneAt:''};
+  c.nextActions=c.nextActions||[];c.nextActions.push(a);
+  c.updatedAt=new Date().toISOString();
+  inp.value='';
+  document.getElementById('cs-na-list').innerHTML=renderCsNextActionsList(c);
+  csSaveCases();
+}
+function csToggleNextAction(caseId,actionId,checked){
+  const c=CASES[caseId];if(!c)return;
+  const a=(c.nextActions||[]).find(x=>x.id===actionId);if(!a)return;
+  a.done=!!checked;
+  const now=new Date().toISOString();
+  if(checked){
+    a.doneAt=now;
+    c.log.push({ts:now,type:'system',text:'\u2713 Done: '+a.text,by:(typeof getUserName==='function'?getUserName():'')});
+  }else{
+    a.doneAt='';
+    c.log.push({ts:now,type:'system',text:'Reopened: '+a.text,by:(typeof getUserName==='function'?getUserName():'')});
+  }
+  c.updatedAt=now;
+  document.getElementById('cs-na-list').innerHTML=renderCsNextActionsList(c);
+  csRefreshLogUI(c);
+  csSaveCases();
+}
+function csDeleteNextAction(caseId,actionId){
+  const c=CASES[caseId];if(!c)return;
+  c.nextActions=(c.nextActions||[]).filter(x=>x.id!==actionId);
+  c.updatedAt=new Date().toISOString();
+  document.getElementById('cs-na-list').innerHTML=renderCsNextActionsList(c);
+  csSaveCases();
+}
+function csInsertNote(caseId){
+  const c=CASES[caseId];if(!c)return;
+  const ta=document.getElementById('cs-f-notes');
+  const txt=(ta.value||'').trim();if(!txt)return;
+  const now=new Date().toISOString();
+  c.log.push({ts:now,type:'note',text:txt,by:(typeof getUserName==='function'?getUserName():'')});
+  c.notes='';ta.value='';
+  c.updatedAt=now;
+  csRefreshLogUI(c);
+  csSaveCases();
+}
+function csOnStudentChange(){
+  // When a student is selected, optionally auto-fill the child name
+  const sid=document.getElementById('cs-f-student').value;
+  if(!sid)return;
+  const s=SS[sid];if(!s)return;
+  const childInp=document.getElementById('cs-f-child');
+  if(childInp&&!childInp.value)childInp.value=s.n;
+}
+
+function csSaveCase(caseId,isNew){
+  const parent=document.getElementById('cs-f-parent').value.trim();
+  if(!parent){alert('Parent Full Name is required');return;}
+  const now=new Date().toISOString();
+  const existing=isNew?newCase({id:caseId}):CASES[caseId];
+  if(!existing)return;
+  const oldLevel=existing.level;const oldStatus=existing.status;
+  const oldPay=existing.paymentStatus;const oldEnr=existing.enrollmentStatus;
+  existing.parentFullName=parent;
+  existing.childName=document.getElementById('cs-f-child').value.trim();
+  existing.studentId=document.getElementById('cs-f-student').value;
+  existing.branch=document.getElementById('cs-f-branch').value;
+  existing.type=document.getElementById('cs-f-type').value;
+  existing.segment=document.getElementById('cs-f-segment').value;
+  existing.level=parseInt(document.getElementById('cs-f-level').value,10)||1;
+  existing.status=document.getElementById('cs-f-status').value;
+  existing.paymentStatus=document.getElementById('cs-f-pstatus').value;
+  existing.enrollmentStatus=document.getElementById('cs-f-estatus').value;
+  existing.amountKwd=parseFloat(document.getElementById('cs-f-amount').value)||0;
+  existing.dueDate=document.getElementById('cs-f-due').value;
+  existing.assignedTo=document.getElementById('cs-f-assigned').value.trim();
+  existing.outcome=document.getElementById('cs-f-outcome').value;
+  // notes are pushed via Insert button; the textarea may still hold draft text - keep it as 'notes' field for context
+  existing.notes=document.getElementById('cs-f-notes').value.trim();
+  // Read complaint reasons multi-select
+  const crChips=document.querySelectorAll('#cs-cr-chips .cs-vs-chip');
+  existing.complaintReasons=Array.from(crChips).filter(ch=>ch.querySelector('input').checked).map(ch=>ch.dataset.cr);
+  existing.updatedAt=now;
+  if(existing.status==='Resolved'&&!existing.resolvedAt)existing.resolvedAt=now;
+  if(existing.status!=='Resolved')existing.resolvedAt='';
+  if(oldLevel!==existing.level)existing.log.push({ts:now,type:'system',text:'Level: L'+oldLevel+' -> L'+existing.level});
+  if(oldStatus!==existing.status)existing.log.push({ts:now,type:'system',text:'Status: '+oldStatus+' -> '+existing.status});
+  if(oldPay!==existing.paymentStatus)existing.log.push({ts:now,type:'system',text:'Payment: '+oldPay+' -> '+existing.paymentStatus});
+  if(oldEnr!==existing.enrollmentStatus)existing.log.push({ts:now,type:'system',text:'Enrollment: '+oldEnr+' -> '+existing.enrollmentStatus});
+  CASES[existing.id]=existing;
+  csSaveCases();
+  closeCsModal();
+  if(_csView==='dashboard')renderCsDashboard();else if(_csView==='kanban')renderCsKanban();
+}
+
+function csDeleteCase(caseId){
+  if(!confirm('Delete this case permanently? Activity log will be lost.'))return;
+  delete CASES[caseId];csSaveCases();closeCsModal();
+  if(_csView==='dashboard')renderCsDashboard();else if(_csView==='kanban')renderCsKanban();
+}
+function csQuickResolve(caseId){
+  const c=CASES[caseId];if(!c)return;
+  const out=prompt('Outcome ('+csOutcomes().map(o=>o.id).join(' / ')+'):',(csOutcomes()[0]||{}).id||'paid');
+  if(!out)return;
+  if(!csOutcomes().find(o=>o.id===out)){alert('Invalid outcome.');return;}
+  const now=new Date().toISOString();
+  c.outcome=out;c.status='Resolved';c.resolvedAt=now;c.updatedAt=now;
+  c.log.push({ts:now,type:'system',text:'Resolved &middot; outcome: '+out});
+  csSaveCases();openCsModal(caseId);
+}
+function csQuickEscalate(caseId){
+  const c=CASES[caseId];if(!c)return;
+  const maxLvl=Math.max(...csLevels().map(l=>l.id));
+  if(c.level>=maxLvl)return;
+  const now=new Date().toISOString();
+  const newL=c.level+1;
+  const lvl=csLevels().find(l=>l.id===newL);
+  c.log.push({ts:now,type:'system',text:'Escalated -> L'+newL+' '+(lvl?lvl.label:'')});
+  c.level=newL;c.updatedAt=now;
+  csSaveCases();openCsModal(caseId);
+}
+function csAddLogEntry(caseId){
+  const c=CASES[caseId];if(!c)return;
+  const type=document.getElementById('cs-log-type').value;
+  const text=document.getElementById('cs-log-text').value.trim();
+  if(!text)return;
+  c.log.push({ts:new Date().toISOString(),type,text,by:(typeof getUserName==='function'?getUserName():'')});
+  c.updatedAt=new Date().toISOString();
+  csSaveCases();openCsModal(caseId);
+}
+// Currently-selected script for the open Cases modal — picked when the user
+// clicks one of the quick-paste buttons, then sent when they click
+// "Open in WhatsApp". Reset every time the modal opens.
+let _csSelectedScript=null;
+function csInsertScript(key){
+  const txt=CS_SCRIPTS[key];if(!txt)return;
+  _csSelectedScript=key;
+  // Also drop the text into the log input so the user can edit before sending
+  const inp=document.getElementById('cs-log-text');
+  if(inp){inp.value=txt;}
+  // Highlight the chosen script button so it's obvious which one is queued
+  document.querySelectorAll('[data-cs-script]').forEach(btn=>{
+    const on=btn.getAttribute('data-cs-script')===key;
+    btn.style.background=on?'#7C3AED':'';
+    btn.style.color=on?'#fff':'';
+    btn.style.borderColor=on?'#7C3AED':'';
+  });
+  // Surface a small hint near the WhatsApp button
+  const hint=document.getElementById('cs-script-hint');
+  if(hint)hint.textContent='Script '+key+' selected — click "Open in WhatsApp" to send';
+}
+function csOpenWhatsAppForCase(caseId){
+  const c=CASES[caseId];if(!c)return;
+  // 1) Resolve the message: prefer selected script, else current log input,
+  //    else fall back to script 4.1
+  let txt='';
+  if(_csSelectedScript&&CS_SCRIPTS[_csSelectedScript])txt=CS_SCRIPTS[_csSelectedScript];
+  else{
+    const inp=document.getElementById('cs-log-text');
+    if(inp&&inp.value.trim())txt=inp.value;
+  }
+  if(!txt)txt=CS_SCRIPTS['4.1'];
+  // 2) Resolve the parent phone from the linked student
+  let phone='';
+  const sid=c.studentId;
+  if(sid&&typeof SS!=='undefined'&&SS[sid]&&SS[sid].parentPhone){
+    phone=String(SS[sid].parentPhone).replace(/[^0-9]/g,'');
+  }
+  if(!phone){
+    if(!sid){
+      alert('No student linked to this case yet. Pick a student in the "Linked student" dropdown first so we know which parent to message.');
+      return;
+    }
+    alert('No parent phone saved for '+(SS[sid]?SS[sid].n:'this student')+'. Add the parent phone in the Students table first.');
+    return;
+  }
+  const url='https://wa.me/'+phone+'?text='+encodeURIComponent(txt);
+  window.open(url,'_blank');
+  // Log it so the activity feed reflects what was sent
+  c.log=c.log||[];
+  c.log.push({ts:new Date().toISOString(),type:'outgoing',text:'WhatsApp'+(_csSelectedScript?' ('+_csSelectedScript+')':'')+' sent to '+phone+': '+txt.slice(0,80)+(txt.length>80?'…':''),by:(typeof getUserName==='function'?getUserName():'')});
+  c.updatedAt=new Date().toISOString();
+  csRefreshLogUI(c);
+  csSaveCases();
+}
+
+// ---- SCRIPTS LIBRARY (verbatim from playbook §4 + §6, Arabic) ----
+const CS_SCRIPTS={
+  '4.1':'\u0623\u0648\u0644\u064a\u0627\u0621 \u0623\u0645\u0648\u0631\u0646\u0627 \u0627\u0644\u0623\u0639\u0632\u0627\u0621 \ud83e\udd0d\n\n\u0646\u062a\u0645\u0646\u0649 \u0623\u0646 \u0623\u0637\u0641\u0627\u0644\u0646\u0627 \u0648\u0639\u0627\u0626\u0644\u0627\u062a\u0646\u0627 \u0628\u062e\u064a\u0631 \u0648\u0623\u0645\u0627\u0646.\n\n\u0631\u0633\u0648\u0645 \u0627\u0644\u0641\u0635\u0644 \u0627\u0644\u0631\u0627\u0628\u0639 \u062a\u0634\u0645\u0644 \u0627\u0644\u0622\u0646:\n\u2705 \u0628\u0631\u0646\u0627\u0645\u062c \u0627\u0644\u0627\u0633\u062a\u0645\u0631\u0627\u0631\u064a\u0629 \u0648\u0627\u0644\u0631\u0639\u0627\u064a\u0629 \u0627\u0644\u0643\u0627\u0645\u0644\n\u2705 \u062c\u0644\u0633\u062a\u0627\u0646 \u0645\u062c\u0627\u0646\u064a\u062a\u0627\u0646 \u0641\u064a \u0627\u0644\u0645\u0646\u0632\u0644 (\u0642\u064a\u0645\u0629 30 \u062f.\u0643)\n\u2705 \u062a\u0642\u0631\u064a\u0631 \u062a\u0637\u0648\u0631 \u0634\u0647\u0631\u064a \u062a\u0641\u0635\u064a\u0644\u064a\n\u2705 \u0636\u0645\u0627\u0646 \u062a\u0633\u062c\u064a\u0644 \u0623\u0648\u0644\u0648\u064a \u0644\u0644\u0639\u0627\u0645 \u0627\u0644\u062f\u0631\u0627\u0633\u064a \u0627\u0644\u0642\u0627\u062f\u0645\n\u2705 \u062e\u0635\u0645 30 \u062f.\u0643 \u0639\u0644\u0649 \u0628\u0631\u0646\u0627\u0645\u062c \u0627\u0644\u0635\u064a\u0641 \u0627\u0644\u0642\u0627\u062f\u0645\n\n\u0644\u0625\u062a\u0645\u0627\u0645 \u0627\u0644\u062a\u0633\u062c\u064a\u0644 \u0648\u062a\u0623\u0643\u064a\u062f \u0627\u0633\u062a\u0641\u0627\u062f\u062a\u0643\u0645 \u0645\u0646 \u0647\u0630\u0647 \u0627\u0644\u0645\u0632\u0627\u064a\u0627\u060c \u0646\u0631\u062c\u0648 \u0627\u0644\u062a\u0648\u0627\u0635\u0644 \u0645\u0639 \u0641\u0631\u064a\u0642\u0646\u0627.\n\n\u0641\u0631\u064a\u0642 \u0628\u064a \u0643\u064a\u0648\u0631\u064a\u0648\u0633 \ud83c\udf3f',
+  '4.2':'[\u0639\u0646\u062f \u0637\u0644\u0628 \u0627\u0644\u0627\u0633\u062a\u0631\u062f\u0627\u062f - \u0645\u0648\u0638\u0641 \u0623\u0648\u0644 \u0641\u0642\u0637]\n\n"\u0623\u062a\u0641\u0647\u0645 \u062a\u0645\u0627\u0645\u0627\u064b \u0645\u0648\u0642\u0641\u0643\u0645\u060c \u0648\u0623\u0642\u062f\u0631 \u0635\u0631\u0627\u062d\u062a\u0643\u0645 \u0645\u0639\u0646\u0627."\n\n[\u062a\u0648\u0642\u0641 - \u062f\u0639\u0647\u0645 \u064a\u062a\u0643\u0644\u0645\u0648\u0646]\n\n"\u0642\u0628\u0644 \u0623\u0646 \u0646\u062a\u062d\u062f\u062b \u0639\u0646 \u0623\u064a \u062e\u064a\u0627\u0631\u060c \u0623\u0631\u064a\u062f \u0623\u0646 \u0623\u0634\u0631\u062d \u0644\u0643\u0645 \u0645\u0627 \u0627\u0644\u0630\u064a \u0637\u0648\u0631\u0646\u0627\u0647 \u0644\u0639\u0627\u0626\u0644\u062a\u0643\u0645 \u062a\u062d\u062f\u064a\u062f\u0627\u064b."\n\n[\u0642\u062f\u0651\u0645 \u062d\u0632\u0645\u0629 \u0627\u0644\u0642\u064a\u0645\u0629]\n\n"\u0623\u0639\u0637\u0648\u0646\u064a 7 \u0623\u064a\u0627\u0645 \u062a\u062c\u0631\u0628\u0648\u0627 \u0641\u064a\u0647\u0627 \u0627\u0644\u062c\u0644\u0633\u0629 \u0641\u064a \u0627\u0644\u0645\u0646\u0632\u0644."\n\n\u26a0 \u0644\u0627 \u062a\u0639\u0627\u0644\u062c \u0627\u0633\u062a\u0631\u062f\u0627\u062f\u0627\u064b \u0641\u064a \u0627\u0644\u0645\u0643\u0627\u0644\u0645\u0629 \u0627\u0644\u0623\u0648\u0644\u0649 \u0623\u0628\u062f\u0627\u064b.',
+  '4.3':'[\u0646\u0635 \u0627\u0639\u062a\u0631\u0627\u0636 \u0627\u0644\u0625\u0644\u063a\u0627\u0621 - \u0645\u0643\u0627\u0644\u0645\u0629 \u0641\u0642\u0637]\n\n"\u0634\u0643\u0631\u0627\u064b \u0639\u0644\u0649 \u0635\u0631\u0627\u062d\u062a\u0643\u0645. \u0642\u0628\u0644 \u0623\u0646 \u0646\u062a\u0641\u0642 \u0639\u0644\u0649 \u0623\u064a \u0634\u064a\u0621\u060c \u0647\u0644 \u062a\u0633\u0645\u062d\u0648\u0646 \u0644\u064a \u0623\u0646 \u0623\u0641\u0647\u0645 \u0623\u0643\u062b\u0631\u061f"\n\n"\u0645\u0627 \u0627\u0644\u0630\u064a \u0644\u0645 \u064a\u0644\u0628\u0651 \u062a\u0648\u0642\u0639\u0627\u062a\u0643\u0645 \u062d\u062a\u0649 \u0627\u0644\u0622\u0646\u061f"\n\n[\u0627\u0633\u062a\u0645\u0639]\n\n\u26a0 \u0644\u0627 \u062a\u0648\u0627\u0641\u0642 \u0639\u0644\u0649 \u0627\u0644\u0625\u0644\u063a\u0627\u0621 \u0641\u064a \u0627\u0644\u0645\u0643\u0627\u0644\u0645\u0629 \u0627\u0644\u0623\u0648\u0644\u0649. \u0627\u0633\u0623\u0644 "\u0644\u0645\u0627\u0630\u0627" \u0623\u0648\u0644\u0627\u064b.',
+  '4.4':'[\u0646\u0635 \u0627\u062a\u0635\u0627\u0644 \u0627\u0644\u0645\u0639\u0644\u0645\u0629 - \u0644\u0644\u0639\u0627\u0626\u0644\u0627\u062a \u0627\u0644\u0645\u062a\u0631\u062f\u062f\u0629]\n\n"\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064a\u0643\u0645\u060c \u0623\u0646\u0627 [\u0627\u0633\u0645 \u0627\u0644\u0645\u0639\u0644\u0645\u0629]\u060c \u0645\u0639\u0644\u0645\u0629 [\u0627\u0633\u0645 \u0627\u0644\u0637\u0641\u0644] \u0641\u064a \u0628\u064a \u0643\u064a\u0648\u0631\u064a\u0648\u0633."\n\n"\u0627\u062a\u0635\u0644\u062a \u0644\u0623\u0646\u0646\u0627 \u0648\u0635\u0644\u0646\u0627 [\u0627\u0633\u0645 \u0627\u0644\u0637\u0641\u0644] \u0647\u0630\u0627 \u0627\u0644\u0623\u0633\u0628\u0648\u0639 \u062e\u0644\u0627\u0644 \u0627\u0644\u062c\u0644\u0633\u0629\u060c \u0648\u0643\u0627\u0646 \u064a\u0633\u062a\u0645\u062a\u0639 \u0643\u062b\u064a\u0631\u0627\u064b. \u0623\u0631\u062f\u062a \u0623\u0646 \u062a\u0637\u0645\u0626\u0646\u0648\u0627 \u0639\u0644\u064a\u0647."\n\n\u26a0 \u0627\u0644\u0645\u0639\u0644\u0645\u0629 \u0644\u0627 \u062a\u062a\u062d\u062f\u062b \u0639\u0646 \u0627\u0644\u0645\u0627\u0644 \u0623\u0628\u062f\u0627\u064b.',
+  'bashayer':'\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064a\u0643\u0645 \ud83e\udd0d\n\n\u0623\u0646\u0627 \u0628\u0634\u0627\u064a\u0631\u060c \u0645\u0624\u0633\u0633\u0629 \u0628\u064a \u0643\u064a\u0648\u0631\u064a\u0648\u0633.\n\n\u0642\u0631\u0631\u062a \u0634\u062e\u0635\u064a\u0627\u064b \u0623\u0646 \u0646\u0636\u064a\u0641 \u0644\u0643\u0644 \u0639\u0627\u0626\u0644\u0629 \u0641\u064a \u0628\u064a \u0643\u064a\u0648\u0631\u064a\u0648\u0633:\n\n\ud83c\udfe1 \u062c\u0644\u0633\u062a\u0627\u0646 \u0645\u062c\u0627\u0646\u064a\u062a\u0627\u0646 \u0641\u064a \u0627\u0644\u0645\u0646\u0632\u0644\n\n\u0628\u0634\u0627\u064a\u0631 \ud83c\udf3f'
+};
+
+// ---- SCRIPTS PAGE ----
+function renderCsScripts(){
+  const el=document.getElementById('cs-scripts-outer');if(!el)return;
+  let h='';
+  h+='<div class="cs-dash-headline" style="background:linear-gradient(135deg,#FEF3CD 0%,#E1F5EE 100%);border-color:#FDE68A;color:#7C2D12">';
+  h+='<b>How to use these scripts:</b> Match the script to the parent segment first. Loyal &rarr; 4.1 only. Hesitant &rarr; teacher call 4.4 first, then 4.1. High-risk &rarr; leadership-only refund defense 4.2.';
+  h+='</div>';
+
+  const cards=[
+    {key:'4.1',title:'4.1 - Payment Request WhatsApp',when:'Send Sunday morning 9-10. Follow up Thursday if no reply.'},
+    {key:'4.2',title:'4.2 - Refund Defense Call',when:'Senior staff only. Goal: defer the decision 7 days while you deliver real value.'},
+    {key:'4.3',title:'4.3 - Cancellation Objection Call',when:'Phone only. Always ask "why" first. Never agree to cancel on the first call.'},
+    {key:'4.4',title:'4.4 - Teacher Call (Hesitant Families)',when:'Goes BEFORE the payment message. Child-centric, no money talk.'},
+    {key:'bashayer',title:'Bashayer - Personal Founder Message',when:'Sent from Bashayer\'s personal number after the first wave.'}
+  ];
+  cards.forEach(card=>{
+    const text=CS_SCRIPTS[card.key];
+    h+='<div class="cs-script-card">';
+    h+='<h4>'+esc(card.title)+'</h4>';
+    h+='<div class="cs-script-when">'+esc(card.when)+'</div>';
+    h+='<div class="cs-script-text">'+esc(text)+'</div>';
+    h+='<div class="cs-script-actions">';
+    h+='<button onclick="csCopyScript(\''+card.key+'\')">Copy</button>';
+    h+='<button onclick="csOpenWA(\''+card.key+'\')">Open in WhatsApp</button>';
+    h+='</div></div>';
+  });
+
+  // Escalation ladder
+  h+='<div class="cs-script-card"><h4>Escalation Ladder</h4>';
+  csLevels().forEach(l=>{
+    h+='<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-bottom:1px solid var(--border)">';
+    h+='<span class="cs-lvl cs-lvl-'+l.id+'" style="flex-shrink:0">L'+l.id+'</span>';
+    h+='<div style="font-size:11px;font-weight:700">'+esc(l.label)+'</div></div>';
+  });
+  h+='</div>';
+
+  el.innerHTML=h;
+}
+
+function csCopyScript(key){
+  const txt=CS_SCRIPTS[key];if(!txt)return;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>toast('Script copied')).catch(()=>{
+      const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Copied');
+    });
+  }else{
+    const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Copied');
+  }
+}
+function csOpenWA(key){
+  const txt=CS_SCRIPTS[key];if(!txt)return;
+  window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
+}
+
+// ---- SETTINGS MODAL ----
+function csOpenSettings(){
+  const overlay=document.getElementById('cs-settings-overlay');if(!overlay)return;
+  document.getElementById('cs-settings-body').innerHTML=renderCsSettingsBody();
+  overlay.style.display='flex';
+}
+function csCloseSettings(){const o=document.getElementById('cs-settings-overlay');if(o)o.style.display='none';}
+function renderCsSettingsBody(){
+  let h='';
+  h+='<div style="font-size:11px;color:var(--text2);margin-bottom:10px">Add or remove options for any case dropdown. Existing cases that use a deleted option keep their value (the option just disappears from the picker for new cases).</div>';
+  const sections=[
+    {key:'types',title:'Case Types',hasId:true},
+    {key:'segments',title:'Payment Segments',hasId:true},
+    {key:'levels',title:'Escalation Levels (1-N hierarchy)',hasId:true,numeric:true},
+    {key:'statuses',title:'Statuses',hasId:false},
+    {key:'outcomes',title:'Outcomes',hasId:true},
+    {key:'complaintReasons',title:'Reasons of Complaint (multi-select)',hasId:false}
+  ];
+  sections.forEach(sec=>{
+    h+='<div class="cs-settings-section"><h4>'+sec.title+'</h4>';
+    h+='<div id="cs-set-list-'+sec.key+'">'+renderCsSettingsList(sec)+'</div>';
+    if(sec.hasId&&sec.numeric){
+      h+='<div class="cs-settings-add"><input id="cs-set-add-'+sec.key+'-label" placeholder="Label (e.g. Branch Manager)"><button onclick="csAddSettingItem(\''+sec.key+'\',true)">+ Add</button></div>';
+    }else if(sec.hasId){
+      h+='<div class="cs-settings-add"><input id="cs-set-add-'+sec.key+'-label" placeholder="Label"><button onclick="csAddSettingItem(\''+sec.key+'\',false)">+ Add</button></div>';
+    }else{
+      h+='<div class="cs-settings-add"><input id="cs-set-add-'+sec.key+'-label" placeholder="New option"><button onclick="csAddSettingItem(\''+sec.key+'\',false)">+ Add</button></div>';
+    }
+    h+='</div>';
+  });
+  h+='<div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border);text-align:right"><button class="ctx-btn" onclick="csResetSettings()">Reset to defaults</button></div>';
+  return h;
+}
+function renderCsSettingsList(sec){
+  const list=CASE_SETTINGS[sec.key]||[];
+  if(list.length===0)return '<div style="font-size:10px;color:var(--text3);padding:6px">No options yet</div>';
+  let h='';
+  list.forEach((it,idx)=>{
+    const lbl=typeof it==='string'?it:it.label;
+    const id=typeof it==='string'?it:it.id;
+    h+='<div class="cs-set-item"><span>'+esc(typeof it==='object'&&it.id&&typeof it.id==='number'?'L'+it.id+' &middot; ':'')+esc(lbl)+'</span><button onclick="csDeleteSettingItem(\''+sec.key+'\','+idx+')" title="remove">&times;</button></div>';
+  });
+  return h;
+}
+function csAddSettingItem(key,numeric){
+  const inp=document.getElementById('cs-set-add-'+key+'-label');
+  const lbl=(inp.value||'').trim();if(!lbl)return;
+  const list=CASE_SETTINGS[key]=CASE_SETTINGS[key]||[];
+  if(numeric){
+    const nextId=(list.reduce((m,x)=>Math.max(m,x.id||0),0)||0)+1;
+    list.push({id:nextId,label:lbl});
+  }else if(typeof list[0]==='string'||list.length===0&&(key==='statuses'||key==='complaintReasons')){
+    list.push(lbl);
+  }else{
+    const id=lbl.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'')||('opt_'+Date.now());
+    list.push({id,label:lbl});
+  }
+  inp.value='';
+  saveState();
+  document.getElementById('cs-settings-body').innerHTML=renderCsSettingsBody();
+}
+function csDeleteSettingItem(key,idx){
+  if(!confirm('Remove this option?'))return;
+  CASE_SETTINGS[key].splice(idx,1);
+  saveState();
+  document.getElementById('cs-settings-body').innerHTML=renderCsSettingsBody();
+}
+function csResetSettings(){
+  if(!confirm('Reset all case settings to defaults? This affects only the dropdown options, not your existing cases.'))return;
+  CASE_SETTINGS=JSON.parse(JSON.stringify(CS_DEFAULT_SETTINGS));
+  saveState();
+  document.getElementById('cs-settings-body').innerHTML=renderCsSettingsBody();
+}
+
+// ---- IMPORT / EXPORT (CSV) ----
+function csExportCsv(){
+  const rows=[['id','parentFullName','childName','studentId','branch','type','segment','level','status','paymentStatus','enrollmentStatus','amountKwd','complaintReasons','dueDate','assignedTo','outcome','nextActionsOpen','notes','createdAt','updatedAt','resolvedAt','logCount']];
+  Object.values(CASES).forEach(c=>{
+    const openNa=(c.nextActions||[]).filter(a=>!a.done).map(a=>a.text).join(' | ');
+    rows.push([
+      c.id,c.parentFullName||'',c.childName||'',c.studentId||'',c.branch||'',c.type||'',c.segment||'',c.level||'',c.status||'',
+      c.paymentStatus||'',c.enrollmentStatus||'',c.amountKwd||'',(c.complaintReasons||[]).join('; '),
+      c.dueDate||'',c.assignedTo||'',c.outcome||'',openNa,(c.notes||'').replace(/\n/g,' '),c.createdAt||'',c.updatedAt||'',c.resolvedAt||'',(c.log||[]).length
+    ]);
+  });
+  csDownloadCsv(rows,'BeCurious_Cases_'+new Date().toISOString().slice(0,10)+'.csv');
+}
+function csDownloadCsv(rows,filename){
+  const csv=rows.map(r=>r.map(v=>{
+    const s=String(v==null?'':v);
+    return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+  }).join(',')).join('\n');
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
+}
+function csImportCsvDialog(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.csv,.tsv,.txt';
+  inp.onchange=ev=>{
+    const f=ev.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=e=>{try{csImportCsvText(e.target.result);}catch(err){alert('Import failed: '+err.message);}};
+    r.readAsText(f);
+  };
+  inp.click();
+}
+function csParseCsv(text){
+  // Minimal CSV parser supporting quoted fields, commas, and newlines.
+  const rows=[];let row=[];let cur='';let i=0;let inQ=false;
+  while(i<text.length){
+    const ch=text[i];
+    if(inQ){
+      if(ch==='"'&&text[i+1]==='"'){cur+='"';i+=2;continue;}
+      if(ch==='"'){inQ=false;i++;continue;}
+      cur+=ch;i++;continue;
+    }
+    if(ch==='"'){inQ=true;i++;continue;}
+    if(ch===','){row.push(cur);cur='';i++;continue;}
+    if(ch==='\r'){i++;continue;}
+    if(ch==='\n'){row.push(cur);rows.push(row);row=[];cur='';i++;continue;}
+    cur+=ch;i++;
+  }
+  if(cur.length||row.length){row.push(cur);rows.push(row);}
+  return rows.filter(r=>r.length>1||(r.length===1&&r[0].trim()));
+}
+function csImportCsvText(text){
+  const rows=csParseCsv(text);
+  if(rows.length<2){alert('CSV is empty.');return;}
+  const header=rows[0].map(h=>h.trim());
+  const idx=name=>header.indexOf(name);
+  const now=new Date().toISOString();
+  let added=0,updated=0;
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i];
+    const get=name=>{const j=idx(name);return j>=0?(r[j]||'').trim():'';};
+    const id=get('id')||csId();
+    const existing=CASES[id]||newCase({id});
+    if(get('parentFullName'))existing.parentFullName=get('parentFullName');
+    else if(get('familyName'))existing.parentFullName=get('familyName'); // legacy column
+    if(get('childName'))existing.childName=get('childName');
+    if(get('studentId'))existing.studentId=get('studentId');
+    if(get('branch'))existing.branch=get('branch');
+    if(get('type'))existing.type=get('type');
+    if(get('segment'))existing.segment=get('segment');
+    if(get('level'))existing.level=parseInt(get('level'),10)||existing.level;
+    if(get('status'))existing.status=get('status');
+    if(get('paymentStatus'))existing.paymentStatus=get('paymentStatus');
+    if(get('enrollmentStatus'))existing.enrollmentStatus=get('enrollmentStatus');
+    if(get('amountKwd'))existing.amountKwd=parseFloat(get('amountKwd'))||0;
+    if(get('complaintReasons'))existing.complaintReasons=get('complaintReasons').split(/\s*[;|]\s*/).filter(Boolean);
+    if(get('dueDate'))existing.dueDate=get('dueDate');
+    if(get('assignedTo'))existing.assignedTo=get('assignedTo');
+    if(get('outcome'))existing.outcome=get('outcome');
+    if(get('notes'))existing.notes=get('notes');
+    if(CASES[id])updated++;else{added++;existing.createdAt=existing.createdAt||now;}
+    existing.updatedAt=now;
+    CASES[existing.id]=existing;
+  }
+  csSaveCases();renderCsKanban();
+  alert('Import complete: '+added+' added, '+updated+' updated.');
+}
+
 // ===== START =====
 init();
 setSyncIndicator('connecting');
@@ -6586,6 +7774,7 @@ setSyncIndicator('connecting');
   if(supaOnline)subscribeRealtime();
   // Initialize theme: Home Visits active, Pipeline dashboard hidden
   switchTheme('hv');
+  try{updateCsTabBadge();}catch(e){}
   // Apply any saved custom branding (logo + banner) and seed the undo baseline
   try{applyCustomBranding();}catch(e){}
   try{initUndoBaseline();}catch(e){}
