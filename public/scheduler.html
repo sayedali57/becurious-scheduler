@@ -1506,7 +1506,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
         <div class="frow"><label>Max slots per car per day</label><input id="set-maxSlots" type="number" min="4" max="24"><small class="set-help">How many visits one car can do in a day.</small></div>
       </div>
       <div class="frow2">
-        <div class="frow"><label>Round displayed times to</label><input id="set-displayRound" type="number" min="1" max="30" step="1"><small class="set-help">Session start/pickup times round UP to nearest N minutes for display (e.g. 12:03 → 12:10). Driver still plans around the true travel time.</small></div>
+        <div class="frow"><label>Round displayed times to</label><input id="set-displayRound" type="number" min="1" max="30" step="1"><small class="set-help">SESSION START times round UP to nearest N minutes for parent-facing communication (e.g. 12:03 → 12:10). Pickup times stay precise — the driver still runs on real travel time.</small></div>
         <div class="frow"></div>
       </div>
     </div>
@@ -3298,11 +3298,14 @@ function renderSlot(d,cid,si){
       const dropCar=CARS.find(c=>c.id===info.cid);
       xcarLabel=` · via ${dropCar?.label||'Car ?'}`;
     }
-    const readyWarn=!onTime?` · ⚠ ready ${tsR(readyMin)}`:'';
+    // Pickup times are shown PRECISELY (no rounding) — the driver and teacher
+    // need the real minute, not a display-rounded one. Only session starts
+    // get rounded up for parent-facing communication.
+    const readyWarn=!onTime?` · ⚠ ready ${ts(readyMin)}`:'';
     const lockMark=sl_.locked?' 🔒':'';
     // For branch-return pickup blocks (same car, same destination branch), all
     // teachers arrive at the branch at the SAME time — compute once and share.
-    let pickupDisplayTime=tsR(readyMin);
+    let pickupDisplayTime=ts(readyMin);
     if(!isCrossCar){
       // Walk to the end of the contiguous branch-return block
       let k=si;
@@ -3316,7 +3319,7 @@ function renderSlot(d,cid,si){
       const afterLast=slotStartMin(d,cid,k)+slotDur(lastSl,d,cid,k);
       const [bla,bln]=brCoords(carBranch(cid));
       const driveBack=lastCoords?tm(hv(lastCoords.la,lastCoords.ln,bla,bln)):0;
-      pickupDisplayTime=tsR(afterLast+driveBack);
+      pickupDisplayTime=ts(afterLast+driveBack);
     }
     const isFirst=!prevIsPick;
     const isLastPick=!nextIsPick;
