@@ -1238,6 +1238,161 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 .set-section{border:1px solid var(--border);border-radius:8px;padding:10px 12px 6px;margin-bottom:10px;background:#FAFAFA}
 .set-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:8px}
 .set-help{display:block;font-size:9px;color:var(--text3);margin-top:2px;line-height:1.4}
+
+/* ===================================================================
+   HOME VISITS v2 — Clean labeled-field cards, thin connector lines
+   Scoped under [data-active-theme="hv"] so Pipeline/Case are untouched.
+   =================================================================== */
+[data-active-theme="hv"]{--hv2-ink:#111827;--hv2-muted:#6B7280;--hv2-faint:#9CA3AF;--hv2-line:#E5E7EB;--hv2-bg:#F9FAFB;--hv2-teal:#0F766E;--hv2-teal-lt:#CCFBF1;--hv2-warn:#B45309;--hv2-warn-lt:#FEF3C7;--hv2-err:#B91C1C;--hv2-err-lt:#FEE2E2;--hv2-lock:#6D28D9;--hv2-lock-lt:#EDE9FE}
+
+/* Neutralize body bg and keep day tabs minimal */
+[data-active-theme="hv"] .daytabs{background:#fff;border-bottom:1px solid var(--hv2-line)}
+[data-active-theme="hv"] .dt{color:var(--hv2-muted);font-weight:500;border-bottom:2px solid transparent;background:transparent}
+[data-active-theme="hv"] .dt.on{color:var(--hv2-ink);font-weight:700;border-bottom-color:var(--hv2-teal);background:transparent}
+[data-active-theme="hv"] .dt.on.sun{color:var(--hv2-err);border-bottom-color:var(--hv2-err)}
+
+/* Car column header — clean */
+[data-active-theme="hv"] .carhdr{background:#fff;border:1px solid var(--hv2-line);border-radius:10px 10px 0 0;box-shadow:none;padding:12px 14px;text-align:left;font-size:14px;font-weight:700;color:var(--hv2-ink)}
+[data-active-theme="hv"] .carhdr small{font-size:11px;color:var(--hv2-muted);opacity:1;font-weight:500;margin-top:3px;display:block}
+[data-active-theme="hv"] .car-cap{padding:6px 14px 10px;font-size:10.5px;color:var(--hv2-muted);font-weight:500;gap:8px;background:#fff;border-left:1px solid var(--hv2-line);border-right:1px solid var(--hv2-line)}
+[data-active-theme="hv"] .car-cap-bar{height:2px;background:var(--hv2-line);border-radius:0}
+[data-active-theme="hv"] .car-cap-fill{background:var(--hv2-muted) !important;border-radius:0}
+[data-active-theme="hv"] .carcol:has(.car-cap-fill[style*="width: 9"]) .car-cap-fill,
+[data-active-theme="hv"] .carcol:has(.car-cap-fill[style*="width: 100"]) .car-cap-fill{background:var(--hv2-warn) !important}
+
+/* Thin connector lines between cards (drive / pickup / dropoff) */
+[data-active-theme="hv"] .hv2-line{display:flex;align-items:center;gap:8px;padding:6px 10px;margin:0;font-size:10.5px;color:var(--hv2-muted);font-weight:500;background:transparent}
+[data-active-theme="hv"] .hv2-line-rail{flex:1;height:1px;background:var(--hv2-line)}
+[data-active-theme="hv"] .hv2-line-text{white-space:nowrap;letter-spacing:.02em}
+[data-active-theme="hv"] .hv2-line-drive{color:var(--hv2-muted)}
+[data-active-theme="hv"] .hv2-line-drive .hv2-line-rail{background:var(--hv2-line)}
+[data-active-theme="hv"] .hv2-line-dropoff{color:var(--hv2-teal);font-weight:600}
+[data-active-theme="hv"] .hv2-line-dropoff .hv2-line-rail{background:var(--hv2-teal);opacity:.35}
+/* Pickup line — teal and interactive (drop target) */
+[data-active-theme="hv"] .hv2-line-pickup{padding:8px 10px;cursor:pointer;border-radius:6px;transition:background .12s}
+[data-active-theme="hv"] .hv2-line-pickup:hover{background:var(--hv2-teal-lt)}
+[data-active-theme="hv"] .hv2-line-pickup .hv2-line-rail{background:var(--hv2-teal);opacity:.45;height:1px}
+[data-active-theme="hv"] .hv2-line-pickup .hv2-line-text-active{display:flex;align-items:center;gap:10px;flex-wrap:wrap;white-space:normal}
+[data-active-theme="hv"] .hv2-line-pickup .hv2-line-time{font-weight:700;color:var(--hv2-ink);font-size:12px}
+[data-active-theme="hv"] .hv2-line-pickup .hv2-line-verb{color:var(--hv2-teal);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.08em}
+[data-active-theme="hv"] .hv2-line-pickup .hv2-line-name{color:var(--hv2-ink);font-weight:600;font-size:12px;cursor:pointer}
+[data-active-theme="hv"] .hv2-line-pickup .hv2-line-name:hover{text-decoration:underline}
+[data-active-theme="hv"] .hv2-line-pickup .hv2-line-sub{color:var(--hv2-muted);font-size:10.5px;font-weight:500}
+[data-active-theme="hv"] .hv2-line-pickup.hv2-line-active{background:var(--hv2-teal-lt);box-shadow:inset 3px 0 0 var(--hv2-teal)}
+[data-active-theme="hv"] .hv2-line-pickup.doverslot{background:var(--hv2-teal-lt);box-shadow:inset 0 0 0 2px var(--hv2-teal)}
+[data-active-theme="hv"] .hv2-line-pickup.rejected-day-slot{background:var(--hv2-err-lt);box-shadow:inset 3px 0 0 var(--hv2-err)}
+[data-active-theme="hv"] .hv2-line-rm{background:transparent;border:none;color:var(--hv2-faint);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px}
+[data-active-theme="hv"] .hv2-line-rm:hover{color:var(--hv2-err);background:var(--hv2-err-lt)}
+
+/* SLOT CONTAINER — override old .slot styles */
+[data-active-theme="hv"] .slot.hv2{border:1px solid var(--hv2-line);background:#fff;border-radius:10px;box-shadow:none;min-height:0;overflow:visible;cursor:default;padding:0;margin:0}
+[data-active-theme="hv"] .slot.hv2.active-slot{border:1px solid var(--hv2-teal) !important;box-shadow:0 0 0 3px var(--hv2-teal-lt);animation:none}
+[data-active-theme="hv"] .slot.hv2.locked-slot{border:1px solid var(--hv2-lock) !important;background:#fff}
+[data-active-theme="hv"] .slot.hv2.rejected-day-slot{border:1px solid var(--hv2-err) !important;background:var(--hv2-err-lt) !important;box-shadow:none}
+[data-active-theme="hv"] .slot.hv2.rejected-day-slot::before{content:'⛔ Rejected day';display:block;font-size:9.5px;font-weight:700;color:var(--hv2-err);padding:5px 12px 0;letter-spacing:.05em;text-transform:uppercase}
+[data-active-theme="hv"] .slot.hv2.doverslot{border:1px solid var(--hv2-teal) !important;background:var(--hv2-teal-lt)}
+[data-active-theme="hv"] .slot.hv2.other-branch-slot{background:repeating-linear-gradient(45deg,#F3F4F6,#F3F4F6 6px,#E5E7EB 6px,#E5E7EB 12px);border:1px dashed #D1D5DB}
+[data-active-theme="hv"] .hv2-other{padding:14px 8px;text-align:center;font-size:11px;color:var(--hv2-muted);font-style:italic}
+
+/* CARD INTERIOR */
+[data-active-theme="hv"] .hv2-card{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+[data-active-theme="hv"] .hv2-empty{padding:14px 10px;text-align:center;font-size:11px;color:var(--hv2-faint);font-weight:500}
+[data-active-theme="hv"] .slot.hv2.active-slot .hv2-empty{color:var(--hv2-teal);font-weight:600}
+
+/* Header row (anchor + action icons) */
+[data-active-theme="hv"] .hv2-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--hv2-line)}
+[data-active-theme="hv"] .hv2-hdr-actions{display:flex;align-items:center;gap:4px}
+[data-active-theme="hv"] .hv2-lock-ico{color:var(--hv2-lock);flex-shrink:0}
+[data-active-theme="hv"] .slot.hv2 .lock-toggle{background:transparent;border:none;color:var(--hv2-faint);cursor:pointer;padding:4px;border-radius:4px;display:flex;align-items:center;justify-content:center}
+[data-active-theme="hv"] .slot.hv2 .lock-toggle:hover{color:var(--hv2-lock);background:var(--hv2-lock-lt)}
+[data-active-theme="hv"] .slot.hv2 .lock-toggle.is-locked{color:var(--hv2-lock);opacity:1}
+
+/* Labeled field */
+[data-active-theme="hv"] .hv2-field{display:flex;flex-direction:column;gap:2px;min-width:0}
+[data-active-theme="hv"] .hv2-field-anchor{flex:1;min-width:0}
+[data-active-theme="hv"] .hv2-lbl{font-size:9px;font-weight:700;color:var(--hv2-faint);text-transform:uppercase;letter-spacing:.09em;line-height:1.2}
+[data-active-theme="hv"] .hv2-val{font-size:12.5px;color:var(--hv2-ink);font-weight:500;line-height:1.35;word-break:break-word}
+[data-active-theme="hv"] .hv2-val-time{font-size:16px;font-weight:700;color:var(--hv2-ink);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+[data-active-theme="hv"] .hv2-addr{color:var(--hv2-muted);font-size:12px;font-weight:500}
+[data-active-theme="hv"] .hv2-anchor{font-size:17px;font-weight:700;color:var(--hv2-teal);letter-spacing:-.01em;line-height:1.2}
+[data-active-theme="hv"] .hv2-anchor-sm{font-size:14px}
+[data-active-theme="hv"] .hv2-anchor-dd{font-size:13px;color:var(--hv2-ink)}
+
+/* Times row — two columns */
+[data-active-theme="hv"] .hv2-times{display:flex;gap:24px;padding:4px 0}
+
+/* Link styling */
+[data-active-theme="hv"] .hv2-val .link-name{color:var(--hv2-ink);font-weight:600;cursor:pointer;text-decoration:none}
+[data-active-theme="hv"] .hv2-val .link-name:hover{color:var(--hv2-teal);text-decoration:underline}
+
+/* Far/very-far inline marker */
+[data-active-theme="hv"] .hv2-far{color:var(--hv2-warn);font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+
+/* Group tag inline (when session uses group location) */
+[data-active-theme="hv"] .hv2-grp-tag{display:inline-block;margin-left:6px;font-size:9.5px;font-weight:600;color:var(--hv2-teal);background:var(--hv2-teal-lt);padding:1px 7px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
+
+/* Paired / double-drop student blocks inside one card */
+[data-active-theme="hv"] .hv2-paired-item{position:relative;padding:10px;background:var(--hv2-bg);border-radius:6px;display:flex;flex-direction:column;gap:6px}
+[data-active-theme="hv"] .hv2-paired-item:hover{background:#F3F4F6}
+[data-active-theme="hv"] .hv2-paired-sep{height:6px}
+[data-active-theme="hv"] .hv2-off{color:var(--hv2-muted);font-size:11px;font-weight:500}
+[data-active-theme="hv"] .hv2-rm-mini{position:absolute;top:6px;right:6px;background:transparent;border:none;color:var(--hv2-faint);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px;line-height:1}
+[data-active-theme="hv"] .hv2-rm-mini:hover{color:var(--hv2-err);background:var(--hv2-err-lt)}
+
+/* Group children */
+[data-active-theme="hv"] .hv2-grp-children{display:flex;flex-direction:column;gap:4px}
+[data-active-theme="hv"] .hv2-grp-child{display:flex;align-items:center;gap:8px;padding:5px 8px;background:var(--hv2-bg);border-radius:5px;font-size:12px}
+[data-active-theme="hv"] .hv2-grp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+[data-active-theme="hv"] .hv2-grp-t{color:var(--hv2-muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;min-width:70px}
+[data-active-theme="hv"] .hv2-grp-n{color:var(--hv2-ink);font-weight:600;flex:1;cursor:pointer}
+[data-active-theme="hv"] .hv2-grp-n:hover{color:var(--hv2-teal);text-decoration:underline}
+[data-active-theme="hv"] .hv2-grp-drop{margin-top:4px;padding:8px;border:1px dashed var(--hv2-line);border-radius:6px;text-align:center;color:var(--hv2-muted);font-size:11px;font-weight:500}
+[data-active-theme="hv"] .hv2-grp-drop.doverg{border-color:var(--hv2-teal);background:var(--hv2-teal-lt);color:var(--hv2-teal)}
+[data-active-theme="hv"] .hv2-grp-full{text-align:center;color:var(--hv2-warn);font-size:10.5px;padding:6px;font-weight:600}
+
+/* Warnings row */
+[data-active-theme="hv"] .hv2-warn-row{background:var(--hv2-warn-lt);color:var(--hv2-warn);font-size:11px;font-weight:500;padding:6px 10px;border-radius:5px;line-height:1.35}
+[data-active-theme="hv"] .hv2-warn-inline{font-size:10.5px;padding:4px 8px;margin-top:2px}
+
+/* Attendance row — visible, minimal */
+[data-active-theme="hv"] .slot.hv2 .att-row{background:transparent;border-top:1px solid var(--hv2-line);padding:7px 0 0;gap:6px;color:var(--hv2-muted);margin-top:2px}
+[data-active-theme="hv"] .slot.hv2 .att-row b{color:var(--hv2-faint);font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-right:6px}
+[data-active-theme="hv"] .slot.hv2 .att-btn{background:transparent;border:1px solid var(--hv2-line);color:var(--hv2-muted);padding:3px 8px;border-radius:5px;font-size:10.5px;font-weight:500;cursor:pointer;transition:all .12s}
+[data-active-theme="hv"] .slot.hv2 .att-btn:hover{border-color:var(--hv2-teal);color:var(--hv2-ink)}
+[data-active-theme="hv"] .slot.hv2 .att-btn.on-done{background:#DCFCE7;color:#15803D;border-color:#15803D;font-weight:600}
+[data-active-theme="hv"] .slot.hv2 .att-btn.on-cancel{background:var(--hv2-err-lt);color:var(--hv2-err);border-color:var(--hv2-err);font-weight:600}
+[data-active-theme="hv"] .slot.hv2 .att-btn.on-noshow{background:var(--hv2-warn-lt);color:var(--hv2-warn);border-color:var(--hv2-warn);font-weight:600}
+
+/* Footer actions */
+[data-active-theme="hv"] .hv2-ftr{display:flex;gap:6px;padding-top:8px;border-top:1px solid var(--hv2-line);flex-wrap:wrap}
+[data-active-theme="hv"] .hv2-ftr-btn{background:transparent;border:1px solid var(--hv2-line);color:var(--hv2-muted);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;transition:all .12s}
+[data-active-theme="hv"] .hv2-ftr-btn:hover{border-color:var(--hv2-teal);color:var(--hv2-teal);background:var(--hv2-teal-lt)}
+[data-active-theme="hv"] .hv2-ftr-btn.hv2-ftr-rm:hover{border-color:var(--hv2-err);color:var(--hv2-err);background:var(--hv2-err-lt)}
+
+/* Ride / cross-car notes */
+[data-active-theme="hv"] .ride-note{background:var(--hv2-warn-lt);color:var(--hv2-warn);border:none;border-left:3px solid var(--hv2-warn);font-size:10.5px;padding:5px 10px;margin:0 0 4px;border-radius:0 4px 4px 0;font-weight:500}
+
+/* Pool panel — cleaner cards */
+[data-active-theme="hv"] .pool{background:#fff;border-right:1px solid var(--hv2-line)}
+[data-active-theme="hv"] .pool-hdr{border-bottom:1px solid var(--hv2-line);padding:14px 16px}
+[data-active-theme="hv"] .pool-hdr h3{font-size:11px;color:var(--hv2-teal);letter-spacing:.1em;font-weight:700;text-transform:uppercase}
+[data-active-theme="hv"] .pool-sect{color:var(--hv2-muted);font-size:10.5px;font-weight:700;letter-spacing:.08em;padding:14px 12px 6px;text-transform:uppercase}
+[data-active-theme="hv"] .pool-empty{color:var(--hv2-faint);font-size:11px;font-style:italic;padding:20px 10px;text-align:center}
+[data-active-theme="hv"] .sc{background:#fff;border:1px solid var(--hv2-line);border-left:3px solid transparent !important;border-radius:8px;box-shadow:none;padding:10px 12px;margin-bottom:6px;cursor:grab}
+[data-active-theme="hv"] .sc:hover{border-color:var(--hv2-muted);box-shadow:0 1px 3px rgba(0,0,0,.05)}
+[data-active-theme="hv"] .sc .t{font-size:10px;font-weight:700;color:var(--hv2-teal) !important;background:transparent !important;text-transform:uppercase;letter-spacing:.06em;padding:0;margin-bottom:3px}
+[data-active-theme="hv"] .sc .n{font-size:13px;font-weight:700;color:var(--hv2-ink);margin:2px 0 3px}
+[data-active-theme="hv"] .sc .a{font-size:11px;color:var(--hv2-muted)}
+[data-active-theme="hv"] .sc .tag{background:transparent;color:var(--hv2-muted);font-size:10px;font-weight:500;border:1px solid var(--hv2-line);padding:1px 7px;border-radius:999px;text-transform:none}
+[data-active-theme="hv"] .sc .tag.tag-far,[data-active-theme="hv"] .sc .tag.tag-vfar{color:var(--hv2-warn);border-color:var(--hv2-warn);background:var(--hv2-warn-lt)}
+[data-active-theme="hv"] .sess-pill{font-size:10px;padding:1px 7px;border-radius:999px;font-weight:600;background:transparent;border:1px solid var(--hv2-line);color:var(--hv2-muted)}
+[data-active-theme="hv"] .sess-pill.done{color:#15803D;border-color:#15803D}
+[data-active-theme="hv"] .sess-pill.partial{color:var(--hv2-warn);border-color:var(--hv2-warn)}
+[data-active-theme="hv"] .sess-pill.zero{color:var(--hv2-err);border-color:var(--hv2-err)}
+[data-active-theme="hv"] .sess-progress{height:2px;background:var(--hv2-line);margin-top:6px}
+[data-active-theme="hv"] .sess-bar{background:var(--hv2-muted) !important}
+[data-active-theme="hv"] .unplaced-reason{color:var(--hv2-warn);background:transparent;border:none;font-size:11px;padding:4px 0 0;font-weight:500;font-style:italic}
+[data-active-theme="hv"] .unplaced-reason::before{content:''}
 </style>
 
 <!-- AUTO-SCHEDULE CONFIRM MODAL -->
@@ -2772,101 +2927,108 @@ function teacherRideNote(d,cid,si){
   return`<div class="ride-note">${note}</div>`;
 }
 
+// Helper: coords of where this slot's session happens (for drive-time line)
+function _slotCoords(sl_){
+  if(!sl_)return null;
+  if(sl_.grp&&sl_.grp.la!=null&&sl_.grp.ln!=null)return{la:sl_.grp.la,ln:sl_.grp.ln,a:sl_.grp.addr};
+  if(sl_.t==='s'){const s=SS[sl_.id];return s?{la:s.la,ln:s.ln,a:s.a}:null;}
+  if(sl_.t==='d'){const s=SS[(sl_.ids||[])[0]];return s?{la:s.la,ln:s.ln,a:s.a}:null;}
+  if(sl_.t==='pick'){const s=SS[sl_.id];return s?{la:s.la,ln:s.ln,a:s.a}:null;}
+  if(sl_.t==='g'){return sl_.grp&&sl_.grp.la!=null?{la:sl_.grp.la,ln:sl_.grp.ln,a:sl_.grp.addr}:null;}
+  return null;
+}
+// Helper: render a thin connector line between cards (drive / pickup / dropoff)
+function _hvConnector(kind,text){
+  return`<div class="hv2-line hv2-line-${kind}"><span class="hv2-line-rail"></span><span class="hv2-line-text">${text}</span><span class="hv2-line-rail"></span></div>`;
+}
+
 function renderSlot(d,cid,si){
   const sl_=SCHED[d]?.[cid]?.[si];
   const startMin=slotStartMin(d,cid,si);
   const isActive=activeSlot&&activeSlot.d===d&&activeSlot.cid===cid&&activeSlot.si===si;
   const timeStr=ts(startMin);
   const endStr=ts(startMin+sessionBlockMin());
-  // Pickup slots use the pickup-ready time (start) → arrival at next drop; but
-  // the simple start/end rendering is fine for visual consistency.
-  const timeHtml=`<div class="time-range"><span class="tr-start">${timeStr}</span><span class="tr-arr">→</span><span class="tr-end">${endStr}</span></div>`;
   const expAttr=_expandedSlots.has(slotKey(d,cid,si))?' data-expanded="true"':'';
   const base=`id="sl-${d}-${cid}-${si}" data-d="${d}" data-cid="${cid}" data-si="${si}"${expAttr}`;
   const handlers=`onclick="slotClick(event,'${d}',${cid},${si})" ondragover="slotOver(event,this)" ondragleave="slotLeave(this)" ondrop="slotDrop(event,this)"`;
-  const expandBtn=`<button class="expand-chev" onclick="toggleSlotExpand(event,'${d}',${cid},${si})" title="Show full details"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>`;
+
+  // Drive-time connector to THIS slot (thin line, rendered above card)
+  let driveLine='';
+  if(sl_){
+    const coords=_slotCoords(sl_);
+    const prev=lastPos(d,cid,si);
+    if(coords&&prev&&prev.la!=null&&prev.ln!=null){
+      const travelMin=tm(hv(prev.la,prev.ln,coords.la,coords.ln));
+      const fromLabel=prev.isBase?`${prev.a} branch`:sl(prev.a);
+      driveLine=_hvConnector('drive',`${travelMin?travelMin+' min drive · ':''}from ${fromLabel}`);
+    }
+  }
 
   if(!sl_){
-    return`<div class="slot-wrap">${timeHtml}
-      <div class="slot${isActive?' active-slot':''}" ${base} ${handlers}>
-        <div class="slot-empty">${isActive?'▸ drop here':'drop here'}</div>
+    return`<div class="slot-wrap">
+      <div class="slot hv2${isActive?' active-slot':''}" ${base} ${handlers}>
+        <div class="hv2-empty">${isActive?'▸ drop here':'drop here'}</div>
       </div></div>`;
   }
 
-  // Branch filter: when a supervisor has picked a specific branch, slots that
-  // belong entirely to another branch render as a muted placeholder so the
-  // supervisor sees the slot is in use without seeing student details — and
-  // cannot accidentally drop onto another branch's slot.
   if(curBr!=='All'&&!slotMatchesBranch(sl_,curBr)){
-    return`<div class="slot-wrap">${timeHtml}
-      <div class="slot other-branch-slot" ${base} title="This slot belongs to another branch">
-        <div style="padding:14px 8px;text-align:center;font-size:10px;color:var(--text3);font-style:italic">Other branch</div>
+    return`<div class="slot-wrap">
+      <div class="slot hv2 other-branch-slot" ${base} title="This slot belongs to another branch">
+        <div class="hv2-other">Other branch</div>
       </div></div>`;
   }
 
   const warns=warnHtml(d,cid,si);
   const isLast=isLastSlot(d,cid,si);
-
-  // Teacher ride annotation: show a banner when a teacher change means
-  // the driver must detour back to branch.
   const rideNote=teacherRideNote(d,cid,si);
-  const lockBadge=sl_.locked?'<span class="lock-badge" title="Mandatory time — locked by parent request"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>':'';
-  const lockBtn=`<button class="lock-toggle${sl_.locked?' is-locked':''}" onclick="event.stopPropagation();toggleSlotLock('${d}',${cid},${si})" title="${sl_.locked?'Unlock this slot':'Lock — protect from auto-schedule'}">${sl_.locked?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>':'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>'}</button>`;
-  // Rejected-day check: any student in this slot on a day their parent rejected?
+  const lockBadge=sl_.locked?'<svg class="hv2-lock-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>':'';
+  const lockBtn=`<button class="lock-toggle${sl_.locked?' is-locked':''}" onclick="event.stopPropagation();toggleSlotLock('${d}',${cid},${si})" title="${sl_.locked?'Unlock':'Lock — protect from auto-schedule'}">${sl_.locked?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>':'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>'}</button>`;
   const slotIds=slotStudentIds(sl_);
   const rejCls=slotIds.some(sid=>isRejectedDay(sid,d))?' rejected-day-slot':'';
+  // If this is the last non-pickup slot, append a dropoff-to-branch line after the card
+  const dropoffLine=isLast&&sl_.t!=='pick'?_hvConnector('dropoff',`drop off at ${carBranch(cid)} branch`):'';
 
   if(sl_.t==='s'){
     const s=SS[sl_.id];if(!s)return'';
-    const col=TC[s.t]||'#6A5FA8';
-    const effLa=sl_.grp?.la??s.la, effLn=sl_.grp?.ln??s.ln, effAddr=sl_.grp?.addr??s.a;
+    const effAddr=sl_.grp?.addr??s.a;
     const dist=dbBr(s,carBranch(cid));
-    const ft=dist>15?'tag-vfar':dist>10?'tag-far':'';
-    const fl=dist>15?dist.toFixed(0)+'km VERY FAR':dist>10?dist.toFixed(0)+'km FAR':'';
-    const prev=lastPos(d,cid,si);
-    const travelMin=tm(hv(prev.la,prev.ln,effLa,effLn));
-    const fromLabel=prev.isBase?prev.a:sl(prev.a);
-    const toLabel=sl_.grp?`${sl(sl_.grp.addr)} (Group)`:sl(s.a);
-    // Pickup-ready = car arrival at student (startMin + travel) + session block.
-    // Uses current Settings (sessionMin + bufferMin) instead of the old hardcoded 65.
-    const pickTime=ts(startMin+travelMin+sessionBlockMin());
+    const farLabel=dist>15?` · <span class="hv2-far">${dist.toFixed(0)}km very far</span>`:dist>10?` · <span class="hv2-far">${dist.toFixed(0)}km far</span>`:'';
     const pickSlot=findPickSlot(sl_.id);
-    // After pickup: where does driver go next?
-    const pickNext=nextSlotPos(d,cid,si);
-    const pickToLabel=isLast?carBranch(cid)+' branch':(pickNext.isBase?pickNext.a:sl(pickNext.a));
-    const grpCls=sl_.grp?'grp-on':'';
-    const isXcar=pickSlot&&pickSlot.cid!==cid;
-    const pickCarLabel=pickSlot?(CARS.find(c=>c.id===pickSlot.cid)?.label||'Car'):'';
-    const pickHtml=`<div class="auto-pick">
-      <div class="ap-row">
-        <span class="ap-badge">▲ ${pickTime}</span>
-        <span class="ap-name">${s.n}</span>
-        ${pickSlot?(isXcar
-          ?`<span style="font-size:8px;color:#0369A1;font-weight:700">🔄 ${pickCarLabel} picks up → ${pickToLabel}</span>`
-          :`<span style="font-size:8px;color:var(--teal)">→ ${pickCarLabel} → ${pickToLabel}</span>`)
-          :`<div class="sc pick-card" draggable="true" data-sid="${sl_.id}" data-dtype="pick" style="display:inline-flex;align-items:center;gap:4px;padding:2px 5px;cursor:grab;border-radius:4px;margin-left:auto;font-size:8px;border-left:2px solid var(--orange)"><span style="color:var(--orange);font-weight:700">Drag to assign →</span></div>`}
-      </div></div>`;
-    return`<div class="slot-wrap">${timeHtml}
+    const pickWarn=!pickSlot?`<div class="hv2-warn-row">⚠ Pickup not assigned for ${s.n}</div>`:'';
+    const grpBadge=sl_.grp?`<span class="hv2-grp-tag">Group · ${sl(sl_.grp.addr)}</span>`:'';
+    return`${driveLine}<div class="slot-wrap">
       ${rideNote}
-      <div class="slot filled${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" style="position:relative" ${base} ${handlers}>
-        ${lockBtn}${expandBtn}
-        ${sl_.grp?`<div class="grp-banner">🏠 Group: <span class="grp-loc">${sl(sl_.grp.addr)}</span></div>`:''}
-        <div class="journey drop-j"><span class="j-from">${fromLabel}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
-        <div class="slot-toprow">${lockBadge}${warns}<button class="edit-ico" onclick="event.stopPropagation();editStudent('${s.id}')" title="Edit student">✏</button></div>
-        <div class="ss" ${sl_.locked?'':'draggable="true"'} data-sid="${s.id}" data-dtype="drop" style="border-left:3px solid ${col};padding-top:2px">
-          <div class="t" style="color:${col}">▼ ${s.t}</div>
-          <div class="n link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')" title="Open profile">${s.n}</div>
-          <div class="a">${s.a}</div>
-          <div class="m">${timeStr} · ${travelMin}min drive · ${dist}km${fl?` · <span class="tag ${ft}" style="font-size:7px;padding:0 3px">${fl}</span>`:''}</div>
-          <button class="rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})">×</button>
+      <div class="slot hv2${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" ${base} ${handlers}>
+        <div class="hv2-card" draggable="true" data-sid="${s.id}" data-dtype="drop">
+          <div class="hv2-hdr">
+            <div class="hv2-field hv2-field-anchor">
+              <div class="hv2-lbl">TEACHER</div>
+              <div class="hv2-anchor">${s.t}</div>
+            </div>
+            <div class="hv2-hdr-actions">${lockBadge}${lockBtn}</div>
+          </div>
+          <div class="hv2-times">
+            <div class="hv2-field"><div class="hv2-lbl">START</div><div class="hv2-val hv2-val-time">${timeStr}</div></div>
+            <div class="hv2-field"><div class="hv2-lbl">FINISH</div><div class="hv2-val hv2-val-time">${endStr}</div></div>
+          </div>
+          <div class="hv2-field">
+            <div class="hv2-lbl">STUDENT</div>
+            <div class="hv2-val"><span class="link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')">${s.n}</span>${farLabel}</div>
+          </div>
+          <div class="hv2-field">
+            <div class="hv2-lbl">ADDRESS</div>
+            <div class="hv2-val hv2-addr">${sl(effAddr)}${grpBadge}</div>
+          </div>
+          ${warns?`<div class="hv2-warn-row">${warns}</div>`:''}
+          ${pickWarn}
+          ${attRowHtml(d,cid,si)}
+          <div class="hv2-ftr">
+            <button class="hv2-ftr-btn" onclick="event.stopPropagation();editStudent('${s.id}')" title="Edit student">Edit student</button>
+            <button class="hv2-ftr-btn" onclick="event.stopPropagation();openGroup('${d}',${cid},${si})" title="Group location">${sl_.grp?'Group on':'Group'}</button>
+            <button class="hv2-ftr-btn hv2-ftr-rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})" title="Remove">Remove</button>
+          </div>
         </div>
-        ${pickHtml}
-        ${attRowHtml(d,cid,si)}
-        <div class="slot-actions">
-          <button class="sa-btn ${grpCls}" onclick="event.stopPropagation();openGroup('${d}',${cid},${si})" title="Set group location">🏠 ${sl_.grp?'Group on':'Group'}</button>
-          ${s.visits?`<span class="tag-v" style="font-size:8px">${s.visits}v</span>`:''}
-        </div>
-      </div></div>`;
+      </div></div>${dropoffLine}`;
   }
 
   if(sl_.t==='d'){
@@ -2880,155 +3042,124 @@ function renderSlot(d,cid,si){
     const eff1La=sl_.grp?.la??s1.la, eff1Ln=sl_.grp?.ln??s1.ln;
     const travel1=tm(hv(prev.la,prev.ln,eff1La,eff1Ln));
     const legs=sl_.grp?students.slice(1).map(()=>0):ddLegs(sl_);
-    // Cumulative drop offsets from slot start.
-    const dropOffsets=[0]; // first student's drop = startMin + travel1
+    const dropOffsets=[0];
     for(let i=0;i<legs.length;i++)dropOffsets.push(dropOffsets[dropOffsets.length-1]+(legs[i]||0));
-    const block=sessionBlockMin();
-    const fromLabel=prev.isBase?prev.a:sl(prev.a);
-    const toLabel=sl_.grp?`${sl(sl_.grp.addr)} (Group)`:sl(s1.a);
-    const pickNext=nextSlotPos(d,cid,si);
-    const pickToLabel=isLast?carBranch(cid)+' branch':sl(pickNext.a);
-    const pickRow=(s,pickT,pickSl,idx)=>{
-      const xc=pickSl&&pickSl.cid!==cid;
-      const pcl=pickSl?(CARS.find(c=>c.id===pickSl.cid)?.label||'Car'):'';
-      return`<div class="auto-pick"><div class="ap-row">
-      <span class="ap-badge">▲ ${pickT}</span><span class="ap-name">${s.n}</span>
-      ${pickSl?(xc
-        ?`<span style="font-size:8px;color:#0369A1;font-weight:700">🔄 ${pcl} picks up → ${pickToLabel}</span>`
-        :`<span style="font-size:8px;color:var(--teal)">→ ${pcl} → ${pickToLabel}</span>`)
-        :`<div class="sc pick-card" draggable="true" data-sid="${ids[idx]}" data-dtype="pick" style="display:inline-flex;align-items:center;gap:3px;padding:2px 5px;cursor:grab;border-radius:4px;margin-left:auto;font-size:8px;border-left:2px solid var(--orange)"><span style="color:var(--orange);font-weight:700">Drag →</span></div>`}
-    </div></div>`;
-    };
-    const grpCls=sl_.grp?'grp-on':'';
-    const totalKm=(sl_.km||ddTotalKm(sl_)||0).toFixed(1);
     const totalInter=legs.reduce((a,b)=>a+b,0);
-    const headerDetail=sl_.grp?'Same location (group)':`${totalKm}km total · ${totalInter}min between first and last drop`;
-    const studentCards=students.map((s,idx)=>{
-      const col=TC[s.t]||'#6A5FA8';
-      const dropT=ts(startMin+travel1+dropOffsets[idx]);
-      const offsetLabel=idx===0?timeStr:`<b>${dropT}</b>${sl_.grp?'':` (+${dropOffsets[idx]}min)`}`;
-      return `<div class="ss" draggable="true" data-sid="${s.id}" data-dtype="drop" style="border-left:3px solid ${col};margin:${idx===0?'3px 6px 0':idx===n-1?'0 6px 2px':'0 6px 0'}">
-          <div class="t" style="color:${col}">▼ ${s.t} · ${offsetLabel}</div>
-          <div class="n link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')" title="Open profile">${s.n}</div><div class="a">${s.a}</div>
-          <button class="rm" onclick="event.stopPropagation();unpair('${d}',${cid},${si},${idx})">×</button>
-        </div>${idx<n-1?'<div class="dd-sep"></div>':''}`;
-    }).join('');
-    const pickRows=students.map((s,idx)=>{
-      const pickT=ts(startMin+travel1+dropOffsets[idx]+block);
-      const pickSl=findPickSlot(ids[idx]);
-      return pickRow(s,pickT,pickSl,idx);
-    }).join('');
-    return`<div class="slot-wrap">${timeHtml}
-      ${rideNote}
-      <div class="slot paired${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" style="position:relative" ${base} ${handlers}>
-        ${lockBtn}${expandBtn}
-        ${sl_.grp?`<div class="grp-banner">🏠 Group: <span class="grp-loc">${sl(sl_.grp.addr)}</span> — all teachers same location</div>`:''}
-        <div class="journey drop-j"><span class="j-from">${fromLabel}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
-        <div class="slot-toprow">${lockBadge}${warns}</div>
-        <div class="dd-hdr"><span class="dd-badge">${label}</span><span class="dd-km">${headerDetail}</span></div>
-        ${studentCards}
-        ${pickRows}
-        ${attRowHtml(d,cid,si)}
-        <div class="slot-actions">
-          <button class="sa-btn ${grpCls}" onclick="event.stopPropagation();openGroup('${d}',${cid},${si})" title="All teachers at same group location">🏠 ${sl_.grp?'Group on':'Group'}</button>
+    const totalKm=(sl_.km||ddTotalKm(sl_)||0).toFixed(1);
+    const studentBlocks=students.map((s,idx)=>{
+      const dropT=idx===0?timeStr:ts(startMin+travel1+dropOffsets[idx]);
+      const pickSlot=findPickSlot(s.id);
+      const pickWarn=!pickSlot?`<div class="hv2-warn-row hv2-warn-inline">⚠ Pickup not assigned</div>`:'';
+      return `<div class="hv2-paired-item" draggable="true" data-sid="${s.id}" data-dtype="drop">
+        <div class="hv2-field hv2-field-anchor">
+          <div class="hv2-lbl">TEACHER</div>
+          <div class="hv2-anchor hv2-anchor-sm">${s.t}</div>
         </div>
-      </div></div>`;
+        <div class="hv2-field">
+          <div class="hv2-lbl">STUDENT · START</div>
+          <div class="hv2-val"><span class="link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')">${s.n}</span> · ${dropT}${idx>0&&!sl_.grp?` <span class="hv2-off">(+${dropOffsets[idx]}min)</span>`:''}</div>
+        </div>
+        <div class="hv2-field">
+          <div class="hv2-lbl">ADDRESS</div>
+          <div class="hv2-val hv2-addr">${sl(s.a)}</div>
+        </div>
+        ${pickWarn}
+        <button class="hv2-rm-mini" onclick="event.stopPropagation();unpair('${d}',${cid},${si},${idx})" title="Unpair">×</button>
+      </div>${idx<n-1?'<div class="hv2-paired-sep"></div>':''}`;
+    }).join('');
+    return`${driveLine}<div class="slot-wrap">
+      ${rideNote}
+      <div class="slot hv2${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" ${base} ${handlers}>
+        <div class="hv2-card">
+          <div class="hv2-hdr">
+            <div class="hv2-field hv2-field-anchor">
+              <div class="hv2-lbl">${label}${sl_.grp?' · GROUP':''}</div>
+              <div class="hv2-anchor hv2-anchor-dd">${n} students · ${sl_.grp?'same location':`${totalKm}km · ${totalInter}min apart`}</div>
+            </div>
+            <div class="hv2-hdr-actions">${lockBadge}${lockBtn}</div>
+          </div>
+          <div class="hv2-times">
+            <div class="hv2-field"><div class="hv2-lbl">START</div><div class="hv2-val hv2-val-time">${timeStr}</div></div>
+            <div class="hv2-field"><div class="hv2-lbl">FINISH</div><div class="hv2-val hv2-val-time">${endStr}</div></div>
+          </div>
+          ${studentBlocks}
+          ${warns?`<div class="hv2-warn-row">${warns}</div>`:''}
+          ${attRowHtml(d,cid,si)}
+          <div class="hv2-ftr">
+            <button class="hv2-ftr-btn" onclick="event.stopPropagation();openGroup('${d}',${cid},${si})">${sl_.grp?'Group on':'Group'}</button>
+            <button class="hv2-ftr-btn hv2-ftr-rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})">Remove</button>
+          </div>
+        </div>
+      </div></div>${dropoffLine}`;
   }
 
   if(sl_.t==='pick'){
     const s=SS[sl_.id];if(!s)return'';
-    const col=TC[s.t]||'#E87C50';
-    const prev=lastPos(d,cid,si);
-    const pla=sl_.grp?.la??s.la, pln=sl_.grp?.ln??s.ln, pAddr=sl_.grp?.addr??s.a;
-    const travelMin=tm(hv(prev.la,prev.ln,pla,pln));
-    const fromLabel=prev.isBase?prev.a:sl(prev.a);
+    const pAddr=sl_.grp?.addr??s.a;
     const info=findDropInfo(sl_.id);
     const readyMin=info?info.readyMin:600;
     const onTime=startMin>=readyMin;
-    // Destination after pickup: next slot or branch
     const after=nextSlotPos(d,cid,si);
-    const toLabel=after.isBase?after.a:sl(after.a);
-    // Cross-car detection: was this student dropped by a DIFFERENT car?
-    let xcarNote='';
+    const toLabel=after.isBase?`${after.a} branch`:sl(after.a);
+    let xcarLabel='';
     if(info&&info.cid!==cid){
       const dropCar=CARS.find(c=>c.id===info.cid);
-      xcarNote=`<div class="xcar-pick">🔄 Dropped by <b>${dropCar?.label||'Car ?'}</b> — this car picks up ${s.n}</div>`;
+      xcarLabel=` · dropped by ${dropCar?.label||'Car ?'}`;
     }
-    // Teacher ride annotation for pickups — show which teacher is being collected
-    const pickRideNote=teacherRideNote(d,cid,si);
-    return`<div class="slot-wrap">${timeHtml}
-      ${pickRideNote}
-      ${xcarNote}
-      <div class="slot pickup-slot${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" style="position:relative" ${base} ${handlers}>
-        ${lockBtn}${expandBtn}
-        <div class="journey pick-j"><span class="j-from">${sl(pAddr)}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
-        <div class="slot-toprow">${warns}<button class="edit-ico" onclick="event.stopPropagation();editStudent('${s.id}')" title="Edit student">✏</button></div>
-        <div class="ss" draggable="true" data-sid="${s.id}" data-dtype="pick" style="border-left:3px solid ${col};padding-top:2px">
-          <div class="t" style="color:${col}">▲ Pick-up · ${s.t}${sl_.grp?' (group)':''}</div>
-          <div class="n link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')" title="Open profile">${s.n}</div>
-          <div class="a">${sl(pAddr)} → ${toLabel}</div>
-          <div class="m">${timeStr} · ${travelMin}min drive · ${onTime?'✓ On time':`⚠ Ready at ${ts(readyMin)}`}</div>
-          <button class="rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})">×</button>
-        </div>
-      </div></div>`;
+    const readyWarn=!onTime?` · ⚠ ready ${ts(readyMin)}`:'';
+    const lockMark=sl_.locked?' 🔒':'';
+    // Pickup is a thin teal line (NOT a card). Still drop-targetable.
+    return`<div class="hv2-line hv2-line-pickup${isActive?' hv2-line-active':''}${rejCls}" ${base} ${handlers} title="Pickup — click to activate, drag a student here to assign">
+      <span class="hv2-line-rail"></span>
+      <span class="hv2-line-text hv2-line-text-active">
+        <span class="hv2-line-time">${timeStr}</span>
+        <span class="hv2-line-verb">▲ Pick up</span>
+        <span class="hv2-line-name link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')">${s.n}</span>
+        <span class="hv2-line-sub">${sl(pAddr)} → ${toLabel}${xcarLabel}${readyWarn}${lockMark}</span>
+      </span>
+      <button class="hv2-line-rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})" title="Remove pickup">×</button>
+      <span class="hv2-line-rail"></span>
+    </div>${dropoffLine}`;
   }
 
   if(sl_.t==='g'){
     const children=(sl_.ids||[]).map(id=>SS[id]).filter(Boolean);
     const grpAddr=sl_.grp?.addr||'';
-    const grpLa=sl_.grp?.la??0,grpLn=sl_.grp?.ln??0;
-    const prev=lastPos(d,cid,si);
-    const travelMin=sl_.grp?tm(hv(prev.la,prev.ln,grpLa,grpLn)):0;
-    const fromLabel=prev.isBase?prev.a:sl(prev.a);
-    const toLabel=grpAddr?sl(grpAddr):'Set location above';
-    // Group pickup-ready = car arrival at group location + session block.
-    const pickTime=ts(startMin+travelMin+sessionBlockMin());
-    const pickNext=nextSlotPos(d,cid,si);
-    const pickToLabel=isLast?carBranch(cid)+' branch':sl(pickNext.a);
     const canAdd=sl_.ids.length<7;
-    const childRows=children.map((ch,idx)=>`<div class="grp-child-row">
-      <div class="grp-child-dot" style="background:${TC[ch.t]||'#6A5FA8'}"></div>
-      <span class="grp-child-t">${ch.t.split('/')[0].substring(0,9)}</span>
-      <span class="grp-child-n link-name" onclick="event.stopPropagation();openStudentProfile('${ch.id}')" title="Open profile">${ch.n}</span>
-      <button class="grp-child-rm" onclick="event.stopPropagation();removeFromGroup('${d}',${cid},${si},${idx})">&#215;</button>
+    const childRows=children.map((ch,idx)=>`<div class="hv2-grp-child">
+      <span class="hv2-grp-dot" style="background:${TC[ch.t]||'#6A5FA8'}"></span>
+      <span class="hv2-grp-t">${ch.t.split('/')[0].substring(0,12)}</span>
+      <span class="hv2-grp-n link-name" onclick="event.stopPropagation();openStudentProfile('${ch.id}')">${ch.n}</span>
+      <button class="hv2-rm-mini" onclick="event.stopPropagation();removeFromGroup('${d}',${cid},${si},${idx})">&#215;</button>
     </div>`).join('');
     const dropZone=canAdd
-      ?`<div class="grp-drop-zone" ondragover="grpOver(event,this)" ondragleave="grpLeave(this)" ondrop="grpDrop(event,this,'${d}',${cid},${si})">+ Drop child here &bull; ${sl_.ids.length}/7</div>`
-      :`<div style="text-align:center;font-size:8px;color:#D97706;padding:3px 8px;font-weight:700;border-top:1px dashed #FDE68A">Group full &mdash; 7/7</div>`;
-    const pickRows=children.map(ch=>{
-      const ps=findPickSlot(ch.id);
-      return`<div class="auto-pick"><div class="ap-row">
-        <span class="ap-badge">&#9650; ${pickTime}</span>
-        <span class="ap-name">${ch.n}</span>
-        ${ps
-          ?`<span style="font-size:8px;color:var(--teal)">&#8594; ${CARS.find(c=>c.id===ps.cid)?.label||'Car'} &#8594; ${pickToLabel}</span>`
-          :`<div class="sc pick-card" draggable="true" data-sid="${ch.id}" data-dtype="pick" style="display:inline-flex;align-items:center;gap:3px;padding:2px 5px;cursor:grab;border-radius:4px;margin-left:auto;font-size:8px;border-left:2px solid var(--orange)"><span style="color:var(--orange);font-weight:700">Drag &#8594;</span></div>`}
-      </div></div>`;
-    }).join('');
-    return`<div class="slot-wrap">${timeHtml}
+      ?`<div class="hv2-grp-drop" ondragover="grpOver(event,this)" ondragleave="grpLeave(this)" ondrop="grpDrop(event,this,'${d}',${cid},${si})">+ Drop child here · ${sl_.ids.length}/7</div>`
+      :`<div class="hv2-grp-full">Group full — 7/7</div>`;
+    return`${driveLine}<div class="slot-wrap">
       ${rideNote}
-      <div class="slot group-slot${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" style="position:relative" ${base} ${handlers}>
-        ${lockBtn}${expandBtn}
-        <div class="grp-hdr" draggable="true" ondragstart="dsSlotMove(event,'${d}',${cid},${si})" title="Drag this header to move the entire group to another time/day" style="cursor:grab">
-          <span class="slot-grip" title="Drag whole group">⋮⋮</span>
-          <span style="font-size:9px;font-weight:700;color:#92400E">&#127968; GROUP</span>
-          <span class="grp-count-pill">${sl_.ids.length}/7 children</span>
-          <span style="font-size:8px;color:#92400E;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 4px">${grpAddr?sl(grpAddr):'No location set'}</span>
-          <button class="grp-edit-btn" onclick="event.stopPropagation();openGroup('${d}',${cid},${si})">Edit location</button>
-          <button class="grp-child-rm" style="margin-left:3px;font-size:11px" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})" title="Remove entire group slot">&#10005;</button>
+      <div class="slot hv2${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" ${base} ${handlers}>
+        <div class="hv2-card">
+          <div class="hv2-hdr" draggable="true" ondragstart="dsSlotMove(event,'${d}',${cid},${si})" title="Drag to move entire group" style="cursor:grab">
+            <div class="hv2-field hv2-field-anchor">
+              <div class="hv2-lbl">GROUP · ${sl_.ids.length}/7 CHILDREN</div>
+              <div class="hv2-anchor hv2-anchor-dd">${grpAddr?sl(grpAddr):'Set location →'}</div>
+            </div>
+            <div class="hv2-hdr-actions">${lockBadge}${lockBtn}</div>
+          </div>
+          <div class="hv2-times">
+            <div class="hv2-field"><div class="hv2-lbl">START</div><div class="hv2-val hv2-val-time">${timeStr}</div></div>
+            <div class="hv2-field"><div class="hv2-lbl">FINISH</div><div class="hv2-val hv2-val-time">${endStr}</div></div>
+          </div>
+          <div class="hv2-grp-children">${childRows}</div>
+          ${dropZone}
+          ${warns?`<div class="hv2-warn-row">${warns}</div>`:''}
+          ${attRowHtml(d,cid,si)}
+          <div class="hv2-ftr">
+            <button class="hv2-ftr-btn" onclick="event.stopPropagation();openGroup('${d}',${cid},${si})">Edit location</button>
+            <button class="hv2-ftr-btn hv2-ftr-rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})">Remove group</button>
+          </div>
         </div>
-        <div class="journey drop-j">
-          <span class="j-from">${fromLabel}</span>
-          <span class="j-arr">&#8594;</span>
-          <span class="j-to">${toLabel}</span>
-        </div>
-        <div style="font-size:8px;color:var(--text3);padding:1px 8px 3px">${travelMin}min drive &bull; all children at same location</div>
-        <div class="slot-toprow">${warns}</div>
-        ${childRows}
-        ${dropZone}
-        ${pickRows}
-        ${attRowHtml(d,cid,si)}
-      </div></div>`;
+      </div></div>${dropoffLine}`;
   }
 
   return'';
