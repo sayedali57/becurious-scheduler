@@ -870,6 +870,13 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
           <option value="">All branches</option>
           <option>Shuhada</option><option>Salam</option><option>Salwa</option>
         </select>
+        <select id="st-filter-status" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:11px;outline:none" title="Filter by operational status">
+          <option value="active_inactive">Active roster (Care &amp; Continuity + Inactive)</option>
+          <option value="active">Care &amp; Continuity only</option>
+          <option value="inactive">Needs Reactivation (Inactive)</option>
+          <option value="exited">Exited archive</option>
+          <option value="all">Show all (incl. Exited)</option>
+        </select>
         <button onclick="openImportModal()" style="padding:5px 11px;border-radius:6px;border:1px solid var(--purple);background:transparent;color:var(--purple);font-size:11px;font-weight:600;cursor:pointer" title="Import students from an Excel spreadsheet">📥 Import from spreadsheet</button>
         <button onclick="addNewStudentRow()" style="padding:5px 13px;border-radius:6px;background:var(--purple);color:#fff;border:none;font-size:11px;font-weight:600;cursor:pointer">+ Add student</button>
         <button onclick="closeStudentsModal()" style="padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:transparent;font-size:11px;cursor:pointer">Close</button>
@@ -882,6 +889,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="sortStudents('n')">Name ⇅</th>
             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="sortStudents('t')">Teacher ⇅</th>
             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Branch</th>
+            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="sortStudents('status')" title="Care & Continuity = enrolled & schedulable · Inactive = needs reactivation · Exited = archived (requires closed linked Case)">Status ⇅</th>
             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="sortStudents('cls')" title="School class / grade level">Class ⇅</th>
             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Address</th>
             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Latitude</th>
@@ -1758,7 +1766,31 @@ function migrateStudents(){
     if(!Array.isArray(s.rejectedDays))s.rejectedDays=[];
     if(s.cls==null)s.cls='';
     if(s.groupHost==null)s.groupHost='';
+    // Operational status: active (Care & Continuity), inactive (Needs Reactivation), exited (closed with a linked Case)
+    if(s.status==null||!['active','inactive','exited'].includes(s.status))s.status='active';
+    if(s.statusChangedAt==null)s.statusChangedAt='';
+    if(s.statusReason==null)s.statusReason='';
+    if(s.exitedCaseId==null)s.exitedCaseId='';
   });
+}
+
+// ===== STUDENT STATUS MODEL =====
+// Three operational statuses, each with different scheduling behavior.
+const STUDENT_STATUSES=[
+  {id:'active',  label:'Care & Continuity', color:'#059669', bg:'#D1FAE5', border:'#A7F3D0'},
+  {id:'inactive',label:'Inactive',          color:'#92400E', bg:'#FEF3CD', border:'#FDE68A'},
+  {id:'exited',  label:'Exited',            color:'#991B1B', bg:'#FEE2E2', border:'#FCA5A5'},
+];
+function studentStatusMeta(id){return STUDENT_STATUSES.find(x=>x.id===id)||STUDENT_STATUSES[0];}
+function isSchedulable(s){return !!s && (s.status||'active')==='active';}
+// A closed Case linked to this student — required before moving to Exited.
+function closedCaseForStudent(sid){
+  if(typeof CASES!=='object'||!CASES)return null;
+  return Object.values(CASES).find(c=>c&&c.studentId===sid&&(c.status==='Resolved'||c.resolvedAt))||null;
+}
+function openCasesForStudent(sid){
+  if(typeof CASES!=='object'||!CASES)return [];
+  return Object.values(CASES).filter(c=>c&&c.studentId===sid&&!(c.status==='Resolved'||c.resolvedAt));
 }
 // Convert minutes to 24h HH:MM string for <input type="time">
 function ts24(min){
@@ -2171,7 +2203,9 @@ function pickedSids(){
 }
 // Returns array of {student, scheduled, total} for students with remaining slots
 function poolEntries(){
-  return Object.values(SS).map(s=>{
+  // Only students with status "Care & Continuity" (active) are schedulable.
+  // Inactive and Exited students never appear in the pool or any scheduling view.
+  return Object.values(SS).filter(isSchedulable).map(s=>{
     const total=s.sessionsPerWeek||1;
     const scheduled=countScheduled(s.id);
     return{s,scheduled,total,remaining:total-scheduled};
@@ -3295,10 +3329,11 @@ let stSortKey='n', stSortDir=1;
 
 function showStudentsTable(){
   stSortKey='n';stSortDir=1;
-  renderStudentsTable();
   qs('studentsmodal').style.display='flex';
   qs('st-search').value='';
   qs('st-filter-br').value='';
+  const stFilt=qs('st-filter-status');if(stFilt&&!stFilt.value)stFilt.value='active_inactive';
+  renderStudentsTable();
 }
 function closeStudentsModal(){
   qs('studentsmodal').style.display='none';
@@ -3313,7 +3348,14 @@ function sortStudents(key){
 function renderStudentsTable(){
   const q=(qs('st-search').value||'').toLowerCase();
   const br=qs('st-filter-br').value;
+  const stFilter=(qs('st-filter-status')?.value)||'active_inactive';
   let rows=Object.values(SS).filter(s=>{
+    const st=s.status||'active';
+    if(stFilter==='active'&&st!=='active')return false;
+    if(stFilter==='inactive'&&st!=='inactive')return false;
+    if(stFilter==='exited'&&st!=='exited')return false;
+    if(stFilter==='active_inactive'&&st==='exited')return false;
+    // 'all' passes everything
     if(br&&s.br!==br)return false;
     if(q&&!s.n.toLowerCase().includes(q)&&!s.t.toLowerCase().includes(q))return false;
     return true;
@@ -3323,7 +3365,13 @@ function renderStudentsTable(){
     const bv=(b[stSortKey]||'').toString().toLowerCase();
     return av<bv?-stSortDir:av>bv?stSortDir:0;
   });
-  qs('st-count').textContent=`${rows.length} of ${Object.keys(SS).length} students`;
+  // Counts and Needs Reactivation banner
+  const totalActive=Object.values(SS).filter(s=>(s.status||'active')==='active').length;
+  const totalInactive=Object.values(SS).filter(s=>s.status==='inactive').length;
+  const totalExited=Object.values(SS).filter(s=>s.status==='exited').length;
+  qs('st-count').innerHTML=`${rows.length} shown · <b style="color:#059669">${totalActive}</b> Care &amp; Continuity · `+
+    `<a href="#" onclick="qs('st-filter-status').value='inactive';renderStudentsTable();return false" style="color:#92400E;font-weight:600;text-decoration:none">⚠ ${totalInactive} Needs Reactivation</a> · `+
+    `<a href="#" onclick="qs('st-filter-status').value='exited';renderStudentsTable();return false" style="color:#991B1B;text-decoration:none">${totalExited} Exited</a>`;
   const tbody=qs('students-tbody');
   tbody.innerHTML=rows.map(s=>{
     const sched=countScheduled(s.id);
@@ -3341,6 +3389,7 @@ function renderStudentsTable(){
           <option${s.br==='Salwa'?' selected':''}>Salwa</option>
         </select>
       </td>
+      <td class="st-cell">${statusCell(s)}</td>
       <td class="st-cell"><input class="st-inp" value="${esc(s.cls||'')}" onchange="patchStudent('${s.id}','cls',this.value)" style="min-width:90px" onkeydown="stNav(event,this)" placeholder="e.g. Beavers"></td>
       <td class="st-cell"><input class="st-inp" value="${esc(s.a)}" onchange="patchStudent('${s.id}','a',this.value)" style="min-width:160px" onkeydown="stNav(event,this)"></td>
       <td class="st-cell"><input class="st-inp num" value="${s.la||''}" type="number" step="any" onchange="patchStudent('${s.id}','la',parseFloat(this.value))" style="width:90px" onkeydown="stNav(event,this)"></td>
@@ -3368,6 +3417,99 @@ function renderStudentsTable(){
 }
 
 function esc(v){return(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+
+// Status cell for the Students table: coloured pill + dropdown. Changing to
+// Exited is gated — there must be a closed Case linked to this student.
+function statusCell(s){
+  const cur=s.status||'active';
+  const m=studentStatusMeta(cur);
+  let out='<div style="display:flex;flex-direction:column;gap:2px">';
+  out+='<select class="st-sel" style="min-width:130px;font-weight:600;color:'+m.color+';background:'+m.bg+';border:1px solid '+m.border+'" onchange="changeStudentStatus(\''+s.id+'\',this.value,this)">';
+  STUDENT_STATUSES.forEach(o=>{
+    out+='<option value="'+o.id+'"'+(cur===o.id?' selected':'')+'>'+o.label+'</option>';
+  });
+  out+='</select>';
+  if(cur==='inactive'){
+    const openCs=openCasesForStudent(s.id);
+    if(openCs.length){
+      out+='<a href="#" onclick="openCsModal(\''+openCs[0].id+'\');return false" style="font-size:9px;color:#92400E;text-decoration:underline">View open case</a>';
+    }else{
+      out+='<a href="#" onclick="createReactivationCase(\''+s.id+'\');return false" style="font-size:9px;color:#92400E;text-decoration:underline">+ Create case</a>';
+    }
+  }else if(cur==='exited'){
+    const closed=closedCaseForStudent(s.id);
+    if(closed){
+      out+='<a href="#" onclick="openCsModal(\''+closed.id+'\');return false" style="font-size:9px;color:#991B1B;text-decoration:underline">View closed case</a>';
+    }
+  }
+  out+='</div>';
+  return out;
+}
+
+// Enforce the status-change rules:
+//  · Inactive: suggest creating a Case if none exists (advisory, not blocking).
+//  · Exited:   REQUIRES a closed Case linked to this student. Blocked otherwise.
+function changeStudentStatus(sid,newStatus,selEl){
+  const s=SS[sid];if(!s)return;
+  const old=s.status||'active';
+  if(old===newStatus)return;
+  if(newStatus==='exited'){
+    const closed=closedCaseForStudent(sid);
+    if(!closed){
+      const openCs=openCasesForStudent(sid);
+      if(openCs.length){
+        alert('Cannot mark '+s.n+' as Exited.\n\nThere is an open Case linked to this student. Resolve that case first (set its status to "Resolved"), then re-try the status change.');
+      }else{
+        if(confirm('Cannot mark '+s.n+' as Exited without a closed Case.\n\nWould you like to create a Case for this student now? After resolving the case, you can move the student to Exited.')){
+          createReactivationCase(sid,/*exit=*/true);
+        }
+      }
+      if(selEl)selEl.value=old;
+      return;
+    }
+    s.exitedCaseId=closed.id;
+  }
+  if(newStatus==='inactive'&&old==='active'){
+    // Advisory — offer to create a case so there is a clear action trail.
+    setTimeout(()=>{
+      const open=openCasesForStudent(sid);
+      if(open.length)return;
+      if(confirm(s.n+' is now Inactive. No open Case exists — would you like to create one so the team has a retention action trail?')){
+        createReactivationCase(sid);
+      }
+    },50);
+  }
+  s.status=newStatus;
+  s.statusChangedAt=new Date().toISOString();
+  // Exited / Inactive students shouldn't occupy schedule slots.
+  if(newStatus!=='active'){
+    if(typeof rmFromSched==='function')rmFromSched(sid);
+  }
+  saveState();
+  renderStudentsTable();
+  if(typeof renderPool==='function')renderPool();
+  if(typeof renderSched==='function')renderSched();
+  const row=qs('strow-'+sid);
+  if(row){row.style.background='#EAF3DE';setTimeout(()=>row.style.background='',800);}
+}
+
+// Spin up a new Case for a student whose status is changing (Inactive or Exit).
+function createReactivationCase(sid,openForExit){
+  const s=SS[sid];if(!s)return;
+  if(typeof openCsModal!=='function'){alert('Cases module not available.');return;}
+  // Pre-seed a case linked to this student; the user fills the rest in the modal.
+  const c=newCase({
+    studentId:sid,
+    childName:s.n||'',
+    parentFullName:s.n?('Parent of '+s.n):'',
+    branch:s.br||'',
+    type:openForExit?'retention':'retention',
+    notes:openForExit?'Student is being moved to Exited — capture full history here, then set status to Resolved.':'Student is Inactive — needs reactivation.'
+  });
+  CASES[c.id]=c;
+  csSaveCases&&csSaveCases();
+  openCsModal(c.id);
+}
 
 // Build compact mandatory-time editors for the students table. One row
 // per session: day dropdown + time input. Empty = flexible (parent ok
@@ -3505,7 +3647,7 @@ function deleteStudent(sid){
 
 function addNewStudentRow(){
   const id='sx'+Date.now();
-  SS[id]={id,n:'New Student',t:'',br:'Shuhada',a:'',la:0,ln:0,visits:0,sessionsPerWeek:1,parentPhone:'',mandatory:[]};
+  SS[id]={id,n:'New Student',t:'',br:'Shuhada',a:'',la:0,ln:0,visits:0,sessionsPerWeek:1,parentPhone:'',mandatory:[],status:'active'};
   saveState();
   renderStudentsTable();
   // Find the ACTUAL new row by id (sorting may put it anywhere in the list)
@@ -3831,6 +3973,7 @@ function confirmImport(){
 
 qs('st-search')?.addEventListener('input',renderStudentsTable);
 qs('st-filter-br')?.addEventListener('change',renderStudentsTable);
+qs('st-filter-status')?.addEventListener('change',renderStudentsTable);
 
 // ===== SORT / FILTER =====
 function setSort(m){
@@ -6376,6 +6519,7 @@ function migratePipeline(){
     if(typeof l.paymentStatus!=='string')l.paymentStatus='unpaid';
     if(typeof l.enrollmentStatus!=='string')l.enrollmentStatus='enrolled';
     if(!Array.isArray(l.log))l.log=[];
+    if(l.convertedStudentId==null)l.convertedStudentId='';
   });
 }
 
@@ -6668,6 +6812,15 @@ function openPlModal(leadId){
   // Actions
   let a='';
   if(!isNew) a+='<button class="pl-del" onclick="plDeleteLead(\''+lead.id+'\')">Delete</button>';
+  // Convert to Student — only at Enrolled stage, and only if not already converted.
+  if(!isNew&&lead.stage==='enrolled'){
+    const already=lead.convertedStudentId&&SS[lead.convertedStudentId];
+    if(already){
+      a+='<button onclick="showStudentsTable();closePlModal();" style="background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0" title="This lead has been converted — opens the Student record">✓ Student created — open roster</button>';
+    }else{
+      a+='<button onclick="plConvertToStudent(\''+lead.id+'\')" style="background:#DDD6FE;color:#5B21B6;border:1px solid #C4B5FD;font-weight:600" title="Pre-fill a Student record from this lead">→ Convert to Student</button>';
+    }
+  }
   a+='<button onclick="closePlModal()">Cancel</button>';
   a+='<button class="pl-save" onclick="plSaveLead(\''+lead.id+'\','+(isNew?'true':'false')+')">Save</button>';
   document.getElementById('pl-modal-actions').innerHTML=a;
@@ -6739,6 +6892,66 @@ function plAddLogEntry(leadId){
   plSavePipeline();
   // Re-render just the log section
   openPlModal(leadId);
+}
+
+// Pipeline → Student conversion. Pre-fills a Student record from lead data
+// and shows a confirmation dialog before saving. Only offered at the Enrolled stage.
+function plConvertToStudent(leadId){
+  const lead=PIPELINE[leadId];
+  if(!lead){alert('Lead not found.');return;}
+  if(lead.stage!=='enrolled'){alert('Only leads at the Enrolled stage can be converted to a Student.');return;}
+  if(lead.convertedStudentId&&SS[lead.convertedStudentId]){
+    alert('This lead is already linked to a Student: '+SS[lead.convertedStudentId].n);return;
+  }
+  const suggestedName=(lead.childName||'').trim()||(lead.familyName||'').trim();
+  // Inline modal — safer than confirm() because the user sees what will be saved.
+  const ov=document.createElement('div');
+  ov.className='modal';ov.style.cssText='display:flex;z-index:9999';
+  ov.innerHTML='<div class="mbox" style="width:460px">'
+    +'<h3>Convert lead to Student</h3>'
+    +'<div style="font-size:11px;color:var(--text3);margin-bottom:10px">Review the pre-filled fields before saving. The new student will start with status <b style="color:#059669">Care &amp; Continuity</b> and will appear in the schedule pool immediately.</div>'
+    +'<div class="frow"><label>Student name</label><input id="cv-n" value="'+esc(suggestedName)+'"></div>'
+    +'<div class="frow"><label>Branch</label><select id="cv-br"><option'+(lead.branch==='Shuhada'?' selected':'')+'>Shuhada</option><option'+(lead.branch==='Salam'?' selected':'')+'>Salam</option><option'+(lead.branch==='Salwa'?' selected':'')+'>Salwa</option></select></div>'
+    +'<div class="frow"><label>Teacher (optional — fill later if unknown)</label><input id="cv-t" placeholder="Teacher name"></div>'
+    +'<div class="frow"><label>Parent WhatsApp</label><input id="cv-p" value="'+esc(lead.phone||'')+'" placeholder="e.g. 96599887766"></div>'
+    +'<div class="frow"><label>Sessions per week</label><input id="cv-spw" type="number" min="1" max="7" value="1"></div>'
+    +'<div class="mbtns"><button class="btn" onclick="this.closest(\'.modal\').remove()">Cancel</button>'
+    +'<button class="btn btnp" onclick="_plDoConvert(\''+lead.id+'\',this)">Create Student</button></div>'
+    +'</div>';
+  document.body.appendChild(ov);
+}
+function _plDoConvert(leadId,btn){
+  const lead=PIPELINE[leadId];if(!lead)return;
+  const overlay=btn.closest('.modal');
+  const name=(document.getElementById('cv-n').value||'').trim();
+  if(!name){alert('Student name is required.');return;}
+  const br=document.getElementById('cv-br').value;
+  const t=(document.getElementById('cv-t').value||'').trim();
+  const phone=(document.getElementById('cv-p').value||'').trim();
+  const spw=Math.max(1,Math.min(7,parseInt(document.getElementById('cv-spw').value,10)||1));
+  const sid='sx'+Date.now();
+  SS[sid]={id:sid,n:name,t:t,br:br,a:'',la:0,ln:0,visits:0,sessionsPerWeek:spw,parentPhone:phone,
+    sessionType:'1on1',mandatory:[],rejectedDays:[],cls:'',groupHost:'',
+    status:'active',statusChangedAt:new Date().toISOString(),statusReason:'Converted from Pipeline lead'};
+  // Link both ways so we never convert twice
+  lead.convertedStudentId=sid;
+  lead.updatedAt=new Date().toISOString();
+  lead.log.push({ts:lead.updatedAt,type:'note',text:'Converted to Student record ('+name+')'});
+  // Create a teacher if they named one new
+  if(t&&!TEACHERS[t]){
+    _deletedTeachers.delete(t);
+    TEACHERS[t]={name:t,phone:'',branch:br,days:{Sun:0,Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:6,active:1,note:''};
+  }
+  saveState();
+  overlay&&overlay.remove();
+  closePlModal();
+  toast('Student created: '+name);
+  // Open the Students roster on the new record so they can fill in address / coordinates.
+  showStudentsTable();
+  setTimeout(()=>{
+    const row=qs('strow-'+sid);
+    if(row){row.scrollIntoView({block:'center',behavior:'smooth'});row.classList.add('new-row');}
+  },120);
 }
 
 // ---- Pipeline CSV import / export ----
@@ -7212,8 +7425,8 @@ function openCsModal(caseId){
   // Parent + linked child
   b+='<div class="pl-field"><label>Parent Full Name *</label><input id="cs-f-parent" value="'+esc(c.parentFullName||'')+'" placeholder="e.g. Mariam Al-Ghanim"></div>';
   b+='<div class="pl-field-row">';
-  b+='<div class="pl-field"><label>Linked Child (existing student)</label>';
-  b+='<select id="cs-f-student" onchange="csOnStudentChange()"><option value="">- none -</option>';
+  b+='<div class="pl-field"><label>Linked to enrolled student (if applicable)</label>';
+  b+='<select id="cs-f-student" onchange="csOnStudentChange()"><option value="">- none - (optional)</option>';
   studentsList.forEach(s=>{b+='<option value="'+s.id+'"'+(c.studentId===s.id?' selected':'')+'>'+esc(s.name)+(s.branch?' &middot; '+esc(s.branch):'')+'</option>';});
   b+='</select></div>';
   b+='<div class="pl-field"><label>Or enter child name (free text)</label><input id="cs-f-child" value="'+esc(c.childName||'')+'" placeholder="if not in student list"></div>';
