@@ -1267,6 +1267,11 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .hv2-line-text{letter-spacing:.02em;text-align:center;min-width:0;overflow-wrap:break-word;word-break:normal}
 /* Drive: plain muted */
 [data-active-theme="hv"] .hv2-line-drive{color:var(--hv2-muted)}
+[data-active-theme="hv"] .hv2-line-pickup-text{color:var(--hv2-lock);font-weight:600;cursor:pointer;padding:2px 4px;border-radius:4px}
+[data-active-theme="hv"] .hv2-line-pickup-text:hover{background:var(--hv2-lock-lt)}
+[data-active-theme="hv"] .hv2-line-pickup-text.hv2-line-active{background:var(--hv2-lock-lt);box-shadow:inset 2px 0 0 var(--hv2-lock)}
+[data-active-theme="hv"] .hv2-line-rm-inline{background:transparent;border:none;color:var(--hv2-muted);cursor:pointer;font-size:14px;padding:0 4px;opacity:.6}
+[data-active-theme="hv"] .hv2-line-rm-inline:hover{opacity:1;color:var(--hv2-err)}
 /* Dropoff: light purple (like pickup) */
 [data-active-theme="hv"] .hv2-line-dropoff{background:var(--hv2-lock-lt);color:var(--hv2-lock);font-weight:600;padding:7px 10px;border-radius:6px;margin:3px 0}
 [data-active-theme="hv"] .hv2-line-dropoff .hv2-line-rail{background:var(--hv2-lock);opacity:.35}
@@ -1405,6 +1410,9 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .hv2-grp-nrow .hv2-grp-n{font-size:13px;font-weight:600;color:var(--hv2-ink);flex:1;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 [data-active-theme="hv"] .hv2-grp-nrow .hv2-grp-n:hover{color:var(--hv2-teal);text-decoration:underline}
 [data-active-theme="hv"] .hv2-grp-nrow .hv2-rm-mini{position:static;padding:0 5px;font-size:13px;flex-shrink:0}
+[data-active-theme="hv"] .hv2-grp-nrow.hv2-grp-host{background:var(--hv2-teal-lt);box-shadow:inset 2px 0 0 var(--hv2-teal)}
+[data-active-theme="hv"] .hv2-grp-nrow.hv2-grp-host .hv2-grp-n{color:var(--hv2-teal);font-weight:800}
+[data-active-theme="hv"] .hv2-grp-hostbadge{font-size:9px;font-weight:800;color:var(--hv2-teal);background:#fff;border:1px solid var(--hv2-teal);padding:1px 5px;border-radius:3px;letter-spacing:.05em;flex-shrink:0}
 
 /* Pickup block — consecutive pickups share ONE "↑ PICK" header, names stack below */
 [data-active-theme="hv"] .hv2-pickup-wrap{background:var(--hv2-lock-lt);padding:0 10px;border-radius:8px;margin-top:2px;margin-bottom:2px}
@@ -3420,20 +3428,21 @@ function renderSlot(d,cid,si){
       const driveBack=lastCoords?tm(hv(lastCoords.la,lastCoords.ln,bla,bln)):0;
       pickupDisplayTime=ts(afterLast+driveBack);
     }
-    const isFirst=!prevIsPick;
-    const isLastPick=!nextIsPick;
-    const wrapCls=`hv2-pickup-wrap${isFirst?' hv2-pickup-wrap-first':''}${isLastPick?' hv2-pickup-wrap-last':''}${prevIsPick?' hv2-pickup-wrap-cont':''}`;
-    // Header label reflects the purpose: returning the teacher to branch.
-    const headerLabel=isCrossCar?'↑ PICK':`↓ DROP TO ${carBranch(cid).toUpperCase()} BRANCH`;
-    const headerHtml=isFirst?`<div class="hv2-pickup-verb-hdr">${headerLabel}</div>`:'';
-    return`<div class="${wrapCls}">
-      ${headerHtml}
-      <div class="hv2-pickup-row slot hv2-line-pickup${isActive?' hv2-line-active':''}${rejCls}" ${base} ${handlers} title="${isCrossCar?'Cross-car pickup':'Drop teacher back at branch'}">
-        <span class="hv2-pickup-name link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')">${s.t}</span>
-        <span class="hv2-pickup-time">${pickupDisplayTime}${xcarLabel}${readyWarn}${lockMark}</span>
-        <span class="hv2-line-spacer"></span>
-        <button class="hv2-line-rm" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})" title="Remove pickup">×</button>
-      </div>
+    // Render cross-car pickups as a plain drive-style text connector — the
+    // purple pickup card was too heavy visually for what is just an info
+    // line telling the driver "Car X hands off teacher Y at HH:MM". Keeps
+    // the slot clickable/draggable (via `${base} ${handlers}`) so lock /
+    // reorder still work.
+    const dropCar=info?CARS.find(c=>c.id===info.cid):null;
+    const xcarTxt=dropCar?` · via ${dropCar.label}`:'';
+    const warnTxt=!onTime?` · ⚠ ready ${ts(readyMin)}`:'';
+    const lockTxt=sl_.locked?' 🔒':'';
+    const pickText=`↑ Pick up ${esc(s.t)} · ${pickupDisplayTime}${xcarTxt}${warnTxt}${lockTxt}`;
+    return`<div class="hv2-line hv2-line-pickup-text slot${isActive?' hv2-line-active':''}${rejCls}" ${base} ${handlers} title="Cross-car pickup">
+      <span class="hv2-line-rail"></span>
+      <span class="hv2-line-text">${pickText}</span>
+      <button class="hv2-line-rm-inline" onclick="event.stopPropagation();rmSlot('${d}',${cid},${si})" title="Remove pickup">×</button>
+      <span class="hv2-line-rail"></span>
     </div>${isLastPick?dropoffLine:''}`;
   }
 
@@ -3441,6 +3450,17 @@ function renderSlot(d,cid,si){
     const children=(sl_.ids||[]).map((id,idx)=>({s:SS[id],idx})).filter(x=>x.s);
     const grpAddr=sl_.grp?.addr||'';
     const canAdd=sl_.ids.length<7;
+    // Determine which student is the host of this group. The host is the
+    // one whose `groupHost` field is empty (self-hosts at their own home).
+    // If none is found, fall back to a student referenced by another
+    // member's `groupHost`. The host is highlighted in the child list so
+    // the driver instantly sees whose home they're visiting.
+    let hostId='';
+    for(const{s} of children){if(s&&(!s.groupHost||s.groupHost==='')){hostId=s.id;break;}}
+    if(!hostId){
+      for(const{s} of children){if(s&&s.groupHost){hostId=s.groupHost;break;}}
+    }
+    const hostName=hostId&&SS[hostId]?SS[hostId].n:'';
     // Group children by teacher so the teacher name appears once per group,
     // not once per student (per Saleh's feedback on wasted space).
     const byTeacher=new Map();
@@ -3451,10 +3471,15 @@ function renderSlot(d,cid,si){
     });
     const childRows=[...byTeacher.entries()].map(([tname,kids])=>{
       const col=TC[tname]||'#6A5FA8';
-      const namesHtml=kids.map(({s,idx})=>`<div class="hv2-grp-nrow">
-        <span class="hv2-grp-n link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')" title="${s.n}">${s.n}</span>
+      const namesHtml=kids.map(({s,idx})=>{
+        const isHost=s.id===hostId;
+        const hostCls=isHost?' hv2-grp-host':'';
+        const hostMark=isHost?'<span class="hv2-grp-hostbadge" title="Host — group meets at this student\'s home">🏠 HOST</span>':'';
+        return `<div class="hv2-grp-nrow${hostCls}">
+        <span class="hv2-grp-n link-name" onclick="event.stopPropagation();openStudentProfile('${s.id}')" title="${s.n}">${s.n}</span>${hostMark}
         <button class="hv2-rm-mini" onclick="event.stopPropagation();removeFromGroup('${d}',${cid},${si},${idx})" title="Remove from group">&#215;</button>
-      </div>`).join('');
+      </div>`;
+      }).join('');
       return `<div class="hv2-grp-tblock">
         <div class="hv2-grp-thead">
           <span class="hv2-grp-dot" style="background:${col}"></span>
@@ -3471,12 +3496,13 @@ function renderSlot(d,cid,si){
 
       <div class="slot hv2${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" ${base} ${handlers}>
         <div class="hv2-card">
-          <div class="hv2-hdr" draggable="true" ondragstart="dsSlotMove(event,'${d}',${cid},${si})" title="Drag to move entire group" style="cursor:grab">
-            <div class="hv2-field hv2-field-anchor">
-              <div class="hv2-lbl">GROUP · ${sl_.ids.length}/7 CHILDREN</div>
-              <div class="hv2-anchor hv2-anchor-dd">${grpAddr?sl(grpAddr):'Set location →'}</div>
-            </div>
-            <div class="hv2-hdr-actions">${lockBadge}${lockBtn}</div>
+          <div class="hv2-dd-banner hv2-grp-banner" draggable="true" ondragstart="dsSlotMove(event,'${d}',${cid},${si})" title="Drag to move entire group" style="cursor:grab">
+            <span>GROUP · ${sl_.ids.length}/7${hostName?` · 🏠 ${esc(hostName)}'s home`:''}</span>
+            <span class="hv2-hdr-actions">${lockBadge}${lockBtn}</span>
+          </div>
+          <div class="hv2-field hv2-field-anchor" style="padding:0 2px 4px">
+            <div class="hv2-lbl">LOCATION</div>
+            <div class="hv2-anchor hv2-anchor-dd">${grpAddr?sl(grpAddr):'Set location →'}</div>
           </div>
           <div class="hv2-times">
             <div class="hv2-field"><div class="hv2-lbl">START</div><div class="hv2-val hv2-val-time">${timeStr}</div></div>
@@ -3758,10 +3784,16 @@ function dropCar(e,el){
 }
 function dropToPool(e){
   e.preventDefault();if(!dragId)return;
-  // If the drag originated from a specific placed slot, only remove THAT
-  // slot — so students with multiple sessions per week don't lose every
-  // placement when one card is dragged back to the pool.
-  if(!_clearDragSrc(dragId))rmFromSched(dragId);
+  // When the card came from a specific day, clear that entire day for this
+  // student so the auto-inserted pickup AND the drop-to-branch drive-line
+  // artefacts are cleaned up too — not just the drop slot itself. Other
+  // days (for multi-session students) are left alone so we don't wipe the
+  // whole week when returning a single session to the pool.
+  if(dragSrc&&dragSrc.d){
+    rmFromSched(dragId,{onlyDay:dragSrc.d});
+  } else {
+    rmFromSched(dragId);
+  }
   saveState();renderSched();renderPool();
   dragId=null;dragSrc=null;
 }
@@ -3780,7 +3812,15 @@ function slotOver(e,el){
   el.classList.remove('hv2-insert-above','hv2-insert-below','doverslot','canpair');
   if(dragType==='slotmove'&&_slotMoveSrc){
     const sl_=SCHED[el.dataset.d]?.[+el.dataset.cid]?.[+el.dataset.si];
-    if(!sl_)el.classList.add('doverslot');
+    if(!sl_){_dropZone='pair';el.classList.add('doverslot');return;}
+    // Occupied target — same insert-above / insert-below zones as dragging a
+    // new drop. Lets Saleh re-order groups (and later any slot) by dropping
+    // on the top or bottom edge of another session.
+    const zone=_detectDropZone(e,el);
+    _dropZone=zone;
+    if(zone==='above'){el.classList.add('hv2-insert-above');return;}
+    if(zone==='below'){el.classList.add('hv2-insert-below');return;}
+    el.classList.add('doverslot');
     return;
   }
   if(dragType!=='drop'||!dragId||el.dataset.si===undefined){
@@ -3812,7 +3852,16 @@ function slotDrop(e,el){
   const zone=_dropZone;_dropZone='pair';
   // Whole-slot move (e.g. group dragged by header) — separate path, no dragId required.
   if(dt==='slotmove'){
-    if(_slotMoveSrc){moveSlotTo(_slotMoveSrc,d,cid,si);_slotMoveSrc=null;}
+    if(_slotMoveSrc){
+      const targetSl=SCHED[d]?.[cid]?.[si];
+      if(targetSl&&(zone==='above'||zone==='below')){
+        const insertAt=zone==='above'?si:si+1;
+        insertSlotMoveAt(_slotMoveSrc,d,cid,insertAt);
+      } else {
+        moveSlotTo(_slotMoveSrc,d,cid,si);
+      }
+      _slotMoveSrc=null;
+    }
     dragType='drop';return;
   }
   if(!dragId)return;
@@ -3860,8 +3909,40 @@ function insertDropAt(sid,d,cid,si){
   toast(`Inserted — ${(fresh.length-clampedSi-1)} slot(s) below pushed down`);
 }
 
+// Whole-slot insert with shift-down. Pulls src out, splices it into the
+// destination car at `si`, shifting existing slots from `si` onward down.
+// Used when a group (or any draggable-whole slot) is dropped on the top or
+// bottom edge of another session to push it (and everything below) down.
+function insertSlotMoveAt(src,d,cid,si){
+  if(!src)return;
+  const srcSl=SCHED[src.d]?.[src.cid]?.[src.si];
+  if(!srcSl){toast('Source slot is empty');return;}
+  const dst=SCHED[d]?.[cid];if(!dst)return;
+  const maxSlots=parseInt(SETTINGS.maxSlotsPerCar)||14;
+  // Remove src from its current position first so the target day/car reflects
+  // the move before we splice. When source and dest are the same array, we
+  // need to handle the index shift carefully.
+  SCHED[src.d][src.cid][src.si]=null;
+  // If src was before si in the SAME car, removing it shifts the target down.
+  let insertAt=si;
+  if(src.d===d&&src.cid===cid&&src.si<si)insertAt=si-1;
+  const dstArr=SCHED[d][cid];
+  const clamped=Math.max(0,Math.min(insertAt,dstArr.length));
+  dstArr.splice(clamped,0,srcSl);
+  while(dstArr.length>maxSlots&&dstArr[dstArr.length-1]==null)dstArr.pop();
+  setActive(d,cid,clamped);renderSched();renderPool();saveState();
+  toast(`Moved — ${(dstArr.length-clamped-1)} slot(s) below pushed down`);
+}
+
 function slotClick(e,d,cid,si){
-  e.stopPropagation();setActive(d,cid,si);
+  e.stopPropagation();
+  // Toggle: if this slot is already the active one, clicking again collapses
+  // (clears active) instead of re-selecting. Lets Saleh hide the expanded
+  // options without having to click somewhere else on the page.
+  if(activeSlot&&activeSlot.d===d&&activeSlot.cid===cid&&activeSlot.si===si){
+    activeSlot=null;renderSched();renderPool();return;
+  }
+  setActive(d,cid,si);
 }
 
 function setActive(d,cid,si){activeSlot={d,cid,si};renderSched();renderPool();}
@@ -4317,7 +4398,7 @@ function groupHostCell(s){
     return true;
   });
   const host=s.groupHost||'';
-  let opts='<option value=""'+(host?'':' selected')+'>Self (own address)</option>';
+  let opts='<option value=""'+(host?'':' selected')+'>I am Host</option>';
   peers.forEach(p=>{
     opts+='<option value="'+p.id+'"'+(host===p.id?' selected':'')+'>'+esc(p.n)+'</option>';
   });
