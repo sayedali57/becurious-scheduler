@@ -3021,10 +3021,9 @@ function renderSlot(d,cid,si){
   const base=`id="sl-${d}-${cid}-${si}" data-d="${d}" data-cid="${cid}" data-si="${si}"${expAttr}`;
   const handlers=`onclick="slotClick(event,'${d}',${cid},${si})" ondragover="slotOver(event,this)" ondragleave="slotLeave(this)" ondrop="slotDrop(event,this)"`;
 
-  // Drive-time connector — shows the TOTAL displayed gap between the previous
-  // session's finish and this session's start (includes the pure drive time,
-  // any pickup/drop-off handover, and 10-min rounding). This matches what the
-  // user sees on the cards (e.g. FINISH 13:10 → START 13:30 = "20 min").
+  // Drive-time connector — shows the TRUE driving minutes (pure travel time).
+  // Format: Drive "Teacher" N min. Origin/destination are clear from the
+  // adjacent cards so they are omitted.
   let driveLine='';
   let travelMin=0;
   if(sl_){
@@ -3032,52 +3031,25 @@ function renderSlot(d,cid,si){
     const prev=lastPos(d,cid,si);
     if(coords&&prev&&prev.la!=null&&prev.ln!=null){
       travelMin=tm(hv(prev.la,prev.ln,coords.la,coords.ln));
-      // Determine the teacher being transported on this leg.
       let driveTeacher='';
       if(sl_.t==='s'){const s=SS[sl_.id];driveTeacher=s?.t||'';}
       else if(sl_.t==='d'){const s=SS[(sl_.ids||[])[0]];driveTeacher=s?.t||'';}
       else if(sl_.t==='g'){const s=SS[(sl_.ids||[])[0]];driveTeacher=s?.t||'';}
       else if(sl_.t==='pick'){const s=SS[sl_.id];driveTeacher=s?.t||'';}
-      // Compute the displayed gap = this slot's display start − previous
-      // non-pickup slot's display finish. Falls back to raw travel when
-      // there is no earlier session (e.g. leg from branch to first stop).
-      let gapMin=travelMin;
-      const sessionMinOnly=parseInt(SETTINGS.sessionMin)||60;
-      let prevEndDisplay=null;
-      for(let j=si-1;j>=0;j--){
-        const ps=SCHED[d]?.[cid]?.[j];
-        if(!ps||ps.t==='pick')continue;
-        // Previous session's actual start = its startMin + travel from its prev
-        const psPrev=lastPos(d,cid,j);
-        const psCoords=_slotCoords(ps);
-        let psTravel=0;
-        if(psPrev&&psCoords&&psPrev.la!=null&&psCoords.la!=null){
-          psTravel=tm(hv(psPrev.la,psPrev.ln,psCoords.la,psCoords.ln));
-        }
-        const psActualStart=slotStartMin(d,cid,j)+psTravel;
-        prevEndDisplay=Math.ceil((psActualStart+sessionMinOnly)/(parseInt(SETTINGS.displayRoundMin)||10))*(parseInt(SETTINGS.displayRoundMin)||10);
-        break;
-      }
-      if(prevEndDisplay!=null){
-        const myActualStart=startMin+travelMin;
-        const r=parseInt(SETTINGS.displayRoundMin)||10;
-        const myStartDisplay=Math.ceil(myActualStart/r)*r;
-        gapMin=Math.max(0,myStartDisplay-prevEndDisplay);
-      }
       const nameHtml=driveTeacher?` <b>"${driveTeacher}"</b>`:'';
-      const minsHtml=gapMin>0?` ${gapMin} min`:'';
+      const minsHtml=travelMin>0?` ${travelMin} min`:'';
       driveLine=_hvConnector('drive',`Drive${nameHtml}${minsHtml}`);
     }
   }
-  // DISPLAY times represent the actual teaching window:
-  //   startTime = arrival at student (startMin + travel), rounded UP to 10-min
-  //   finishTime = start + session minutes (teaching only, no travel buffer)
-  // Scheduling math remains unchanged — driver leaves earlier so teacher
-  // arrives for the displayed sharp time (e.g. 12:10 rather than 12:03).
+  // DISPLAY times: session START = actual arrival rounded UP to 10 min.
+  // FINISH = START + session length (NOT re-rounded) so the card itself is
+  // internally consistent: finish − start is always exactly sessionMin.
   const sessionMinOnly=parseInt(SETTINGS.sessionMin)||60;
   const actualStart=startMin+travelMin;
-  const timeStr=tsR(actualStart);
-  const endStr=tsR(actualStart+sessionMinOnly);
+  const r=parseInt(SETTINGS.displayRoundMin)||10;
+  const displayStartMin=r>1?Math.ceil(actualStart/r)*r:actualStart;
+  const timeStr=ts(displayStartMin);
+  const endStr=ts(displayStartMin+sessionMinOnly);
 
   if(!sl_){
     return`<div class="slot-wrap">
