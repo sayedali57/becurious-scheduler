@@ -2975,20 +2975,25 @@ function teacherRideNote(d,cid,si){
     }
   }
   const br=carBranch(cid);
+  // Pickup time = when the car is at the branch to pick up/swap teachers.
+  // slotStartMin is the cumulative leg-start time (minutes-of-day), i.e. the
+  // moment the car departs with the teacher on board.
+  const pickupT=ts(slotStartMin(d,cid,si));
   // No previous drop → first drop of the day. Show who the driver picks up.
   if(!prevT.length){
-    return`<div class="ride-note">🚗 ${br} · ↑ <b>${curT.join(' + ')}</b></div>`;
+    return`<div class="ride-note">🏠 ${br} · ↑ <b>${curT.join(' + ')}</b> · ${pickupT}</div>`;
   }
   // Check for teacher change
   const prevSet=new Set(prevT), curSet=new Set(curT);
   const returning=[...prevSet].filter(t=>!curSet.has(t));
   const pickingUp=[...curSet].filter(t=>!prevSet.has(t));
   if(!returning.length&&!pickingUp.length)return''; // same teacher(s), no change
-  let note=`🚗 ${br} · `;
+  let note=`🏠 ${br} · `;
   const parts=[];
   if(returning.length)parts.push(`↓ ${returning.join(' + ')}`);
   if(pickingUp.length)parts.push(`↑ <b>${pickingUp.join(' + ')}</b>`);
   note+=parts.join(' · ');
+  note+=` · ${pickupT}`;
   return`<div class="ride-note">${note}</div>`;
 }
 
@@ -3083,8 +3088,8 @@ function renderSlot(d,cid,si){
     const pickSlot=findPickSlot(sl_.id);
     const pickWarn=!pickSlot?`<div class="hv2-warn-row">⚠ Pickup not assigned for ${s.n}</div>`:'';
     const grpBadge=sl_.grp?`<span class="hv2-grp-tag">Group · ${sl(sl_.grp.addr)}</span>`:'';
-    return`${driveLine}<div class="slot-wrap">
-      ${rideNote}
+    return`${rideNote}${driveLine}<div class="slot-wrap">
+
       <div class="slot hv2${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" ${base} ${handlers}>
         <div class="hv2-card" draggable="true" data-sid="${s.id}" data-dtype="drop">
           <div class="hv2-hdr">
@@ -3150,8 +3155,8 @@ function renderSlot(d,cid,si){
         <button class="hv2-rm-mini" onclick="event.stopPropagation();unpair('${d}',${cid},${si},${idx})" title="Unpair">×</button>
       </div>${idx<n-1?'<div class="hv2-paired-sep"></div>':''}`;
     }).join('');
-    return`${driveLine}<div class="slot-wrap">
-      ${rideNote}
+    return`${rideNote}${driveLine}<div class="slot-wrap">
+
       <div class="slot hv2${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" ${base} ${handlers}>
         <div class="hv2-card">
           <div class="hv2-hdr">
@@ -3263,8 +3268,8 @@ function renderSlot(d,cid,si){
     const dropZone=canAdd
       ?`<div class="hv2-grp-drop" ondragover="grpOver(event,this)" ondragleave="grpLeave(this)" ondrop="grpDrop(event,this,'${d}',${cid},${si})">+ Drop child here · ${sl_.ids.length}/7</div>`
       :`<div class="hv2-grp-full">Group full — 7/7</div>`;
-    return`${driveLine}<div class="slot-wrap">
-      ${rideNote}
+    return`${rideNote}${driveLine}<div class="slot-wrap">
+
       <div class="slot hv2${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" ${base} ${handlers}>
         <div class="hv2-card">
           <div class="hv2-hdr" draggable="true" ondragstart="dsSlotMove(event,'${d}',${cid},${si})" title="Drag to move entire group" style="cursor:grab">
