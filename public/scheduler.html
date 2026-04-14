@@ -2959,7 +2959,7 @@ function renderSlot(d,cid,si){
     if(coords&&prev&&prev.la!=null&&prev.ln!=null){
       const travelMin=tm(hv(prev.la,prev.ln,coords.la,coords.ln));
       const fromLabel=prev.isBase?`${prev.a} branch`:sl(prev.a);
-      driveLine=_hvConnector('drive',`${travelMin?travelMin+' min drive · ':''}from ${fromLabel}`);
+      driveLine=_hvConnector('drive',`${travelMin?travelMin+' min drive · ':''}← ${fromLabel}`);
     }
   }
 
@@ -2985,7 +2985,7 @@ function renderSlot(d,cid,si){
   const slotIds=slotStudentIds(sl_);
   const rejCls=slotIds.some(sid=>isRejectedDay(sid,d))?' rejected-day-slot':'';
   // If this is the last non-pickup slot, append a dropoff-to-branch line after the card
-  const dropoffLine=isLast&&sl_.t!=='pick'?_hvConnector('dropoff',`drop off at ${carBranch(cid)} branch`):'';
+  const dropoffLine=isLast&&sl_.t!=='pick'?_hvConnector('dropoff',`drop off → ${carBranch(cid)} branch`):'';
 
   if(sl_.t==='s'){
     const s=SS[sl_.id];if(!s)return'';
