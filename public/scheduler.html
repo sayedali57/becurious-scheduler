@@ -818,8 +818,13 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
     <div class="frow"><label>Branch</label><select id="fb"><option>Shuhada</option><option>Salam</option><option>Salwa</option></select></div>
     <div class="frow2">
       <div class="frow"><label>Teacher</label><input id="ft" placeholder="Teacher name"></div>
-      <div class="frow"><label>Student</label><input id="fs" placeholder="Student name"></div>
+      <div class="frow"><label>Student Name (EN)</label><input id="fs" placeholder="Student name"></div>
     </div>
+    <div class="frow2">
+      <div class="frow"><label>Student Name (AR)</label><input id="fsAr" dir="rtl" placeholder="اسم الطالب" style="text-align:right;font-family:'Segoe UI Arabic','Arial','Tahoma',sans-serif"></div>
+      <div class="frow"><label>Parent Name (AR)</label><input id="fparAr" dir="rtl" placeholder="اسم ولي الأمر" style="text-align:right;font-family:'Segoe UI Arabic','Arial','Tahoma',sans-serif"></div>
+    </div>
+    <div class="frow"><label>Parent Name (EN) <span style="font-size:10px;color:var(--text3)">— optional</span></label><input id="fparEn" placeholder="Parent name in English"></div>
     <div class="frow"><label>Full address</label><input id="fa" placeholder="Area, Block, Street, House"></div>
     <div class="frow2">
       <div class="frow"><label>Latitude (Kuwait Finder)</label><input id="flat" type="number" step="any" placeholder="29.268171"></div>
@@ -886,7 +891,10 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
       <table id="students-table" style="width:100%;border-collapse:collapse;font-size:11px">
         <thead>
           <tr style="background:var(--bg);position:sticky;top:0;z-index:2">
-            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="sortStudents('n')">Name ⇅</th>
+            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="sortStudents('n')" title="Primary operational name — used in schedule and roster">Student Name (EN) ⇅</th>
+            <th style="padding:8px 10px;text-align:right;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="sortStudents('nameAr')" title="Child's name in Arabic">Name (AR) ⇅</th>
+            <th style="padding:8px 10px;text-align:right;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="sortStudents('parentNameAr')" title="Parent / family name in Arabic — bridge to the Cases retention sheet">Parent (AR) ⇅</th>
+            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="sortStudents('parentNameEn')" title="Parent name in English (optional)">Parent (EN) ⇅</th>
             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="sortStudents('t')">Teacher ⇅</th>
             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Branch</th>
             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="sortStudents('status')" title="Care & Continuity = enrolled & schedulable · Inactive = needs reactivation · Exited = archived (requires closed linked Case)">Status ⇅</th>
@@ -1771,6 +1779,12 @@ function migrateStudents(){
     if(s.statusChangedAt==null)s.statusChangedAt='';
     if(s.statusReason==null)s.statusReason='';
     if(s.exitedCaseId==null)s.exitedCaseId='';
+    // Bilingual name fields — `s.n` is now Student Name (EN) by convention.
+    // `nameAr` = child's name in Arabic; `parentNameAr` = parent/family name in Arabic
+    // (used to match the Arabic retention sheet); `parentNameEn` = optional EN parent name.
+    if(s.nameAr==null)s.nameAr='';
+    if(s.parentNameAr==null)s.parentNameAr='';
+    if(s.parentNameEn==null)s.parentNameEn='';
   });
 }
 
@@ -3357,7 +3371,10 @@ function renderStudentsTable(){
     if(stFilter==='active_inactive'&&st==='exited')return false;
     // 'all' passes everything
     if(br&&s.br!==br)return false;
-    if(q&&!s.n.toLowerCase().includes(q)&&!s.t.toLowerCase().includes(q))return false;
+    if(q){
+      const hay=((s.n||'')+' '+(s.t||'')+' '+(s.nameAr||'')+' '+(s.parentNameAr||'')+' '+(s.parentNameEn||'')).toLowerCase();
+      if(!hay.includes(q))return false;
+    }
     return true;
   });
   rows.sort((a,b)=>{
@@ -3381,6 +3398,9 @@ function renderStudentsTable(){
     const col=TC[s.t]||'#6A5FA8';
     return`<tr class="st-row" id="strow-${s.id}">
       <td class="st-cell"><input class="st-inp" value="${esc(s.n)}" onchange="patchStudent('${s.id}','n',this.value)" onkeydown="stNav(event,this)"></td>
+      <td class="st-cell"><input class="st-inp" value="${esc(s.nameAr||'')}" dir="rtl" placeholder="اسم الطالب" onchange="patchStudent('${s.id}','nameAr',this.value)" onkeydown="stNav(event,this)" style="min-width:130px;text-align:right;font-family:'Segoe UI Arabic','Arial','Tahoma',sans-serif"></td>
+      <td class="st-cell"><input class="st-inp" value="${esc(s.parentNameAr||'')}" dir="rtl" placeholder="اسم ولي الأمر" onchange="patchStudent('${s.id}','parentNameAr',this.value)" onkeydown="stNav(event,this)" style="min-width:140px;text-align:right;font-family:'Segoe UI Arabic','Arial','Tahoma',sans-serif"></td>
+      <td class="st-cell"><input class="st-inp" value="${esc(s.parentNameEn||'')}" placeholder="Parent name (optional)" onchange="patchStudent('${s.id}','parentNameEn',this.value)" onkeydown="stNav(event,this)" style="min-width:140px"></td>
       <td class="st-cell"><input class="st-inp" value="${esc(s.t)}" onchange="patchStudent('${s.id}','t',this.value)" style="color:${col};font-weight:600" onkeydown="stNav(event,this)"></td>
       <td class="st-cell">
         <select class="st-sel" onchange="patchStudent('${s.id}','br',this.value)">
@@ -3647,7 +3667,7 @@ function deleteStudent(sid){
 
 function addNewStudentRow(){
   const id='sx'+Date.now();
-  SS[id]={id,n:'New Student',t:'',br:'Shuhada',a:'',la:0,ln:0,visits:0,sessionsPerWeek:1,parentPhone:'',mandatory:[],status:'active'};
+  SS[id]={id,n:'New Student',t:'',br:'Shuhada',a:'',la:0,ln:0,visits:0,sessionsPerWeek:1,parentPhone:'',mandatory:[],status:'active',nameAr:'',parentNameAr:'',parentNameEn:''};
   saveState();
   renderStudentsTable();
   // Find the ACTUAL new row by id (sorting may put it anywhere in the list)
@@ -3673,11 +3693,12 @@ function stNav(e,inp){
 }
 
 function exportStudentsCSV(){
-  const rows=[['ID','Name','Teacher','Branch','Class','Address','Latitude','Longitude','Type','Group Host','Sessions/week','Rejected Days','Visits']];
+  const rows=[['ID','Student Name (EN)','Student Name (AR)','Parent Name (AR)','Parent Name (EN)','Status','Teacher','Branch','Class','Address','Latitude','Longitude','Type','Group Host','Sessions/week','Rejected Days','Visits']];
   Object.values(SS).sort((a,b)=>a.n.localeCompare(b.n)).forEach(s=>{
     const hostName=s.groupHost&&SS[s.groupHost]?SS[s.groupHost].n:'';
     const typeLabel=s.sessionType==='group'?(s.groupHost?'Guest':'Host'):'1-on-1';
-    rows.push([s.id,s.n,s.t,s.br,s.cls||'',s.a,s.la,s.ln,typeLabel,hostName,s.sessionsPerWeek||1,(s.rejectedDays||[]).join(', '),s.visits||0]);
+    const stLabel=(studentStatusMeta(s.status||'active')||{}).label||'Care & Continuity';
+    rows.push([s.id,s.n,s.nameAr||'',s.parentNameAr||'',s.parentNameEn||'',stLabel,s.t,s.br,s.cls||'',s.a,s.la,s.ln,typeLabel,hostName,s.sessionsPerWeek||1,(s.rejectedDays||[]).join(', '),s.visits||0]);
   });
   const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
@@ -4070,6 +4091,9 @@ function showAdd(){
   qs('fedit-id').value='';qs('ft').value='';qs('fs').value='';qs('fa').value='';
   qs('flat').value='';qs('flng').value='';qs('fvisits').value='0';qs('fspw').value='1';
   qs('fparent').value='';qs('fstype').value='1on1';
+  if(qs('fsAr'))qs('fsAr').value='';
+  if(qs('fparAr'))qs('fparAr').value='';
+  if(qs('fparEn'))qs('fparEn').value='';
   qs('fb').value='Shuhada';qs('addmodal').style.display='flex';
 }
 function closeAdd(){qs('addmodal').style.display='none';}
@@ -4080,11 +4104,14 @@ function doAdd(){
   const sessionsPerWeek=Math.max(1,parseInt(qs('fspw').value)||1);
   const parentPhone=(qs('fparent').value||'').trim();
   const sessionType=qs('fstype').value==='group'?'group':'1on1';
+  const nameAr=(qs('fsAr')?.value||'').trim();
+  const parentNameAr=(qs('fparAr')?.value||'').trim();
+  const parentNameEn=(qs('fparEn')?.value||'').trim();
   const editId=qs('fedit-id').value;
   if(!t||!n||!a||isNaN(la)||isNaN(ln)){toast('Fill all fields');return;}
   const id=editId||'sx'+Date.now();
   const prev=SS[id]||{};
-  SS[id]={...prev,id,n,br,t,la,ln,a,visits,sessionsPerWeek,parentPhone,sessionType};
+  SS[id]={...prev,id,n,br,t,la,ln,a,visits,sessionsPerWeek,parentPhone,sessionType,nameAr,parentNameAr,parentNameEn,status:prev.status||'active'};
   // Ensure teacher record exists
   if(t&&!TEACHERS[t]){
     TEACHERS[t]={name:t,phone:'',branch:br,days:{Sun:0,Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:SETTINGS.teacherDefaultMax||6,active:1,note:''};
@@ -4102,6 +4129,9 @@ function editStudent(sid){
   qs('fvisits').value=s.visits||0;qs('fspw').value=s.sessionsPerWeek||1;
   qs('fparent').value=s.parentPhone||'';
   qs('fstype').value=(s.sessionType==='group')?'group':'1on1';
+  if(qs('fsAr'))qs('fsAr').value=s.nameAr||'';
+  if(qs('fparAr'))qs('fparAr').value=s.parentNameAr||'';
+  if(qs('fparEn'))qs('fparEn').value=s.parentNameEn||'';
   qs('addmodal').style.display='flex';
 }
 
@@ -6912,10 +6942,13 @@ function plConvertToStudent(leadId){
   const teacherOpts='<option value="">— Assign later —</option>'
     +teacherNames.map(n=>'<option value="'+esc(n)+'">'+esc(n)+'</option>').join('')
     +'<option value="__new__">+ Add new teacher…</option>';
-  ov.innerHTML='<div class="mbox" style="width:460px">'
+  ov.innerHTML='<div class="mbox" style="width:500px">'
     +'<h3>Convert lead to Student</h3>'
     +'<div style="font-size:11px;color:var(--text3);margin-bottom:10px">Review the pre-filled fields before saving. The new student will start with status <b style="color:#059669">Care &amp; Continuity</b> and will appear in the schedule pool immediately.</div>'
-    +'<div class="frow"><label>Student name</label><input id="cv-n" value="'+esc(suggestedName)+'"></div>'
+    +'<div class="frow"><label>Student Name (EN)</label><input id="cv-n" value="'+esc(suggestedName)+'"></div>'
+    +'<div class="frow"><label>Student Name (AR)</label><input id="cv-nAr" dir="rtl" placeholder="اسم الطالب" style="text-align:right;font-family:\'Segoe UI Arabic\',\'Arial\',\'Tahoma\',sans-serif"></div>'
+    +'<div class="frow"><label>Parent Name (AR)</label><input id="cv-parAr" dir="rtl" placeholder="اسم ولي الأمر — used to match Arabic retention sheet" style="text-align:right;font-family:\'Segoe UI Arabic\',\'Arial\',\'Tahoma\',sans-serif"></div>'
+    +'<div class="frow"><label>Parent Name (EN) <span style="font-size:10px;color:var(--text3)">— optional</span></label><input id="cv-parEn" value="'+esc(lead.familyName||'')+'" placeholder="Parent name in English"></div>'
     +'<div class="frow"><label>Branch</label><select id="cv-br"><option'+(lead.branch==='Shuhada'?' selected':'')+'>Shuhada</option><option'+(lead.branch==='Salam'?' selected':'')+'>Salam</option><option'+(lead.branch==='Salwa'?' selected':'')+'>Salwa</option></select></div>'
     +'<div class="frow"><label>Teacher</label><select id="cv-t" onchange="_cvTeacherChange(this,\''+lead.id+'\')">'+teacherOpts+'</select></div>'
     +'<div class="frow"><label>Parent WhatsApp</label><input id="cv-p" value="'+esc(lead.phone||'')+'" placeholder="e.g. 96599887766"></div>'
@@ -6960,8 +6993,11 @@ function _plDoConvert(leadId,btn){
   const t=(document.getElementById('cv-t').value||'').trim();
   const phone=(document.getElementById('cv-p').value||'').trim();
   const spw=Math.max(1,Math.min(7,parseInt(document.getElementById('cv-spw').value,10)||1));
+  const nameAr=(document.getElementById('cv-nAr')?.value||'').trim();
+  const parentNameAr=(document.getElementById('cv-parAr')?.value||'').trim();
+  const parentNameEn=(document.getElementById('cv-parEn')?.value||'').trim();
   const sid='sx'+Date.now();
-  SS[sid]={id:sid,n:name,t:t,br:br,a:'',la:0,ln:0,visits:0,sessionsPerWeek:spw,parentPhone:phone,
+  SS[sid]={id:sid,n:name,nameAr,parentNameAr,parentNameEn,t:t,br:br,a:'',la:0,ln:0,visits:0,sessionsPerWeek:spw,parentPhone:phone,
     sessionType:'1on1',mandatory:[],rejectedDays:[],cls:'',groupHost:'',
     status:'active',statusChangedAt:new Date().toISOString(),statusReason:'Converted from Pipeline lead'};
   // Link both ways so we never convert twice
