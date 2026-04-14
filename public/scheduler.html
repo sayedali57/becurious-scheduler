@@ -2648,6 +2648,12 @@ function slotDur(sl_,d,cid,si){
     const handover=parseInt(SETTINGS.pickupHandoverMin)||0;
     if(!s)return 10+handover;
     const pla=sl_.grp?.la??s.la, pln=sl_.grp?.ln??s.ln;
+    // Self-pickup: the driver is already at the pickup location because the
+    // previous drop was for this same student. No travel, no handover — the
+    // teacher just steps into the car at session end. Any real drive (e.g.
+    // back to branch or on to the next session) is accounted for by the
+    // NEXT slot's travel leg, not by this pickup slot.
+    if(prev.la===pla&&prev.ln===pln)return 0;
     return tm(hv(prev.la,prev.ln,pla,pln))+handover;
   }
   return 0;
