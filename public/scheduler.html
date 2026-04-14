@@ -6962,6 +6962,15 @@ function migrateCases(){
     if(!c.enrollmentStatus)c.enrollmentStatus='enrolled';
     if(c.valueOffered)delete c.valueOffered; // no longer used
     if(!Array.isArray(c.log))c.log=[];
+    // Heal log entries that were saved with raw HTML entities (&check; / &#10003;)
+    // before we switched to a real Unicode checkmark — render those as the
+    // actual character so the log reads cleanly.
+    c.log.forEach(entry=>{
+      if(entry&&typeof entry.text==='string'){
+        if(entry.text.indexOf('&check;')!==-1)entry.text=entry.text.replace(/&check;/g,'\u2713');
+        if(entry.text.indexOf('&#10003;')!==-1)entry.text=entry.text.replace(/&#10003;/g,'\u2713');
+      }
+    });
   });
 }
 
@@ -7193,6 +7202,8 @@ function openCsModal(caseId){
   const isNew=!caseId;
   const c=isNew?newCase():CASES[caseId];
   if(!c)return;
+  // Fresh modal session — clear any previously-queued script choice
+  _csSelectedScript=null;
   document.getElementById('cs-modal-title').textContent=isNew?'New Case':'Case &middot; '+esc(c.parentFullName||'Unnamed');
 
   const studentsList=Object.values(SS||{}).map(s=>({id:s.id,name:s.n,branch:s.b||''})).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
@@ -7250,14 +7261,17 @@ function openCsModal(caseId){
 
   // Quick-paste scripts
   b+='<div class="pl-field" style="background:var(--bg-mid);padding:10px;border-radius:8px"><label style="margin-bottom:6px">&#128203; Quick-paste scripts</label>';
+  b+='<div style="font-size:10px;color:var(--text3);margin-bottom:6px">Pick a script &rarr; then click <b>Open in WhatsApp</b> to send it to the parent\'s number on file.</div>';
   b+='<div style="display:flex;gap:6px;flex-wrap:wrap">';
-  b+='<button type="button" class="ctx-btn" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'4.1\')">4.1 Payment WhatsApp</button>';
-  b+='<button type="button" class="ctx-btn" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'4.2\')">4.2 Refund Defense</button>';
-  b+='<button type="button" class="ctx-btn" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'4.3\')">4.3 Cancellation</button>';
-  b+='<button type="button" class="ctx-btn" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'4.4\')">4.4 Teacher Call</button>';
-  b+='<button type="button" class="ctx-btn" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'bashayer\')">Bashayer Personal</button>';
+  b+='<button type="button" class="ctx-btn" data-cs-script="4.1" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'4.1\')">4.1 Payment WhatsApp</button>';
+  b+='<button type="button" class="ctx-btn" data-cs-script="4.2" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'4.2\')">4.2 Refund Defense</button>';
+  b+='<button type="button" class="ctx-btn" data-cs-script="4.3" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'4.3\')">4.3 Cancellation</button>';
+  b+='<button type="button" class="ctx-btn" data-cs-script="4.4" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'4.4\')">4.4 Teacher Call</button>';
+  b+='<button type="button" class="ctx-btn" data-cs-script="bashayer" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'bashayer\')">Bashayer Personal</button>';
   b+='<button type="button" class="ctx-btn" style="padding:5px 10px;font-size:10px;background:#DC2626;color:#fff;border-color:#DC2626" onclick="csOpenWhatsAppForCase(\''+c.id+'\')">&#128241; Open in WhatsApp</button>';
-  b+='</div></div>';
+  b+='</div>';
+  b+='<div id="cs-script-hint" style="font-size:10px;color:#7C3AED;margin-top:6px;font-weight:600"></div>';
+  b+='</div>';
 
   // Activity log
   b+='<div class="pl-log">';
@@ -7341,7 +7355,7 @@ function csToggleNextAction(caseId,actionId,checked){
   const now=new Date().toISOString();
   if(checked){
     a.doneAt=now;
-    c.log.push({ts:now,type:'system',text:'&#10003; Done: '+a.text,by:(typeof getUserName==='function'?getUserName():'')});
+    c.log.push({ts:now,type:'system',text:'\u2713 Done: '+a.text,by:(typeof getUserName==='function'?getUserName():'')});
   }else{
     a.doneAt='';
     c.log.push({ts:now,type:'system',text:'Reopened: '+a.text,by:(typeof getUserName==='function'?getUserName():'')});
@@ -7453,15 +7467,60 @@ function csAddLogEntry(caseId){
   c.updatedAt=new Date().toISOString();
   csSaveCases();openCsModal(caseId);
 }
+// Currently-selected script for the open Cases modal — picked when the user
+// clicks one of the quick-paste buttons, then sent when they click
+// "Open in WhatsApp". Reset every time the modal opens.
+let _csSelectedScript=null;
 function csInsertScript(key){
   const txt=CS_SCRIPTS[key];if(!txt)return;
+  _csSelectedScript=key;
+  // Also drop the text into the log input so the user can edit before sending
   const inp=document.getElementById('cs-log-text');
-  if(inp){inp.value=txt;inp.focus();}
+  if(inp){inp.value=txt;}
+  // Highlight the chosen script button so it's obvious which one is queued
+  document.querySelectorAll('[data-cs-script]').forEach(btn=>{
+    const on=btn.getAttribute('data-cs-script')===key;
+    btn.style.background=on?'#7C3AED':'';
+    btn.style.color=on?'#fff':'';
+    btn.style.borderColor=on?'#7C3AED':'';
+  });
+  // Surface a small hint near the WhatsApp button
+  const hint=document.getElementById('cs-script-hint');
+  if(hint)hint.textContent='Script '+key+' selected — click "Open in WhatsApp" to send';
 }
 function csOpenWhatsAppForCase(caseId){
   const c=CASES[caseId];if(!c)return;
-  const txt=CS_SCRIPTS['4.1'];
-  window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank');
+  // 1) Resolve the message: prefer selected script, else current log input,
+  //    else fall back to script 4.1
+  let txt='';
+  if(_csSelectedScript&&CS_SCRIPTS[_csSelectedScript])txt=CS_SCRIPTS[_csSelectedScript];
+  else{
+    const inp=document.getElementById('cs-log-text');
+    if(inp&&inp.value.trim())txt=inp.value;
+  }
+  if(!txt)txt=CS_SCRIPTS['4.1'];
+  // 2) Resolve the parent phone from the linked student
+  let phone='';
+  const sid=c.studentId;
+  if(sid&&typeof SS!=='undefined'&&SS[sid]&&SS[sid].parentPhone){
+    phone=String(SS[sid].parentPhone).replace(/[^0-9]/g,'');
+  }
+  if(!phone){
+    if(!sid){
+      alert('No student linked to this case yet. Pick a student in the "Linked student" dropdown first so we know which parent to message.');
+      return;
+    }
+    alert('No parent phone saved for '+(SS[sid]?SS[sid].n:'this student')+'. Add the parent phone in the Students table first.');
+    return;
+  }
+  const url='https://wa.me/'+phone+'?text='+encodeURIComponent(txt);
+  window.open(url,'_blank');
+  // Log it so the activity feed reflects what was sent
+  c.log=c.log||[];
+  c.log.push({ts:new Date().toISOString(),type:'outgoing',text:'WhatsApp'+(_csSelectedScript?' ('+_csSelectedScript+')':'')+' sent to '+phone+': '+txt.slice(0,80)+(txt.length>80?'…':''),by:(typeof getUserName==='function'?getUserName():'')});
+  c.updatedAt=new Date().toISOString();
+  csRefreshLogUI(c);
+  csSaveCases();
 }
 
 // ---- SCRIPTS LIBRARY (verbatim from playbook §4 + §6, Arabic) ----
