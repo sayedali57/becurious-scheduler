@@ -3433,6 +3433,7 @@ function renderSlot(d,cid,si){
     // line telling the driver "Car X hands off teacher Y at HH:MM". Keeps
     // the slot clickable/draggable (via `${base} ${handlers}`) so lock /
     // reorder still work.
+    const isLastPick=!nextIsPick;
     const dropCar=info?CARS.find(c=>c.id===info.cid):null;
     const xcarTxt=dropCar?` · via ${dropCar.label}`:'';
     const warnTxt=!onTime?` · ⚠ ready ${ts(readyMin)}`:'';
