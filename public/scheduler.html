@@ -3844,8 +3844,10 @@ function insertDropAt(sid,d,cid,si){
   // Room check: if the tail is already occupied and we're at capacity, refuse.
   const occupied=slots.filter(x=>x).length;
   if(occupied>=maxSlots){toast('No room — this car is full for the day');return;}
-  // If dragging from the same car+day, clear the source first so indices stay sane.
-  if(!_clearDragSrc(sid))rmFromSched(sid,{onlyDay:d});
+  // Clear the full day for this student (drop + any auto-pickups + stale drive
+  // lines) so moving a session doesn't leave its old pickup or drop-to-branch
+  // behind. Then re-insert fresh at the target index.
+  rmFromSched(sid,{onlyDay:d});
   // Re-fetch slots (rm may have nulled something) and splice in the new slot.
   const fresh=SCHED[d][cid];
   const clampedSi=Math.max(0,Math.min(si,fresh.length));
@@ -3873,11 +3875,10 @@ function advance(d,cid,fromSi){
 
 // ===== MUTATIONS =====
 function placeIn(sid,d,cid,si){
-  // If dragged from a placed slot, clear just that exact source. Otherwise
-  // (dragged from the pool), only scrub the target day — students with
-  // sessionsPerWeek>1 legitimately appear on multiple days, so we must not
-  // touch their slots on other days.
-  if(!_clearDragSrc(sid))rmFromSched(sid,{onlyDay:d});
+  // Always clear the target day for this student so moving a drop within a
+  // day cleans up the old auto-pickup and drop-to-branch artefacts. Sessions
+  // on OTHER days (for multi-session students) are preserved.
+  rmFromSched(sid,{onlyDay:d});
   SCHED[d][cid][si]={t:'s',id:sid};
   // Auto-insert pickup in next empty slot of same car
   const slots=SCHED[d][cid];
