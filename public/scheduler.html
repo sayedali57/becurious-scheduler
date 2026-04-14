@@ -497,9 +497,10 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 /* Next-action checklist (modal) */
 .cs-na-list{display:flex;flex-direction:column;gap:4px;margin-top:6px}
 .cs-na-item{display:flex;align-items:center;gap:8px;padding:6px 8px;background:#fff;border:1px solid var(--border);border-radius:6px;font-size:11px}
-.cs-na-item input[type="checkbox"]{margin:0;cursor:pointer;flex-shrink:0}
+/* Override .pl-field input{width:100%} so the checkbox stays a checkbox */
+.cs-na-item input[type="checkbox"]{margin:0;cursor:pointer;flex-shrink:0;width:auto;padding:0;border:1px solid var(--border)}
 .cs-na-item.done .cs-na-text{text-decoration:line-through;color:var(--text3)}
-.cs-na-text{flex:1;color:var(--text)}
+.cs-na-text{flex:1;min-width:0;color:var(--text);word-break:break-word}
 .cs-na-when{font-size:9px;color:var(--text3);flex-shrink:0}
 .cs-na-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0 4px;line-height:1}
 .cs-na-del:hover{color:var(--accent)}
@@ -7113,7 +7114,7 @@ function renderCsKanban(){
   });
   const resolvedList=all.filter(c=>csIsResolved(c)&&matches(c)).sort((a,b)=>new Date(b.resolvedAt||b.updatedAt)-new Date(a.resolvedAt||a.updatedAt));
   h+='<div class="pl-col" style="background:#F9FAFB">';
-  h+='<div class="pl-col-hdr"><span class="pl-col-title">&check; Resolved</span><span class="pl-col-cnt">'+resolvedList.length+'</span></div>';
+  h+='<div class="pl-col-hdr"><span class="pl-col-title">&#10003; Resolved</span><span class="pl-col-cnt">'+resolvedList.length+'</span></div>';
   h+='<div class="pl-col-body" data-level="resolved" ondragover="csDragOver(event)" ondragleave="csDragLeave(event)" ondrop="csDrop(event,0,\'resolved\')">';
   resolvedList.slice(0,30).forEach(c=>{h+=renderCsCard(c);});
   if(resolvedList.length===0)h+='<div style="text-align:center;color:var(--text3);font-size:9px;padding:14px 6px">Nothing resolved yet</div>';
@@ -7218,7 +7219,7 @@ function openCsModal(caseId){
   b+='<div class="pl-field"><label>Status</label><select id="cs-f-status">'+csStatuses().map(s=>'<option'+(c.status===s?' selected':'')+'>'+esc(s)+'</option>').join('')+'</select></div>';
   b+='<div class="pl-field"><label>Payment Status</label><select id="cs-f-pstatus">'+CS_PAYMENT_STATUSES.map(p=>'<option value="'+p.id+'"'+(c.paymentStatus===p.id?' selected':'')+'>'+p.label+'</option>').join('')+'</select></div>';
   b+='<div class="pl-field"><label>Enrollment Status</label><select id="cs-f-estatus">'+CS_ENROLLMENT_STATUSES.map(e=>'<option value="'+e.id+'"'+(c.enrollmentStatus===e.id?' selected':'')+'>'+e.label+'</option>').join('')+'</select></div>';
-  b+='<div class="pl-field"><label>Amount (KWD)</label><input id="cs-f-amount" type="number" step="1" value="'+esc(String(c.amountKwd||300))+'"></div>';
+  b+='<div class="pl-field"><label>Unsettled amount (KWD)</label><input id="cs-f-amount" type="number" step="1" value="'+esc(String(c.amountKwd||300))+'"></div>';
   b+='</div>';
 
   // Multi-select complaint reasons
@@ -7260,7 +7261,7 @@ function openCsModal(caseId){
 
   // Activity log
   b+='<div class="pl-log">';
-  b+='<div class="pl-log-title">&#128172; Activity Log ('+(c.log||[]).length+' entries)</div>';
+  b+='<div class="pl-log-title">&#128172; Activity Log (<span id="cs-log-count">'+(c.log||[]).length+'</span> entries)</div>';
   b+='<div class="pl-log-list" id="cs-log-list">'+renderCsLogList(c)+'</div>';
   b+='<div class="pl-log-add">';
   b+='<select id="cs-log-type"><option value="outgoing">Out</option><option value="incoming">In</option><option value="note">Note</option></select>';
@@ -7275,7 +7276,7 @@ function openCsModal(caseId){
   if(!isNew){
     a+='<button class="pl-del" onclick="csDeleteCase(\''+c.id+'\')">Delete</button>';
     if(!csIsResolved(c)){
-      a+='<button onclick="csQuickResolve(\''+c.id+'\')" style="background:#059669;color:#fff;border-color:#059669">&check; Resolve</button>';
+      a+='<button onclick="csQuickResolve(\''+c.id+'\')" style="background:#059669;color:#fff;border-color:#059669">&#10003; Resolve</button>';
       const maxLvl=Math.max(...csLevels().map(l=>l.id));
       if(c.level<maxLvl)a+='<button onclick="csQuickEscalate(\''+c.id+'\')" style="background:#D97706;color:#fff;border-color:#D97706">&uarr; Escalate</button>';
     }
@@ -7314,6 +7315,13 @@ function renderCsLogList(c){
   });
   return h;
 }
+// Re-paint both the log list and the live "(N entries)" counter
+function csRefreshLogUI(c){
+  const list=document.getElementById('cs-log-list');
+  const cnt=document.getElementById('cs-log-count');
+  if(list)list.innerHTML=renderCsLogList(c);
+  if(cnt)cnt.textContent=(c.log||[]).length;
+}
 
 function csInsertNextAction(caseId){
   const c=CASES[caseId];if(!c)return;
@@ -7333,14 +7341,14 @@ function csToggleNextAction(caseId,actionId,checked){
   const now=new Date().toISOString();
   if(checked){
     a.doneAt=now;
-    c.log.push({ts:now,type:'system',text:'&check; Done: '+a.text,by:(typeof getUserName==='function'?getUserName():'')});
+    c.log.push({ts:now,type:'system',text:'&#10003; Done: '+a.text,by:(typeof getUserName==='function'?getUserName():'')});
   }else{
     a.doneAt='';
     c.log.push({ts:now,type:'system',text:'Reopened: '+a.text,by:(typeof getUserName==='function'?getUserName():'')});
   }
   c.updatedAt=now;
   document.getElementById('cs-na-list').innerHTML=renderCsNextActionsList(c);
-  document.getElementById('cs-log-list').innerHTML=renderCsLogList(c);
+  csRefreshLogUI(c);
   csSaveCases();
 }
 function csDeleteNextAction(caseId,actionId){
@@ -7358,7 +7366,7 @@ function csInsertNote(caseId){
   c.log.push({ts:now,type:'note',text:txt,by:(typeof getUserName==='function'?getUserName():'')});
   c.notes='';ta.value='';
   c.updatedAt=now;
-  document.getElementById('cs-log-list').innerHTML=renderCsLogList(c);
+  csRefreshLogUI(c);
   csSaveCases();
 }
 function csOnStudentChange(){
