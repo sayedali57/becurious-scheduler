@@ -7495,7 +7495,9 @@ function openCsModal(caseId){
   b+='<div class="pl-field"><label>Linked to enrolled student (if applicable)</label>';
   b+='<select id="cs-f-student" onchange="csOnStudentChange()"><option value="">- none - (optional)</option>';
   studentsList.forEach(s=>{b+='<option value="'+s.id+'"'+(c.studentId===s.id?' selected':'')+'>'+esc(s.name)+(s.branch?' &middot; '+esc(s.branch):'')+'</option>';});
-  b+='</select></div>';
+  b+='</select>';
+  b+='<div id="cs-linked-summary" style="margin-top:6px"></div>';
+  b+='</div>';
   b+='<div class="pl-field"><label>Or enter child name (free text)</label><input id="cs-f-child" value="'+esc(c.childName||'')+'" placeholder="if not in student list"></div>';
   b+='<div class="pl-field"><label>Branch</label><select id="cs-f-branch"><option'+(c.branch==='Salam'?' selected':'')+'>Salam</option><option'+(c.branch==='Shuhada'?' selected':'')+'>Shuhada</option><option'+(c.branch==='Salwa'?' selected':'')+'>Salwa</option></select></div>';
   b+='</div>';
@@ -7580,6 +7582,8 @@ function openCsModal(caseId){
   document.getElementById('cs-modal-actions').innerHTML=a;
 
   document.getElementById('cs-modal-overlay').style.display='flex';
+  // Populate the linked-student summary panel if a student is already linked.
+  csRenderLinkedSummary(c.studentId||'');
 }
 function closeCsModal(){document.getElementById('cs-modal-overlay').style.display='none';}
 
@@ -7665,11 +7669,36 @@ function csInsertNote(caseId){
 }
 function csOnStudentChange(){
   // When a student is selected, optionally auto-fill the child name
+  // and render the linked-student summary card.
   const sid=document.getElementById('cs-f-student').value;
+  csRenderLinkedSummary(sid);
   if(!sid)return;
   const s=SS[sid];if(!s)return;
   const childInp=document.getElementById('cs-f-child');
   if(childInp&&!childInp.value)childInp.value=s.n;
+}
+
+// Render a compact read-only panel inside the Case modal with the key facts
+// from the linked student record — most importantly Parent Name (AR), which
+// is the bridge between this Case and the Arabic retention sheet.
+function csRenderLinkedSummary(sid){
+  const el=document.getElementById('cs-linked-summary');
+  if(!el)return;
+  if(!sid){el.innerHTML='';return;}
+  const s=SS[sid];
+  if(!s){el.innerHTML='<div style="font-size:10px;color:#991B1B;padding:6px 8px;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:4px">Linked student not found (was it deleted?)</div>';return;}
+  const stMeta=(typeof studentStatusMeta==='function'?studentStatusMeta(s.status||'active'):{label:'Care & Continuity',color:'#059669',bg:'#D1FAE5',border:'#A7F3D0'});
+  const ar=(v)=>v?('<span dir="rtl" style="font-family:\'Segoe UI Arabic\',\'Arial\',\'Tahoma\',sans-serif">'+esc(v)+'</span>'):'<span style="color:var(--text3)">—</span>';
+  let h='<div style="padding:8px 10px;background:#F5F3FF;border:1px solid #DDD6FE;border-radius:6px;font-size:11px;line-height:1.55">';
+  h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">';
+  h+='<span style="font-size:10px;font-weight:600;color:#5B21B6;text-transform:uppercase;letter-spacing:.04em">Linked student</span>';
+  h+='<span style="font-size:9px;font-weight:600;padding:1px 6px;border-radius:3px;color:'+stMeta.color+';background:'+stMeta.bg+';border:1px solid '+stMeta.border+'">'+esc(stMeta.label)+'</span>';
+  h+='</div>';
+  h+='<div><b>'+esc(s.n||'(no EN name)')+'</b>'+(s.nameAr?' &middot; '+ar(s.nameAr):'')+(s.br?' &middot; <span style="color:var(--text3)">'+esc(s.br)+'</span>':'')+'</div>';
+  h+='<div style="margin-top:3px"><span style="color:var(--text3)">Parent (AR):</span> '+ar(s.parentNameAr)+(s.parentNameEn?' <span style="color:var(--text3)">&middot; EN:</span> '+esc(s.parentNameEn):'')+'</div>';
+  if(s.parentPhone)h+='<div style="margin-top:3px"><span style="color:var(--text3)">Parent phone:</span> '+esc(s.parentPhone)+'</div>';
+  h+='</div>';
+  el.innerHTML=h;
 }
 
 function csSaveCase(caseId,isNew){
