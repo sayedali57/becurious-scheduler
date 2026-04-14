@@ -526,6 +526,99 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 .cs-out-partial{background:#FEF3CD;color:#92400E}
 .cs-out-cancelled{background:#FEE2E2;color:#991B1B}
 .cs-out-lost{background:#F3F4F6;color:#374151}
+/* ===== CASE MODAL v2 — warm, clean, single-surface ===== */
+.pl-modal-overlay:has(.cs-v2){background:rgba(40,32,20,.32);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+.cs-v2{width:760px !important;max-width:95vw;background:#FFFFFF;border-radius:14px;border:1px solid rgba(60,45,30,.06);box-shadow:0 24px 70px -18px rgba(60,45,30,.22),0 2px 10px rgba(60,45,30,.05)}
+.cs-v2 .pl-modal-hdr{padding:24px 32px 18px;border-bottom:1px solid rgba(60,45,30,.06)}
+.cs-v2 .pl-modal-hdr h3{font-size:20px;font-weight:700;color:#1F1A16;letter-spacing:-.015em}
+.cs-v2 .pl-modal-close{color:#BDAF9B;font-size:22px;font-weight:300;transition:color .15s}
+.cs-v2 .pl-modal-close:hover{color:#3E342A;background:transparent}
+.cs-v2 .pl-modal-body{padding:4px 32px 8px}
+.cs-v2 .cs2-section{padding:24px 0}
+.cs-v2 .cs2-section+.cs2-section{border-top:1px solid rgba(60,45,30,.07)}
+.cs-v2 .cs2-section-hdr{font-size:10.5px;font-weight:600;color:#5A8F85;letter-spacing:.1em;text-transform:uppercase;margin-bottom:18px;display:block}
+.cs-v2 .cs2-row{display:grid;gap:20px 22px;margin-bottom:18px}
+.cs-v2 .cs2-row:last-child{margin-bottom:0}
+.cs-v2 .cs2-row.cols-2{grid-template-columns:1fr 1fr}
+.cs-v2 .cs2-row.cols-3{grid-template-columns:1fr 1fr 1fr}
+@media (max-width:760px){.cs-v2 .cs2-row.cols-2,.cs-v2 .cs2-row.cols-3{grid-template-columns:1fr}}
+.cs-v2 .cs2-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.cs-v2 .cs2-field label{font-size:11px;font-weight:500;color:#9A8B78;letter-spacing:.02em}
+.cs-v2 .cs2-field .cs2-hint{font-size:10.5px;color:#BDAF9B;font-style:italic;font-weight:400;margin-left:4px}
+.cs-v2 .cs2-field input,.cs-v2 .cs2-field select,.cs-v2 .cs2-field textarea{width:100%;padding:8px 2px;border:none;border-bottom:1px solid rgba(60,45,30,.1);border-radius:0;font-size:14px;font-family:inherit;color:#2B2420;background:transparent;outline:none;transition:border-color .2s;box-sizing:border-box;line-height:1.4;min-height:34px}
+.cs-v2 .cs2-field textarea{min-height:72px;resize:vertical;padding:10px 2px}
+.cs-v2 .cs2-field input::placeholder,.cs-v2 .cs2-field textarea::placeholder{color:#BDAF9B;font-style:italic}
+.cs-v2 .cs2-field input:hover,.cs-v2 .cs2-field select:hover,.cs-v2 .cs2-field textarea:hover{border-bottom-color:rgba(60,45,30,.2)}
+.cs-v2 .cs2-field input:focus,.cs-v2 .cs2-field select:focus,.cs-v2 .cs2-field textarea:focus{border-bottom-color:#5A8F85;box-shadow:0 1px 0 0 #5A8F85}
+.cs-v2 .cs2-field select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%239A8B78' d='M0 0l5 6 5-6z'/></svg>");background-repeat:no-repeat;background-position:right 2px center;padding-right:18px;cursor:pointer}
+.cs-v2 .cs2-field input[type="date"]::-webkit-calendar-picker-indicator{opacity:.45;cursor:pointer;filter:sepia(.3) hue-rotate(-20deg)}
+/* Parent name — prominent */
+.cs-v2 .cs2-field.cs2-parent input{font-size:18px;font-weight:600;padding:10px 2px;min-height:42px}
+/* Complaint reason pills — quiet outline, soft teal when selected */
+.cs-v2 .cs2-reason-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.cs-v2 .cs2-reason{display:inline-flex;align-items:center;padding:7px 14px;border:1px solid rgba(60,45,30,.15);border-radius:999px;font-size:12px;color:#7D6E5C;cursor:pointer;background:transparent;user-select:none;transition:all .15s;font-weight:500}
+.cs-v2 .cs2-reason:hover{border-color:#5A8F85;color:#3E342A}
+.cs-v2 .cs2-reason.on{background:rgba(90,143,133,.12);border-color:#5A8F85;color:#4A7A71}
+.cs-v2 .cs2-reason input{display:none}
+/* Next Actions */
+.cs-v2 .cs2-na-composer{display:flex;gap:10px;margin-bottom:12px;align-items:center}
+.cs-v2 .cs2-na-composer input{flex:1;padding:9px 12px;border:1px solid rgba(60,45,30,.12);border-radius:8px;font-size:13px;font-family:inherit;background:#FAF8F4;color:#2B2420;min-height:36px;transition:border-color .15s,background .15s}
+.cs-v2 .cs2-na-composer input::placeholder{color:#BDAF9B;font-style:italic}
+.cs-v2 .cs2-na-composer input:focus{outline:none;border-color:#5A8F85;background:#fff;box-shadow:0 0 0 3px rgba(90,143,133,.12)}
+.cs-v2 .cs2-na-insert{padding:8px 14px;background:transparent;color:#5A8F85;border:1px solid rgba(90,143,133,.25);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.cs-v2 .cs2-na-insert:hover{background:rgba(90,143,133,.08);border-color:#5A8F85}
+.cs-v2 .cs2-na-list{display:flex;flex-direction:column;gap:4px}
+.cs-v2 .cs2-na-item{display:flex;align-items:center;gap:10px;padding:8px 2px;font-size:13px;border-bottom:1px solid rgba(60,45,30,.05)}
+.cs-v2 .cs2-na-item:last-child{border-bottom:none}
+.cs-v2 .cs2-na-item input[type="checkbox"]{margin:0;cursor:pointer;flex-shrink:0;width:15px;height:15px;accent-color:#5A8F85}
+.cs-v2 .cs2-na-item.done .cs2-na-text{text-decoration:line-through;text-decoration-color:#BDAF9B;text-decoration-thickness:1px;color:#A89886}
+.cs-v2 .cs2-na-text{flex:1;min-width:0;color:#2B2420;word-break:break-word}
+.cs-v2 .cs2-na-when{font-size:10.5px;color:#A89886;flex-shrink:0}
+.cs-v2 .cs2-na-del{background:none;border:none;color:#BDAF9B;cursor:pointer;font-size:16px;padding:0 4px;line-height:1;transition:color .15s}
+.cs-v2 .cs2-na-del:hover{color:#B94A4A}
+.cs-v2 .cs2-na-empty{font-size:12px;color:#BDAF9B;font-style:italic;padding:8px 2px}
+/* Notes */
+.cs-v2 .cs2-notes-composer{display:flex;flex-direction:column;gap:6px}
+.cs-v2 .cs2-notes-insert{align-self:flex-end;background:transparent;border:none;color:#5A8F85;font-size:12px;font-weight:600;cursor:pointer;padding:4px 0;font-family:inherit;text-decoration:underline;text-decoration-color:rgba(90,143,133,.4);text-underline-offset:3px;transition:text-decoration-color .15s}
+.cs-v2 .cs2-notes-insert:hover{text-decoration-color:#5A8F85}
+/* WhatsApp scripts */
+.cs-v2 .cs2-wa-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.cs-v2 .cs2-wa-pill{padding:6px 14px;background:transparent;color:#7D6E5C;border:1px solid rgba(60,45,30,.15);border-radius:999px;font-size:11.5px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s}
+.cs-v2 .cs2-wa-pill:hover{background:rgba(90,143,133,.06);border-color:#5A8F85;color:#3E342A}
+.cs-v2 .cs2-wa-pill.on{background:rgba(90,143,133,.12);border-color:#5A8F85;color:#4A7A71}
+.cs-v2 .cs2-wa-send{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:#22A75A;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s,box-shadow .15s}
+.cs-v2 .cs2-wa-send:hover{background:#1C8F4B;box-shadow:0 4px 12px rgba(34,167,90,.25)}
+.cs-v2 .cs2-wa-hint{font-size:11.5px;color:#9A8B78;font-style:italic;margin-bottom:12px}
+.cs-v2 .cs2-wa-script-hint{font-size:11.5px;color:#5A8F85;margin-top:10px;font-weight:600}
+/* Activity Log — timeline */
+.cs-v2 .cs2-log-count{font-size:11px;color:#9A8B78;font-weight:500;font-style:normal;margin-left:8px;text-transform:none;letter-spacing:0}
+.cs-v2 .cs2-log-list{max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;margin-bottom:14px;padding-right:4px;scrollbar-color:rgba(60,45,30,.15) transparent}
+.cs-v2 .cs2-log-entry{padding:2px 0 2px 14px;border-left:2px solid #E6DFD2;font-size:13px;line-height:1.55}
+.cs-v2 .cs2-log-entry.outgoing{border-left-color:#5A8F85}
+.cs-v2 .cs2-log-entry.incoming{border-left-color:#22A75A}
+.cs-v2 .cs2-log-entry.note{border-left-color:#B08A4E}
+.cs-v2 .cs2-log-entry.system{border-left-color:#BDAF9B}
+.cs-v2 .cs2-log-ts{font-size:10.5px;color:#9A8B78;margin-bottom:3px;font-weight:500;letter-spacing:.02em}
+.cs-v2 .cs2-log-text{color:#2B2420;font-weight:400;white-space:pre-wrap;word-break:break-word}
+.cs-v2 .cs2-log-empty{text-align:center;padding:24px 12px;color:#BDAF9B;font-size:12px;font-style:italic}
+.cs-v2 .cs2-log-composer{display:flex;gap:8px;align-items:center}
+.cs-v2 .cs2-log-composer select{width:90px;padding:8px 10px;border:1px solid rgba(60,45,30,.12);border-radius:8px;font-size:12px;background:#FAF8F4;color:#3E342A;font-family:inherit;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%239A8B78' d='M0 0l5 6 5-6z'/></svg>");background-repeat:no-repeat;background-position:right 10px center;padding-right:26px;cursor:pointer}
+.cs-v2 .cs2-log-composer input{flex:1;padding:9px 12px;border:1px solid rgba(60,45,30,.12);border-radius:8px;font-size:13px;background:#FAF8F4;color:#2B2420;font-family:inherit;transition:border-color .15s,background .15s}
+.cs-v2 .cs2-log-composer input::placeholder{color:#BDAF9B;font-style:italic}
+.cs-v2 .cs2-log-composer input:focus,.cs-v2 .cs2-log-composer select:focus{outline:none;border-color:#5A8F85;background:#fff;box-shadow:0 0 0 3px rgba(90,143,133,.12)}
+.cs-v2 .cs2-log-composer button{padding:9px 18px;background:#5A8F85;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s}
+.cs-v2 .cs2-log-composer button:hover{background:#4A7A71}
+/* Linked student summary */
+.cs-v2 .cs2-linked-summary{margin-top:10px;padding:10px 14px;background:#FAF8F4;border-left:2px solid #5A8F85;border-radius:4px;font-size:12px;color:#3E342A;line-height:1.5}
+.cs-v2 .cs2-linked-summary a,.cs-v2 .cs2-linked-summary [onclick]{color:#5A8F85;cursor:pointer;font-weight:600;text-decoration:underline;text-decoration-color:rgba(90,143,133,.4);text-underline-offset:2px}
+/* Footer actions */
+.cs-v2 .pl-modal-actions{padding:20px 32px 24px;border-top:1px solid rgba(60,45,30,.06);gap:10px;align-items:center}
+.cs-v2 .pl-modal-actions button{padding:9px 16px;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid rgba(60,45,30,.12);background:transparent;color:#7D6E5C;transition:all .15s;font-family:inherit}
+.cs-v2 .pl-modal-actions button:hover{background:rgba(60,45,30,.04);color:#3E342A;border-color:rgba(60,45,30,.22)}
+.cs-v2 .pl-modal-actions .cs2-delete{background:transparent !important;border:none !important;color:#B94A4A !important;padding:9px 4px !important;text-decoration:underline;text-decoration-color:rgba(185,74,74,.35);text-underline-offset:3px;margin-right:auto}
+.cs-v2 .pl-modal-actions .cs2-delete:hover{color:#9B3E3E !important;background:transparent !important;text-decoration-color:#9B3E3E}
+.cs-v2 .pl-modal-actions .cs2-save,.cs-v2 .pl-modal-actions .pl-save{background:#5A8F85 !important;color:#fff !important;border-color:#5A8F85 !important;padding:9px 20px !important}
+.cs-v2 .pl-modal-actions .cs2-save:hover,.cs-v2 .pl-modal-actions .pl-save:hover{background:#4A7A71 !important;border-color:#4A7A71 !important;color:#fff !important;box-shadow:0 2px 8px rgba(90,143,133,.25)}
 /* ===== THEME CONTAINERS ===== */
 .theme-panel{display:none;flex:1;overflow:hidden;flex-direction:column}
 .theme-panel.active{display:flex}
@@ -845,7 +938,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 
 <!-- ===== CASES MODAL ===== -->
 <div class="pl-modal-overlay" id="cs-modal-overlay">
-  <div class="pl-modal cs-modal">
+  <div class="pl-modal cs-modal cs-v2">
     <div class="pl-modal-hdr"><h3 id="cs-modal-title">New Case</h3><button class="pl-modal-close" onclick="closeCsModal()">&times;</button></div>
     <div class="pl-modal-body" id="cs-modal-body"></div>
     <div class="pl-modal-actions" id="cs-modal-actions"></div>
@@ -7961,84 +8054,107 @@ function openCsModal(caseId){
   _csEditingId=c.id||'';
   // Fresh modal session — clear any previously-queued script choice
   _csSelectedScript=null;
-  document.getElementById('cs-modal-title').textContent=isNew?'New Case':'Case &middot; '+esc(c.parentFullName||'Unnamed');
+  document.getElementById('cs-modal-title').textContent=isNew?'New Case':'Case · '+(c.parentFullName||'Unnamed');
 
   const studentsList=Object.values(SS||{}).map(s=>({id:s.id,name:s.n,branch:s.b||''})).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
 
   let b='';
-  // Parent + linked child
-  b+='<div class="pl-field"><label>Parent Full Name *</label><input id="cs-f-parent" value="'+esc(c.parentFullName||'')+'" placeholder="e.g. Mariam Al-Ghanim"></div>';
-  b+='<div class="pl-field-row">';
-  b+='<div class="pl-field"><label>Linked to enrolled student (if applicable)</label>';
-  b+='<select id="cs-f-student" onchange="csOnStudentChange()"><option value="">- none - (optional)</option>';
-  studentsList.forEach(s=>{b+='<option value="'+s.id+'"'+(c.studentId===s.id?' selected':'')+'>'+esc(s.name)+(s.branch?' &middot; '+esc(s.branch):'')+'</option>';});
+
+  // ===== 1. WHO =====
+  b+='<div class="cs2-section">';
+  b+='<div class="cs2-section-hdr">Who</div>';
+  b+='<div class="cs2-row"><div class="cs2-field cs2-parent"><label>Parent Full Name *</label><input id="cs-f-parent" value="'+esc(c.parentFullName||'')+'" placeholder="e.g. Mariam Al-Ghanim"></div></div>';
+  b+='<div class="cs2-row cols-2">';
+  b+='<div class="cs2-field"><label>Linked Student <span class="cs2-hint">(optional)</span></label>';
+  b+='<select id="cs-f-student" onchange="csOnStudentChange()"><option value="">Select…</option>';
+  studentsList.forEach(s=>{b+='<option value="'+s.id+'"'+(c.studentId===s.id?' selected':'')+'>'+esc(s.name)+(s.branch?' · '+esc(s.branch):'')+'</option>';});
   b+='</select>';
-  b+='<div id="cs-linked-summary" style="margin-top:6px"></div>';
+  b+='<div id="cs-linked-summary"></div>';
   b+='</div>';
-  b+='<div class="pl-field"><label>Or enter child name (free text)</label><input id="cs-f-child" value="'+esc(c.childName||'')+'" placeholder="if not in student list"></div>';
-  b+='<div class="pl-field"><label>Branch</label><select id="cs-f-branch"><option'+(c.branch==='Salam'?' selected':'')+'>Salam</option><option'+(c.branch==='Shuhada'?' selected':'')+'>Shuhada</option><option'+(c.branch==='Salwa'?' selected':'')+'>Salwa</option></select></div>';
+  b+='<div class="cs2-field"><label>Child Name <span class="cs2-hint">(if not linked)</span></label><input id="cs-f-child" value="'+esc(c.childName||'')+'" placeholder="Free text name"></div>';
   b+='</div>';
-
-  // Type / Segment / Level / Status
-  b+='<div class="pl-field-row">';
-  b+='<div class="pl-field"><label>Case Type</label><select id="cs-f-type">'+csTypes().map(t=>'<option value="'+t.id+'"'+(c.type===t.id?' selected':'')+'>'+esc(t.label)+'</option>').join('')+'</select></div>';
-  b+='<div class="pl-field"><label>Payment Segment</label><select id="cs-f-segment">'+csSegments().map(s=>'<option value="'+s.id+'"'+(c.segment===s.id?' selected':'')+'>'+esc(s.label)+'</option>').join('')+'</select></div>';
-  b+='<div class="pl-field"><label>Escalation Level</label><select id="cs-f-level">'+csLevels().map(l=>'<option value="'+l.id+'"'+(c.level===l.id?' selected':'')+'>L'+l.id+' &middot; '+esc(l.label)+'</option>').join('')+'</select></div>';
-  b+='</div>';
-  b+='<div class="pl-field-row">';
-  b+='<div class="pl-field"><label>Status</label><select id="cs-f-status">'+csStatuses().map(s=>'<option'+(c.status===s?' selected':'')+'>'+esc(s)+'</option>').join('')+'</select></div>';
-  b+='<div class="pl-field"><label>Payment Status</label><select id="cs-f-pstatus">'+CS_PAYMENT_STATUSES.map(p=>'<option value="'+p.id+'"'+(c.paymentStatus===p.id?' selected':'')+'>'+p.label+'</option>').join('')+'</select></div>';
-  b+='<div class="pl-field"><label>Enrollment Status</label><select id="cs-f-estatus">'+CS_ENROLLMENT_STATUSES.map(e=>'<option value="'+e.id+'"'+(c.enrollmentStatus===e.id?' selected':'')+'>'+e.label+'</option>').join('')+'</select></div>';
-  b+='<div class="pl-field"><label>Unsettled amount (KWD)</label><input id="cs-f-amount" type="number" step="1" value="'+esc(String(c.amountKwd||300))+'"></div>';
+  b+='<div class="cs2-row cols-2">';
+  b+='<div class="cs2-field"><label>Branch</label><select id="cs-f-branch"><option'+(c.branch==='Salam'?' selected':'')+'>Salam</option><option'+(c.branch==='Shuhada'?' selected':'')+'>Shuhada</option><option'+(c.branch==='Salwa'?' selected':'')+'>Salwa</option></select></div>';
+  b+='<div></div></div>';
   b+='</div>';
 
-  // Multi-select complaint reasons
-  b+='<div class="pl-field"><label>Reasons of complaint (tick all that apply)</label><div id="cs-cr-chips" class="cs-vs-chips">';
+  // ===== 2. CASE DETAILS =====
+  b+='<div class="cs2-section">';
+  b+='<div class="cs2-section-hdr">Case Details</div>';
+  b+='<div class="cs2-row cols-3">';
+  b+='<div class="cs2-field"><label>Case Type</label><select id="cs-f-type">'+csTypes().map(t=>'<option value="'+t.id+'"'+(c.type===t.id?' selected':'')+'>'+esc(t.label)+'</option>').join('')+'</select></div>';
+  b+='<div class="cs2-field"><label>Payment Segment</label><select id="cs-f-segment">'+csSegments().map(s=>'<option value="'+s.id+'"'+(c.segment===s.id?' selected':'')+'>'+esc(s.label)+'</option>').join('')+'</select></div>';
+  b+='<div class="cs2-field"><label>Escalation Level</label><select id="cs-f-level">'+csLevels().map(l=>'<option value="'+l.id+'"'+(c.level===l.id?' selected':'')+'>L'+l.id+' · '+esc(l.label)+'</option>').join('')+'</select></div>';
+  b+='</div>';
+  b+='<div class="cs2-row cols-3">';
+  b+='<div class="cs2-field"><label>Status</label><select id="cs-f-status">'+csStatuses().map(s=>'<option'+(c.status===s?' selected':'')+'>'+esc(s)+'</option>').join('')+'</select></div>';
+  b+='<div class="cs2-field"><label>Payment Status</label><select id="cs-f-pstatus">'+CS_PAYMENT_STATUSES.map(p=>'<option value="'+p.id+'"'+(c.paymentStatus===p.id?' selected':'')+'>'+p.label+'</option>').join('')+'</select></div>';
+  b+='<div class="cs2-field"><label>Enrollment Status</label><select id="cs-f-estatus">'+CS_ENROLLMENT_STATUSES.map(e=>'<option value="'+e.id+'"'+(c.enrollmentStatus===e.id?' selected':'')+'>'+e.label+'</option>').join('')+'</select></div>';
+  b+='</div>';
+  b+='<div class="cs2-row cols-3">';
+  b+='<div class="cs2-field"><label>Unsettled Amount (KWD)</label><input id="cs-f-amount" type="number" step="1" value="'+esc(String(c.amountKwd||300))+'"></div>';
+  b+='<div></div><div></div></div>';
+  b+='</div>';
+
+  // ===== 3. COMPLAINT REASONS =====
+  b+='<div class="cs2-section">';
+  b+='<div class="cs2-section-hdr">What is this about?</div>';
+  b+='<div id="cs-cr-chips" class="cs2-reason-group">';
   csComplaintReasons().forEach(r=>{
     const on=(c.complaintReasons||[]).includes(r);
-    b+='<label class="cs-vs-chip'+(on?' on':'')+'" data-cr="'+esc(r)+'"><input type="checkbox" '+(on?'checked':'')+' onchange="this.parentNode.classList.toggle(\'on\',this.checked)"> '+esc(r)+'</label>';
+    b+='<label class="cs2-reason cs-vs-chip'+(on?' on':'')+'" data-cr="'+esc(r)+'"><input type="checkbox" '+(on?'checked':'')+' onchange="this.parentNode.classList.toggle(\'on\',this.checked)"> '+esc(r)+'</label>';
   });
-  b+='</div></div>';
-
-  // Due / Assigned
-  b+='<div class="pl-field-row">';
-  b+='<div class="pl-field"><label>Due Date</label><input id="cs-f-due" type="date" value="'+(c.dueDate||'')+'"></div>';
-  b+='<div class="pl-field"><label>Assigned To</label><input id="cs-f-assigned" value="'+esc(c.assignedTo||'')+'" placeholder="who is on this"></div>';
-  b+='<div class="pl-field"><label>Outcome (only if Resolved)</label><select id="cs-f-outcome"><option value="">-</option>'+csOutcomes().map(o=>'<option value="'+o.id+'"'+(c.outcome===o.id?' selected':'')+'>'+esc(o.label)+'</option>').join('')+'</select></div>';
+  b+='</div>';
   b+='</div>';
 
-  // Next-action checklist
-  b+='<div class="pl-field"><label>Next Actions (checklist)</label>';
-  b+='<div style="display:flex;gap:6px;margin-bottom:6px"><input id="cs-na-input" placeholder="e.g. call mother tomorrow 10am" style="flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:11px;font-family:inherit" onkeydown="if(event.key===\'Enter\'){event.preventDefault();csInsertNextAction(\''+c.id+'\');}"><button type="button" class="pl-add-btn" style="background:#DC2626" onclick="csInsertNextAction(\''+c.id+'\')">+ Insert</button></div>';
-  b+='<div id="cs-na-list" class="cs-na-list">'+renderCsNextActionsList(c)+'</div>';
+  // ===== 4. OWNERSHIP =====
+  b+='<div class="cs2-section">';
+  b+='<div class="cs2-section-hdr">Ownership</div>';
+  b+='<div class="cs2-row cols-3">';
+  b+='<div class="cs2-field"><label>Due Date</label><input id="cs-f-due" type="date" value="'+(c.dueDate||'')+'"></div>';
+  b+='<div class="cs2-field"><label>Assigned To</label><input id="cs-f-assigned" value="'+esc(c.assignedTo||'')+'" placeholder="Who is on this"></div>';
+  b+='<div class="cs2-field"><label>Outcome <span class="cs2-hint">(if resolved)</span></label><select id="cs-f-outcome"><option value="">Select…</option>'+csOutcomes().map(o=>'<option value="'+o.id+'"'+(c.outcome===o.id?' selected':'')+'>'+esc(o.label)+'</option>').join('')+'</select></div>';
+  b+='</div>';
   b+='</div>';
 
-  // Notes (also has Insert -> append to log as note)
-  b+='<div class="pl-field"><label>Notes</label>';
-  b+='<div style="display:flex;gap:6px;align-items:flex-start"><textarea id="cs-f-notes" rows="2" style="flex:1">'+esc(c.notes||'')+'</textarea><button type="button" class="pl-add-btn" style="background:#7C3AED;height:fit-content" onclick="csInsertNote(\''+c.id+'\')">+ Insert into log</button></div>';
+  // ===== 5. NEXT ACTIONS =====
+  b+='<div class="cs2-section">';
+  b+='<div class="cs2-section-hdr">Next Actions</div>';
+  b+='<div class="cs2-na-composer"><input id="cs-na-input" placeholder="e.g. call mother tomorrow 10am" onkeydown="if(event.key===\'Enter\'){event.preventDefault();csInsertNextAction(\''+c.id+'\');}"><button type="button" class="cs2-na-insert" onclick="csInsertNextAction(\''+c.id+'\')">Insert</button></div>';
+  b+='<div id="cs-na-list" class="cs2-na-list">'+renderCsNextActionsList(c)+'</div>';
   b+='</div>';
 
-  // Quick-paste scripts
-  b+='<div class="pl-field" style="background:var(--bg-mid);padding:10px;border-radius:8px"><label style="margin-bottom:6px">&#128203; Quick-paste scripts</label>';
-  b+='<div style="font-size:10px;color:var(--text3);margin-bottom:6px">Pick a script &rarr; then click <b>Open in WhatsApp</b> to send it to the parent\'s number on file.</div>';
-  b+='<div style="display:flex;gap:6px;flex-wrap:wrap">';
-  b+='<button type="button" class="ctx-btn" data-cs-script="4.1" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'4.1\')">4.1 Payment WhatsApp</button>';
-  b+='<button type="button" class="ctx-btn" data-cs-script="4.2" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'4.2\')">4.2 Refund Defense</button>';
-  b+='<button type="button" class="ctx-btn" data-cs-script="4.3" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'4.3\')">4.3 Cancellation</button>';
-  b+='<button type="button" class="ctx-btn" data-cs-script="4.4" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'4.4\')">4.4 Teacher Call</button>';
-  b+='<button type="button" class="ctx-btn" data-cs-script="bashayer" style="padding:5px 10px;font-size:10px" onclick="csInsertScript(\'bashayer\')">Bashayer Personal</button>';
-  b+='<button type="button" class="ctx-btn" style="padding:5px 10px;font-size:10px;background:#DC2626;color:#fff;border-color:#DC2626" onclick="csOpenWhatsAppForCase(\''+c.id+'\')">&#128241; Open in WhatsApp</button>';
+  // ===== 6. NOTES =====
+  b+='<div class="cs2-section">';
+  b+='<div class="cs2-section-hdr">Notes</div>';
+  b+='<div class="cs2-notes-composer">';
+  b+='<div class="cs2-field"><textarea id="cs-f-notes" rows="3" placeholder="Jot a thought or a working note — won\'t be logged unless you insert it">'+esc(c.notes||'')+'</textarea></div>';
+  b+='<button type="button" class="cs2-notes-insert" onclick="csInsertNote(\''+c.id+'\')">Insert into log →</button>';
   b+='</div>';
-  b+='<div id="cs-script-hint" style="font-size:10px;color:#7C3AED;margin-top:6px;font-weight:600"></div>';
   b+='</div>';
 
-  // Activity log
-  b+='<div class="pl-log">';
-  b+='<div class="pl-log-title">&#128172; Activity Log (<span id="cs-log-count">'+(c.log||[]).length+'</span> entries)</div>';
-  b+='<div class="pl-log-list" id="cs-log-list">'+renderCsLogList(c)+'</div>';
-  b+='<div class="pl-log-add">';
+  // ===== 7. WHATSAPP SCRIPTS =====
+  b+='<div class="cs2-section">';
+  b+='<div class="cs2-section-hdr">WhatsApp Scripts</div>';
+  b+='<div class="cs2-wa-hint">Pick a script, then send it to the parent\'s number on file.</div>';
+  b+='<div class="cs2-wa-pills">';
+  b+='<button type="button" class="cs2-wa-pill" data-cs-script="4.1" onclick="csInsertScript(\'4.1\')">4.1 Payment</button>';
+  b+='<button type="button" class="cs2-wa-pill" data-cs-script="4.2" onclick="csInsertScript(\'4.2\')">4.2 Refund Defense</button>';
+  b+='<button type="button" class="cs2-wa-pill" data-cs-script="4.3" onclick="csInsertScript(\'4.3\')">4.3 Cancellation</button>';
+  b+='<button type="button" class="cs2-wa-pill" data-cs-script="4.4" onclick="csInsertScript(\'4.4\')">4.4 Teacher Call</button>';
+  b+='<button type="button" class="cs2-wa-pill" data-cs-script="bashayer" onclick="csInsertScript(\'bashayer\')">Bashayer Personal</button>';
+  b+='</div>';
+  b+='<button type="button" class="cs2-wa-send" onclick="csOpenWhatsAppForCase(\''+c.id+'\')"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-.3-.1-1.2-.5-2.3-1.5-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.4.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5s-.7-1.7-1-2.3c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4 0 1.4 1 2.8 1.2 3 .1.2 2 3.1 5 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3zM12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 5L2 22l5.2-1.4c1.5.8 3.1 1.2 4.8 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18c-1.5 0-3-.4-4.3-1.2l-.3-.2-3.1.8.8-3-.2-.3C4 14.9 3.5 13.5 3.5 12c0-4.7 3.8-8.5 8.5-8.5s8.5 3.8 8.5 8.5-3.8 8.5-8.5 8.5z"/></svg>Open in WhatsApp</button>';
+  b+='<div id="cs-script-hint" class="cs2-wa-script-hint"></div>';
+  b+='</div>';
+
+  // ===== 8. ACTIVITY LOG =====
+  b+='<div class="cs2-section">';
+  b+='<div class="cs2-section-hdr">Activity Log<span class="cs2-log-count" id="cs-log-count-wrap">· <span id="cs-log-count">'+(c.log||[]).length+'</span> entries</span></div>';
+  b+='<div class="cs2-log-list" id="cs-log-list">'+renderCsLogList(c)+'</div>';
+  b+='<div class="cs2-log-composer">';
   b+='<select id="cs-log-type"><option value="outgoing">Out</option><option value="incoming">In</option><option value="note">Note</option></select>';
-  b+='<input id="cs-log-text" placeholder="Log a contact, reply, or note...">';
+  b+='<input id="cs-log-text" placeholder="Log a contact, reply, or note…">';
   b+='<button onclick="csAddLogEntry(\''+c.id+'\')">Add</button>';
   b+='</div>';
   b+='</div>';
@@ -8047,15 +8163,17 @@ function openCsModal(caseId){
 
   let a='';
   if(!isNew){
-    a+='<button class="pl-del" onclick="csDeleteCase(\''+c.id+'\')">Delete</button>';
+    a+='<button class="cs2-delete pl-del" onclick="csDeleteCase(\''+c.id+'\')">Delete</button>';
     if(!csIsResolved(c)){
-      a+='<button onclick="csQuickResolve(\''+c.id+'\')" style="background:#059669;color:#fff;border-color:#059669">&#10003; Resolve</button>';
+      a+='<button onclick="csQuickResolve(\''+c.id+'\')">✓ Resolve</button>';
       const maxLvl=Math.max(...csLevels().map(l=>l.id));
-      if(c.level<maxLvl)a+='<button onclick="csQuickEscalate(\''+c.id+'\')" style="background:#D97706;color:#fff;border-color:#D97706">&uarr; Escalate</button>';
+      if(c.level<maxLvl)a+='<button onclick="csQuickEscalate(\''+c.id+'\')">↑ Escalate</button>';
     }
+  } else {
+    a+='<div style="margin-right:auto"></div>';
   }
   a+='<button onclick="closeCsModal()">Cancel</button>';
-  a+='<button class="pl-save" style="background:#DC2626;border-color:#DC2626" onclick="csSaveCase(\''+c.id+'\','+(isNew?'true':'false')+')">Save</button>';
+  a+='<button class="cs2-save pl-save" onclick="csSaveCase(\''+c.id+'\','+(isNew?'true':'false')+')">Save</button>';
   document.getElementById('cs-modal-actions').innerHTML=a;
 
   document.getElementById('cs-modal-overlay').style.display='flex';
@@ -8066,27 +8184,28 @@ function closeCsModal(){document.getElementById('cs-modal-overlay').style.displa
 
 function renderCsNextActionsList(c){
   const items=c.nextActions||[];
-  if(items.length===0)return '<div style="font-size:10px;color:var(--text3);padding:6px">No actions yet &mdash; type one above and click Insert.</div>';
+  if(items.length===0)return '<div class="cs2-na-empty cs-na-item">No actions yet — type one above and hit Insert.</div>';
   let h='';
   items.forEach(a=>{
-    h+='<div class="cs-na-item'+(a.done?' done':'')+'">';
+    h+='<div class="cs2-na-item cs-na-item'+(a.done?' done':'')+'">';
     h+='<input type="checkbox" '+(a.done?'checked':'')+' onchange="csToggleNextAction(\''+c.id+'\',\''+a.id+'\',this.checked)">';
-    h+='<span class="cs-na-text">'+esc(a.text)+'</span>';
-    if(a.done&&a.doneAt)h+='<span class="cs-na-when">'+new Date(a.doneAt).toLocaleString()+'</span>';
-    h+='<button class="cs-na-del" onclick="csDeleteNextAction(\''+c.id+'\',\''+a.id+'\')" title="remove">&times;</button>';
+    h+='<span class="cs2-na-text cs-na-text">'+esc(a.text)+'</span>';
+    if(a.done&&a.doneAt)h+='<span class="cs2-na-when cs-na-when">'+new Date(a.doneAt).toLocaleString()+'</span>';
+    h+='<button class="cs2-na-del cs-na-del" onclick="csDeleteNextAction(\''+c.id+'\',\''+a.id+'\')" title="remove">&times;</button>';
     h+='</div>';
   });
   return h;
 }
 function renderCsLogList(c){
   const log=c.log||[];
-  if(log.length===0)return '<div style="text-align:center;color:var(--text3);font-size:10px;padding:12px">No activity logged yet</div>';
+  if(log.length===0)return '<div class="cs2-log-empty">No activity logged yet</div>';
   let h='';
   log.slice().reverse().forEach(entry=>{
-    const icon=entry.type==='outgoing'?'&#128228;':entry.type==='incoming'?'&#128229;':entry.type==='system'?'&#9881;&#65039;':'&#128221;';
-    h+='<div class="pl-log-entry '+(entry.type==='system'?'note':entry.type)+'">';
-    h+='<div class="pl-log-ts">'+icon+' '+new Date(entry.ts).toLocaleString()+(entry.by?' &middot; '+esc(entry.by):'')+'</div>';
-    h+='<div class="pl-log-text">'+esc(entry.text)+'</div></div>';
+    const typeCls=entry.type==='system'?'system':(entry.type||'note');
+    const typeLabel=entry.type==='outgoing'?'Out':entry.type==='incoming'?'In':entry.type==='system'?'System':'Note';
+    h+='<div class="cs2-log-entry pl-log-entry '+typeCls+'">';
+    h+='<div class="cs2-log-ts pl-log-ts">'+typeLabel+' · '+new Date(entry.ts).toLocaleString()+(entry.by?' · '+esc(entry.by):'')+'</div>';
+    h+='<div class="cs2-log-text pl-log-text">'+esc(entry.text)+'</div></div>';
   });
   return h;
 }
@@ -8163,20 +8282,15 @@ function csRenderLinkedSummary(sid){
   if(!el)return;
   if(!sid){el.innerHTML='';return;}
   const s=SS[sid];
-  if(!s){el.innerHTML='<div style="font-size:10px;color:#991B1B;padding:6px 8px;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:4px">Linked student not found (was it deleted?)</div>';return;}
+  if(!s){el.innerHTML='<div class="cs2-linked-summary" style="border-left-color:#B94A4A;color:#9B3E3E">Linked student not found (was it deleted?)</div>';return;}
   const stMeta=(typeof studentStatusMeta==='function'?studentStatusMeta(s.status||'active'):{label:'Care & Continuity',color:'#0F766E',bg:'#CCFBF1',border:'#99F6E4'});
-  const ar=(v)=>v?('<span dir="rtl" style="font-family:\'Segoe UI Arabic\',\'Arial\',\'Tahoma\',sans-serif">'+esc(v)+'</span>'):'<span style="color:var(--text3)">—</span>';
-  let h='<div style="padding:8px 10px;background:#F5F3FF;border:1px solid #DDD6FE;border-radius:6px;font-size:11px;line-height:1.55">';
-  h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">';
-  h+='<span style="font-size:10px;font-weight:600;color:#5B21B6;text-transform:uppercase;letter-spacing:.04em">Linked student</span>';
-  h+='<span style="font-size:9px;font-weight:600;padding:1px 6px;border-radius:3px;color:'+stMeta.color+';background:'+stMeta.bg+';border:1px solid '+stMeta.border+'">'+esc(stMeta.label)+'</span>';
-  h+='</div>';
-  // Clickable name — opens Student Profile, pushing current case onto back-stack
+  const ar=(v)=>v?('<span dir="rtl" style="font-family:\'Segoe UI Arabic\',\'Arial\',\'Tahoma\',sans-serif">'+esc(v)+'</span>'):'<span style="color:#BDAF9B">—</span>';
   const caseId=(typeof _csEditingId!=='undefined'&&_csEditingId)?_csEditingId:'';
   const openAttr=caseId?(' onclick="profileStackPushExternal(\'case\',\''+caseId+'\');closeCsModal();openStudentProfile(\''+sid+'\',{push:true})"'):(' onclick="openStudentProfile(\''+sid+'\')"');
-  h+='<div><b class="link-name"'+openAttr+' title="Open student profile">'+esc(s.n||'(no EN name)')+'</b>'+(s.nameAr?' &middot; <span class="link-name"'+openAttr+'>'+ar(s.nameAr).replace(/^<span /,'<span ')+'</span>':'')+(s.br?' &middot; <span style="color:var(--text3)">'+esc(s.br)+'</span>':'')+'</div>';
-  h+='<div style="margin-top:3px"><span style="color:var(--text3)">Parent (AR):</span> '+ar(s.parentNameAr)+(s.parentNameEn?' <span style="color:var(--text3)">&middot; EN:</span> '+esc(s.parentNameEn):'')+'</div>';
-  if(s.parentPhone)h+='<div style="margin-top:3px"><span style="color:var(--text3)">Parent phone:</span> '+esc(s.parentPhone)+'</div>';
+  let h='<div class="cs2-linked-summary">';
+  h+='<div><b class="link-name"'+openAttr+' title="Open student profile">'+esc(s.n||'(no EN name)')+'</b>'+(s.nameAr?' · '+ar(s.nameAr):'')+(s.br?' · <span style="color:#9A8B78">'+esc(s.br)+'</span>':'')+' <span style="font-size:10px;font-weight:600;padding:1px 8px;border-radius:999px;color:'+stMeta.color+';background:'+stMeta.bg+';margin-left:6px">'+esc(stMeta.label)+'</span></div>';
+  h+='<div style="margin-top:4px;color:#7D6E5C"><span style="color:#9A8B78">Parent (AR):</span> '+ar(s.parentNameAr)+(s.parentNameEn?' <span style="color:#9A8B78">· EN:</span> '+esc(s.parentNameEn):'')+'</div>';
+  if(s.parentPhone)h+='<div style="margin-top:2px;color:#7D6E5C"><span style="color:#9A8B78">Phone:</span> '+esc(s.parentPhone)+'</div>';
   h+='</div>';
   el.innerHTML=h;
 }
