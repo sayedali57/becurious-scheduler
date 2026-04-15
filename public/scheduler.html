@@ -1972,16 +1972,33 @@ function slotWarningsStructured(d,cid,si){
     });
   }
 
-  // Latest-session-end cutoff: warn if this drop/group would end past the configured dayEndMin.
+  // Latest-session-end cutoff: warn if this drop/group's SESSION would end past
+  // the configured dayEndMin. Must match the card's displayed FINISH (start +
+  // sessionMin), NOT slotDur which also includes travel-to-next-slot and the
+  // handover buffer — otherwise the warning fires for a session that actually
+  // ends before the cutoff.
   if(sl_.t==='s'||sl_.t==='d'||sl_.t==='g'){
     const dayEnd=parseInt(SETTINGS.dayEndMin);
     if(!isNaN(dayEnd)&&dayEnd>0){
-      const slotEnd=startMin+slotDur(sl_,d,cid,si);
-      if(slotEnd>dayEnd)out.push({
-        type:'past-cutoff',
-        msg:`Session ends ${ts(slotEnd)} — past the ${ts(dayEnd)} cutoff in ⚙ Settings`,
-        data:{slotEnd,dayEnd}
-      });
+      const sessionMinOnly=parseInt(SETTINGS.sessionMin)||60;
+      const r=parseInt(SETTINGS.displayRoundMin)||10;
+      // Find the first student's coords to compute arrival at the slot
+      let la=null,ln=null;
+      if(sl_.t==='s'&&SS[sl_.id]){const s=SS[sl_.id];la=sl_.grp?.la??s.la;ln=sl_.grp?.ln??s.ln;}
+      else if((sl_.t==='d'||sl_.t==='g')&&SS[sl_.ids?.[0]]){const s=SS[sl_.ids[0]];la=sl_.grp?.la??s.la;ln=sl_.grp?.ln??s.ln;}
+      if(la!=null&&ln!=null){
+        const travel=legTravelMin(d,cid,si,la,ln);
+        const actualStart=startMin+travel;
+        const displayStart=r>1?Math.ceil(actualStart/r)*r:actualStart;
+        // For double-drops, the LAST session ends after drop1 → inter → sessionMin
+        const interExtra=sl_.t==='d'?(ddTotalInter(sl_)||0):0;
+        const slotEnd=displayStart+interExtra+sessionMinOnly;
+        if(slotEnd>dayEnd)out.push({
+          type:'past-cutoff',
+          msg:`Session ends ${ts(slotEnd)} — past the ${ts(dayEnd)} cutoff in ⚙ Settings`,
+          data:{slotEnd,dayEnd}
+        });
+      }
     }
   }
   return out;
