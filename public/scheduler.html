@@ -8567,13 +8567,29 @@ function migrateCases(){
     if(!c.enrollmentStatus)c.enrollmentStatus='enrolled';
     if(c.valueOffered)delete c.valueOffered; // no longer used
     if(!Array.isArray(c.log))c.log=[];
-    // Stage migration (Section 1): derive c.stage from existing status/level/log
-    // data if the case doesn't have one yet. Preserves all other data.
-    if(!c.stage||stageIds.indexOf(c.stage)<0){
+    // Stage migration (Section 1, v2): derive c.stage from every available
+    // signal — status, payment, enrollment, level, log, notes. Re-evaluate
+    // cases previously forced to 'new' by the v1 rule if they carry any
+    // real signal, so bulk CSV imports get distributed properly. Cases
+    // that are genuinely blank (no notes, unpaid+enrolled, no log, L<3)
+    // stay in 'new' — which is the correct default for them.
+    const _stageEmpty=!c.stage||stageIds.indexOf(c.stage)<0;
+    const _hasSignal=(c.notes&&c.notes.trim().length>0)||
+      c.paymentStatus!=='unpaid'||
+      c.enrollmentStatus!=='enrolled'||
+      (Array.isArray(c.log)&&c.log.length>0)||
+      (c.level&&c.level>=3)||
+      c.status==='Resolved';
+    const _stageBuggyNew=c.stage==='new'&&_hasSignal;
+    if(_stageEmpty||_stageBuggyNew){
       if(c.status==='Resolved')c.stage='resolved';
+      else if(c.paymentStatus==='paid'&&c.enrollmentStatus==='enrolled')c.stage='resolved';
+      else if(c.enrollmentStatus==='withdraw_request'||c.enrollmentStatus==='withdrew')c.stage='escalated';
       else if(c.level===3||c.level===4)c.stage='escalated';
-      else if(!c.log||c.log.length===0)c.stage='new';
-      else c.stage='negotiation';
+      else if(c.paymentStatus==='partial')c.stage='awaiting_parent';
+      else if(Array.isArray(c.log)&&c.log.length>0)c.stage='contacted';
+      else if(c.notes&&c.notes.trim().length>20)c.stage='negotiation';
+      else c.stage='new';
     }
     // Heal log entries that were saved with raw HTML entities (&check; / &#10003;)
     // before we switched to a real Unicode checkmark — render those as the
@@ -8767,6 +8783,8 @@ function renderCsCard(c){
   else if(stale)h+='<span class="cs-card-stale">&#9888; '+days+'d</span>';
   h+='<div class="cs-card-name">'+esc(c.parentFullName||'Unnamed')+(c.childName?' <span style="color:var(--text3);font-weight:500">&middot; '+esc(c.childName)+'</span>':'')+'</div>';
   if(c.amountKwd)h+='<div class="cs-card-amount">'+Math.round(c.amountKwd)+' KWD</div>';
+  // Assigned owner (blank = show nothing, never "Unassigned")
+  if(c.assignedTo&&c.assignedTo.trim())h+='<div class="cs-card-assignee" style="font-size:10px;color:var(--text3);margin-top:2px">&#128100; '+esc(c.assignedTo.trim())+'</div>';
   h+='<div class="cs-card-meta">';
   if(seg)h+='<span class="cs-seg cs-seg-'+c.segment+'">'+esc(seg.label)+'</span>';
   if(tp)h+='<span class="cs-type cs-type-'+c.type+'">'+esc(tp.label)+'</span>';
