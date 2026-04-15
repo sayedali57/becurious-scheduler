@@ -871,7 +871,8 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
     <button class="ctx-btn" id="warn-toolbar-btn" onclick="showWarningsPanel()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg><span id="warn-toolbar-count">Warnings</span></button>
     <button class="ctx-btn" onclick="showReportsModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>Reports</button>
     <div class="sub-tabs">
-      <button class="sub-tab active" id="vt-daily" onclick="switchView('daily')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Daily</button>
+      <button class="sub-tab active" id="vt-daily" onclick="switchView('daily')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Visual</button>
+      <button class="sub-tab" id="vt-table" onclick="switchView('table')" title="Flat table view of all placements"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>Table</button>
       <button class="sub-tab" id="vt-week" onclick="switchView('week')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>Week</button>
       <button class="sub-tab" id="vt-audit" onclick="switchView('audit')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.5.5 0 0 1-.96 0L9.68 3.18a.5.5 0 0 0-.96 0l-2.35 8.36A2 2 0 0 1 4.45 13H2"/></svg>Audit</button>
       <button class="sub-tab" id="vt-teachers" onclick="switchView('teachers')" title="Per-teacher weekly view"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Teachers</button>
@@ -940,6 +941,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
       </div>
       <div id="week-outer"></div>
       <div id="teachers-outer" style="display:none;padding:0;overflow:auto;background:#fff"></div>
+      <div id="table-outer" style="display:none;padding:0;overflow:auto;background:#fff"></div>
       <div class="legend">
         <span style="font-size:9px;color:var(--text3);font-weight:500">Legend:</span>
         <div class="leg"><div class="legdot" style="background:var(--teal)"></div>Double-drop</div>
@@ -5575,14 +5577,17 @@ function switchView(view){
   qs('vt-week').classList.toggle('active',view==='week');
   qs('vt-audit').classList.toggle('active',view==='audit');
   const tt=qs('vt-teachers');if(tt)tt.classList.toggle('active',view==='teachers');
+  const tb=qs('vt-table');if(tb)tb.classList.toggle('active',view==='table');
   qs('sched-outer').style.display=view==='daily'?'':'none';
   document.querySelectorAll('.legend').forEach(el=>el.style.display=view==='daily'?'':'none');
   qs('audit-outer').style.display=view==='audit'?'block':'none';
   qs('week-outer').style.display=view==='week'?'block':'none';
   const teachersOuter=qs('teachers-outer');
   if(teachersOuter)teachersOuter.style.display=view==='teachers'?'block':'none';
+  const tableOuter=qs('table-outer');
+  if(tableOuter)tableOuter.style.display=view==='table'?'block':'none';
   // Day tabs (Sun/Mon/Tue/Wed/Thu) and the per-day search bar are only meaningful
-  // in the Daily view — hide them for Week / Audit / Teachers.
+  // in the Daily view — hide them for Week / Audit / Teachers / Table.
   document.querySelectorAll('.daytabs').forEach(el=>el.style.display=view==='daily'?'':'none');
   const ssb=qs('sched-search-bar');if(ssb)ssb.style.display=view==='daily'?'':'none';
   const swb=qs('sched-week-banner');if(swb&&view!=='daily')swb.style.display='none';
@@ -5593,6 +5598,7 @@ function switchView(view){
   if(view==='audit')renderAudit();
   if(view==='week')renderWeekView();
   if(view==='teachers')renderTeachersInline();
+  if(view==='table')renderScheduleTable();
 }
 // Inline teachers panel — same content as the Teacher Weekly tab in Reports modal,
 // but rendered directly into #teachers-outer instead of opening a popup.
@@ -9719,6 +9725,342 @@ setSyncIndicator('connecting');
     if(badge){badge.textContent='⚠ DEV — testing only';badge.style.display='inline-block';}
   }
 })();
+
+// =====================================================================
+// SCHEDULE TABLE VIEW — flat placement table (one row per session)
+// =====================================================================
+// Reads and writes the same SCHED / SS state that the visual schedule
+// uses. All edits persist via the shared saveState() / renderSched() so
+// switching back to the Visual sub-tab shows the same data. Conflicts
+// surface through the normal Warnings panel (no blocking in the table).
+(function(){
+  if(document.getElementById('tbl-view-styles'))return;
+  const css=`
+  #table-outer{font-size:12px}
+  .tbl-filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;background:#F8FAFC;border-bottom:1px solid #E2E8F0}
+  .tbl-filter-bar select{font-size:11px;padding:4px 8px;border:1px solid #CBD5E1;border-radius:6px;background:#fff;outline:none;cursor:pointer}
+  .tbl-filter-pills{display:flex;flex-wrap:wrap;gap:4px;flex:1;min-width:120px}
+  .tbl-pill{display:inline-flex;align-items:center;gap:4px;background:#E0E7FF;color:#3730A3;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:600}
+  .tbl-pill a{cursor:pointer;color:#6366F1;font-weight:700;padding-left:2px}
+  .tbl-pill a:hover{color:#3730A3}
+  .tbl-pill b{font-weight:600;text-transform:capitalize}
+  .tbl-pill-clear{cursor:pointer;color:#6366F1;font-size:11px;font-weight:600;padding:3px 8px;text-decoration:underline}
+  .tbl-count{font-size:11px;color:var(--text3);font-weight:600;margin-left:auto}
+  .tbl-main{width:100%;border-collapse:collapse;background:#fff}
+  .tbl-main thead th{background:#F1F5F9;padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--text2);border-bottom:2px solid #E2E8F0;white-space:nowrap;position:sticky;top:0;z-index:1}
+  .tbl-main .tbl-hdr{cursor:pointer;user-select:none}
+  .tbl-main .tbl-hdr:hover{background:#E2E8F0}
+  .tbl-main tbody tr:nth-child(even){background:#FAFBFC}
+  .tbl-main tbody tr:hover{background:#FEF9E7}
+  .tbl-main td{padding:4px 8px;border-bottom:1px solid #F1F5F9;vertical-align:middle;font-size:11px}
+  .tbl-main td.tbl-name a{color:#2563EB;cursor:pointer;font-weight:600;text-decoration:none}
+  .tbl-main td.tbl-name a:hover{text-decoration:underline}
+  .tbl-main td.tbl-e select,.tbl-main td.tbl-e input{border:1px solid transparent;background:transparent;padding:3px 6px;border-radius:4px;font-size:11px;outline:none;width:100%;color:var(--text);font-family:inherit}
+  .tbl-main td.tbl-e select:hover,.tbl-main td.tbl-e input:hover{border-color:#CBD5E1;background:#fff}
+  .tbl-main td.tbl-e select:focus,.tbl-main td.tbl-e input:focus{border-color:#6366F1;background:#fff;box-shadow:0 0 0 2px rgba(99,102,241,0.15)}
+  .tbl-main td.tbl-e input[disabled]{color:#CBD5E1;cursor:not-allowed}
+  .tbl-main td.tbl-sched{text-align:center;font-size:14px;font-weight:700}
+  .tbl-yes{color:#059669}
+  .tbl-no{color:#DC2626}
+  .tbl-empty{text-align:center;padding:40px 20px;color:var(--text3);font-style:italic}
+  .tbl-row-unsched{background:#FFFBEB !important}
+  `;
+  const st=document.createElement('style');st.id='tbl-view-styles';st.textContent=css;document.head.appendChild(st);
+})();
+
+let _tblFilters={branch:[],teacher:[],day:[],status:[]};
+let _tblSort={key:'name',dir:'asc'};
+let _tblLastRows=[];
+
+function tblFindPlacements(sid){
+  const out=[];
+  DAYS.forEach(d=>CARS.forEach(car=>{
+    const arr=SCHED[d]&&SCHED[d][car.id]||[];
+    arr.forEach((sl_,i)=>{
+      if(!sl_)return;
+      if(sl_.t==='s'&&sl_.id===sid)out.push({day:d,cid:car.id,si:i});
+      else if((sl_.t==='d'||sl_.t==='g')&&Array.isArray(sl_.ids)&&sl_.ids.indexOf(sid)>=0)out.push({day:d,cid:car.id,si:i});
+    });
+  }));
+  return out;
+}
+
+function tblMinToInput(mm){
+  if(mm==null||!isFinite(mm))return '';
+  const h=Math.max(0,Math.floor(mm/60)),m=((mm%60)+60)%60;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+}
+
+function tblBuildRows(){
+  const rows=[];
+  Object.keys(SS).forEach(sid=>{
+    const s=SS[sid];if(!s)return;
+    const places=tblFindPlacements(sid);
+    const spw=Math.max(1,s.sessionsPerWeek||1);
+    places.forEach(p=>{
+      const time=(typeof slotStartMin==='function')?slotStartMin(p.day,p.cid,p.si):null;
+      rows.push({sid,name:s.n||'',branch:s.br||'',teacher:s.t||'',
+        sessionType:s.sessionType||'1on1',day:p.day,timeMin:time,
+        spw,status:s.status||'active',scheduled:true,
+        placement:{day:p.day,cid:p.cid,si:p.si}});
+    });
+    const deficit=Math.max(0,spw-places.length);
+    for(let i=0;i<deficit;i++){
+      rows.push({sid,name:s.n||'',branch:s.br||'',teacher:s.t||'',
+        sessionType:s.sessionType||'1on1',day:'',timeMin:null,
+        spw,status:s.status||'active',scheduled:false,placement:null});
+    }
+  });
+  return rows;
+}
+
+function tblFilterRows(rows){
+  const f=_tblFilters;
+  return rows.filter(r=>{
+    if(f.branch.length&&f.branch.indexOf(r.branch||'—')<0&&f.branch.indexOf(r.branch)<0)return false;
+    if(f.teacher.length&&f.teacher.indexOf(r.teacher||'—')<0)return false;
+    if(f.day.length&&f.day.indexOf(r.day||'—')<0)return false;
+    if(f.status.length&&f.status.indexOf(r.status)<0)return false;
+    return true;
+  });
+}
+
+function tblSortRows(rows){
+  const key=_tblSort.key,dir=_tblSort.dir==='desc'?-1:1;
+  return rows.slice().sort((a,b)=>{
+    let av,bv;
+    if(key==='time'){av=a.timeMin==null?999999:a.timeMin;bv=b.timeMin==null?999999:b.timeMin;}
+    else if(key==='day'){const ai=DAYS.indexOf(a.day);const bi=DAYS.indexOf(b.day);av=ai<0?99:ai;bv=bi<0?99:bi;}
+    else if(key==='scheduled'){av=a.scheduled?1:0;bv=b.scheduled?1:0;}
+    else{av=a[key];bv=b[key];}
+    if(av==null)av='';if(bv==null)bv='';
+    if(typeof av==='string'&&typeof bv==='string')return av.localeCompare(bv)*dir;
+    return (av<bv?-1:av>bv?1:0)*dir;
+  });
+}
+
+function tblAnyFilter(){return _tblFilters.branch.length+_tblFilters.teacher.length+_tblFilters.day.length+_tblFilters.status.length>0;}
+
+function tblFilterSelectHtml(label,dim,ids,labels){
+  labels=labels||ids;
+  let h='<select onchange="tblAddFilter(\''+dim+'\',this.value);this.value=\'\'">';
+  h+='<option value="">+ '+label+'</option>';
+  ids.forEach((id,i)=>{
+    if(_tblFilters[dim].indexOf(id)>=0)return;
+    h+='<option value="'+esc(id)+'">'+esc(labels[i])+'</option>';
+  });
+  h+='</select>';
+  return h;
+}
+
+function tblAddFilter(dim,val){
+  if(!val)return;
+  if(_tblFilters[dim].indexOf(val)<0)_tblFilters[dim].push(val);
+  renderScheduleTable();
+}
+function tblRemoveFilter(dim,val){
+  _tblFilters[dim]=_tblFilters[dim].filter(x=>x!==val);
+  renderScheduleTable();
+}
+function tblClearFilters(){
+  _tblFilters={branch:[],teacher:[],day:[],status:[]};
+  renderScheduleTable();
+}
+function tblSort(key){
+  if(_tblSort.key===key)_tblSort.dir=_tblSort.dir==='asc'?'desc':'asc';
+  else{_tblSort.key=key;_tblSort.dir='asc';}
+  renderScheduleTable();
+}
+
+function tblSelectHtml(cur,ids,labels){
+  labels=labels||ids;
+  let h='<select>';
+  ids.forEach((id,i)=>{
+    const sel=(id===cur||(id===''&&!cur))?' selected':'';
+    h+='<option value="'+esc(String(id))+'"'+sel+'>'+esc(String(labels[i]))+'</option>';
+  });
+  h+='</select>';
+  return h;
+}
+
+function tblTeacherList(){
+  const names=Object.keys(TEACHERS||{}).filter(n=>TEACHERS[n]&&TEACHERS[n].active!==0);
+  return names.sort();
+}
+
+function tblTeacherSelectHtml(cur){
+  const names=tblTeacherList();
+  let h='<select>';
+  h+='<option value=""'+(!cur?' selected':'')+'>— none —</option>';
+  if(cur&&names.indexOf(cur)<0)h+='<option value="'+esc(cur)+'" selected>'+esc(cur)+'</option>';
+  names.forEach(n=>{
+    h+='<option value="'+esc(n)+'"'+(n===cur?' selected':'')+'>'+esc(n)+'</option>';
+  });
+  h+='</select>';
+  return h;
+}
+
+function renderScheduleTable(){
+  const host=qs('table-outer');if(!host)return;
+  const all=tblBuildRows();
+  const filtered=tblSortRows(tblFilterRows(all));
+  _tblLastRows=filtered;
+  const branches=(typeof csBranches==='function'?csBranches():null)||['Salam','Shuhada','Salwa','Surrah'];
+  const teachers=tblTeacherList();
+  const statuses=[{id:'active',l:'Care & Continuity'},{id:'inactive',l:'Inactive'},{id:'exited',l:'Exited'}];
+
+  let h='';
+  h+='<div class="tbl-filter-bar">';
+  h+=tblFilterSelectHtml('Branch','branch',branches);
+  h+=tblFilterSelectHtml('Teacher','teacher',teachers.length?teachers:['—']);
+  h+=tblFilterSelectHtml('Day','day',DAYS.concat(['—']));
+  h+=tblFilterSelectHtml('Status','status',statuses.map(s=>s.id),statuses.map(s=>s.l));
+  h+='<div class="tbl-filter-pills">';
+  ['branch','teacher','day','status'].forEach(dim=>{
+    _tblFilters[dim].forEach(val=>{
+      let lbl=val;
+      if(dim==='status'){const x=statuses.find(s=>s.id===val);if(x)lbl=x.l;}
+      const safe=String(val).replace(/'/g,"\\'");
+      h+='<span class="tbl-pill"><b>'+dim+':</b> '+esc(lbl)+' <a onclick="tblRemoveFilter(\''+dim+'\',\''+safe+'\')">×</a></span>';
+    });
+  });
+  if(tblAnyFilter())h+='<a class="tbl-pill-clear" onclick="tblClearFilters()">Clear all</a>';
+  h+='</div>';
+  h+='<div class="tbl-count">'+filtered.length+' of '+all.length+' rows</div>';
+  h+='</div>';
+
+  const hdr=(k,l)=>{const a=_tblSort.key===k?(_tblSort.dir==='asc'?' ▲':' ▼'):'';return '<th class="tbl-hdr" onclick="tblSort(\''+k+'\')">'+l+a+'</th>';};
+  h+='<table class="tbl-main"><thead><tr>';
+  h+=hdr('name','Student Name');
+  h+=hdr('branch','Branch');
+  h+=hdr('teacher','Teacher');
+  h+=hdr('sessionType','Session Type');
+  h+=hdr('day','Day');
+  h+=hdr('time','Time');
+  h+=hdr('spw','Sessions/wk');
+  h+=hdr('status','Status');
+  h+=hdr('scheduled','Scheduled');
+  h+='</tr></thead><tbody>';
+  filtered.forEach((r,idx)=>{
+    const rowCls=r.scheduled?'':' class="tbl-row-unsched"';
+    h+='<tr'+rowCls+' data-idx="'+idx+'">';
+    h+='<td class="tbl-name"><a onclick="openStudentProfile(\''+esc(r.sid)+'\')">'+esc(r.name)+'</a></td>';
+    h+='<td class="tbl-e" data-f="branch">'+tblSelectHtml(r.branch,branches)+'</td>';
+    h+='<td class="tbl-e" data-f="teacher">'+tblTeacherSelectHtml(r.teacher)+'</td>';
+    h+='<td class="tbl-e" data-f="sessionType">'+tblSelectHtml(r.sessionType,['1on1','group'],['1-on-1','Group'])+'</td>';
+    const dayIds=['',...DAYS];const dayLbls=['— unscheduled —',...DAYS];
+    h+='<td class="tbl-e" data-f="day">'+tblSelectHtml(r.day||'',dayIds,dayLbls)+'</td>';
+    const timeVal=r.timeMin!=null?tblMinToInput(r.timeMin):'';
+    h+='<td class="tbl-e" data-f="time"><input type="time" value="'+timeVal+'"'+(r.placement?'':' disabled')+'></td>';
+    h+='<td class="tbl-e" data-f="spw"><input type="number" min="1" max="7" value="'+r.spw+'"></td>';
+    h+='<td class="tbl-e" data-f="status">'+tblSelectHtml(r.status,statuses.map(s=>s.id),statuses.map(s=>s.l))+'</td>';
+    h+='<td class="tbl-sched">'+(r.scheduled?'<span class="tbl-yes">✓</span>':'<span class="tbl-no">✗</span>')+'</td>';
+    h+='</tr>';
+  });
+  if(filtered.length===0)h+='<tr><td colspan="9" class="tbl-empty">No rows match the current filters.</td></tr>';
+  h+='</tbody></table>';
+  host.innerHTML=h;
+  // Wire up edit events
+  host.querySelectorAll('tbody tr[data-idx]').forEach(tr=>{
+    const idx=+tr.dataset.idx;
+    tr.querySelectorAll('td.tbl-e').forEach(td=>{
+      const field=td.dataset.f;
+      const inp=td.querySelector('select,input');
+      if(!inp)return;
+      const ev=inp.tagName==='SELECT'?'change':'change';
+      inp.addEventListener(ev,()=>tblCommitEdit(idx,field,inp.value));
+      if(inp.tagName==='INPUT')inp.addEventListener('blur',()=>tblCommitEdit(idx,field,inp.value));
+    });
+  });
+}
+
+// ---- Edit commit: dispatch per field to student state or placement state ----
+function tblCommitEdit(idx,field,val){
+  const r=_tblLastRows[idx];if(!r)return;
+  const s=SS[r.sid];if(!s)return;
+  if(field==='branch'){s.br=val;}
+  else if(field==='teacher'){
+    s.t=val;
+    if(val&&!TEACHERS[val]){TEACHERS[val]={name:val,phone:'',branch:s.br||'Shuhada',days:{Sun:0,Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:6,active:1,note:''};}
+  }
+  else if(field==='sessionType'){
+    const old=s.sessionType||'1on1';
+    s.sessionType=val;
+    if(val!==old&&typeof rmFromSched==='function')rmFromSched(r.sid);
+  }
+  else if(field==='spw'){
+    const n=Math.max(1,Math.min(7,parseInt(val)||1));
+    s.sessionsPerWeek=n;
+  }
+  else if(field==='status'){
+    s.status=val;
+    s.statusChangedAt=new Date().toISOString();
+    if(val!=='active'&&typeof rmFromSched==='function')rmFromSched(r.sid);
+  }
+  else if(field==='day'){tblChangeDay(r,val);}
+  else if(field==='time'){tblChangeTime(r,val);}
+  // Persist and refresh all dependent views
+  saveState();
+  if(typeof renderSched==='function')renderSched();
+  if(typeof renderPool==='function')renderPool();
+  renderScheduleTable();
+}
+
+// ---- Move / create / remove a placement when Day changes ----
+function tblChangeDay(r,newDay){
+  const sid=r.sid;
+  // Remove existing placement if any (only that one, not all)
+  if(r.placement){
+    const p=r.placement;
+    const sl=SCHED[p.day]&&SCHED[p.day][p.cid]&&SCHED[p.day][p.cid][p.si];
+    if(sl){
+      if(sl.t==='s'&&sl.id===sid)SCHED[p.day][p.cid][p.si]=null;
+      else if((sl.t==='d'||sl.t==='g')&&Array.isArray(sl.ids)){
+        const rem=sl.ids.filter(x=>x!==sid);
+        if(rem.length===0)SCHED[p.day][p.cid][p.si]=null;
+        else if(rem.length===1&&sl.t==='d')SCHED[p.day][p.cid][p.si]={t:'s',id:rem[0]};
+        else{sl.ids=rem;if(sl.t==='d'&&typeof ddRecomputeMetrics==='function')ddRecomputeMetrics(sl);}
+      }
+    }
+  }
+  if(!newDay)return;  // moving to "— unscheduled —"
+  // Find an open slot on the target day in a car matching the student's branch
+  const s=SS[sid];
+  const br=(s&&s.br)||'';
+  const cars=(CARS||[]).slice();
+  // Prefer branch-matching cars, then any car
+  cars.sort((a,b)=>{
+    const am=(a.branch||'').split('/').indexOf(br)>=0?0:1;
+    const bm=(b.branch||'').split('/').indexOf(br)>=0?0:1;
+    return am-bm;
+  });
+  for(const car of cars){
+    if(!SCHED[newDay])SCHED[newDay]={};
+    if(!SCHED[newDay][car.id])SCHED[newDay][car.id]=Array(MAX_SL).fill(null);
+    const arr=SCHED[newDay][car.id];
+    for(let i=0;i<arr.length;i++){
+      if(arr[i]==null){arr[i]={t:'s',id:sid};return;}
+    }
+  }
+  // No open slot — append to the first car's array
+  if(cars.length){
+    const car=cars[0];
+    if(!SCHED[newDay][car.id])SCHED[newDay][car.id]=[];
+    SCHED[newDay][car.id].push({t:'s',id:sid});
+  }
+}
+
+// ---- Pin a slot to a specific start time by setting fixedStart ----
+function tblChangeTime(r,hhmm){
+  if(!r.placement||!hhmm)return;
+  const p=r.placement;
+  const sl=SCHED[p.day]&&SCHED[p.day][p.cid]&&SCHED[p.day][p.cid][p.si];
+  if(!sl)return;
+  const parts=hhmm.split(':');
+  if(parts.length!==2)return;
+  const mm=(parseInt(parts[0])||0)*60+(parseInt(parts[1])||0);
+  sl.fixedStart=mm;
+}
 </script>
 </body>
 </html>
