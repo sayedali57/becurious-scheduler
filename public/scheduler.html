@@ -473,6 +473,38 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 .cs-card .cs-card-meta{display:flex;align-items:center;gap:5px;margin-top:5px;flex-wrap:wrap}
 .cs-card .cs-card-foot{display:flex;align-items:center;gap:6px;margin-top:5px;font-size:9px;color:var(--text3)}
 .cs-card .cs-card-stale{position:absolute;top:4px;right:6px;font-size:8px;font-weight:700;color:#DC2626;background:#FEE2E2;border-radius:4px;padding:1px 5px}
+/* Card bottom row: avatar + assignee name + status/age */
+.cs-card .cs-card-bottom{display:flex;align-items:center;gap:6px;margin-top:6px;padding-top:5px;border-top:1px dashed var(--border)}
+.cs-card .cs-card-assignee{font-size:10px;color:var(--text2);font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cs-card .cs-card-foot-r{font-size:9px;color:var(--text3);margin-left:auto;display:flex;align-items:center;white-space:nowrap}
+.cs-card-avatar{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;cursor:pointer;flex-shrink:0;user-select:none;transition:transform .1s}
+.cs-card-avatar:hover{transform:scale(1.1)}
+.cs-card-avatar.empty{background:transparent;color:#9CA3AF;border:1px dashed #D1D5DB;font-size:13px;font-weight:400}
+/* Type badges — new ids for withdraw / teacher_concern; keep legacy for
+   any un-migrated cases that still hold the old ids. */
+.cs-type-withdraw{background:#FEF3CD;color:#92400E}
+.cs-type-teacher_concern{background:#EDE9FE;color:#5B21B6}
+/* Assignment popover */
+.cs-assign-pop{position:absolute;z-index:5000;background:#fff;border:1px solid var(--border);border-radius:8px;padding:4px;box-shadow:0 6px 24px rgba(0,0,0,.12);min-width:180px;max-height:320px;overflow-y:auto;display:none}
+.cs-assign-pop .cs-assign-opt{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;cursor:pointer;font-size:11px;color:var(--text)}
+.cs-assign-pop .cs-assign-opt:hover{background:var(--bg2)}
+.cs-assign-pop .cs-assign-opt.active{background:#FEE2E2;color:#991B1B;font-weight:600}
+.cs-assign-pop .cs-assign-clear{color:#6B7280;font-size:10px}
+.cs-assign-pop .cs-assign-sep{height:1px;background:var(--border);margin:3px 0}
+.cs-assign-pop .cs-assign-empty{padding:10px;font-size:10px;color:var(--text3);text-align:center}
+/* Group By */
+.cs-groupby{display:inline-flex;align-items:center;gap:6px;font-size:10px;color:var(--text2);margin-right:4px}
+.cs-groupby select{font-size:10px;padding:3px 18px 3px 6px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer}
+/* Filter bar */
+.cs-filter-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 10px;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2}
+.cs-filter-sel{font-size:10px;padding:3px 18px 3px 6px;border:1px solid var(--border);border-radius:5px;background:var(--bg2);cursor:pointer;color:var(--text2)}
+.cs-filter-sel:hover{background:#F3F4F6}
+.cs-filter-pills{display:inline-flex;gap:4px;flex-wrap:wrap;align-items:center}
+.cs-filter-pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 4px 2px 8px;background:#DC2626;color:#fff;border-radius:12px;font-weight:600}
+.cs-filter-pill .cs-fp-dim{opacity:.75;font-weight:500}
+.cs-filter-pill button{background:rgba(255,255,255,.25);color:#fff;border:none;border-radius:50%;width:14px;height:14px;line-height:1;cursor:pointer;font-size:11px;padding:0;margin-left:2px}
+.cs-filter-pill button:hover{background:rgba(255,255,255,.5)}
+.cs-filter-clear{font-size:10px;color:#DC2626;text-decoration:underline;margin-left:auto;cursor:pointer}
 /* Modal — reuse pl-modal classes; this just expands width slightly */
 .cs-modal{width:620px}
 /* Scripts */
@@ -839,7 +871,8 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
     <button class="ctx-btn" id="warn-toolbar-btn" onclick="showWarningsPanel()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg><span id="warn-toolbar-count">Warnings</span></button>
     <button class="ctx-btn" onclick="showReportsModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>Reports</button>
     <div class="sub-tabs">
-      <button class="sub-tab active" id="vt-daily" onclick="switchView('daily')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Daily</button>
+      <button class="sub-tab active" id="vt-daily" onclick="switchView('daily')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Visual</button>
+      <button class="sub-tab" id="vt-table" onclick="switchView('table')" title="Flat table view of all placements"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>Table</button>
       <button class="sub-tab" id="vt-week" onclick="switchView('week')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>Week</button>
       <button class="sub-tab" id="vt-audit" onclick="switchView('audit')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.5.5 0 0 1-.96 0L9.68 3.18a.5.5 0 0 0-.96 0l-2.35 8.36A2 2 0 0 1 4.45 13H2"/></svg>Audit</button>
       <button class="sub-tab" id="vt-teachers" onclick="switchView('teachers')" title="Per-teacher weekly view"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Teachers</button>
@@ -908,6 +941,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
       </div>
       <div id="week-outer"></div>
       <div id="teachers-outer" style="display:none;padding:0;overflow:auto;background:#fff"></div>
+      <div id="table-outer" style="display:none;padding:0;overflow:auto;background:#fff"></div>
       <div class="legend">
         <span style="font-size:9px;color:var(--text3);font-weight:500">Legend:</span>
         <div class="leg"><div class="legdot" style="background:var(--teal)"></div>Double-drop</div>
@@ -5543,14 +5577,17 @@ function switchView(view){
   qs('vt-week').classList.toggle('active',view==='week');
   qs('vt-audit').classList.toggle('active',view==='audit');
   const tt=qs('vt-teachers');if(tt)tt.classList.toggle('active',view==='teachers');
+  const tb=qs('vt-table');if(tb)tb.classList.toggle('active',view==='table');
   qs('sched-outer').style.display=view==='daily'?'':'none';
   document.querySelectorAll('.legend').forEach(el=>el.style.display=view==='daily'?'':'none');
   qs('audit-outer').style.display=view==='audit'?'block':'none';
   qs('week-outer').style.display=view==='week'?'block':'none';
   const teachersOuter=qs('teachers-outer');
   if(teachersOuter)teachersOuter.style.display=view==='teachers'?'block':'none';
+  const tableOuter=qs('table-outer');
+  if(tableOuter)tableOuter.style.display=view==='table'?'block':'none';
   // Day tabs (Sun/Mon/Tue/Wed/Thu) and the per-day search bar are only meaningful
-  // in the Daily view — hide them for Week / Audit / Teachers.
+  // in the Daily view — hide them for Week / Audit / Teachers / Table.
   document.querySelectorAll('.daytabs').forEach(el=>el.style.display=view==='daily'?'':'none');
   const ssb=qs('sched-search-bar');if(ssb)ssb.style.display=view==='daily'?'':'none';
   const swb=qs('sched-week-banner');if(swb&&view!=='daily')swb.style.display='none';
@@ -5561,6 +5598,7 @@ function switchView(view){
   if(view==='audit')renderAudit();
   if(view==='week')renderWeekView();
   if(view==='teachers')renderTeachersInline();
+  if(view==='table')renderScheduleTable();
 }
 // Inline teachers panel — same content as the Teacher Weekly tab in Reports modal,
 // but rendered directly into #teachers-outer instead of opening a popup.
@@ -8425,10 +8463,10 @@ function plImportCsvText(text){
 // live in CASE_SETTINGS so the user can add/remove options from the Settings panel.
 const CS_DEFAULT_SETTINGS={
   types:[
-    {id:'refund',label:'Refund Request'},
-    {id:'cancel',label:'Cancellation'},
-    {id:'incident',label:'Incident'},
+    {id:'withdraw',label:'Withdraw'},
+    {id:'refund',label:'Refund'},
     {id:'complaint',label:'Complaint'},
+    {id:'teacher_concern',label:'Teacher Concern'},
     {id:'other',label:'Other'}
   ],
   segments:[
@@ -8436,6 +8474,8 @@ const CS_DEFAULT_SETTINGS={
     {id:'hesitant',label:'Hesitant'},
     {id:'highrisk',label:'High-risk'}
   ],
+  branches:['Salam','Shuhada','Salwa','Surrah'],
+  employees:[],
   levels:[
     {id:1,label:'Teacher'},
     {id:2,label:'Customer Service'},
@@ -8443,6 +8483,16 @@ const CS_DEFAULT_SETTINGS={
     {id:4,label:'Leadership / Bashayer'}
   ],
   statuses:['Open','Awaiting reply','Awaiting payment','Escalated','Resolved'],
+  // Kanban stages — the axis of the Cases board. Order here = column order.
+  // Section 3 will let the user edit these from the Settings panel.
+  stages:[
+    {id:'new',label:'New',color:'#6B7280',bg:'#F3F4F6'},
+    {id:'contacted',label:'Contacted',color:'#1E40AF',bg:'#EFF6FF'},
+    {id:'negotiation',label:'In Negotiation',color:'#6D28D9',bg:'#F3E8FF'},
+    {id:'escalated',label:'Escalated',color:'#92400E',bg:'#FEF3CD'},
+    {id:'awaiting_parent',label:'Awaiting Parent',color:'#9A3412',bg:'#FFEDD5'},
+    {id:'resolved',label:'Resolved',color:'#065F46',bg:'#D1FAE5'}
+  ],
   outcomes:[
     {id:'paid',label:'Paid in full'},
     {id:'partial',label:'Paid 50% - balance later'},
@@ -8468,6 +8518,33 @@ function csLevels(){return CASE_SETTINGS.levels||[];}
 function csStatuses(){return CASE_SETTINGS.statuses||[];}
 function csOutcomes(){return CASE_SETTINGS.outcomes||[];}
 function csComplaintReasons(){return CASE_SETTINGS.complaintReasons||[];}
+function csStages(){return CASE_SETTINGS.stages||[];}
+function csStage(id){return csStages().find(s=>s.id===id)||null;}
+function csBranches(){return CASE_SETTINGS.branches||[];}
+function csEmployees(){return CASE_SETTINGS.employees||[];}
+// Initials for the card avatar — up to 2 letters from the name.
+function csInitials(name){
+  if(!name)return '';
+  return name.trim().split(/\s+/).slice(0,2).map(s=>(s[0]||'').toUpperCase()).join('');
+}
+// Deterministic color per assignee so the avatar is recognisable at a glance.
+function csAvatarColor(name){
+  if(!name)return {bg:'#F3F4F6',fg:'#9CA3AF'};
+  const palette=[
+    {bg:'#DBEAFE',fg:'#1E40AF'},{bg:'#D1FAE5',fg:'#065F46'},
+    {bg:'#FEF3CD',fg:'#92400E'},{bg:'#EDE9FE',fg:'#5B21B6'},
+    {bg:'#FEE2E2',fg:'#991B1B'},{bg:'#FFEDD5',fg:'#9A3412'},
+    {bg:'#CFFAFE',fg:'#155E75'},{bg:'#FCE7F3',fg:'#9D174D'}
+  ];
+  let h=0;for(let i=0;i<name.length;i++)h=(h*31+name.charCodeAt(i))>>>0;
+  return palette[h%palette.length];
+}
+// A case is "overdue" when it's parked in Awaiting Parent past its dueDate.
+function csIsOverdue(c){
+  if(!c||c.stage!=='awaiting_parent'||!c.dueDate)return false;
+  const d=new Date(c.dueDate);if(isNaN(d))return false;
+  return d.getTime()<Date.now();
+}
 
 // Payment + enrollment status (single source of truth, also added to Pipeline leads)
 const CS_PAYMENT_STATUSES=[
@@ -8486,7 +8563,29 @@ let CASES={};
 let _csView='kanban';
 let _csDragId=null;
 let _csSearch='';
-let _csFilter='all';
+// Section 2: structured multi-select filters. Each key is an array of active
+// values; empty = no constraint on that dimension. Dimensions compound (AND).
+let _csFilters={status:[],risk:[],payment:[],type:[],branch:[],assignedTo:[]};
+let _csGroupBy='stage'; // stage | assignedTo | branch | segment
+// Filter mutation helpers — each re-renders the Kanban.
+function csAddFilter(dim,val){
+  if(!val||!_csFilters[dim])return;
+  if(_csFilters[dim].indexOf(val)<0)_csFilters[dim].push(val);
+  renderCsKanban();
+}
+function csRemoveFilter(dim,val){
+  if(!_csFilters[dim])return;
+  _csFilters[dim]=_csFilters[dim].filter(v=>v!==val);
+  renderCsKanban();
+}
+function csClearAllFilters(){
+  Object.keys(_csFilters).forEach(k=>{_csFilters[k]=[];});
+  renderCsKanban();
+}
+function csAnyFilterActive(){
+  return Object.keys(_csFilters).some(k=>_csFilters[k].length>0);
+}
+function csSetGroupBy(val){_csGroupBy=val;renderCsKanban();}
 
 function csId(){return 'case_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);}
 function newCase(o){
@@ -8495,6 +8594,7 @@ function newCase(o){
   const firstSeg=(csSegments()[0]||{}).id||'hesitant';
   const firstLvl=(csLevels()[0]||{}).id||1;
   const firstStatus=csStatuses()[0]||'Open';
+  const firstStage=(csStages()[0]||{}).id||'new';
   return Object.assign({
     id,
     parentFullName:'',
@@ -8504,6 +8604,7 @@ function newCase(o){
     type:firstType,
     segment:firstSeg,
     level:firstLvl,
+    stage:firstStage,
     status:firstStatus,
     paymentStatus:'unpaid',
     enrollmentStatus:'enrolled',
@@ -8533,6 +8634,7 @@ function updateCsTabBadge(){
 
 // Migrate legacy case records (familyName -> parentFullName, nextAction string -> nextActions[])
 function migrateCases(){
+  const stageIds=csStages().map(s=>s.id);
   Object.values(CASES||{}).forEach(c=>{
     if(c.familyName&&!c.parentFullName){c.parentFullName=c.familyName;delete c.familyName;}
     if(typeof c.nextAction==='string'){
@@ -8546,6 +8648,33 @@ function migrateCases(){
     if(!c.enrollmentStatus)c.enrollmentStatus='enrolled';
     if(c.valueOffered)delete c.valueOffered; // no longer used
     if(!Array.isArray(c.log))c.log=[];
+    // Case-type renames (Section 2): cancel -> withdraw, incident -> teacher_concern
+    if(c.type==='cancel')c.type='withdraw';
+    if(c.type==='incident')c.type='teacher_concern';
+    // Stage migration (Section 1, v2): derive c.stage from every available
+    // signal — status, payment, enrollment, level, log, notes. Re-evaluate
+    // cases previously forced to 'new' by the v1 rule if they carry any
+    // real signal, so bulk CSV imports get distributed properly. Cases
+    // that are genuinely blank (no notes, unpaid+enrolled, no log, L<3)
+    // stay in 'new' — which is the correct default for them.
+    const _stageEmpty=!c.stage||stageIds.indexOf(c.stage)<0;
+    const _hasSignal=(c.notes&&c.notes.trim().length>0)||
+      c.paymentStatus!=='unpaid'||
+      c.enrollmentStatus!=='enrolled'||
+      (Array.isArray(c.log)&&c.log.length>0)||
+      (c.level&&c.level>=3)||
+      c.status==='Resolved';
+    const _stageBuggyNew=c.stage==='new'&&_hasSignal;
+    if(_stageEmpty||_stageBuggyNew){
+      if(c.status==='Resolved')c.stage='resolved';
+      else if(c.paymentStatus==='paid'&&c.enrollmentStatus==='enrolled')c.stage='resolved';
+      else if(c.enrollmentStatus==='withdraw_request'||c.enrollmentStatus==='withdrew')c.stage='escalated';
+      else if(c.level===3||c.level===4)c.stage='escalated';
+      else if(c.paymentStatus==='partial')c.stage='awaiting_parent';
+      else if(Array.isArray(c.log)&&c.log.length>0)c.stage='contacted';
+      else if(c.notes&&c.notes.trim().length>20)c.stage='negotiation';
+      else c.stage='new';
+    }
     // Heal log entries that were saved with raw HTML entities (&check; / &#10003;)
     // before we switched to a real Unicode checkmark — render those as the
     // actual character so the log reads cleanly.
@@ -8664,30 +8793,44 @@ function renderCsKanban(){
   const open=all.filter(c=>!csIsResolved(c)).length;
   const stale=all.filter(csIsStale).length;
 
+  // Compound filter — every dimension AND'd; within a dimension, values OR'd.
   const matches=c=>{
     if(_csSearch){
       const q=_csSearch.toLowerCase();
       if(!(c.parentFullName||'').toLowerCase().includes(q)&&!(c.childName||'').toLowerCase().includes(q)&&!(c.notes||'').toLowerCase().includes(q))return false;
     }
-    if(_csFilter==='open'&&csIsResolved(c))return false;
-    if(_csFilter==='resolved'&&!csIsResolved(c))return false;
-    if(_csFilter==='stale'&&!csIsStale(c))return false;
-    if(_csFilter==='highrisk'&&c.segment!=='highrisk')return false;
-    if(_csFilter==='unpaid'&&c.paymentStatus==='paid')return false;
-    if(_csFilter==='withdraw'&&c.enrollmentStatus!=='withdraw_request'&&c.enrollmentStatus!=='withdrew')return false;
+    const F=_csFilters;
+    if(F.status.length){
+      const ok=F.status.some(s=>s==='open'?!csIsResolved(c):s==='stale'?csIsStale(c):s==='resolved'?csIsResolved(c):false);
+      if(!ok)return false;
+    }
+    if(F.risk.length&&F.risk.indexOf(c.segment)<0)return false;
+    if(F.payment.length&&F.payment.indexOf(c.paymentStatus)<0)return false;
+    if(F.type.length&&F.type.indexOf(c.type)<0)return false;
+    if(F.branch.length&&F.branch.indexOf(c.branch)<0)return false;
+    if(F.assignedTo.length){
+      const a=(c.assignedTo||'').trim()||'__unassigned__';
+      if(F.assignedTo.indexOf(a)<0)return false;
+    }
     return true;
   };
+  const visible=all.filter(matches);
+  const visibleCount=visible.length;
 
+  // ---- TOOLBAR (row 1) ----
   let h='<div class="pl-toolbar">';
   h+='<span class="pl-title" style="color:#DC2626">&#128737;&#65039; Cases</span>';
-  h+='<span class="pl-stat">Total: <b>'+total+'</b></span>';
+  h+='<span class="pl-stat">Showing: <b>'+visibleCount+'</b> / '+total+'</span>';
   h+='<span class="pl-stat">Open: <b>'+open+'</b></span>';
   if(stale>0)h+='<span class="pl-stat" style="color:#DC2626;border-color:#FCA5A5">Stale: <b style="color:#DC2626">'+stale+'</b></span>';
   h+='<div style="flex:1"></div>';
-  ['all','open','stale','highrisk','unpaid','withdraw','resolved'].forEach(f=>{
-    const lbl={all:'All',open:'Open',stale:'Stale',highrisk:'High-risk',unpaid:'Unpaid',withdraw:'Withdraw',resolved:'Resolved'}[f];
-    h+='<button class="ctx-btn" style="padding:4px 10px;font-size:10px;'+(_csFilter===f?'background:#DC2626;color:#fff;border-color:#DC2626':'')+'" onclick="_csFilter=\''+f+'\';renderCsKanban()">'+lbl+'</button>';
+  // Group By selector — drives the column axis
+  h+='<label class="cs-groupby"><span>Group by</span><select onchange="csSetGroupBy(this.value)">';
+  ['stage','assignedTo','branch','segment'].forEach(g=>{
+    const lbl={stage:'Stage',assignedTo:'Assigned To',branch:'Branch',segment:'Segment'}[g];
+    h+='<option value="'+g+'"'+(_csGroupBy===g?' selected':'')+'>'+lbl+'</option>';
   });
+  h+='</select></label>';
   h+='<input class="pl-search" placeholder="Search cases..." value="'+esc(_csSearch)+'" oninput="_csSearch=this.value;renderCsKanban()">';
   h+='<button class="ctx-btn" onclick="csOpenSettings()" title="Manage case lookups"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</button>';
   h+='<button class="ctx-btn" onclick="csExportCsv()" title="Export cases to CSV">&darr; Export</button>';
@@ -8695,25 +8838,106 @@ function renderCsKanban(){
   h+='<button class="pl-add-btn" style="background:#DC2626" onclick="openCsModal()">+ New Case</button>';
   h+='</div>';
 
+  // ---- FILTER BAR (row 2) ----
+  h+='<div class="cs-filter-bar">';
+  const dims=[
+    {k:'status',lbl:'Status',opts:[{v:'open',l:'Open'},{v:'stale',l:'Stale'},{v:'resolved',l:'Resolved'}]},
+    {k:'risk',lbl:'Risk',opts:csSegments().map(s=>({v:s.id,l:s.label}))},
+    {k:'payment',lbl:'Payment',opts:CS_PAYMENT_STATUSES.map(p=>({v:p.id,l:p.label}))},
+    {k:'type',lbl:'Case Type',opts:csTypes().map(t=>({v:t.id,l:t.label}))},
+    {k:'branch',lbl:'Branch',opts:csBranches().map(b=>({v:b,l:b}))},
+    {k:'assignedTo',lbl:'Assigned To',opts:csEmployees().map(e=>({v:e,l:e})).concat([{v:'__unassigned__',l:'(Unassigned)'}])}
+  ];
+  dims.forEach(d=>{
+    h+='<select class="cs-filter-sel" onchange="csAddFilter(\''+d.k+'\',this.value);this.value=\'\'">';
+    h+='<option value="" disabled selected>+ '+d.lbl+'</option>';
+    d.opts.forEach(o=>{
+      if(_csFilters[d.k].indexOf(o.v)>=0)return; // hide already-active values
+      h+='<option value="'+esc(o.v)+'">'+esc(o.l)+'</option>';
+    });
+    h+='</select>';
+  });
+  // Active pills
+  h+='<div class="cs-filter-pills">';
+  const dimLabels={status:'Status',risk:'Risk',payment:'Payment',type:'Type',branch:'Branch',assignedTo:'Assigned'};
+  const lookupLabel=(dim,v)=>{
+    if(dim==='status')return ({open:'Open',stale:'Stale',resolved:'Resolved'})[v]||v;
+    if(dim==='risk'){const s=csSegments().find(x=>x.id===v);return s?s.label:v;}
+    if(dim==='payment'){const p=CS_PAYMENT_STATUSES.find(x=>x.id===v);return p?p.label:v;}
+    if(dim==='type'){const t=csTypes().find(x=>x.id===v);return t?t.label:v;}
+    if(dim==='assignedTo'&&v==='__unassigned__')return 'Unassigned';
+    return v;
+  };
+  Object.keys(_csFilters).forEach(dim=>{
+    _csFilters[dim].forEach(v=>{
+      h+='<span class="cs-filter-pill"><span class="cs-fp-dim">'+dimLabels[dim]+':</span> '+esc(lookupLabel(dim,v))+' <button onclick="csRemoveFilter(\''+dim+'\',\''+esc(v)+'\')" title="remove">&times;</button></span>';
+    });
+  });
+  h+='</div>';
+  if(csAnyFilterActive())h+='<a href="#" class="cs-filter-clear" onclick="event.preventDefault();csClearAllFilters()">Clear all</a>';
+  h+='</div>';
+
+  // ---- COLUMNS ----
   h+='<div class="pl-board">';
-  csLevels().forEach(lvl=>{
-    const list=all.filter(c=>!csIsResolved(c)&&c.level===lvl.id&&matches(c)).sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt));
-    h+='<div class="pl-col">';
-    h+='<div class="pl-col-hdr"><span class="pl-col-title"><span class="cs-lvl cs-lvl-'+lvl.id+'" style="margin-right:4px">L'+lvl.id+'</span>'+esc(lvl.label)+'</span><span class="pl-col-cnt">'+list.length+'</span></div>';
-    h+='<div class="pl-col-body" data-level="'+lvl.id+'" ondragover="csDragOver(event)" ondragleave="csDragLeave(event)" ondrop="csDrop(event,'+lvl.id+',\'\')">';
-    list.forEach(c=>{h+=renderCsCard(c);});
-    if(list.length===0)h+='<div style="text-align:center;color:var(--text3);font-size:9px;padding:14px 6px">No cases at this level</div>';
+  const cols=csGroupColumns();
+  cols.forEach(col=>{
+    const list=visible.filter(col.match).sort((a,b)=>{
+      if(col.id==='resolved')return new Date(b.resolvedAt||b.updatedAt)-new Date(a.resolvedAt||a.updatedAt);
+      return new Date(b.updatedAt)-new Date(a.updatedAt);
+    });
+    const colStyle=col.id==='resolved'?' style="background:#F9FAFB"':'';
+    const pillStyle=col.color&&col.bg?' style="background:'+col.bg+';color:'+col.color+'"':'';
+    h+='<div class="pl-col"'+colStyle+'>';
+    h+='<div class="pl-col-hdr"><span class="pl-col-title"><span class="cs-seg"'+pillStyle+'>'+esc(col.label)+'</span></span><span class="pl-col-cnt">'+list.length+'</span></div>';
+    h+='<div class="pl-col-body" ondragover="csDragOver(event)" ondragleave="csDragLeave(event)" ondrop="csDrop(event,\''+esc(col.id)+'\')">';
+    const shown=col.id==='resolved'?list.slice(0,30):list;
+    shown.forEach(c=>{h+=renderCsCard(c);});
+    if(list.length===0)h+='<div style="text-align:center;color:var(--text3);font-size:9px;padding:14px 6px">Empty</div>';
     h+='</div></div>';
   });
-  const resolvedList=all.filter(c=>csIsResolved(c)&&matches(c)).sort((a,b)=>new Date(b.resolvedAt||b.updatedAt)-new Date(a.resolvedAt||a.updatedAt));
-  h+='<div class="pl-col" style="background:#F9FAFB">';
-  h+='<div class="pl-col-hdr"><span class="pl-col-title">&#10003; Resolved</span><span class="pl-col-cnt">'+resolvedList.length+'</span></div>';
-  h+='<div class="pl-col-body" data-level="resolved" ondragover="csDragOver(event)" ondragleave="csDragLeave(event)" ondrop="csDrop(event,0,\'resolved\')">';
-  resolvedList.slice(0,30).forEach(c=>{h+=renderCsCard(c);});
-  if(resolvedList.length===0)h+='<div style="text-align:center;color:var(--text3);font-size:9px;padding:14px 6px">Nothing resolved yet</div>';
-  h+='</div></div>';
   h+='</div>';
   el.innerHTML=h;
+}
+
+// Column descriptor per active Group By axis. Each column carries:
+//   id, label, match(case)->bool, and an optional mutator that csDrop uses
+//   to reassign the grouped field when a card is dropped into it.
+function csGroupColumns(){
+  if(_csGroupBy==='stage'){
+    return csStages().map(s=>({
+      id:s.id,label:s.label,color:s.color,bg:s.bg,
+      match:c=>(c.stage||'')===s.id,
+      assign:(c,now)=>{c.stage=s.id;}
+    }));
+  }
+  if(_csGroupBy==='branch'){
+    return csBranches().map(b=>({
+      id:b,label:b,
+      match:c=>(c.branch||'')===b,
+      assign:(c,now)=>{c.branch=b;c.log.push({ts:now,type:'system',text:'Branch &rarr; '+b});}
+    }));
+  }
+  if(_csGroupBy==='segment'){
+    return csSegments().map(s=>({
+      id:s.id,label:s.label,
+      match:c=>(c.segment||'')===s.id,
+      assign:(c,now)=>{c.segment=s.id;c.log.push({ts:now,type:'system',text:'Risk &rarr; '+s.label});}
+    }));
+  }
+  if(_csGroupBy==='assignedTo'){
+    const cols=csEmployees().map(e=>({
+      id:e,label:e,
+      match:c=>(c.assignedTo||'').trim()===e,
+      assign:(c,now)=>{const old=c.assignedTo||'';c.assignedTo=e;c.log.push({ts:now,type:'system',text:'Assigned: '+(old||'(unassigned)')+' &rarr; '+e});}
+    }));
+    cols.push({
+      id:'__unassigned__',label:'Unassigned',
+      match:c=>!((c.assignedTo||'').trim()),
+      assign:(c,now)=>{const old=c.assignedTo||'';c.assignedTo='';c.log.push({ts:now,type:'system',text:'Assigned: '+(old||'(unassigned)')+' &rarr; (unassigned)'});}
+    });
+    return cols;
+  }
+  return [];
 }
 
 function renderCsCard(c){
@@ -8722,11 +8946,15 @@ function renderCsCard(c){
   const ps=CS_PAYMENT_STATUSES.find(p=>p.id===c.paymentStatus);
   const es=CS_ENROLLMENT_STATUSES.find(e=>e.id===c.enrollmentStatus);
   const stale=csIsStale(c);
+  const overdue=csIsOverdue(c);
   const days=csDaysSince(c.updatedAt);
   const lastLog=(c.log&&c.log.length)?c.log[c.log.length-1]:null;
   const openTodos=(c.nextActions||[]).filter(a=>!a.done).length;
-  let h='<div class="cs-card'+(stale?' stale':'')+'" draggable="true" ondragstart="csDragStart(event,\''+c.id+'\')" ondragend="csDragEnd(event)" onclick="openCsModal(\''+c.id+'\')">';
-  if(stale)h+='<span class="cs-card-stale">&#9888; '+days+'d</span>';
+  // Overdue cases (parked in Awaiting Parent past due date) reuse the stale
+  // red treatment so they surface immediately on the board.
+  let h='<div class="cs-card'+(stale||overdue?' stale':'')+'" draggable="true" ondragstart="csDragStart(event,\''+c.id+'\')" ondragend="csDragEnd(event)" onclick="openCsModal(\''+c.id+'\')">';
+  if(overdue)h+='<span class="cs-card-stale">&#9201; overdue</span>';
+  else if(stale)h+='<span class="cs-card-stale">&#9888; '+days+'d</span>';
   h+='<div class="cs-card-name">'+esc(c.parentFullName||'Unnamed')+(c.childName?' <span style="color:var(--text3);font-weight:500">&middot; '+esc(c.childName)+'</span>':'')+'</div>';
   if(c.amountKwd)h+='<div class="cs-card-amount">'+Math.round(c.amountKwd)+' KWD</div>';
   h+='<div class="cs-card-meta">';
@@ -8749,34 +8977,100 @@ function renderCsCard(c){
     }
     h+='</div>';
   }
-  h+='<div class="cs-card-foot">';
-  h+='<span>'+esc(c.status)+'</span>';
-  h+='<span style="margin-left:auto">'+days+'d</span>';
+  // Avatar row (bottom-left): assigned employee avatar + name, or muted "+"
+  // when unassigned. Clicking the avatar opens the assignment popover.
+  const assignedName=(c.assignedTo||'').trim();
+  const init=csInitials(assignedName);
+  const col=csAvatarColor(assignedName);
+  h+='<div class="cs-card-bottom">';
+  if(assignedName){
+    h+='<span class="cs-card-avatar" style="background:'+col.bg+';color:'+col.fg+'" onclick="event.stopPropagation();csOpenAssignPicker(event,\''+c.id+'\')" title="Reassign">'+esc(init||'?')+'</span>';
+    h+='<span class="cs-card-assignee">'+esc(assignedName)+'</span>';
+  }else{
+    h+='<span class="cs-card-avatar empty" onclick="event.stopPropagation();csOpenAssignPicker(event,\''+c.id+'\')" title="Assign">+</span>';
+  }
+  h+='<div class="cs-card-foot-r"><span>'+esc(c.status)+'</span><span style="margin-left:6px">'+days+'d</span></div>';
   h+='</div></div>';
   return h;
+}
+
+// ---- Assignment picker popover ----
+let _csAssignPopCaseId='';
+function csOpenAssignPicker(ev,caseId){
+  ev.stopPropagation();
+  const c=CASES[caseId];if(!c)return;
+  _csAssignPopCaseId=caseId;
+  let pop=document.getElementById('cs-assign-pop');
+  if(!pop){pop=document.createElement('div');pop.id='cs-assign-pop';pop.className='cs-assign-pop';document.body.appendChild(pop);}
+  const emps=csEmployees();
+  let html='';
+  if(emps.length===0){
+    html='<div class="cs-assign-empty">No employees yet. Add them in Settings.</div>';
+  }else{
+    emps.forEach(e=>{
+      const cur=(c.assignedTo||'').trim()===e;
+      const col=csAvatarColor(e);
+      html+='<div class="cs-assign-opt'+(cur?' active':'')+'" onclick="csAssignCase(\''+caseId+'\',\''+esc(e).replace(/\\/g,"\\\\").replace(/\x27/g,"\\\x27")+'\')"><span class="cs-card-avatar" style="background:'+col.bg+';color:'+col.fg+'">'+esc(csInitials(e)||'?')+'</span><span>'+esc(e)+'</span></div>';
+    });
+    html+='<div class="cs-assign-sep"></div>';
+    html+='<div class="cs-assign-opt cs-assign-clear" onclick="csAssignCase(\''+caseId+'\',\'\')">&times; Unassign</div>';
+  }
+  pop.innerHTML=html;
+  const r=ev.currentTarget.getBoundingClientRect();
+  pop.style.left=(r.left)+'px';
+  pop.style.top=(r.bottom+window.scrollY+4)+'px';
+  pop.style.display='block';
+  // Close on next outside click
+  setTimeout(()=>{document.addEventListener('click',csCloseAssignPicker,{once:true});},0);
+}
+function csCloseAssignPicker(){const p=document.getElementById('cs-assign-pop');if(p)p.style.display='none';_csAssignPopCaseId='';}
+function csAssignCase(caseId,name){
+  const c=CASES[caseId];if(!c){csCloseAssignPicker();return;}
+  const now=new Date().toISOString();
+  const old=(c.assignedTo||'').trim();
+  c.assignedTo=name||'';
+  c.updatedAt=now;
+  c.log.push({ts:now,type:'system',text:'Assigned: '+(old||'(unassigned)')+' &rarr; '+(name||'(unassigned)')});
+  csSaveCases();
+  csCloseAssignPicker();
+  renderCsKanban();
 }
 
 function csDragStart(e,id){_csDragId=id;e.dataTransfer.effectAllowed='move';e.target.classList.add('dragging');}
 function csDragEnd(e){_csDragId=null;e.target.classList.remove('dragging');document.querySelectorAll('.pl-col-body.drag-over').forEach(el=>el.classList.remove('drag-over'));}
 function csDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';e.currentTarget.classList.add('drag-over');}
 function csDragLeave(e){e.currentTarget.classList.remove('drag-over');}
-function csDrop(e,newLevel,specialCol){
+function csDrop(e,colId){
   e.preventDefault();e.currentTarget.classList.remove('drag-over');
   if(!_csDragId||!CASES[_csDragId])return;
   const c=CASES[_csDragId];const now=new Date().toISOString();
-  if(specialCol==='resolved'){
-    if(csIsResolved(c))return;
-    const out=prompt('Outcome ('+csOutcomes().map(o=>o.id).join(' / ')+'):',(csOutcomes()[0]||{}).id||'paid');
-    if(!out)return;
-    if(!csOutcomes().find(o=>o.id===out)){alert('Invalid outcome.');return;}
-    c.outcome=out;c.status='Resolved';c.resolvedAt=now;
-    c.log.push({ts:now,type:'system',text:'Resolved &middot; outcome: '+out});
-  }else{
-    if(c.level===newLevel)return;
-    const lvl=csLevels().find(l=>l.id===newLevel);
-    c.log.push({ts:now,type:'system',text:'Escalated -> L'+newLevel+' '+(lvl?lvl.label:'')});
-    c.level=newLevel;
+  if(!colId)return;
+  // Stage axis — preserve the resolve/reopen flow and log wording.
+  if(_csGroupBy==='stage'){
+    if(c.stage===colId)return;
+    const st=csStage(colId);if(!st)return;
+    const wasResolved=csIsResolved(c);
+    if(colId==='resolved'){
+      const out=prompt('Outcome ('+csOutcomes().map(o=>o.id).join(' / ')+'):',(csOutcomes()[0]||{}).id||'paid');
+      if(!out)return;
+      if(!csOutcomes().find(o=>o.id===out)){alert('Invalid outcome.');return;}
+      c.outcome=out;c.status='Resolved';c.resolvedAt=now;
+      c.log.push({ts:now,type:'system',text:'Resolved &middot; outcome: '+out});
+    }else{
+      if(wasResolved){c.status='Open';c.resolvedAt='';c.outcome='';}
+      c.log.push({ts:now,type:'system',text:'Stage &rarr; '+st.label});
+    }
+    c.stage=colId;
+    c.updatedAt=now;
+    csSaveCases();renderCsKanban();
+    return;
   }
+  // Any other axis — delegate to the column's assign mutator.
+  const cols=csGroupColumns();
+  const col=cols.find(x=>x.id===colId);if(!col)return;
+  // Idempotence: don't log if it's already in this column.
+  if(col.match(c))return;
+  col.assign(c,now);
   c.updatedAt=now;
   csSaveCases();renderCsKanban();
 }
@@ -8810,7 +9104,7 @@ function openCsModal(caseId){
   b+='<div class="cs2-field"><label>Child Name <span class="cs2-hint">(if not linked)</span></label><input id="cs-f-child" value="'+esc(c.childName||'')+'" placeholder="Free text name"></div>';
   b+='</div>';
   b+='<div class="cs2-row cols-2">';
-  b+='<div class="cs2-field"><label>Branch</label><select id="cs-f-branch"><option'+(c.branch==='Salam'?' selected':'')+'>Salam</option><option'+(c.branch==='Shuhada'?' selected':'')+'>Shuhada</option><option'+(c.branch==='Salwa'?' selected':'')+'>Salwa</option></select></div>';
+  b+='<div class="cs2-field"><label>Branch</label><select id="cs-f-branch">'+csBranches().map(br=>'<option'+(c.branch===br?' selected':'')+'>'+esc(br)+'</option>').join('')+'</select></div>';
   b+='<div></div></div>';
   b+='</div>';
 
@@ -8848,7 +9142,7 @@ function openCsModal(caseId){
   b+='<div class="cs2-section-hdr">Ownership</div>';
   b+='<div class="cs2-row cols-3">';
   b+='<div class="cs2-field"><label>Due Date</label><input id="cs-f-due" type="date" value="'+(c.dueDate||'')+'"></div>';
-  b+='<div class="cs2-field"><label>Assigned To</label><input id="cs-f-assigned" value="'+esc(c.assignedTo||'')+'" placeholder="Who is on this"></div>';
+  b+='<div class="cs2-field"><label>Assigned To</label><select id="cs-f-assigned"><option value=""'+(!c.assignedTo?' selected':'')+'>— Unassigned —</option>'+csEmployees().map(e=>'<option value="'+esc(e)+'"'+(c.assignedTo===e?' selected':'')+'>'+esc(e)+'</option>').join('')+'</select></div>';
   b+='<div class="cs2-field"><label>Outcome <span class="cs2-hint">(if resolved)</span></label><select id="cs-f-outcome"><option value="">Select…</option>'+csOutcomes().map(o=>'<option value="'+o.id+'"'+(c.outcome===o.id?' selected':'')+'>'+esc(o.label)+'</option>').join('')+'</select></div>';
   b+='</div>';
   b+='</div>';
@@ -9061,6 +9355,9 @@ function csSaveCase(caseId,isNew){
   existing.updatedAt=now;
   if(existing.status==='Resolved'&&!existing.resolvedAt)existing.resolvedAt=now;
   if(existing.status!=='Resolved')existing.resolvedAt='';
+  // Keep stage in sync with Resolved status edits from the modal.
+  if(existing.status==='Resolved')existing.stage='resolved';
+  else if(existing.stage==='resolved')existing.stage='negotiation';
   if(oldLevel!==existing.level)existing.log.push({ts:now,type:'system',text:'Level: L'+oldLevel+' -> L'+existing.level});
   if(oldStatus!==existing.status)existing.log.push({ts:now,type:'system',text:'Status: '+oldStatus+' -> '+existing.status});
   if(oldPay!==existing.paymentStatus)existing.log.push({ts:now,type:'system',text:'Payment: '+oldPay+' -> '+existing.paymentStatus});
@@ -9083,6 +9380,7 @@ function csQuickResolve(caseId){
   if(!csOutcomes().find(o=>o.id===out)){alert('Invalid outcome.');return;}
   const now=new Date().toISOString();
   c.outcome=out;c.status='Resolved';c.resolvedAt=now;c.updatedAt=now;
+  c.stage='resolved';
   c.log.push({ts:now,type:'system',text:'Resolved &middot; outcome: '+out});
   csSaveCases();openCsModal(caseId);
 }
@@ -9095,6 +9393,8 @@ function csQuickEscalate(caseId){
   const lvl=csLevels().find(l=>l.id===newL);
   c.log.push({ts:now,type:'system',text:'Escalated -> L'+newL+' '+(lvl?lvl.label:'')});
   c.level=newL;c.updatedAt=now;
+  // Crossing into L3/L4 also moves the Kanban stage to Escalated.
+  if(newL>=3&&csStage('escalated'))c.stage='escalated';
   csSaveCases();openCsModal(caseId);
 }
 function csAddLogEntry(caseId){
@@ -9237,8 +9537,10 @@ function renderCsSettingsBody(){
   h+='<div style="font-size:11px;color:var(--text2);margin-bottom:10px">Add or remove options for any case dropdown. Existing cases that use a deleted option keep their value (the option just disappears from the picker for new cases).</div>';
   const sections=[
     {key:'types',title:'Case Types',hasId:true},
-    {key:'segments',title:'Payment Segments',hasId:true},
+    {key:'segments',title:'Risk Segments',hasId:true},
     {key:'levels',title:'Escalation Levels (1-N hierarchy)',hasId:true,numeric:true},
+    {key:'branches',title:'Branches',hasId:false},
+    {key:'employees',title:'Employees (Assigned To list)',hasId:false},
     {key:'statuses',title:'Statuses',hasId:false},
     {key:'outcomes',title:'Outcomes',hasId:true},
     {key:'complaintReasons',title:'Reasons of Complaint (multi-select)',hasId:false}
@@ -9276,7 +9578,7 @@ function csAddSettingItem(key,numeric){
   if(numeric){
     const nextId=(list.reduce((m,x)=>Math.max(m,x.id||0),0)||0)+1;
     list.push({id:nextId,label:lbl});
-  }else if(typeof list[0]==='string'||list.length===0&&(key==='statuses'||key==='complaintReasons')){
+  }else if(typeof list[0]==='string'||list.length===0&&(key==='statuses'||key==='complaintReasons'||key==='branches'||key==='employees')){
     list.push(lbl);
   }else{
     const id=lbl.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'')||('opt_'+Date.now());
@@ -9371,6 +9673,7 @@ function csImportCsvText(text){
     if(get('segment'))existing.segment=get('segment');
     if(get('level'))existing.level=parseInt(get('level'),10)||existing.level;
     if(get('status'))existing.status=get('status');
+    if(get('stage')&&csStage(get('stage')))existing.stage=get('stage');
     if(get('paymentStatus'))existing.paymentStatus=get('paymentStatus');
     if(get('enrollmentStatus'))existing.enrollmentStatus=get('enrollmentStatus');
     if(get('amountKwd'))existing.amountKwd=parseFloat(get('amountKwd'))||0;
@@ -9422,6 +9725,342 @@ setSyncIndicator('connecting');
     if(badge){badge.textContent='⚠ DEV — testing only';badge.style.display='inline-block';}
   }
 })();
+
+// =====================================================================
+// SCHEDULE TABLE VIEW — flat placement table (one row per session)
+// =====================================================================
+// Reads and writes the same SCHED / SS state that the visual schedule
+// uses. All edits persist via the shared saveState() / renderSched() so
+// switching back to the Visual sub-tab shows the same data. Conflicts
+// surface through the normal Warnings panel (no blocking in the table).
+(function(){
+  if(document.getElementById('tbl-view-styles'))return;
+  const css=`
+  #table-outer{font-size:12px}
+  .tbl-filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;background:#F8FAFC;border-bottom:1px solid #E2E8F0}
+  .tbl-filter-bar select{font-size:11px;padding:4px 8px;border:1px solid #CBD5E1;border-radius:6px;background:#fff;outline:none;cursor:pointer}
+  .tbl-filter-pills{display:flex;flex-wrap:wrap;gap:4px;flex:1;min-width:120px}
+  .tbl-pill{display:inline-flex;align-items:center;gap:4px;background:#E0E7FF;color:#3730A3;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:600}
+  .tbl-pill a{cursor:pointer;color:#6366F1;font-weight:700;padding-left:2px}
+  .tbl-pill a:hover{color:#3730A3}
+  .tbl-pill b{font-weight:600;text-transform:capitalize}
+  .tbl-pill-clear{cursor:pointer;color:#6366F1;font-size:11px;font-weight:600;padding:3px 8px;text-decoration:underline}
+  .tbl-count{font-size:11px;color:var(--text3);font-weight:600;margin-left:auto}
+  .tbl-main{width:100%;border-collapse:collapse;background:#fff}
+  .tbl-main thead th{background:#F1F5F9;padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--text2);border-bottom:2px solid #E2E8F0;white-space:nowrap;position:sticky;top:0;z-index:1}
+  .tbl-main .tbl-hdr{cursor:pointer;user-select:none}
+  .tbl-main .tbl-hdr:hover{background:#E2E8F0}
+  .tbl-main tbody tr:nth-child(even){background:#FAFBFC}
+  .tbl-main tbody tr:hover{background:#FEF9E7}
+  .tbl-main td{padding:4px 8px;border-bottom:1px solid #F1F5F9;vertical-align:middle;font-size:11px}
+  .tbl-main td.tbl-name a{color:#2563EB;cursor:pointer;font-weight:600;text-decoration:none}
+  .tbl-main td.tbl-name a:hover{text-decoration:underline}
+  .tbl-main td.tbl-e select,.tbl-main td.tbl-e input{border:1px solid transparent;background:transparent;padding:3px 6px;border-radius:4px;font-size:11px;outline:none;width:100%;color:var(--text);font-family:inherit}
+  .tbl-main td.tbl-e select:hover,.tbl-main td.tbl-e input:hover{border-color:#CBD5E1;background:#fff}
+  .tbl-main td.tbl-e select:focus,.tbl-main td.tbl-e input:focus{border-color:#6366F1;background:#fff;box-shadow:0 0 0 2px rgba(99,102,241,0.15)}
+  .tbl-main td.tbl-e input[disabled]{color:#CBD5E1;cursor:not-allowed}
+  .tbl-main td.tbl-sched{text-align:center;font-size:14px;font-weight:700}
+  .tbl-yes{color:#059669}
+  .tbl-no{color:#DC2626}
+  .tbl-empty{text-align:center;padding:40px 20px;color:var(--text3);font-style:italic}
+  .tbl-row-unsched{background:#FFFBEB !important}
+  `;
+  const st=document.createElement('style');st.id='tbl-view-styles';st.textContent=css;document.head.appendChild(st);
+})();
+
+let _tblFilters={branch:[],teacher:[],day:[],status:[]};
+let _tblSort={key:'name',dir:'asc'};
+let _tblLastRows=[];
+
+function tblFindPlacements(sid){
+  const out=[];
+  DAYS.forEach(d=>CARS.forEach(car=>{
+    const arr=SCHED[d]&&SCHED[d][car.id]||[];
+    arr.forEach((sl_,i)=>{
+      if(!sl_)return;
+      if(sl_.t==='s'&&sl_.id===sid)out.push({day:d,cid:car.id,si:i});
+      else if((sl_.t==='d'||sl_.t==='g')&&Array.isArray(sl_.ids)&&sl_.ids.indexOf(sid)>=0)out.push({day:d,cid:car.id,si:i});
+    });
+  }));
+  return out;
+}
+
+function tblMinToInput(mm){
+  if(mm==null||!isFinite(mm))return '';
+  const h=Math.max(0,Math.floor(mm/60)),m=((mm%60)+60)%60;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+}
+
+function tblBuildRows(){
+  const rows=[];
+  Object.keys(SS).forEach(sid=>{
+    const s=SS[sid];if(!s)return;
+    const places=tblFindPlacements(sid);
+    const spw=Math.max(1,s.sessionsPerWeek||1);
+    places.forEach(p=>{
+      const time=(typeof slotStartMin==='function')?slotStartMin(p.day,p.cid,p.si):null;
+      rows.push({sid,name:s.n||'',branch:s.br||'',teacher:s.t||'',
+        sessionType:s.sessionType||'1on1',day:p.day,timeMin:time,
+        spw,status:s.status||'active',scheduled:true,
+        placement:{day:p.day,cid:p.cid,si:p.si}});
+    });
+    const deficit=Math.max(0,spw-places.length);
+    for(let i=0;i<deficit;i++){
+      rows.push({sid,name:s.n||'',branch:s.br||'',teacher:s.t||'',
+        sessionType:s.sessionType||'1on1',day:'',timeMin:null,
+        spw,status:s.status||'active',scheduled:false,placement:null});
+    }
+  });
+  return rows;
+}
+
+function tblFilterRows(rows){
+  const f=_tblFilters;
+  return rows.filter(r=>{
+    if(f.branch.length&&f.branch.indexOf(r.branch||'—')<0&&f.branch.indexOf(r.branch)<0)return false;
+    if(f.teacher.length&&f.teacher.indexOf(r.teacher||'—')<0)return false;
+    if(f.day.length&&f.day.indexOf(r.day||'—')<0)return false;
+    if(f.status.length&&f.status.indexOf(r.status)<0)return false;
+    return true;
+  });
+}
+
+function tblSortRows(rows){
+  const key=_tblSort.key,dir=_tblSort.dir==='desc'?-1:1;
+  return rows.slice().sort((a,b)=>{
+    let av,bv;
+    if(key==='time'){av=a.timeMin==null?999999:a.timeMin;bv=b.timeMin==null?999999:b.timeMin;}
+    else if(key==='day'){const ai=DAYS.indexOf(a.day);const bi=DAYS.indexOf(b.day);av=ai<0?99:ai;bv=bi<0?99:bi;}
+    else if(key==='scheduled'){av=a.scheduled?1:0;bv=b.scheduled?1:0;}
+    else{av=a[key];bv=b[key];}
+    if(av==null)av='';if(bv==null)bv='';
+    if(typeof av==='string'&&typeof bv==='string')return av.localeCompare(bv)*dir;
+    return (av<bv?-1:av>bv?1:0)*dir;
+  });
+}
+
+function tblAnyFilter(){return _tblFilters.branch.length+_tblFilters.teacher.length+_tblFilters.day.length+_tblFilters.status.length>0;}
+
+function tblFilterSelectHtml(label,dim,ids,labels){
+  labels=labels||ids;
+  let h='<select onchange="tblAddFilter(\''+dim+'\',this.value);this.value=\'\'">';
+  h+='<option value="">+ '+label+'</option>';
+  ids.forEach((id,i)=>{
+    if(_tblFilters[dim].indexOf(id)>=0)return;
+    h+='<option value="'+esc(id)+'">'+esc(labels[i])+'</option>';
+  });
+  h+='</select>';
+  return h;
+}
+
+function tblAddFilter(dim,val){
+  if(!val)return;
+  if(_tblFilters[dim].indexOf(val)<0)_tblFilters[dim].push(val);
+  renderScheduleTable();
+}
+function tblRemoveFilter(dim,val){
+  _tblFilters[dim]=_tblFilters[dim].filter(x=>x!==val);
+  renderScheduleTable();
+}
+function tblClearFilters(){
+  _tblFilters={branch:[],teacher:[],day:[],status:[]};
+  renderScheduleTable();
+}
+function tblSort(key){
+  if(_tblSort.key===key)_tblSort.dir=_tblSort.dir==='asc'?'desc':'asc';
+  else{_tblSort.key=key;_tblSort.dir='asc';}
+  renderScheduleTable();
+}
+
+function tblSelectHtml(cur,ids,labels){
+  labels=labels||ids;
+  let h='<select>';
+  ids.forEach((id,i)=>{
+    const sel=(id===cur||(id===''&&!cur))?' selected':'';
+    h+='<option value="'+esc(String(id))+'"'+sel+'>'+esc(String(labels[i]))+'</option>';
+  });
+  h+='</select>';
+  return h;
+}
+
+function tblTeacherList(){
+  const names=Object.keys(TEACHERS||{}).filter(n=>TEACHERS[n]&&TEACHERS[n].active!==0);
+  return names.sort();
+}
+
+function tblTeacherSelectHtml(cur){
+  const names=tblTeacherList();
+  let h='<select>';
+  h+='<option value=""'+(!cur?' selected':'')+'>— none —</option>';
+  if(cur&&names.indexOf(cur)<0)h+='<option value="'+esc(cur)+'" selected>'+esc(cur)+'</option>';
+  names.forEach(n=>{
+    h+='<option value="'+esc(n)+'"'+(n===cur?' selected':'')+'>'+esc(n)+'</option>';
+  });
+  h+='</select>';
+  return h;
+}
+
+function renderScheduleTable(){
+  const host=qs('table-outer');if(!host)return;
+  const all=tblBuildRows();
+  const filtered=tblSortRows(tblFilterRows(all));
+  _tblLastRows=filtered;
+  const branches=(typeof csBranches==='function'?csBranches():null)||['Salam','Shuhada','Salwa','Surrah'];
+  const teachers=tblTeacherList();
+  const statuses=[{id:'active',l:'Care & Continuity'},{id:'inactive',l:'Inactive'},{id:'exited',l:'Exited'}];
+
+  let h='';
+  h+='<div class="tbl-filter-bar">';
+  h+=tblFilterSelectHtml('Branch','branch',branches);
+  h+=tblFilterSelectHtml('Teacher','teacher',teachers.length?teachers:['—']);
+  h+=tblFilterSelectHtml('Day','day',DAYS.concat(['—']));
+  h+=tblFilterSelectHtml('Status','status',statuses.map(s=>s.id),statuses.map(s=>s.l));
+  h+='<div class="tbl-filter-pills">';
+  ['branch','teacher','day','status'].forEach(dim=>{
+    _tblFilters[dim].forEach(val=>{
+      let lbl=val;
+      if(dim==='status'){const x=statuses.find(s=>s.id===val);if(x)lbl=x.l;}
+      const safe=String(val).replace(/'/g,"\\'");
+      h+='<span class="tbl-pill"><b>'+dim+':</b> '+esc(lbl)+' <a onclick="tblRemoveFilter(\''+dim+'\',\''+safe+'\')">×</a></span>';
+    });
+  });
+  if(tblAnyFilter())h+='<a class="tbl-pill-clear" onclick="tblClearFilters()">Clear all</a>';
+  h+='</div>';
+  h+='<div class="tbl-count">'+filtered.length+' of '+all.length+' rows</div>';
+  h+='</div>';
+
+  const hdr=(k,l)=>{const a=_tblSort.key===k?(_tblSort.dir==='asc'?' ▲':' ▼'):'';return '<th class="tbl-hdr" onclick="tblSort(\''+k+'\')">'+l+a+'</th>';};
+  h+='<table class="tbl-main"><thead><tr>';
+  h+=hdr('name','Student Name');
+  h+=hdr('branch','Branch');
+  h+=hdr('teacher','Teacher');
+  h+=hdr('sessionType','Session Type');
+  h+=hdr('day','Day');
+  h+=hdr('time','Time');
+  h+=hdr('spw','Sessions/wk');
+  h+=hdr('status','Status');
+  h+=hdr('scheduled','Scheduled');
+  h+='</tr></thead><tbody>';
+  filtered.forEach((r,idx)=>{
+    const rowCls=r.scheduled?'':' class="tbl-row-unsched"';
+    h+='<tr'+rowCls+' data-idx="'+idx+'">';
+    h+='<td class="tbl-name"><a onclick="openStudentProfile(\''+esc(r.sid)+'\')">'+esc(r.name)+'</a></td>';
+    h+='<td class="tbl-e" data-f="branch">'+tblSelectHtml(r.branch,branches)+'</td>';
+    h+='<td class="tbl-e" data-f="teacher">'+tblTeacherSelectHtml(r.teacher)+'</td>';
+    h+='<td class="tbl-e" data-f="sessionType">'+tblSelectHtml(r.sessionType,['1on1','group'],['1-on-1','Group'])+'</td>';
+    const dayIds=['',...DAYS];const dayLbls=['— unscheduled —',...DAYS];
+    h+='<td class="tbl-e" data-f="day">'+tblSelectHtml(r.day||'',dayIds,dayLbls)+'</td>';
+    const timeVal=r.timeMin!=null?tblMinToInput(r.timeMin):'';
+    h+='<td class="tbl-e" data-f="time"><input type="time" value="'+timeVal+'"'+(r.placement?'':' disabled')+'></td>';
+    h+='<td class="tbl-e" data-f="spw"><input type="number" min="1" max="7" value="'+r.spw+'"></td>';
+    h+='<td class="tbl-e" data-f="status">'+tblSelectHtml(r.status,statuses.map(s=>s.id),statuses.map(s=>s.l))+'</td>';
+    h+='<td class="tbl-sched">'+(r.scheduled?'<span class="tbl-yes">✓</span>':'<span class="tbl-no">✗</span>')+'</td>';
+    h+='</tr>';
+  });
+  if(filtered.length===0)h+='<tr><td colspan="9" class="tbl-empty">No rows match the current filters.</td></tr>';
+  h+='</tbody></table>';
+  host.innerHTML=h;
+  // Wire up edit events
+  host.querySelectorAll('tbody tr[data-idx]').forEach(tr=>{
+    const idx=+tr.dataset.idx;
+    tr.querySelectorAll('td.tbl-e').forEach(td=>{
+      const field=td.dataset.f;
+      const inp=td.querySelector('select,input');
+      if(!inp)return;
+      const ev=inp.tagName==='SELECT'?'change':'change';
+      inp.addEventListener(ev,()=>tblCommitEdit(idx,field,inp.value));
+      if(inp.tagName==='INPUT')inp.addEventListener('blur',()=>tblCommitEdit(idx,field,inp.value));
+    });
+  });
+}
+
+// ---- Edit commit: dispatch per field to student state or placement state ----
+function tblCommitEdit(idx,field,val){
+  const r=_tblLastRows[idx];if(!r)return;
+  const s=SS[r.sid];if(!s)return;
+  if(field==='branch'){s.br=val;}
+  else if(field==='teacher'){
+    s.t=val;
+    if(val&&!TEACHERS[val]){TEACHERS[val]={name:val,phone:'',branch:s.br||'Shuhada',days:{Sun:0,Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:6,active:1,note:''};}
+  }
+  else if(field==='sessionType'){
+    const old=s.sessionType||'1on1';
+    s.sessionType=val;
+    if(val!==old&&typeof rmFromSched==='function')rmFromSched(r.sid);
+  }
+  else if(field==='spw'){
+    const n=Math.max(1,Math.min(7,parseInt(val)||1));
+    s.sessionsPerWeek=n;
+  }
+  else if(field==='status'){
+    s.status=val;
+    s.statusChangedAt=new Date().toISOString();
+    if(val!=='active'&&typeof rmFromSched==='function')rmFromSched(r.sid);
+  }
+  else if(field==='day'){tblChangeDay(r,val);}
+  else if(field==='time'){tblChangeTime(r,val);}
+  // Persist and refresh all dependent views
+  saveState();
+  if(typeof renderSched==='function')renderSched();
+  if(typeof renderPool==='function')renderPool();
+  renderScheduleTable();
+}
+
+// ---- Move / create / remove a placement when Day changes ----
+function tblChangeDay(r,newDay){
+  const sid=r.sid;
+  // Remove existing placement if any (only that one, not all)
+  if(r.placement){
+    const p=r.placement;
+    const sl=SCHED[p.day]&&SCHED[p.day][p.cid]&&SCHED[p.day][p.cid][p.si];
+    if(sl){
+      if(sl.t==='s'&&sl.id===sid)SCHED[p.day][p.cid][p.si]=null;
+      else if((sl.t==='d'||sl.t==='g')&&Array.isArray(sl.ids)){
+        const rem=sl.ids.filter(x=>x!==sid);
+        if(rem.length===0)SCHED[p.day][p.cid][p.si]=null;
+        else if(rem.length===1&&sl.t==='d')SCHED[p.day][p.cid][p.si]={t:'s',id:rem[0]};
+        else{sl.ids=rem;if(sl.t==='d'&&typeof ddRecomputeMetrics==='function')ddRecomputeMetrics(sl);}
+      }
+    }
+  }
+  if(!newDay)return;  // moving to "— unscheduled —"
+  // Find an open slot on the target day in a car matching the student's branch
+  const s=SS[sid];
+  const br=(s&&s.br)||'';
+  const cars=(CARS||[]).slice();
+  // Prefer branch-matching cars, then any car
+  cars.sort((a,b)=>{
+    const am=(a.branch||'').split('/').indexOf(br)>=0?0:1;
+    const bm=(b.branch||'').split('/').indexOf(br)>=0?0:1;
+    return am-bm;
+  });
+  for(const car of cars){
+    if(!SCHED[newDay])SCHED[newDay]={};
+    if(!SCHED[newDay][car.id])SCHED[newDay][car.id]=Array(MAX_SL).fill(null);
+    const arr=SCHED[newDay][car.id];
+    for(let i=0;i<arr.length;i++){
+      if(arr[i]==null){arr[i]={t:'s',id:sid};return;}
+    }
+  }
+  // No open slot — append to the first car's array
+  if(cars.length){
+    const car=cars[0];
+    if(!SCHED[newDay][car.id])SCHED[newDay][car.id]=[];
+    SCHED[newDay][car.id].push({t:'s',id:sid});
+  }
+}
+
+// ---- Pin a slot to a specific start time by setting fixedStart ----
+function tblChangeTime(r,hhmm){
+  if(!r.placement||!hhmm)return;
+  const p=r.placement;
+  const sl=SCHED[p.day]&&SCHED[p.day][p.cid]&&SCHED[p.day][p.cid][p.si];
+  if(!sl)return;
+  const parts=hhmm.split(':');
+  if(parts.length!==2)return;
+  const mm=(parseInt(parts[0])||0)*60+(parseInt(parts[1])||0);
+  sl.fixedStart=mm;
+}
 </script>
 </body>
 </html>
