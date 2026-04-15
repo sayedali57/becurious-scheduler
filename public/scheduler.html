@@ -9315,6 +9315,8 @@ function migrateCases(){
     if(!c.enrollmentStatus)c.enrollmentStatus='enrolled';
     if(c.valueOffered)delete c.valueOffered; // no longer used
     if(!Array.isArray(c.log))c.log=[];
+    // Clean up old log entries that stored HTML entities as literal text
+    c.log.forEach(en=>{if(en&&typeof en.text==='string'&&en.text.indexOf('&rarr;')>-1)en.text=en.text.replace(/&rarr;/g,'→');});
     // Case-type renames (Section 2): cancel -> withdraw, incident -> teacher_concern
     if(c.type==='cancel')c.type='withdraw';
     if(c.type==='incident')c.type='teacher_concern';
@@ -9445,8 +9447,8 @@ function renderCsDashboard(){
 
   h+='<div style="display:flex;gap:10px;justify-content:center;padding:8px">';
   h+='<button class="pl-add-btn" style="background:#DC2626;font-size:12px;padding:8px 18px" onclick="openCsModal()">+ New Case</button>';
-  h+='<button class="pl-add-btn" style="background:#fff;color:var(--text);border:1px solid var(--border);font-size:12px;padding:8px 18px" onclick="switchCsView(\'kanban\')">Open Kanban &rarr;</button>';
-  h+='<button class="pl-add-btn" style="background:#fff;color:var(--text);border:1px solid var(--border);font-size:12px;padding:8px 18px" onclick="switchCsView(\'scripts\')">View Scripts &rarr;</button>';
+  h+='<button class="pl-add-btn" style="background:#fff;color:var(--text);border:1px solid var(--border);font-size:12px;padding:8px 18px" onclick="switchCsView(\'kanban\')">Open Kanban →</button>';
+  h+='<button class="pl-add-btn" style="background:#fff;color:var(--text);border:1px solid var(--border);font-size:12px;padding:8px 18px" onclick="switchCsView(\'scripts\')">View Scripts →</button>';
   h+='</div>';
 
   el.innerHTML=h;
@@ -9596,26 +9598,26 @@ function csGroupColumns(){
     return csBranches().map(b=>({
       id:b,label:b,
       match:c=>(c.branch||'')===b,
-      assign:(c,now)=>{c.branch=b;c.log.push({ts:now,type:'system',text:'Branch &rarr; '+b});}
+      assign:(c,now)=>{c.branch=b;c.log.push({ts:now,type:'system',text:'Branch → '+b});}
     }));
   }
   if(_csGroupBy==='segment'){
     return csSegments().map(s=>({
       id:s.id,label:s.label,
       match:c=>(c.segment||'')===s.id,
-      assign:(c,now)=>{c.segment=s.id;c.log.push({ts:now,type:'system',text:'Risk &rarr; '+s.label});}
+      assign:(c,now)=>{c.segment=s.id;c.log.push({ts:now,type:'system',text:'Risk → '+s.label});}
     }));
   }
   if(_csGroupBy==='assignedTo'){
     const cols=csEmployees().map(e=>({
       id:e,label:e,
       match:c=>(c.assignedTo||'').trim()===e,
-      assign:(c,now)=>{const old=c.assignedTo||'';c.assignedTo=e;c.log.push({ts:now,type:'system',text:'Assigned: '+(old||'(unassigned)')+' &rarr; '+e});}
+      assign:(c,now)=>{const old=c.assignedTo||'';c.assignedTo=e;c.log.push({ts:now,type:'system',text:'Assigned: '+(old||'(unassigned)')+' → '+e});}
     }));
     cols.push({
       id:'__unassigned__',label:'Unassigned',
       match:c=>!((c.assignedTo||'').trim()),
-      assign:(c,now)=>{const old=c.assignedTo||'';c.assignedTo='';c.log.push({ts:now,type:'system',text:'Assigned: '+(old||'(unassigned)')+' &rarr; (unassigned)'});}
+      assign:(c,now)=>{const old=c.assignedTo||'';c.assignedTo='';c.log.push({ts:now,type:'system',text:'Assigned: '+(old||'(unassigned)')+' → (unassigned)'});}
     });
     return cols;
   }
@@ -9712,7 +9714,7 @@ function csAssignCase(caseId,name){
   const old=(c.assignedTo||'').trim();
   c.assignedTo=name||'';
   c.updatedAt=now;
-  c.log.push({ts:now,type:'system',text:'Assigned: '+(old||'(unassigned)')+' &rarr; '+(name||'(unassigned)')});
+  c.log.push({ts:now,type:'system',text:'Assigned: '+(old||'(unassigned)')+' → '+(name||'(unassigned)')});
   csSaveCases();
   csCloseAssignPicker();
   renderCsKanban();
@@ -9740,7 +9742,7 @@ function csDrop(e,colId){
       c.log.push({ts:now,type:'system',text:'Resolved &middot; outcome: '+out});
     }else{
       if(wasResolved){c.status='Open';c.resolvedAt='';c.outcome='';}
-      c.log.push({ts:now,type:'system',text:'Stage &rarr; '+st.label});
+      c.log.push({ts:now,type:'system',text:'Stage → '+st.label});
     }
     c.stage=colId;
     c.updatedAt=now;
@@ -10267,7 +10269,7 @@ function renderCsScripts(){
   const el=document.getElementById('cs-scripts-outer');if(!el)return;
   let h='';
   h+='<div class="cs-dash-headline" style="background:linear-gradient(135deg,#FEF3CD 0%,#E1F5EE 100%);border-color:#FDE68A;color:#7C2D12">';
-  h+='<b>How to use these scripts:</b> Match the script to the parent segment first. Loyal &rarr; 4.1 only. Hesitant &rarr; teacher call 4.4 first, then 4.1. High-risk &rarr; leadership-only refund defense 4.2.';
+  h+='<b>How to use these scripts:</b> Match the script to the parent segment first. Loyal → 4.1 only. Hesitant → teacher call 4.4 first, then 4.1. High-risk → leadership-only refund defense 4.2.';
   h+='</div>';
 
   const cards=[
