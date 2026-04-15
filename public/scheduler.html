@@ -9670,6 +9670,8 @@ function csImportCsvDialog(){
 }
 function csParseCsv(text){
   // Minimal CSV parser supporting quoted fields, commas, and newlines.
+  // Strip UTF-8 BOM so the first header name (e.g. 'id') matches cleanly.
+  if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);
   const rows=[];let row=[];let cur='';let i=0;let inQ=false;
   while(i<text.length){
     const ch=text[i];
