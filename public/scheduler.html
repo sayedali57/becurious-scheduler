@@ -8443,6 +8443,16 @@ const CS_DEFAULT_SETTINGS={
     {id:4,label:'Leadership / Bashayer'}
   ],
   statuses:['Open','Awaiting reply','Awaiting payment','Escalated','Resolved'],
+  // Kanban stages — the axis of the Cases board. Order here = column order.
+  // Section 3 will let the user edit these from the Settings panel.
+  stages:[
+    {id:'new',label:'New',color:'#6B7280',bg:'#F3F4F6'},
+    {id:'contacted',label:'Contacted',color:'#1E40AF',bg:'#EFF6FF'},
+    {id:'negotiation',label:'In Negotiation',color:'#6D28D9',bg:'#F3E8FF'},
+    {id:'escalated',label:'Escalated',color:'#92400E',bg:'#FEF3CD'},
+    {id:'awaiting_parent',label:'Awaiting Parent',color:'#9A3412',bg:'#FFEDD5'},
+    {id:'resolved',label:'Resolved',color:'#065F46',bg:'#D1FAE5'}
+  ],
   outcomes:[
     {id:'paid',label:'Paid in full'},
     {id:'partial',label:'Paid 50% - balance later'},
@@ -8468,6 +8478,14 @@ function csLevels(){return CASE_SETTINGS.levels||[];}
 function csStatuses(){return CASE_SETTINGS.statuses||[];}
 function csOutcomes(){return CASE_SETTINGS.outcomes||[];}
 function csComplaintReasons(){return CASE_SETTINGS.complaintReasons||[];}
+function csStages(){return CASE_SETTINGS.stages||[];}
+function csStage(id){return csStages().find(s=>s.id===id)||null;}
+// A case is "overdue" when it's parked in Awaiting Parent past its dueDate.
+function csIsOverdue(c){
+  if(!c||c.stage!=='awaiting_parent'||!c.dueDate)return false;
+  const d=new Date(c.dueDate);if(isNaN(d))return false;
+  return d.getTime()<Date.now();
+}
 
 // Payment + enrollment status (single source of truth, also added to Pipeline leads)
 const CS_PAYMENT_STATUSES=[
@@ -8495,6 +8513,7 @@ function newCase(o){
   const firstSeg=(csSegments()[0]||{}).id||'hesitant';
   const firstLvl=(csLevels()[0]||{}).id||1;
   const firstStatus=csStatuses()[0]||'Open';
+  const firstStage=(csStages()[0]||{}).id||'new';
   return Object.assign({
     id,
     parentFullName:'',
@@ -8504,6 +8523,7 @@ function newCase(o){
     type:firstType,
     segment:firstSeg,
     level:firstLvl,
+    stage:firstStage,
     status:firstStatus,
     paymentStatus:'unpaid',
     enrollmentStatus:'enrolled',
@@ -8533,6 +8553,7 @@ function updateCsTabBadge(){
 
 // Migrate legacy case records (familyName -> parentFullName, nextAction string -> nextActions[])
 function migrateCases(){
+  const stageIds=csStages().map(s=>s.id);
   Object.values(CASES||{}).forEach(c=>{
     if(c.familyName&&!c.parentFullName){c.parentFullName=c.familyName;delete c.familyName;}
     if(typeof c.nextAction==='string'){
@@ -8546,6 +8567,14 @@ function migrateCases(){
     if(!c.enrollmentStatus)c.enrollmentStatus='enrolled';
     if(c.valueOffered)delete c.valueOffered; // no longer used
     if(!Array.isArray(c.log))c.log=[];
+    // Stage migration (Section 1): derive c.stage from existing status/level/log
+    // data if the case doesn't have one yet. Preserves all other data.
+    if(!c.stage||stageIds.indexOf(c.stage)<0){
+      if(c.status==='Resolved')c.stage='resolved';
+      else if(c.level===3||c.level===4)c.stage='escalated';
+      else if(!c.log||c.log.length===0)c.stage='new';
+      else c.stage='negotiation';
+    }
     // Heal log entries that were saved with raw HTML entities (&check; / &#10003;)
     // before we switched to a real Unicode checkmark — render those as the
     // actual character so the log reads cleanly.
@@ -8696,22 +8725,27 @@ function renderCsKanban(){
   h+='</div>';
 
   h+='<div class="pl-board">';
-  csLevels().forEach(lvl=>{
-    const list=all.filter(c=>!csIsResolved(c)&&c.level===lvl.id&&matches(c)).sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt));
-    h+='<div class="pl-col">';
-    h+='<div class="pl-col-hdr"><span class="pl-col-title"><span class="cs-lvl cs-lvl-'+lvl.id+'" style="margin-right:4px">L'+lvl.id+'</span>'+esc(lvl.label)+'</span><span class="pl-col-cnt">'+list.length+'</span></div>';
-    h+='<div class="pl-col-body" data-level="'+lvl.id+'" ondragover="csDragOver(event)" ondragleave="csDragLeave(event)" ondrop="csDrop(event,'+lvl.id+',\'\')">';
-    list.forEach(c=>{h+=renderCsCard(c);});
-    if(list.length===0)h+='<div style="text-align:center;color:var(--text3);font-size:9px;padding:14px 6px">No cases at this level</div>';
+  // Column axis is now STAGES, driven by CASE_SETTINGS.stages. Level (L1..L4)
+  // stays on the card as a badge and will become filterable in Section 2.
+  csStages().forEach(st=>{
+    const isResolvedCol=st.id==='resolved';
+    const list=all.filter(c=>{
+      if((c.stage||'')!==st.id)return false;
+      return matches(c);
+    }).sort((a,b)=>{
+      if(isResolvedCol)return new Date(b.resolvedAt||b.updatedAt)-new Date(a.resolvedAt||a.updatedAt);
+      return new Date(b.updatedAt)-new Date(a.updatedAt);
+    });
+    const colStyle=isResolvedCol?' style="background:#F9FAFB"':'';
+    const pillStyle=st.color&&st.bg?' style="background:'+st.bg+';color:'+st.color+'"':'';
+    h+='<div class="pl-col"'+colStyle+'>';
+    h+='<div class="pl-col-hdr"><span class="pl-col-title"><span class="cs-seg"'+pillStyle+'>'+esc(st.label)+'</span></span><span class="pl-col-cnt">'+list.length+'</span></div>';
+    h+='<div class="pl-col-body" data-stage="'+esc(st.id)+'" ondragover="csDragOver(event)" ondragleave="csDragLeave(event)" ondrop="csDrop(event,\''+esc(st.id)+'\')">';
+    const shown=isResolvedCol?list.slice(0,30):list;
+    shown.forEach(c=>{h+=renderCsCard(c);});
+    if(list.length===0)h+='<div style="text-align:center;color:var(--text3);font-size:9px;padding:14px 6px">Empty</div>';
     h+='</div></div>';
   });
-  const resolvedList=all.filter(c=>csIsResolved(c)&&matches(c)).sort((a,b)=>new Date(b.resolvedAt||b.updatedAt)-new Date(a.resolvedAt||a.updatedAt));
-  h+='<div class="pl-col" style="background:#F9FAFB">';
-  h+='<div class="pl-col-hdr"><span class="pl-col-title">&#10003; Resolved</span><span class="pl-col-cnt">'+resolvedList.length+'</span></div>';
-  h+='<div class="pl-col-body" data-level="resolved" ondragover="csDragOver(event)" ondragleave="csDragLeave(event)" ondrop="csDrop(event,0,\'resolved\')">';
-  resolvedList.slice(0,30).forEach(c=>{h+=renderCsCard(c);});
-  if(resolvedList.length===0)h+='<div style="text-align:center;color:var(--text3);font-size:9px;padding:14px 6px">Nothing resolved yet</div>';
-  h+='</div></div>';
   h+='</div>';
   el.innerHTML=h;
 }
@@ -8722,11 +8756,15 @@ function renderCsCard(c){
   const ps=CS_PAYMENT_STATUSES.find(p=>p.id===c.paymentStatus);
   const es=CS_ENROLLMENT_STATUSES.find(e=>e.id===c.enrollmentStatus);
   const stale=csIsStale(c);
+  const overdue=csIsOverdue(c);
   const days=csDaysSince(c.updatedAt);
   const lastLog=(c.log&&c.log.length)?c.log[c.log.length-1]:null;
   const openTodos=(c.nextActions||[]).filter(a=>!a.done).length;
-  let h='<div class="cs-card'+(stale?' stale':'')+'" draggable="true" ondragstart="csDragStart(event,\''+c.id+'\')" ondragend="csDragEnd(event)" onclick="openCsModal(\''+c.id+'\')">';
-  if(stale)h+='<span class="cs-card-stale">&#9888; '+days+'d</span>';
+  // Overdue cases (parked in Awaiting Parent past due date) reuse the stale
+  // red treatment so they surface immediately on the board.
+  let h='<div class="cs-card'+(stale||overdue?' stale':'')+'" draggable="true" ondragstart="csDragStart(event,\''+c.id+'\')" ondragend="csDragEnd(event)" onclick="openCsModal(\''+c.id+'\')">';
+  if(overdue)h+='<span class="cs-card-stale">&#9201; overdue</span>';
+  else if(stale)h+='<span class="cs-card-stale">&#9888; '+days+'d</span>';
   h+='<div class="cs-card-name">'+esc(c.parentFullName||'Unnamed')+(c.childName?' <span style="color:var(--text3);font-weight:500">&middot; '+esc(c.childName)+'</span>':'')+'</div>';
   if(c.amountKwd)h+='<div class="cs-card-amount">'+Math.round(c.amountKwd)+' KWD</div>';
   h+='<div class="cs-card-meta">';
@@ -8760,23 +8798,25 @@ function csDragStart(e,id){_csDragId=id;e.dataTransfer.effectAllowed='move';e.ta
 function csDragEnd(e){_csDragId=null;e.target.classList.remove('dragging');document.querySelectorAll('.pl-col-body.drag-over').forEach(el=>el.classList.remove('drag-over'));}
 function csDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';e.currentTarget.classList.add('drag-over');}
 function csDragLeave(e){e.currentTarget.classList.remove('drag-over');}
-function csDrop(e,newLevel,specialCol){
+function csDrop(e,stageId){
   e.preventDefault();e.currentTarget.classList.remove('drag-over');
   if(!_csDragId||!CASES[_csDragId])return;
   const c=CASES[_csDragId];const now=new Date().toISOString();
-  if(specialCol==='resolved'){
-    if(csIsResolved(c))return;
+  if(!stageId||c.stage===stageId)return;
+  const st=csStage(stageId);if(!st)return;
+  const wasResolved=csIsResolved(c);
+  if(stageId==='resolved'){
     const out=prompt('Outcome ('+csOutcomes().map(o=>o.id).join(' / ')+'):',(csOutcomes()[0]||{}).id||'paid');
     if(!out)return;
     if(!csOutcomes().find(o=>o.id===out)){alert('Invalid outcome.');return;}
     c.outcome=out;c.status='Resolved';c.resolvedAt=now;
     c.log.push({ts:now,type:'system',text:'Resolved &middot; outcome: '+out});
   }else{
-    if(c.level===newLevel)return;
-    const lvl=csLevels().find(l=>l.id===newLevel);
-    c.log.push({ts:now,type:'system',text:'Escalated -> L'+newLevel+' '+(lvl?lvl.label:'')});
-    c.level=newLevel;
+    // Moving OUT of resolved reopens the case.
+    if(wasResolved){c.status='Open';c.resolvedAt='';c.outcome='';}
+    c.log.push({ts:now,type:'system',text:'Stage &rarr; '+st.label});
   }
+  c.stage=stageId;
   c.updatedAt=now;
   csSaveCases();renderCsKanban();
 }
@@ -9061,6 +9101,9 @@ function csSaveCase(caseId,isNew){
   existing.updatedAt=now;
   if(existing.status==='Resolved'&&!existing.resolvedAt)existing.resolvedAt=now;
   if(existing.status!=='Resolved')existing.resolvedAt='';
+  // Keep stage in sync with Resolved status edits from the modal.
+  if(existing.status==='Resolved')existing.stage='resolved';
+  else if(existing.stage==='resolved')existing.stage='negotiation';
   if(oldLevel!==existing.level)existing.log.push({ts:now,type:'system',text:'Level: L'+oldLevel+' -> L'+existing.level});
   if(oldStatus!==existing.status)existing.log.push({ts:now,type:'system',text:'Status: '+oldStatus+' -> '+existing.status});
   if(oldPay!==existing.paymentStatus)existing.log.push({ts:now,type:'system',text:'Payment: '+oldPay+' -> '+existing.paymentStatus});
@@ -9083,6 +9126,7 @@ function csQuickResolve(caseId){
   if(!csOutcomes().find(o=>o.id===out)){alert('Invalid outcome.');return;}
   const now=new Date().toISOString();
   c.outcome=out;c.status='Resolved';c.resolvedAt=now;c.updatedAt=now;
+  c.stage='resolved';
   c.log.push({ts:now,type:'system',text:'Resolved &middot; outcome: '+out});
   csSaveCases();openCsModal(caseId);
 }
@@ -9095,6 +9139,8 @@ function csQuickEscalate(caseId){
   const lvl=csLevels().find(l=>l.id===newL);
   c.log.push({ts:now,type:'system',text:'Escalated -> L'+newL+' '+(lvl?lvl.label:'')});
   c.level=newL;c.updatedAt=now;
+  // Crossing into L3/L4 also moves the Kanban stage to Escalated.
+  if(newL>=3&&csStage('escalated'))c.stage='escalated';
   csSaveCases();openCsModal(caseId);
 }
 function csAddLogEntry(caseId){
@@ -9371,6 +9417,7 @@ function csImportCsvText(text){
     if(get('segment'))existing.segment=get('segment');
     if(get('level'))existing.level=parseInt(get('level'),10)||existing.level;
     if(get('status'))existing.status=get('status');
+    if(get('stage')&&csStage(get('stage')))existing.stage=get('stage');
     if(get('paymentStatus'))existing.paymentStatus=get('paymentStatus');
     if(get('enrollmentStatus'))existing.enrollmentStatus=get('enrollmentStatus');
     if(get('amountKwd'))existing.amountKwd=parseFloat(get('amountKwd'))||0;
