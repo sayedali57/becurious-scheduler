@@ -473,6 +473,38 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 .cs-card .cs-card-meta{display:flex;align-items:center;gap:5px;margin-top:5px;flex-wrap:wrap}
 .cs-card .cs-card-foot{display:flex;align-items:center;gap:6px;margin-top:5px;font-size:9px;color:var(--text3)}
 .cs-card .cs-card-stale{position:absolute;top:4px;right:6px;font-size:8px;font-weight:700;color:#DC2626;background:#FEE2E2;border-radius:4px;padding:1px 5px}
+/* Card bottom row: avatar + assignee name + status/age */
+.cs-card .cs-card-bottom{display:flex;align-items:center;gap:6px;margin-top:6px;padding-top:5px;border-top:1px dashed var(--border)}
+.cs-card .cs-card-assignee{font-size:10px;color:var(--text2);font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cs-card .cs-card-foot-r{font-size:9px;color:var(--text3);margin-left:auto;display:flex;align-items:center;white-space:nowrap}
+.cs-card-avatar{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;cursor:pointer;flex-shrink:0;user-select:none;transition:transform .1s}
+.cs-card-avatar:hover{transform:scale(1.1)}
+.cs-card-avatar.empty{background:transparent;color:#9CA3AF;border:1px dashed #D1D5DB;font-size:13px;font-weight:400}
+/* Type badges — new ids for withdraw / teacher_concern; keep legacy for
+   any un-migrated cases that still hold the old ids. */
+.cs-type-withdraw{background:#FEF3CD;color:#92400E}
+.cs-type-teacher_concern{background:#EDE9FE;color:#5B21B6}
+/* Assignment popover */
+.cs-assign-pop{position:absolute;z-index:5000;background:#fff;border:1px solid var(--border);border-radius:8px;padding:4px;box-shadow:0 6px 24px rgba(0,0,0,.12);min-width:180px;max-height:320px;overflow-y:auto;display:none}
+.cs-assign-pop .cs-assign-opt{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;cursor:pointer;font-size:11px;color:var(--text)}
+.cs-assign-pop .cs-assign-opt:hover{background:var(--bg2)}
+.cs-assign-pop .cs-assign-opt.active{background:#FEE2E2;color:#991B1B;font-weight:600}
+.cs-assign-pop .cs-assign-clear{color:#6B7280;font-size:10px}
+.cs-assign-pop .cs-assign-sep{height:1px;background:var(--border);margin:3px 0}
+.cs-assign-pop .cs-assign-empty{padding:10px;font-size:10px;color:var(--text3);text-align:center}
+/* Group By */
+.cs-groupby{display:inline-flex;align-items:center;gap:6px;font-size:10px;color:var(--text2);margin-right:4px}
+.cs-groupby select{font-size:10px;padding:3px 18px 3px 6px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer}
+/* Filter bar */
+.cs-filter-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 10px;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2}
+.cs-filter-sel{font-size:10px;padding:3px 18px 3px 6px;border:1px solid var(--border);border-radius:5px;background:var(--bg2);cursor:pointer;color:var(--text2)}
+.cs-filter-sel:hover{background:#F3F4F6}
+.cs-filter-pills{display:inline-flex;gap:4px;flex-wrap:wrap;align-items:center}
+.cs-filter-pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 4px 2px 8px;background:#DC2626;color:#fff;border-radius:12px;font-weight:600}
+.cs-filter-pill .cs-fp-dim{opacity:.75;font-weight:500}
+.cs-filter-pill button{background:rgba(255,255,255,.25);color:#fff;border:none;border-radius:50%;width:14px;height:14px;line-height:1;cursor:pointer;font-size:11px;padding:0;margin-left:2px}
+.cs-filter-pill button:hover{background:rgba(255,255,255,.5)}
+.cs-filter-clear{font-size:10px;color:#DC2626;text-decoration:underline;margin-left:auto;cursor:pointer}
 /* Modal — reuse pl-modal classes; this just expands width slightly */
 .cs-modal{width:620px}
 /* Scripts */
@@ -8425,10 +8457,10 @@ function plImportCsvText(text){
 // live in CASE_SETTINGS so the user can add/remove options from the Settings panel.
 const CS_DEFAULT_SETTINGS={
   types:[
-    {id:'refund',label:'Refund Request'},
-    {id:'cancel',label:'Cancellation'},
-    {id:'incident',label:'Incident'},
+    {id:'withdraw',label:'Withdraw'},
+    {id:'refund',label:'Refund'},
     {id:'complaint',label:'Complaint'},
+    {id:'teacher_concern',label:'Teacher Concern'},
     {id:'other',label:'Other'}
   ],
   segments:[
@@ -8436,6 +8468,8 @@ const CS_DEFAULT_SETTINGS={
     {id:'hesitant',label:'Hesitant'},
     {id:'highrisk',label:'High-risk'}
   ],
+  branches:['Salam','Shuhada','Salwa','Surrah'],
+  employees:[],
   levels:[
     {id:1,label:'Teacher'},
     {id:2,label:'Customer Service'},
@@ -8480,6 +8514,25 @@ function csOutcomes(){return CASE_SETTINGS.outcomes||[];}
 function csComplaintReasons(){return CASE_SETTINGS.complaintReasons||[];}
 function csStages(){return CASE_SETTINGS.stages||[];}
 function csStage(id){return csStages().find(s=>s.id===id)||null;}
+function csBranches(){return CASE_SETTINGS.branches||[];}
+function csEmployees(){return CASE_SETTINGS.employees||[];}
+// Initials for the card avatar — up to 2 letters from the name.
+function csInitials(name){
+  if(!name)return '';
+  return name.trim().split(/\s+/).slice(0,2).map(s=>(s[0]||'').toUpperCase()).join('');
+}
+// Deterministic color per assignee so the avatar is recognisable at a glance.
+function csAvatarColor(name){
+  if(!name)return {bg:'#F3F4F6',fg:'#9CA3AF'};
+  const palette=[
+    {bg:'#DBEAFE',fg:'#1E40AF'},{bg:'#D1FAE5',fg:'#065F46'},
+    {bg:'#FEF3CD',fg:'#92400E'},{bg:'#EDE9FE',fg:'#5B21B6'},
+    {bg:'#FEE2E2',fg:'#991B1B'},{bg:'#FFEDD5',fg:'#9A3412'},
+    {bg:'#CFFAFE',fg:'#155E75'},{bg:'#FCE7F3',fg:'#9D174D'}
+  ];
+  let h=0;for(let i=0;i<name.length;i++)h=(h*31+name.charCodeAt(i))>>>0;
+  return palette[h%palette.length];
+}
 // A case is "overdue" when it's parked in Awaiting Parent past its dueDate.
 function csIsOverdue(c){
   if(!c||c.stage!=='awaiting_parent'||!c.dueDate)return false;
@@ -8504,7 +8557,29 @@ let CASES={};
 let _csView='kanban';
 let _csDragId=null;
 let _csSearch='';
-let _csFilter='all';
+// Section 2: structured multi-select filters. Each key is an array of active
+// values; empty = no constraint on that dimension. Dimensions compound (AND).
+let _csFilters={status:[],risk:[],payment:[],type:[],branch:[],assignedTo:[]};
+let _csGroupBy='stage'; // stage | assignedTo | branch | segment
+// Filter mutation helpers — each re-renders the Kanban.
+function csAddFilter(dim,val){
+  if(!val||!_csFilters[dim])return;
+  if(_csFilters[dim].indexOf(val)<0)_csFilters[dim].push(val);
+  renderCsKanban();
+}
+function csRemoveFilter(dim,val){
+  if(!_csFilters[dim])return;
+  _csFilters[dim]=_csFilters[dim].filter(v=>v!==val);
+  renderCsKanban();
+}
+function csClearAllFilters(){
+  Object.keys(_csFilters).forEach(k=>{_csFilters[k]=[];});
+  renderCsKanban();
+}
+function csAnyFilterActive(){
+  return Object.keys(_csFilters).some(k=>_csFilters[k].length>0);
+}
+function csSetGroupBy(val){_csGroupBy=val;renderCsKanban();}
 
 function csId(){return 'case_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);}
 function newCase(o){
@@ -8567,6 +8642,9 @@ function migrateCases(){
     if(!c.enrollmentStatus)c.enrollmentStatus='enrolled';
     if(c.valueOffered)delete c.valueOffered; // no longer used
     if(!Array.isArray(c.log))c.log=[];
+    // Case-type renames (Section 2): cancel -> withdraw, incident -> teacher_concern
+    if(c.type==='cancel')c.type='withdraw';
+    if(c.type==='incident')c.type='teacher_concern';
     // Stage migration (Section 1, v2): derive c.stage from every available
     // signal — status, payment, enrollment, level, log, notes. Re-evaluate
     // cases previously forced to 'new' by the v1 rule if they carry any
@@ -8709,30 +8787,44 @@ function renderCsKanban(){
   const open=all.filter(c=>!csIsResolved(c)).length;
   const stale=all.filter(csIsStale).length;
 
+  // Compound filter — every dimension AND'd; within a dimension, values OR'd.
   const matches=c=>{
     if(_csSearch){
       const q=_csSearch.toLowerCase();
       if(!(c.parentFullName||'').toLowerCase().includes(q)&&!(c.childName||'').toLowerCase().includes(q)&&!(c.notes||'').toLowerCase().includes(q))return false;
     }
-    if(_csFilter==='open'&&csIsResolved(c))return false;
-    if(_csFilter==='resolved'&&!csIsResolved(c))return false;
-    if(_csFilter==='stale'&&!csIsStale(c))return false;
-    if(_csFilter==='highrisk'&&c.segment!=='highrisk')return false;
-    if(_csFilter==='unpaid'&&c.paymentStatus==='paid')return false;
-    if(_csFilter==='withdraw'&&c.enrollmentStatus!=='withdraw_request'&&c.enrollmentStatus!=='withdrew')return false;
+    const F=_csFilters;
+    if(F.status.length){
+      const ok=F.status.some(s=>s==='open'?!csIsResolved(c):s==='stale'?csIsStale(c):s==='resolved'?csIsResolved(c):false);
+      if(!ok)return false;
+    }
+    if(F.risk.length&&F.risk.indexOf(c.segment)<0)return false;
+    if(F.payment.length&&F.payment.indexOf(c.paymentStatus)<0)return false;
+    if(F.type.length&&F.type.indexOf(c.type)<0)return false;
+    if(F.branch.length&&F.branch.indexOf(c.branch)<0)return false;
+    if(F.assignedTo.length){
+      const a=(c.assignedTo||'').trim()||'__unassigned__';
+      if(F.assignedTo.indexOf(a)<0)return false;
+    }
     return true;
   };
+  const visible=all.filter(matches);
+  const visibleCount=visible.length;
 
+  // ---- TOOLBAR (row 1) ----
   let h='<div class="pl-toolbar">';
   h+='<span class="pl-title" style="color:#DC2626">&#128737;&#65039; Cases</span>';
-  h+='<span class="pl-stat">Total: <b>'+total+'</b></span>';
+  h+='<span class="pl-stat">Showing: <b>'+visibleCount+'</b> / '+total+'</span>';
   h+='<span class="pl-stat">Open: <b>'+open+'</b></span>';
   if(stale>0)h+='<span class="pl-stat" style="color:#DC2626;border-color:#FCA5A5">Stale: <b style="color:#DC2626">'+stale+'</b></span>';
   h+='<div style="flex:1"></div>';
-  ['all','open','stale','highrisk','unpaid','withdraw','resolved'].forEach(f=>{
-    const lbl={all:'All',open:'Open',stale:'Stale',highrisk:'High-risk',unpaid:'Unpaid',withdraw:'Withdraw',resolved:'Resolved'}[f];
-    h+='<button class="ctx-btn" style="padding:4px 10px;font-size:10px;'+(_csFilter===f?'background:#DC2626;color:#fff;border-color:#DC2626':'')+'" onclick="_csFilter=\''+f+'\';renderCsKanban()">'+lbl+'</button>';
+  // Group By selector — drives the column axis
+  h+='<label class="cs-groupby"><span>Group by</span><select onchange="csSetGroupBy(this.value)">';
+  ['stage','assignedTo','branch','segment'].forEach(g=>{
+    const lbl={stage:'Stage',assignedTo:'Assigned To',branch:'Branch',segment:'Segment'}[g];
+    h+='<option value="'+g+'"'+(_csGroupBy===g?' selected':'')+'>'+lbl+'</option>';
   });
+  h+='</select></label>';
   h+='<input class="pl-search" placeholder="Search cases..." value="'+esc(_csSearch)+'" oninput="_csSearch=this.value;renderCsKanban()">';
   h+='<button class="ctx-btn" onclick="csOpenSettings()" title="Manage case lookups"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</button>';
   h+='<button class="ctx-btn" onclick="csExportCsv()" title="Export cases to CSV">&darr; Export</button>';
@@ -8740,30 +8832,106 @@ function renderCsKanban(){
   h+='<button class="pl-add-btn" style="background:#DC2626" onclick="openCsModal()">+ New Case</button>';
   h+='</div>';
 
+  // ---- FILTER BAR (row 2) ----
+  h+='<div class="cs-filter-bar">';
+  const dims=[
+    {k:'status',lbl:'Status',opts:[{v:'open',l:'Open'},{v:'stale',l:'Stale'},{v:'resolved',l:'Resolved'}]},
+    {k:'risk',lbl:'Risk',opts:csSegments().map(s=>({v:s.id,l:s.label}))},
+    {k:'payment',lbl:'Payment',opts:CS_PAYMENT_STATUSES.map(p=>({v:p.id,l:p.label}))},
+    {k:'type',lbl:'Case Type',opts:csTypes().map(t=>({v:t.id,l:t.label}))},
+    {k:'branch',lbl:'Branch',opts:csBranches().map(b=>({v:b,l:b}))},
+    {k:'assignedTo',lbl:'Assigned To',opts:csEmployees().map(e=>({v:e,l:e})).concat([{v:'__unassigned__',l:'(Unassigned)'}])}
+  ];
+  dims.forEach(d=>{
+    h+='<select class="cs-filter-sel" onchange="csAddFilter(\''+d.k+'\',this.value);this.value=\'\'">';
+    h+='<option value="" disabled selected>+ '+d.lbl+'</option>';
+    d.opts.forEach(o=>{
+      if(_csFilters[d.k].indexOf(o.v)>=0)return; // hide already-active values
+      h+='<option value="'+esc(o.v)+'">'+esc(o.l)+'</option>';
+    });
+    h+='</select>';
+  });
+  // Active pills
+  h+='<div class="cs-filter-pills">';
+  const dimLabels={status:'Status',risk:'Risk',payment:'Payment',type:'Type',branch:'Branch',assignedTo:'Assigned'};
+  const lookupLabel=(dim,v)=>{
+    if(dim==='status')return ({open:'Open',stale:'Stale',resolved:'Resolved'})[v]||v;
+    if(dim==='risk'){const s=csSegments().find(x=>x.id===v);return s?s.label:v;}
+    if(dim==='payment'){const p=CS_PAYMENT_STATUSES.find(x=>x.id===v);return p?p.label:v;}
+    if(dim==='type'){const t=csTypes().find(x=>x.id===v);return t?t.label:v;}
+    if(dim==='assignedTo'&&v==='__unassigned__')return 'Unassigned';
+    return v;
+  };
+  Object.keys(_csFilters).forEach(dim=>{
+    _csFilters[dim].forEach(v=>{
+      h+='<span class="cs-filter-pill"><span class="cs-fp-dim">'+dimLabels[dim]+':</span> '+esc(lookupLabel(dim,v))+' <button onclick="csRemoveFilter(\''+dim+'\',\''+esc(v)+'\')" title="remove">&times;</button></span>';
+    });
+  });
+  h+='</div>';
+  if(csAnyFilterActive())h+='<a href="#" class="cs-filter-clear" onclick="event.preventDefault();csClearAllFilters()">Clear all</a>';
+  h+='</div>';
+
+  // ---- COLUMNS ----
   h+='<div class="pl-board">';
-  // Column axis is now STAGES, driven by CASE_SETTINGS.stages. Level (L1..L4)
-  // stays on the card as a badge and will become filterable in Section 2.
-  csStages().forEach(st=>{
-    const isResolvedCol=st.id==='resolved';
-    const list=all.filter(c=>{
-      if((c.stage||'')!==st.id)return false;
-      return matches(c);
-    }).sort((a,b)=>{
-      if(isResolvedCol)return new Date(b.resolvedAt||b.updatedAt)-new Date(a.resolvedAt||a.updatedAt);
+  const cols=csGroupColumns();
+  cols.forEach(col=>{
+    const list=visible.filter(col.match).sort((a,b)=>{
+      if(col.id==='resolved')return new Date(b.resolvedAt||b.updatedAt)-new Date(a.resolvedAt||a.updatedAt);
       return new Date(b.updatedAt)-new Date(a.updatedAt);
     });
-    const colStyle=isResolvedCol?' style="background:#F9FAFB"':'';
-    const pillStyle=st.color&&st.bg?' style="background:'+st.bg+';color:'+st.color+'"':'';
+    const colStyle=col.id==='resolved'?' style="background:#F9FAFB"':'';
+    const pillStyle=col.color&&col.bg?' style="background:'+col.bg+';color:'+col.color+'"':'';
     h+='<div class="pl-col"'+colStyle+'>';
-    h+='<div class="pl-col-hdr"><span class="pl-col-title"><span class="cs-seg"'+pillStyle+'>'+esc(st.label)+'</span></span><span class="pl-col-cnt">'+list.length+'</span></div>';
-    h+='<div class="pl-col-body" data-stage="'+esc(st.id)+'" ondragover="csDragOver(event)" ondragleave="csDragLeave(event)" ondrop="csDrop(event,\''+esc(st.id)+'\')">';
-    const shown=isResolvedCol?list.slice(0,30):list;
+    h+='<div class="pl-col-hdr"><span class="pl-col-title"><span class="cs-seg"'+pillStyle+'>'+esc(col.label)+'</span></span><span class="pl-col-cnt">'+list.length+'</span></div>';
+    h+='<div class="pl-col-body" ondragover="csDragOver(event)" ondragleave="csDragLeave(event)" ondrop="csDrop(event,\''+esc(col.id)+'\')">';
+    const shown=col.id==='resolved'?list.slice(0,30):list;
     shown.forEach(c=>{h+=renderCsCard(c);});
     if(list.length===0)h+='<div style="text-align:center;color:var(--text3);font-size:9px;padding:14px 6px">Empty</div>';
     h+='</div></div>';
   });
   h+='</div>';
   el.innerHTML=h;
+}
+
+// Column descriptor per active Group By axis. Each column carries:
+//   id, label, match(case)->bool, and an optional mutator that csDrop uses
+//   to reassign the grouped field when a card is dropped into it.
+function csGroupColumns(){
+  if(_csGroupBy==='stage'){
+    return csStages().map(s=>({
+      id:s.id,label:s.label,color:s.color,bg:s.bg,
+      match:c=>(c.stage||'')===s.id,
+      assign:(c,now)=>{c.stage=s.id;}
+    }));
+  }
+  if(_csGroupBy==='branch'){
+    return csBranches().map(b=>({
+      id:b,label:b,
+      match:c=>(c.branch||'')===b,
+      assign:(c,now)=>{c.branch=b;c.log.push({ts:now,type:'system',text:'Branch &rarr; '+b});}
+    }));
+  }
+  if(_csGroupBy==='segment'){
+    return csSegments().map(s=>({
+      id:s.id,label:s.label,
+      match:c=>(c.segment||'')===s.id,
+      assign:(c,now)=>{c.segment=s.id;c.log.push({ts:now,type:'system',text:'Risk &rarr; '+s.label});}
+    }));
+  }
+  if(_csGroupBy==='assignedTo'){
+    const cols=csEmployees().map(e=>({
+      id:e,label:e,
+      match:c=>(c.assignedTo||'').trim()===e,
+      assign:(c,now)=>{const old=c.assignedTo||'';c.assignedTo=e;c.log.push({ts:now,type:'system',text:'Assigned: '+(old||'(unassigned)')+' &rarr; '+e});}
+    }));
+    cols.push({
+      id:'__unassigned__',label:'Unassigned',
+      match:c=>!((c.assignedTo||'').trim()),
+      assign:(c,now)=>{const old=c.assignedTo||'';c.assignedTo='';c.log.push({ts:now,type:'system',text:'Assigned: '+(old||'(unassigned)')+' &rarr; (unassigned)'});}
+    });
+    return cols;
+  }
+  return [];
 }
 
 function renderCsCard(c){
@@ -8783,8 +8951,6 @@ function renderCsCard(c){
   else if(stale)h+='<span class="cs-card-stale">&#9888; '+days+'d</span>';
   h+='<div class="cs-card-name">'+esc(c.parentFullName||'Unnamed')+(c.childName?' <span style="color:var(--text3);font-weight:500">&middot; '+esc(c.childName)+'</span>':'')+'</div>';
   if(c.amountKwd)h+='<div class="cs-card-amount">'+Math.round(c.amountKwd)+' KWD</div>';
-  // Assigned owner (blank = show nothing, never "Unassigned")
-  if(c.assignedTo&&c.assignedTo.trim())h+='<div class="cs-card-assignee" style="font-size:10px;color:var(--text3);margin-top:2px">&#128100; '+esc(c.assignedTo.trim())+'</div>';
   h+='<div class="cs-card-meta">';
   if(seg)h+='<span class="cs-seg cs-seg-'+c.segment+'">'+esc(seg.label)+'</span>';
   if(tp)h+='<span class="cs-type cs-type-'+c.type+'">'+esc(tp.label)+'</span>';
@@ -8805,36 +8971,100 @@ function renderCsCard(c){
     }
     h+='</div>';
   }
-  h+='<div class="cs-card-foot">';
-  h+='<span>'+esc(c.status)+'</span>';
-  h+='<span style="margin-left:auto">'+days+'d</span>';
+  // Avatar row (bottom-left): assigned employee avatar + name, or muted "+"
+  // when unassigned. Clicking the avatar opens the assignment popover.
+  const assignedName=(c.assignedTo||'').trim();
+  const init=csInitials(assignedName);
+  const col=csAvatarColor(assignedName);
+  h+='<div class="cs-card-bottom">';
+  if(assignedName){
+    h+='<span class="cs-card-avatar" style="background:'+col.bg+';color:'+col.fg+'" onclick="event.stopPropagation();csOpenAssignPicker(event,\''+c.id+'\')" title="Reassign">'+esc(init||'?')+'</span>';
+    h+='<span class="cs-card-assignee">'+esc(assignedName)+'</span>';
+  }else{
+    h+='<span class="cs-card-avatar empty" onclick="event.stopPropagation();csOpenAssignPicker(event,\''+c.id+'\')" title="Assign">+</span>';
+  }
+  h+='<div class="cs-card-foot-r"><span>'+esc(c.status)+'</span><span style="margin-left:6px">'+days+'d</span></div>';
   h+='</div></div>';
   return h;
+}
+
+// ---- Assignment picker popover ----
+let _csAssignPopCaseId='';
+function csOpenAssignPicker(ev,caseId){
+  ev.stopPropagation();
+  const c=CASES[caseId];if(!c)return;
+  _csAssignPopCaseId=caseId;
+  let pop=document.getElementById('cs-assign-pop');
+  if(!pop){pop=document.createElement('div');pop.id='cs-assign-pop';pop.className='cs-assign-pop';document.body.appendChild(pop);}
+  const emps=csEmployees();
+  let html='';
+  if(emps.length===0){
+    html='<div class="cs-assign-empty">No employees yet. Add them in Settings.</div>';
+  }else{
+    emps.forEach(e=>{
+      const cur=(c.assignedTo||'').trim()===e;
+      const col=csAvatarColor(e);
+      html+='<div class="cs-assign-opt'+(cur?' active':'')+'" onclick="csAssignCase(\''+caseId+'\',\''+esc(e).replace(/\\/g,"\\\\").replace(/\x27/g,"\\\x27")+'\')"><span class="cs-card-avatar" style="background:'+col.bg+';color:'+col.fg+'">'+esc(csInitials(e)||'?')+'</span><span>'+esc(e)+'</span></div>';
+    });
+    html+='<div class="cs-assign-sep"></div>';
+    html+='<div class="cs-assign-opt cs-assign-clear" onclick="csAssignCase(\''+caseId+'\',\'\')">&times; Unassign</div>';
+  }
+  pop.innerHTML=html;
+  const r=ev.currentTarget.getBoundingClientRect();
+  pop.style.left=(r.left)+'px';
+  pop.style.top=(r.bottom+window.scrollY+4)+'px';
+  pop.style.display='block';
+  // Close on next outside click
+  setTimeout(()=>{document.addEventListener('click',csCloseAssignPicker,{once:true});},0);
+}
+function csCloseAssignPicker(){const p=document.getElementById('cs-assign-pop');if(p)p.style.display='none';_csAssignPopCaseId='';}
+function csAssignCase(caseId,name){
+  const c=CASES[caseId];if(!c){csCloseAssignPicker();return;}
+  const now=new Date().toISOString();
+  const old=(c.assignedTo||'').trim();
+  c.assignedTo=name||'';
+  c.updatedAt=now;
+  c.log.push({ts:now,type:'system',text:'Assigned: '+(old||'(unassigned)')+' &rarr; '+(name||'(unassigned)')});
+  csSaveCases();
+  csCloseAssignPicker();
+  renderCsKanban();
 }
 
 function csDragStart(e,id){_csDragId=id;e.dataTransfer.effectAllowed='move';e.target.classList.add('dragging');}
 function csDragEnd(e){_csDragId=null;e.target.classList.remove('dragging');document.querySelectorAll('.pl-col-body.drag-over').forEach(el=>el.classList.remove('drag-over'));}
 function csDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';e.currentTarget.classList.add('drag-over');}
 function csDragLeave(e){e.currentTarget.classList.remove('drag-over');}
-function csDrop(e,stageId){
+function csDrop(e,colId){
   e.preventDefault();e.currentTarget.classList.remove('drag-over');
   if(!_csDragId||!CASES[_csDragId])return;
   const c=CASES[_csDragId];const now=new Date().toISOString();
-  if(!stageId||c.stage===stageId)return;
-  const st=csStage(stageId);if(!st)return;
-  const wasResolved=csIsResolved(c);
-  if(stageId==='resolved'){
-    const out=prompt('Outcome ('+csOutcomes().map(o=>o.id).join(' / ')+'):',(csOutcomes()[0]||{}).id||'paid');
-    if(!out)return;
-    if(!csOutcomes().find(o=>o.id===out)){alert('Invalid outcome.');return;}
-    c.outcome=out;c.status='Resolved';c.resolvedAt=now;
-    c.log.push({ts:now,type:'system',text:'Resolved &middot; outcome: '+out});
-  }else{
-    // Moving OUT of resolved reopens the case.
-    if(wasResolved){c.status='Open';c.resolvedAt='';c.outcome='';}
-    c.log.push({ts:now,type:'system',text:'Stage &rarr; '+st.label});
+  if(!colId)return;
+  // Stage axis — preserve the resolve/reopen flow and log wording.
+  if(_csGroupBy==='stage'){
+    if(c.stage===colId)return;
+    const st=csStage(colId);if(!st)return;
+    const wasResolved=csIsResolved(c);
+    if(colId==='resolved'){
+      const out=prompt('Outcome ('+csOutcomes().map(o=>o.id).join(' / ')+'):',(csOutcomes()[0]||{}).id||'paid');
+      if(!out)return;
+      if(!csOutcomes().find(o=>o.id===out)){alert('Invalid outcome.');return;}
+      c.outcome=out;c.status='Resolved';c.resolvedAt=now;
+      c.log.push({ts:now,type:'system',text:'Resolved &middot; outcome: '+out});
+    }else{
+      if(wasResolved){c.status='Open';c.resolvedAt='';c.outcome='';}
+      c.log.push({ts:now,type:'system',text:'Stage &rarr; '+st.label});
+    }
+    c.stage=colId;
+    c.updatedAt=now;
+    csSaveCases();renderCsKanban();
+    return;
   }
-  c.stage=stageId;
+  // Any other axis — delegate to the column's assign mutator.
+  const cols=csGroupColumns();
+  const col=cols.find(x=>x.id===colId);if(!col)return;
+  // Idempotence: don't log if it's already in this column.
+  if(col.match(c))return;
+  col.assign(c,now);
   c.updatedAt=now;
   csSaveCases();renderCsKanban();
 }
@@ -8868,7 +9098,7 @@ function openCsModal(caseId){
   b+='<div class="cs2-field"><label>Child Name <span class="cs2-hint">(if not linked)</span></label><input id="cs-f-child" value="'+esc(c.childName||'')+'" placeholder="Free text name"></div>';
   b+='</div>';
   b+='<div class="cs2-row cols-2">';
-  b+='<div class="cs2-field"><label>Branch</label><select id="cs-f-branch"><option'+(c.branch==='Salam'?' selected':'')+'>Salam</option><option'+(c.branch==='Shuhada'?' selected':'')+'>Shuhada</option><option'+(c.branch==='Salwa'?' selected':'')+'>Salwa</option></select></div>';
+  b+='<div class="cs2-field"><label>Branch</label><select id="cs-f-branch">'+csBranches().map(br=>'<option'+(c.branch===br?' selected':'')+'>'+esc(br)+'</option>').join('')+'</select></div>';
   b+='<div></div></div>';
   b+='</div>';
 
@@ -8906,7 +9136,7 @@ function openCsModal(caseId){
   b+='<div class="cs2-section-hdr">Ownership</div>';
   b+='<div class="cs2-row cols-3">';
   b+='<div class="cs2-field"><label>Due Date</label><input id="cs-f-due" type="date" value="'+(c.dueDate||'')+'"></div>';
-  b+='<div class="cs2-field"><label>Assigned To</label><input id="cs-f-assigned" value="'+esc(c.assignedTo||'')+'" placeholder="Who is on this"></div>';
+  b+='<div class="cs2-field"><label>Assigned To</label><select id="cs-f-assigned"><option value=""'+(!c.assignedTo?' selected':'')+'>— Unassigned —</option>'+csEmployees().map(e=>'<option value="'+esc(e)+'"'+(c.assignedTo===e?' selected':'')+'>'+esc(e)+'</option>').join('')+'</select></div>';
   b+='<div class="cs2-field"><label>Outcome <span class="cs2-hint">(if resolved)</span></label><select id="cs-f-outcome"><option value="">Select…</option>'+csOutcomes().map(o=>'<option value="'+o.id+'"'+(c.outcome===o.id?' selected':'')+'>'+esc(o.label)+'</option>').join('')+'</select></div>';
   b+='</div>';
   b+='</div>';
@@ -9301,8 +9531,10 @@ function renderCsSettingsBody(){
   h+='<div style="font-size:11px;color:var(--text2);margin-bottom:10px">Add or remove options for any case dropdown. Existing cases that use a deleted option keep their value (the option just disappears from the picker for new cases).</div>';
   const sections=[
     {key:'types',title:'Case Types',hasId:true},
-    {key:'segments',title:'Payment Segments',hasId:true},
+    {key:'segments',title:'Risk Segments',hasId:true},
     {key:'levels',title:'Escalation Levels (1-N hierarchy)',hasId:true,numeric:true},
+    {key:'branches',title:'Branches',hasId:false},
+    {key:'employees',title:'Employees (Assigned To list)',hasId:false},
     {key:'statuses',title:'Statuses',hasId:false},
     {key:'outcomes',title:'Outcomes',hasId:true},
     {key:'complaintReasons',title:'Reasons of Complaint (multi-select)',hasId:false}
@@ -9340,7 +9572,7 @@ function csAddSettingItem(key,numeric){
   if(numeric){
     const nextId=(list.reduce((m,x)=>Math.max(m,x.id||0),0)||0)+1;
     list.push({id:nextId,label:lbl});
-  }else if(typeof list[0]==='string'||list.length===0&&(key==='statuses'||key==='complaintReasons')){
+  }else if(typeof list[0]==='string'||list.length===0&&(key==='statuses'||key==='complaintReasons'||key==='branches'||key==='employees')){
     list.push(lbl);
   }else{
     const id=lbl.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'')||('opt_'+Date.now());
