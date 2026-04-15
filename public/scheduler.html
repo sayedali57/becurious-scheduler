@@ -5597,14 +5597,14 @@ function switchTheme(theme){
   // Toggle theme panels
   document.querySelectorAll('.theme-panel').forEach(p=>p.classList.toggle('active',p.id==='theme-'+theme));
   // Render appropriate view — both pipeline and cases default to kanban
+  // Route through switchPlView/switchCsView so the outer-div display state
+  // gets set correctly (otherwise kanban-outer stays display:none from CSS
+  // and the board looks empty until you toggle views manually).
   if(theme==='pl'){
-    if(_plView==='dashboard')renderPlDashboard();
-    else renderPipeline();
+    switchPlView(_plView||'kanban');
   }
   if(theme==='cs'){
-    if(_csView==='dashboard')renderCsDashboard();
-    else if(_csView==='kanban')renderCsKanban();
-    else if(_csView==='scripts')renderCsScripts();
+    switchCsView(_csView||'kanban');
   }
 }
 
