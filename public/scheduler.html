@@ -440,8 +440,14 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 /* ===== CASES (Retention & Refund Defense) ===== */
 [data-active-theme="cs"]{--accent:#DC2626;--accent-lt:#FEE2E2;--accent-dk:#991B1B}
 .cs-topbar{background:#fff;color:var(--text);padding:5px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;border-bottom:1px solid var(--border)}
-#cs-dashboard-outer,#cs-kanban-outer,#cs-scripts-outer{overflow-y:auto;flex:1;padding:14px;background:var(--bg)}
-#cs-dashboard-outer,#cs-scripts-outer{display:none}
+#cs-dashboard-outer,#cs-kanban-outer,#cs-scripts-outer,#cs-table-outer{overflow-y:auto;flex:1;padding:14px;background:var(--bg)}
+#cs-dashboard-outer,#cs-scripts-outer,#cs-table-outer{display:none}
+#cs-table-outer table{width:100%;border-collapse:collapse;font-size:11px;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+#cs-table-outer th{padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;background:var(--bg);position:sticky;top:0;z-index:1;cursor:pointer}
+#cs-table-outer td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+#cs-table-outer td input,#cs-table-outer td select{border:1px solid transparent;background:transparent;padding:3px 5px;border-radius:4px;font:inherit;width:100%;outline:none}
+#cs-table-outer td input:focus,#cs-table-outer td select:focus{border-color:var(--purple);background:#fff}
+#cs-table-outer tr:hover td{background:#FAFAFA}
 /* Dashboard cards reuse pl-dash classes for visual consistency */
 .cs-dash-headline{padding:14px 16px;background:linear-gradient(135deg,#FEE2E2 0%,#FEF3CD 100%);border:1px solid #FCA5A5;border-radius:10px;margin-bottom:12px;font-size:11px;line-height:1.6;color:#7F1D1D}
 .cs-dash-headline b{color:#991B1B}
@@ -962,11 +968,13 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
     <div class="sub-tabs">
       <button class="sub-tab" id="vt-cs-dash" onclick="switchCsView('dashboard')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Dashboard</button>
       <button class="sub-tab active" id="vt-cs-kanban" onclick="switchCsView('kanban')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v11"/><path d="M12 5v6"/><path d="M18 5v14"/></svg>Kanban</button>
+      <button class="sub-tab" id="vt-cs-table" onclick="switchCsView('table')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>Table</button>
       <button class="sub-tab" id="vt-cs-scripts" onclick="switchCsView('scripts')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>Scripts</button>
     </div>
   </div>
   <div id="cs-dashboard-outer"></div>
   <div id="cs-kanban-outer"></div>
+  <div id="cs-table-outer"></div>
   <div id="cs-scripts-outer"></div>
 </div>
 
@@ -1135,10 +1143,16 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
         <button onclick="closeStudentsModal()" style="padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:transparent;font-size:11px;cursor:pointer">Close</button>
       </div>
     </div>
+    <div id="st-bulk-bar" style="display:none;align-items:center;gap:10px;padding:8px 18px;background:#FEF3C7;border-bottom:1px solid #F59E0B;flex-shrink:0">
+      <b id="st-bulk-count" style="font-size:11px;color:#92400E">0 selected</b>
+      <button onclick="bulkDeleteStudents()" style="padding:5px 13px;border-radius:6px;background:#b42318;color:#fff;border:none;font-size:11px;font-weight:600;cursor:pointer">🗑 Delete selected</button>
+      <button onclick="selectAllStudents(false);document.getElementById('st-hdr-chk').checked=false" style="padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:#fff;font-size:11px;cursor:pointer">Clear selection</button>
+    </div>
     <div style="overflow:auto;flex:1">
       <table id="students-table" style="width:100%;border-collapse:collapse;font-size:11px">
         <thead>
           <tr style="background:var(--bg);position:sticky;top:0;z-index:2">
+            <th style="padding:8px 6px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);width:28px"><input id="st-hdr-chk" type="checkbox" onclick="selectAllStudents(this.checked)" title="Select all visible"></th>
             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="sortStudents('n')" title="Primary operational name — used in schedule and roster">Student Name (EN) ⇅</th>
             <th style="padding:8px 10px;text-align:right;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="sortStudents('nameAr')" title="Child's name in Arabic">Name (AR) ⇅</th>
             <th style="padding:8px 10px;text-align:right;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="sortStudents('parentNameAr')" title="Parent / family name in Arabic — bridge to the Cases retention sheet">Parent (AR) ⇅</th>
@@ -1223,6 +1237,11 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
       <button onclick="addTeacherRow()" style="margin-left:auto;padding:5px 13px;border-radius:6px;background:var(--purple);color:#fff;border:none;font-size:11px;font-weight:600;cursor:pointer">+ Add teacher</button>
       <button onclick="closeTeachersModal()" style="padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:transparent;font-size:11px;cursor:pointer">Close</button>
     </div>
+    <div id="tchr-bulk-bar" style="display:none;align-items:center;gap:10px;padding:8px 18px;background:#FEF3C7;border-bottom:1px solid #F59E0B;flex-shrink:0">
+      <b id="tchr-bulk-count" style="font-size:11px;color:#92400E">0 selected</b>
+      <button onclick="bulkDeleteTeachers()" style="padding:5px 13px;border-radius:6px;background:#b42318;color:#fff;border:none;font-size:11px;font-weight:600;cursor:pointer">🗑 Delete selected</button>
+      <button onclick="selectAllTeachers(false);document.getElementById('tchr-hdr-chk').checked=false" style="padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:#fff;font-size:11px;cursor:pointer">Clear selection</button>
+    </div>
     <div style="overflow:auto;flex:1">
       <table id="teachers-table" style="width:100%;border-collapse:collapse;font-size:11px">
         <thead id="teachers-thead"></thead>
@@ -1232,6 +1251,25 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
     <div style="padding:8px 18px;border-top:1px solid var(--border);font-size:10px;color:var(--text3);flex-shrink:0">
       <span id="tchr-count"></span> · Click any cell to edit · Changes save automatically
     </div>
+  </div>
+</div>
+
+<!-- DUPLICATE AUDIT MODAL — find duplicates / similar names -->
+<div class="modal" id="dupmodal" style="display:none;align-items:flex-start;padding:20px">
+  <div style="background:#fff;border-radius:12px;width:100%;max-width:1100px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.2)">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <div>
+        <div style="font-size:15px;font-weight:700">🔍 Data audit — find duplicates &amp; similar names</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:1px">Review groups of suspiciously similar records. For each group you can edit, delete, or keep individual items.</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button onclick="switchDupTab('students')" id="dup-tab-students" class="dup-tab" style="padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:#fff;font-size:11px;font-weight:600;cursor:pointer">Students</button>
+        <button onclick="switchDupTab('cases')" id="dup-tab-cases" class="dup-tab" style="padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:#fff;font-size:11px;font-weight:600;cursor:pointer">Cases</button>
+        <button onclick="switchDupTab('teachers')" id="dup-tab-teachers" class="dup-tab" style="padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:#fff;font-size:11px;font-weight:600;cursor:pointer">Teachers</button>
+        <button onclick="closeDupModal()" style="padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;font-size:11px;cursor:pointer">Close</button>
+      </div>
+    </div>
+    <div id="dup-body" style="flex:1;overflow:auto;padding:14px 18px;background:var(--bg)"></div>
   </div>
 </div>
 
@@ -1592,6 +1630,12 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
       <div class="frow"><label>Auto-schedule PIN <span style="color:var(--text3);font-weight:400">(optional)</span></label><input id="set-autoPin" type="text" maxlength="12" autocomplete="off" placeholder="leave empty for no PIN"><small class="set-help">When set, anyone pressing <b>Auto-schedule</b> must type this PIN before the week is rebuilt. Prevents accidental clicks from wiping the schedule. Leave blank to disable.</small></div>
     </div>
 
+    <div class="set-section">
+      <div class="set-section-title">🔍 Data audit</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:8px">Scan Students, Cases, and Teachers for duplicates or suspiciously similar names. Review each group and decide what to edit, delete, or keep.</div>
+      <button type="button" class="btn" onclick="closeSettingsModal();openDupModal()">🔍 Open data audit</button>
+    </div>
+
     <div class="set-section" style="border:1px solid #f3b4b4;background:#fff5f5">
       <div class="set-section-title" style="color:#b42318">⚠ Danger zone — mass delete</div>
       <div style="font-size:11px;color:#b42318;margin-bottom:8px">Each button wipes that dataset permanently. You'll be asked for the team password before anything is deleted.</div>
@@ -1830,6 +1874,221 @@ async function checkPasswordGate(){
   }
   document.body.innerHTML='<div style="padding:40px;text-align:center;font-family:system-ui;color:#666">Too many failed attempts.</div>';
   return false;
+}
+
+// Password gate used by any destructive bulk action. Returns true iff the
+// user confirmed AND supplied the correct team password. `label` is shown
+// in both prompts so they know exactly what they are authorizing.
+async function confirmPasswordFor(label){
+  if(!confirm('This will permanently delete '+label+'.\n\nThis cannot be undone. Continue?'))return false;
+  const pw=prompt('🔒 Confirm with team password to delete '+label+':');
+  if(pw==null)return false;
+  const h=await _sha256hex(pw.trim());
+  if(h!==PW_HASH){alert('Wrong password. Nothing was deleted.');return false;}
+  return true;
+}
+
+// ===== BULK-SELECT STATE =====
+// Three independent selection sets so the user can select rows in one
+// table without clearing selection in another.
+const _selStudents=new Set();
+const _selTeachers=new Set();
+const _selCases=new Set();
+function toggleSelStudent(id,on){if(on)_selStudents.add(id);else _selStudents.delete(id);updateStudentsBulkBar();}
+function toggleSelTeacher(name,on){if(on)_selTeachers.add(name);else _selTeachers.delete(name);updateTeachersBulkBar();}
+function toggleSelCase(id,on){if(on)_selCases.add(id);else _selCases.delete(id);updateCasesBulkBar();}
+function selectAllStudents(on){
+  _selStudents.clear();
+  if(on)document.querySelectorAll('#students-tbody input.bulk-chk[data-sid]').forEach(cb=>{cb.checked=true;_selStudents.add(cb.dataset.sid);});
+  else document.querySelectorAll('#students-tbody input.bulk-chk[data-sid]').forEach(cb=>{cb.checked=false;});
+  updateStudentsBulkBar();
+}
+function selectAllTeachers(on){
+  _selTeachers.clear();
+  if(on)document.querySelectorAll('#teachers-tbody input.bulk-chk[data-tname]').forEach(cb=>{cb.checked=true;_selTeachers.add(cb.dataset.tname);});
+  else document.querySelectorAll('#teachers-tbody input.bulk-chk[data-tname]').forEach(cb=>{cb.checked=false;});
+  updateTeachersBulkBar();
+}
+function selectAllCases(on){
+  _selCases.clear();
+  if(on)document.querySelectorAll('#cs-table-outer input.bulk-chk[data-cid]').forEach(cb=>{cb.checked=true;_selCases.add(cb.dataset.cid);});
+  else document.querySelectorAll('#cs-table-outer input.bulk-chk[data-cid]').forEach(cb=>{cb.checked=false;});
+  updateCasesBulkBar();
+}
+function updateStudentsBulkBar(){const el=document.getElementById('st-bulk-bar');if(!el)return;const n=_selStudents.size;el.style.display=n?'flex':'none';const c=document.getElementById('st-bulk-count');if(c)c.textContent=n+' selected';}
+function updateTeachersBulkBar(){const el=document.getElementById('tchr-bulk-bar');if(!el)return;const n=_selTeachers.size;el.style.display=n?'flex':'none';const c=document.getElementById('tchr-bulk-count');if(c)c.textContent=n+' selected';}
+function updateCasesBulkBar(){const el=document.getElementById('cs-bulk-bar');if(!el)return;const n=_selCases.size;el.style.display=n?'flex':'none';const c=document.getElementById('cs-bulk-count');if(c)c.textContent=n+' selected';}
+
+async function bulkDeleteStudents(){
+  const ids=[..._selStudents];if(!ids.length)return;
+  if(!await confirmPasswordFor(ids.length+' student'+(ids.length===1?'':'s')))return;
+  ids.forEach(id=>{
+    delete SS[id];
+    // strip them from the schedule too
+    Object.keys(SCHED).forEach(d=>{(SCHED[d]||[]).forEach(car=>{(car||[]).forEach((sl,i)=>{if(sl&&sl.t==='s'&&sl.id===id)car[i]=null;else if(sl&&(sl.t==='d'||sl.t==='g')&&Array.isArray(sl.ids)){sl.ids=sl.ids.filter(x=>x!==id);if(!sl.ids.length)car[i]=null;}});});});
+  });
+  _selStudents.clear();
+  saveState();renderStudentsTable();if(typeof renderPool==='function')renderPool();if(typeof renderSched==='function')renderSched();
+  toast(ids.length+' student'+(ids.length===1?'':'s')+' deleted');
+}
+async function bulkDeleteTeachers(){
+  const names=[..._selTeachers];if(!names.length)return;
+  if(!await confirmPasswordFor(names.length+' teacher'+(names.length===1?'':'s')))return;
+  names.forEach(name=>{
+    Object.values(SS).forEach(s=>{if(s.t===name)s.t='';});
+    _deletedTeachers.add(name);
+    delete TEACHERS[name];
+  });
+  _selTeachers.clear();
+  saveState();renderTeachersTable();if(typeof renderPool==='function')renderPool();
+  toast(names.length+' teacher'+(names.length===1?'':'s')+' deleted');
+}
+async function bulkDeleteCases(){
+  const ids=[..._selCases];if(!ids.length)return;
+  if(!await confirmPasswordFor(ids.length+' case'+(ids.length===1?'':'s')))return;
+  ids.forEach(id=>{delete CASES[id];});
+  _selCases.clear();
+  if(typeof csSaveCases==='function')csSaveCases();
+  if(typeof renderCsTable==='function')renderCsTable();
+  if(typeof renderCsKanban==='function')renderCsKanban();
+  if(typeof updateCsTabBadge==='function')updateCsTabBadge();
+  toast(ids.length+' case'+(ids.length===1?'':'s')+' deleted');
+}
+
+// ===== DATA AUDIT =====
+// Find duplicates and near-duplicate names across Students, Cases, Teachers.
+// Uses normalised names (lowercase, diacritics stripped, whitespace collapsed)
+// plus Levenshtein distance to cluster records that are probably the same
+// person typed slightly differently.
+let _dupTab='students';
+function _normName(s){
+  if(!s)return '';
+  return s.toString().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // strip Latin diacritics
+    .replace(/[\u064B-\u065F\u0670]/g,'')            // strip Arabic harakat
+    .replace(/[^\p{L}\p{N}\s]/gu,' ')
+    .replace(/\s+/g,' ').trim();
+}
+function _lev(a,b){
+  if(a===b)return 0;if(!a.length)return b.length;if(!b.length)return a.length;
+  const m=a.length,n=b.length;
+  if(Math.abs(m-n)>4)return 99; // early exit — far too different to care
+  const v0=new Array(n+1),v1=new Array(n+1);
+  for(let j=0;j<=n;j++)v0[j]=j;
+  for(let i=0;i<m;i++){
+    v1[0]=i+1;
+    for(let j=0;j<n;j++){
+      const cost=a[i]===b[j]?0:1;
+      v1[j+1]=Math.min(v1[j]+1,v0[j+1]+1,v0[j]+cost);
+    }
+    for(let j=0;j<=n;j++)v0[j]=v1[j];
+  }
+  return v0[n];
+}
+// Cluster records by normalised name. Records whose normalised names
+// match exactly form one cluster; then pairs with Levenshtein ≤ 2
+// (or where one is a prefix of the other, min length ≥ 4) get merged.
+function _clusterByName(records,nameFn){
+  // First pass: exact-match buckets
+  const byKey={};
+  records.forEach(r=>{const k=_normName(nameFn(r));if(!k)return;(byKey[k]=byKey[k]||[]).push(r);});
+  const keys=Object.keys(byKey);
+  // Second pass: link near-matching keys
+  const parent={};keys.forEach(k=>parent[k]=k);
+  const find=k=>{while(parent[k]!==k)k=parent[k]=parent[parent[k]];return k;};
+  const union=(a,b)=>{a=find(a);b=find(b);if(a!==b)parent[a]=b;};
+  for(let i=0;i<keys.length;i++)for(let j=i+1;j<keys.length;j++){
+    const a=keys[i],b=keys[j];
+    if(Math.abs(a.length-b.length)>4)continue;
+    // Prefix heuristic: one is a prefix of the other and both ≥ 4 chars
+    if(a.length>=4&&b.length>=4&&(a.startsWith(b)||b.startsWith(a))){union(a,b);continue;}
+    if(_lev(a,b)<=2)union(a,b);
+  }
+  const clusters={};
+  keys.forEach(k=>{const r=find(k);(clusters[r]=clusters[r]||[]).push(...byKey[k]);});
+  return Object.values(clusters).filter(c=>c.length>=2)
+    .sort((a,b)=>b.length-a.length);
+}
+function openDupModal(){_dupTab='students';switchDupTab('students');document.getElementById('dupmodal').style.display='flex';}
+function closeDupModal(){document.getElementById('dupmodal').style.display='none';}
+function switchDupTab(tab){
+  _dupTab=tab;
+  ['students','cases','teachers'].forEach(t=>{const b=document.getElementById('dup-tab-'+t);if(b){b.style.background=t===tab?'var(--purple)':'#fff';b.style.color=t===tab?'#fff':'var(--text)';}});
+  renderDupAudit();
+}
+function renderDupAudit(){
+  const body=document.getElementById('dup-body');if(!body)return;
+  const E=esc;
+  let clusters=[],render='';
+  if(_dupTab==='students')clusters=_clusterByName(Object.values(SS),s=>s.n||s.nameAr||'');
+  else if(_dupTab==='teachers')clusters=_clusterByName(Object.keys(TEACHERS).map(n=>({name:n,...TEACHERS[n]})),t=>t.name);
+  else if(_dupTab==='cases')clusters=_clusterByName(Object.values(CASES),c=>(c.parentFullName||'')+' '+(c.childName||''));
+  if(!clusters.length){body.innerHTML=`<div style="padding:40px;text-align:center;color:var(--text3)"><div style="font-size:48px;margin-bottom:12px">✨</div><div style="font-size:13px;font-weight:600">No duplicates or similar names found in ${_dupTab}.</div><div style="font-size:11px;margin-top:6px">The data looks clean.</div></div>`;return;}
+  render+=`<div style="margin-bottom:10px;font-size:11px;color:var(--text2)"><b>${clusters.length}</b> suspicious group${clusters.length===1?'':'s'} found · ${clusters.reduce((s,c)=>s+c.length,0)} records total. Review each group, then pick which to keep, edit, or delete.</div>`;
+  clusters.forEach((cluster,gi)=>{
+    render+=`<div style="background:#fff;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden">`;
+    render+=`<div style="padding:8px 14px;background:#FEF3C7;border-bottom:1px solid #F59E0B;font-size:11px;font-weight:600;color:#92400E">Group ${gi+1} · ${cluster.length} similar records</div>`;
+    render+='<table style="width:100%;border-collapse:collapse;font-size:11px">';
+    cluster.forEach((r)=>{
+      if(_dupTab==='students'){
+        render+=`<tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:8px 12px"><b>${E(r.n||'')}</b>${r.nameAr?` · <span dir="rtl" style="font-family:'Segoe UI Arabic';color:#555">${E(r.nameAr)}</span>`:''}</td>
+          <td style="padding:8px 12px;color:var(--text3)">Parent: ${E(r.parentNameAr||r.parentNameEn||'—')}</td>
+          <td style="padding:8px 12px;color:var(--text3)">Teacher: ${E(r.t||'—')} · ${E(r.br||'—')}</td>
+          <td style="padding:8px 12px;color:var(--text3)">${E(r.parentPhone||'')}</td>
+          <td style="padding:8px 12px;text-align:right;white-space:nowrap">
+            <button onclick="openStudentProfile('${E(r.id)}');closeDupModal()" style="padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:#fff;font-size:10px;cursor:pointer;margin-right:4px">✏ Edit</button>
+            <button onclick="dupDeleteStudent('${E(r.id)}')" style="padding:3px 8px;border:1px solid #f3b4b4;background:#fee;color:#b42318;border-radius:4px;font-size:10px;cursor:pointer">🗑 Delete</button>
+          </td>
+        </tr>`;
+      }else if(_dupTab==='teachers'){
+        const sc=teacherStudentCount(r.name);
+        render+=`<tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:8px 12px"><b>${E(r.name)}</b></td>
+          <td style="padding:8px 12px;color:var(--text3)">${E(r.phone||'—')}</td>
+          <td style="padding:8px 12px;color:var(--text3)">${E(r.branch||'—')} · ${sc} student${sc===1?'':'s'}</td>
+          <td style="padding:8px 12px;text-align:right;white-space:nowrap">
+            <button onclick="showTeachersModal();closeDupModal()" style="padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:#fff;font-size:10px;cursor:pointer;margin-right:4px">✏ Edit</button>
+            <button onclick="dupDeleteTeacher('${E(r.name)}')" style="padding:3px 8px;border:1px solid #f3b4b4;background:#fee;color:#b42318;border-radius:4px;font-size:10px;cursor:pointer">🗑 Delete</button>
+          </td>
+        </tr>`;
+      }else if(_dupTab==='cases'){
+        render+=`<tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:8px 12px"><b>${E(r.parentFullName||'—')}</b></td>
+          <td style="padding:8px 12px;color:var(--text3)">Child: ${E(r.childName||'—')}</td>
+          <td style="padding:8px 12px;color:var(--text3)">${E(r.branch||'—')} · ${E(r.stage||'—')}</td>
+          <td style="padding:8px 12px;color:var(--text3)">${E(r.assignedTo||'—')}</td>
+          <td style="padding:8px 12px;text-align:right;white-space:nowrap">
+            <button onclick="openCsModal('${E(r.id)}');closeDupModal()" style="padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:#fff;font-size:10px;cursor:pointer;margin-right:4px">✏ Edit</button>
+            <button onclick="dupDeleteCase('${E(r.id)}')" style="padding:3px 8px;border:1px solid #f3b4b4;background:#fee;color:#b42318;border-radius:4px;font-size:10px;cursor:pointer">🗑 Delete</button>
+          </td>
+        </tr>`;
+      }
+    });
+    render+='</table></div>';
+  });
+  body.innerHTML=render;
+}
+async function dupDeleteStudent(id){
+  const s=SS[id];if(!s)return;
+  if(!await confirmPasswordFor('student "'+(s.n||id)+'"'))return;
+  delete SS[id];
+  Object.keys(SCHED).forEach(d=>{(SCHED[d]||[]).forEach(car=>{(car||[]).forEach((sl,i)=>{if(sl&&sl.t==='s'&&sl.id===id)car[i]=null;else if(sl&&(sl.t==='d'||sl.t==='g')&&Array.isArray(sl.ids)){sl.ids=sl.ids.filter(x=>x!==id);if(!sl.ids.length)car[i]=null;}});});});
+  saveState();renderDupAudit();if(typeof renderSched==='function')renderSched();if(typeof renderPool==='function')renderPool();
+}
+async function dupDeleteTeacher(name){
+  if(!TEACHERS[name])return;
+  if(!await confirmPasswordFor('teacher "'+name+'"'))return;
+  Object.values(SS).forEach(s=>{if(s.t===name)s.t='';});
+  _deletedTeachers.add(name);delete TEACHERS[name];
+  saveState();renderDupAudit();if(typeof renderPool==='function')renderPool();
+}
+async function dupDeleteCase(id){
+  if(!CASES[id])return;
+  if(!await confirmPasswordFor('case "'+(CASES[id].parentFullName||id)+'"'))return;
+  delete CASES[id];
+  if(typeof csSaveCases==='function')csSaveCases();
+  renderDupAudit();if(typeof renderCsKanban==='function')renderCsKanban();if(typeof updateCsTabBadge==='function')updateCsTabBadge();
 }
 
 // Mass-delete / reset helpers — password-gated. `what` is one of:
@@ -4380,6 +4639,7 @@ function renderStudentsTable(){
     const dotCol=sched===0?'#DC2626':sched>=total?'#3B6D11':'#D97706';
     const col=TC[s.t]||'#6A5FA8';
     return`<tr class="st-row" id="strow-${s.id}">
+      <td class="st-cell" style="text-align:center"><input type="checkbox" class="bulk-chk" data-sid="${s.id}" ${_selStudents.has(s.id)?'checked':''} onchange="toggleSelStudent('${s.id}',this.checked)"></td>
       <td class="st-cell"><input class="st-inp" value="${esc(s.n)}" onchange="patchStudent('${s.id}','n',this.value)" onkeydown="stNav(event,this)"></td>
       <td class="st-cell"><input class="st-inp" value="${esc(s.nameAr||'')}" dir="rtl" placeholder="اسم الطالب" onchange="patchStudent('${s.id}','nameAr',this.value)" onkeydown="stNav(event,this)" style="min-width:130px;text-align:right;font-family:'Segoe UI Arabic','Arial','Tahoma',sans-serif"></td>
       <td class="st-cell"><input class="st-inp" value="${esc(s.parentNameAr||'')}" dir="rtl" placeholder="اسم ولي الأمر" onchange="patchStudent('${s.id}','parentNameAr',this.value)" onkeydown="stNav(event,this)" style="min-width:140px;text-align:right;font-family:'Segoe UI Arabic','Arial','Tahoma',sans-serif"></td>
@@ -4418,6 +4678,9 @@ function renderStudentsTable(){
       <td class="st-cell" style="text-align:center"><button class="st-del" onclick="deleteStudent('${s.id}')" title="Delete student">&#10005;</button></td>
     </tr>`;
   }).join('');
+  updateStudentsBulkBar();
+  const hdr=document.getElementById('st-hdr-chk');
+  if(hdr){const vis=rows.length;const sel=rows.filter(s=>_selStudents.has(s.id)).length;hdr.checked=vis>0&&sel===vis;hdr.indeterminate=sel>0&&sel<vis;}
 }
 
 function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
@@ -6573,12 +6836,13 @@ function renderTeachersTable(){
   if(SETTINGS.thursdayActive!==0)dayCols.push('Thu');
   const th=v=>`<th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">${v}</th>`;
   const thL=v=>`<th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2)">${v}</th>`;
-  qs('teachers-thead').innerHTML=`<tr style="background:var(--bg);position:sticky;top:0;z-index:2">${thL('Name')}${thL('Phone')}${thL('Branch')}${dayCols.map(d=>th(d)).join('')}${th('<span title="Maximum sessions this teacher can do per day">Max/day</span>')}${th('Active')}${th('Students')}${th('')}</tr>`;
+  qs('teachers-thead').innerHTML=`<tr style="background:var(--bg);position:sticky;top:0;z-index:2"><th style="padding:8px 6px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);width:28px"><input id="tchr-hdr-chk" type="checkbox" onclick="selectAllTeachers(this.checked)" title="Select all"></th>${thL('Name')}${thL('Phone')}${thL('Branch')}${dayCols.map(d=>th(d)).join('')}${th('<span title="Maximum sessions this teacher can do per day">Max/day</span>')}${th('Active')}${th('Students')}${th('')}</tr>`;
   qs('teachers-tbody').innerHTML=names.map(name=>{
     const t=TEACHERS[name];const sc=teacherStudentCount(name);
     const col=TC[name]||'#6A5FA8';
     const dayChk=day=>`<td class="st-cell" style="text-align:center"><input type="checkbox" ${t.days?.[day]?'checked':''} onchange="patchTeacher('${esc(name)}','day','${day}',this.checked)"></td>`;
     return `<tr class="st-row" id="tchrrow-${esc(name)}">
+      <td class="st-cell" style="text-align:center"><input type="checkbox" class="bulk-chk" data-tname="${esc(name)}" ${_selTeachers.has(name)?'checked':''} onchange="toggleSelTeacher('${esc(name)}',this.checked)"></td>
       <td class="st-cell"><input class="st-inp" value="${esc(name)}" style="color:${col};font-weight:600" onchange="renameTeacher('${esc(name)}',this.value)"></td>
       <td class="st-cell"><input class="st-inp" value="${esc(t.phone)}" placeholder="96599…" onchange="patchTeacher('${esc(name)}','phone',null,this.value)"></td>
       <td class="st-cell">
@@ -6595,6 +6859,9 @@ function renderTeachersTable(){
       <td class="st-cell" style="text-align:center"><button class="st-del" onclick="deleteTeacher('${esc(name)}')" title="Remove teacher">&#10005;</button></td>
     </tr>`;
   }).join('');
+  updateTeachersBulkBar();
+  const hdr=document.getElementById('tchr-hdr-chk');
+  if(hdr){const vis=names.length;const sel=names.filter(n=>_selTeachers.has(n)).length;hdr.checked=vis>0&&sel===vis;hdr.indeterminate=sel>0&&sel<vis;}
 }
 function patchTeacher(name,field,sub,val){
   const t=TEACHERS[name];if(!t)return;
@@ -8788,7 +9055,7 @@ function migrateCases(){
 // ---- VIEW SWITCH ----
 function switchCsView(view){
   _csView=view;
-  ['dashboard','kanban','scripts'].forEach(v=>{
+  ['dashboard','kanban','table','scripts'].forEach(v=>{
     const btn=document.getElementById('vt-cs-'+(v==='dashboard'?'dash':v));
     if(btn)btn.classList.toggle('active',v===view);
     const out=document.getElementById('cs-'+(v==='dashboard'?'dashboard':v)+'-outer');
@@ -8796,6 +9063,7 @@ function switchCsView(view){
   });
   if(view==='dashboard')renderCsDashboard();
   else if(view==='kanban')renderCsKanban();
+  else if(view==='table')renderCsTable();
   else if(view==='scripts')renderCsScripts();
 }
 
@@ -9568,6 +9836,107 @@ const CS_SCRIPTS={
   '4.4':'[\u0646\u0635 \u0627\u062a\u0635\u0627\u0644 \u0627\u0644\u0645\u0639\u0644\u0645\u0629 - \u0644\u0644\u0639\u0627\u0626\u0644\u0627\u062a \u0627\u0644\u0645\u062a\u0631\u062f\u062f\u0629]\n\n"\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064a\u0643\u0645\u060c \u0623\u0646\u0627 [\u0627\u0633\u0645 \u0627\u0644\u0645\u0639\u0644\u0645\u0629]\u060c \u0645\u0639\u0644\u0645\u0629 [\u0627\u0633\u0645 \u0627\u0644\u0637\u0641\u0644] \u0641\u064a \u0628\u064a \u0643\u064a\u0648\u0631\u064a\u0648\u0633."\n\n"\u0627\u062a\u0635\u0644\u062a \u0644\u0623\u0646\u0646\u0627 \u0648\u0635\u0644\u0646\u0627 [\u0627\u0633\u0645 \u0627\u0644\u0637\u0641\u0644] \u0647\u0630\u0627 \u0627\u0644\u0623\u0633\u0628\u0648\u0639 \u062e\u0644\u0627\u0644 \u0627\u0644\u062c\u0644\u0633\u0629\u060c \u0648\u0643\u0627\u0646 \u064a\u0633\u062a\u0645\u062a\u0639 \u0643\u062b\u064a\u0631\u0627\u064b. \u0623\u0631\u062f\u062a \u0623\u0646 \u062a\u0637\u0645\u0626\u0646\u0648\u0627 \u0639\u0644\u064a\u0647."\n\n\u26a0 \u0627\u0644\u0645\u0639\u0644\u0645\u0629 \u0644\u0627 \u062a\u062a\u062d\u062f\u062b \u0639\u0646 \u0627\u0644\u0645\u0627\u0644 \u0623\u0628\u062f\u0627\u064b.',
   'bashayer':'\u0627\u0644\u0633\u0644\u0627\u0645 \u0639\u0644\u064a\u0643\u0645 \ud83e\udd0d\n\n\u0623\u0646\u0627 \u0628\u0634\u0627\u064a\u0631\u060c \u0645\u0624\u0633\u0633\u0629 \u0628\u064a \u0643\u064a\u0648\u0631\u064a\u0648\u0633.\n\n\u0642\u0631\u0631\u062a \u0634\u062e\u0635\u064a\u0627\u064b \u0623\u0646 \u0646\u0636\u064a\u0641 \u0644\u0643\u0644 \u0639\u0627\u0626\u0644\u0629 \u0641\u064a \u0628\u064a \u0643\u064a\u0648\u0631\u064a\u0648\u0633:\n\n\ud83c\udfe1 \u062c\u0644\u0633\u062a\u0627\u0646 \u0645\u062c\u0627\u0646\u064a\u062a\u0627\u0646 \u0641\u064a \u0627\u0644\u0645\u0646\u0632\u0644\n\n\u0628\u0634\u0627\u064a\u0631 \ud83c\udf3f'
 };
+
+// ---- CASES TABLE VIEW ----
+// Flat sortable/filterable table alternative to the Kanban. Same data store
+// (CASES), bulk select + delete, inline-edit on most columns.
+let _csTblSort={key:'updatedAt',dir:'desc'};
+let _csTblFilter={stage:'',branch:'',type:'',assignedTo:''};
+let _csTblSearch='';
+function csTblSetSort(k){if(_csTblSort.key===k)_csTblSort.dir=_csTblSort.dir==='asc'?'desc':'asc';else{_csTblSort.key=k;_csTblSort.dir='asc';}renderCsTable();}
+function csTblSetFilter(k,v){_csTblFilter[k]=v;renderCsTable();}
+function csTblSetSearch(v){_csTblSearch=(v||'').toLowerCase();renderCsTable();}
+function csTblClearFilters(){_csTblFilter={stage:'',branch:'',type:'',assignedTo:''};_csTblSearch='';const s=document.getElementById('cs-tbl-search');if(s)s.value='';renderCsTable();}
+function csTblPatch(id,field,val){
+  const c=CASES[id];if(!c)return;
+  if(field==='level'||field==='amountKwd')val=parseFloat(val)||0;
+  c[field]=val;c.updatedAt=new Date().toISOString();
+  if(typeof csSaveCases==='function')csSaveCases();
+  renderCsTable();
+  if(typeof renderCsKanban==='function')renderCsKanban();
+}
+function renderCsTable(){
+  const el=document.getElementById('cs-table-outer');if(!el)return;
+  const E=esc;
+  const stages=csStages(),types=csTypes(),segs=csSegments(),levels=csLevels(),statuses=csStatuses(),brs=csBranches(),emps=csEmployees();
+  const list=Object.values(CASES).filter(c=>{
+    if(_csTblFilter.stage&&c.stage!==_csTblFilter.stage)return false;
+    if(_csTblFilter.branch&&c.branch!==_csTblFilter.branch)return false;
+    if(_csTblFilter.type&&c.type!==_csTblFilter.type)return false;
+    if(_csTblFilter.assignedTo&&c.assignedTo!==_csTblFilter.assignedTo)return false;
+    if(_csTblSearch){
+      const hay=((c.parentFullName||'')+' '+(c.childName||'')+' '+(c.studentId||'')+' '+(c.notes||'')).toLowerCase();
+      if(!hay.includes(_csTblSearch))return false;
+    }
+    return true;
+  });
+  list.sort((a,b)=>{
+    const k=_csTblSort.key;let av=a[k]||'',bv=b[k]||'';
+    if(typeof av==='number'||typeof bv==='number'){av=+av||0;bv=+bv||0;}
+    else{av=av.toString().toLowerCase();bv=bv.toString().toLowerCase();}
+    return av<bv?(_csTblSort.dir==='asc'?-1:1):av>bv?(_csTblSort.dir==='asc'?1:-1):0;
+  });
+  const hasFilter=_csTblFilter.stage||_csTblFilter.branch||_csTblFilter.type||_csTblFilter.assignedTo||_csTblSearch;
+  const stageOptHtml=(cur)=>stages.map(s=>`<option value="${E(s.id)}"${cur===s.id?' selected':''}>${E(s.label)}</option>`).join('');
+  const sel=(opts,cur,field,id,extra='')=>`<select onchange="csTblPatch('${id}','${field}',this.value)" ${extra}>${opts.map(o=>`<option value="${E(o.id)}"${cur===o.id?' selected':''}>${E(o.label||o.id)}</option>`).join('')}</select>`;
+  const filterSelect=(label,key,opts)=>`<select onchange="csTblSetFilter('${key}',this.value)" style="padding:4px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px;background:#fff"><option value="">${E(label)}</option>${opts.map(o=>`<option value="${E(o.id||o)}"${_csTblFilter[key]===(o.id||o)?' selected':''}>${E(o.label||o.id||o)}</option>`).join('')}</select>`;
+  const headers=[
+    ['Parent','parentFullName'],['Child','childName'],['Branch','branch'],['Type','type'],
+    ['Stage','stage'],['Segment','segment'],['Level','level'],['Status','status'],
+    ['Payment','paymentStatus'],['Enrollment','enrollmentStatus'],['Amount (KWD)','amountKwd'],
+    ['Assigned','assignedTo'],['Due','dueDate'],['Updated','updatedAt']
+  ];
+  const arrow=k=>_csTblSort.key===k?(_csTblSort.dir==='asc'?' ↑':' ↓'):'';
+  let h='';
+  h+='<div style="display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:10px">';
+  h+=`<input id="cs-tbl-search" placeholder="Search name, notes, studentId..." oninput="csTblSetSearch(this.value)" value="${E(_csTblSearch)}" style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:11px;outline:none;min-width:240px">`;
+  h+=filterSelect('All stages','stage',stages);
+  h+=filterSelect('All branches','branch',brs.length?brs:[{id:'Shuhada',label:'Shuhada'},{id:'Salam',label:'Salam'},{id:'Salwa',label:'Salwa'}]);
+  h+=filterSelect('All types','type',types);
+  h+=filterSelect('Anyone','assignedTo',emps.map(e=>({id:e.name||e.id||e,label:e.name||e.id||e})));
+  if(hasFilter)h+=`<button onclick="csTblClearFilters()" style="padding:4px 10px;border:1px solid var(--border);border-radius:5px;font-size:11px;background:#fff;cursor:pointer">Clear filters</button>`;
+  h+=`<div style="margin-left:auto;font-size:11px;color:var(--text3)">${list.length} case${list.length===1?'':'s'}</div>`;
+  h+='</div>';
+  h+='<div id="cs-bulk-bar" style="display:none;align-items:center;gap:10px;padding:8px 14px;margin-bottom:8px;background:#FEF3C7;border:1px solid #F59E0B;border-radius:6px">';
+  h+='<b id="cs-bulk-count" style="font-size:11px;color:#92400E">0 selected</b>';
+  h+='<button onclick="bulkDeleteCases()" style="padding:5px 13px;border-radius:6px;background:#b42318;color:#fff;border:none;font-size:11px;font-weight:600;cursor:pointer">🗑 Delete selected</button>';
+  h+='<button onclick="selectAllCases(false);var hc=document.getElementById(\'cs-hdr-chk\');if(hc)hc.checked=false" style="padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:#fff;font-size:11px;cursor:pointer">Clear selection</button>';
+  h+='</div>';
+  h+='<div style="overflow:auto;max-height:calc(100vh - 260px);border:1px solid var(--border);border-radius:8px;background:#fff">';
+  h+='<table><thead><tr>';
+  h+='<th style="width:28px;text-align:center;cursor:default"><input id="cs-hdr-chk" type="checkbox" onclick="selectAllCases(this.checked)" title="Select all visible"></th>';
+  headers.forEach(([lbl,key])=>{h+=`<th onclick="csTblSetSort('${key}')">${E(lbl)}${arrow(key)}</th>`;});
+  h+='<th style="cursor:default">Actions</th>';
+  h+='</tr></thead><tbody>';
+  if(!list.length){h+=`<tr><td colspan="${headers.length+2}" style="padding:24px;text-align:center;color:var(--text3)">No cases match these filters.</td></tr>`;}
+  list.forEach(c=>{
+    const id=c.id;
+    const upd=c.updatedAt?new Date(c.updatedAt).toLocaleDateString():'';
+    h+=`<tr>`;
+    h+=`<td style="text-align:center"><input type="checkbox" class="bulk-chk" data-cid="${E(id)}" ${_selCases.has(id)?'checked':''} onchange="toggleSelCase('${E(id)}',this.checked)"></td>`;
+    h+=`<td><a href="#" onclick="openCsModal('${E(id)}');return false" style="color:var(--purple);font-weight:600;text-decoration:none">${E(c.parentFullName||'—')}</a></td>`;
+    h+=`<td><input value="${E(c.childName||'')}" onchange="csTblPatch('${E(id)}','childName',this.value)"></td>`;
+    h+=`<td>${sel((brs.length?brs:[{id:'Shuhada',label:'Shuhada'},{id:'Salam',label:'Salam'},{id:'Salwa',label:'Salwa'}]),c.branch,'branch',id)}</td>`;
+    h+=`<td>${sel(types,c.type,'type',id)}</td>`;
+    h+=`<td><select onchange="csTblPatch('${E(id)}','stage',this.value)">${stageOptHtml(c.stage)}</select></td>`;
+    h+=`<td>${sel(segs,c.segment,'segment',id)}</td>`;
+    h+=`<td>${sel(levels,c.level,'level',id)}</td>`;
+    h+=`<td>${sel(statuses,c.status,'status',id)}</td>`;
+    h+=`<td><select onchange="csTblPatch('${E(id)}','paymentStatus',this.value)"><option value=""${!c.paymentStatus?' selected':''}>—</option><option value="unpaid"${c.paymentStatus==='unpaid'?' selected':''}>Unpaid</option><option value="partial"${c.paymentStatus==='partial'?' selected':''}>Partial</option><option value="paid"${c.paymentStatus==='paid'?' selected':''}>Paid</option></select></td>`;
+    h+=`<td><select onchange="csTblPatch('${E(id)}','enrollmentStatus',this.value)"><option value=""${!c.enrollmentStatus?' selected':''}>—</option><option value="pending"${c.enrollmentStatus==='pending'?' selected':''}>Pending</option><option value="enrolled"${c.enrollmentStatus==='enrolled'?' selected':''}>Enrolled</option><option value="withdraw_request"${c.enrollmentStatus==='withdraw_request'?' selected':''}>Withdraw requested</option><option value="withdrew"${c.enrollmentStatus==='withdrew'?' selected':''}>Withdrew</option></select></td>`;
+    h+=`<td><input type="number" step="0.01" value="${c.amountKwd||''}" onchange="csTblPatch('${E(id)}','amountKwd',this.value)" style="width:80px"></td>`;
+    h+=`<td>${sel([{id:'',label:'—'},...emps.map(e=>({id:e.name||e.id||e,label:e.name||e.id||e}))],c.assignedTo||'','assignedTo',id)}</td>`;
+    h+=`<td><input type="date" value="${E(c.dueDate||'')}" onchange="csTblPatch('${E(id)}','dueDate',this.value)" style="width:120px"></td>`;
+    h+=`<td style="color:var(--text3);font-size:10px;white-space:nowrap">${E(upd)}</td>`;
+    h+=`<td style="white-space:nowrap"><button onclick="openCsModal('${E(id)}')" title="Open case" style="padding:3px 8px;border:1px solid var(--border);border-radius:4px;background:#fff;font-size:10px;cursor:pointer">Open</button></td>`;
+    h+=`</tr>`;
+  });
+  h+='</tbody></table></div>';
+  el.innerHTML=h;
+  updateCasesBulkBar();
+  const hdr=document.getElementById('cs-hdr-chk');
+  if(hdr){const nsel=list.filter(c=>_selCases.has(c.id)).length;hdr.checked=list.length>0&&nsel===list.length;hdr.indeterminate=nsel>0&&nsel<list.length;}
+}
 
 // ---- SCRIPTS PAGE ----
 function renderCsScripts(){
