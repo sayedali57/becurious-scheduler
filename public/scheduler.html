@@ -10328,6 +10328,12 @@ function csCloseSettings(){const o=document.getElementById('cs-settings-overlay'
 function renderCsSettingsBody(){
   let h='';
   h+='<div style="font-size:11px;color:var(--text2);margin-bottom:10px">Add or remove options for any case dropdown. Existing cases that use a deleted option keep their value (the option just disappears from the picker for new cases).</div>';
+  // Auto-tag panel — safe dry-run first, then explicit Apply
+  h+='<div style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:8px;padding:10px;margin-bottom:14px">';
+  h+='<div style="font-weight:700;color:#065F46;font-size:13px;margin-bottom:4px">🔍 Auto-tag Case Types</div>';
+  h+='<div style="font-size:11px;color:#065F46;margin-bottom:8px">Scans every case for withdrawal / refund / complaint / teacher-concern keywords in Notes + Log and sets <b>Case Type</b> accordingly. Only touches cases where type is still "Other". Never modifies complaintReasons, stage, or any other field. Dry-run shows you before/after counts before anything is saved.</div>';
+  h+='<button type="button" class="ctx-btn" onclick="csAutoTagDryRun()" style="background:#059669;color:#fff;border-color:#059669">Run dry-run</button>';
+  h+='</div>';
   const sections=[
     {key:'types',title:'Case Types',hasId:true},
     {key:'segments',title:'Risk Segments',hasId:true},
@@ -10392,6 +10398,111 @@ function csResetSettings(){
   CASE_SETTINGS=JSON.parse(JSON.stringify(CS_DEFAULT_SETTINGS));
   saveState();
   document.getElementById('cs-settings-body').innerHTML=renderCsSettingsBody();
+}
+
+// ===== Auto-tag Case Types (dry-run + apply) =====
+// Keyword patterns, matched against c.notes + c.log text. Order of keys in
+// CS_AUTOTAG_ORDER sets precedence: first match wins.
+const CS_AUTOTAG_KEYWORDS={
+  withdraw:[/انسحاب/,/ينسحب/,/نسحب/,/يطلب الانسحاب/,/قرر الانسحاب/,/withdraw/i,/withdrawal/i,/pulling out/i,/\bquit\b/i,/drop out/i,/leaving/i],
+  refund:[/استرداد/,/استرجاع/,/إعادة المبلغ/,/\brefund\b/i,/money back/i],
+  teacher_concern:[/شكوى من المعلم/,/شكوى من المعلمة/,/teacher concern/i,/teacher issue/i,/tutor problem/i,/المعلمة/,/المعلم/],
+  complaint:[/شكوى/,/شكاوى/,/غير راضي/,/\bcomplaint\b/i,/unhappy/i,/not satisfied/i]
+};
+const CS_AUTOTAG_ORDER=['withdraw','refund','teacher_concern','complaint'];
+function csDetectType(c){
+  // enrollmentStatus trumps keyword matching
+  if(c.enrollmentStatus==='withdraw_request'||c.enrollmentStatus==='withdrew')return 'withdraw';
+  const parts=[c.notes||''];
+  if(Array.isArray(c.log))c.log.forEach(l=>{if(l&&l.text)parts.push(l.text);});
+  const text=parts.join(' ');
+  if(!text.trim())return null;
+  for(const tid of CS_AUTOTAG_ORDER){
+    const pats=CS_AUTOTAG_KEYWORDS[tid];
+    for(const p of pats){if(p.test(text))return tid;}
+  }
+  return null;
+}
+// Build a plan without mutating anything. Returns {beforeCounts, afterCounts, changes:[{id,from,to,reason}]}.
+function csAutoTagPlan(){
+  const typeLabel={};csTypes().forEach(t=>typeLabel[t.id]=t.label);
+  const before={},after={};
+  const cases=Object.values(CASES);
+  cases.forEach(c=>{before[c.type||'(none)']=(before[c.type||'(none)']||0)+1;});
+  const changes=[];
+  cases.forEach(c=>{
+    let newType=c.type;
+    // Only overwrite cases that are still the default 'other'
+    if((c.type||'')==='other'||!c.type){
+      const detected=csDetectType(c);
+      if(detected&&detected!==c.type){
+        newType=detected;
+        let reason='';
+        if(c.enrollmentStatus==='withdraw_request'||c.enrollmentStatus==='withdrew')reason='enrollmentStatus='+c.enrollmentStatus;
+        else reason='keyword match';
+        changes.push({id:c.id,from:c.type||'(none)',to:detected,reason,name:c.parentFullName||c.childName||'(unnamed)'});
+      }
+    }
+    after[newType||'(none)']=(after[newType||'(none)']||0)+1;
+  });
+  return {before,after,changes,typeLabel,total:cases.length};
+}
+function csAutoTagDryRun(){
+  const plan=csAutoTagPlan();
+  const body=document.getElementById('cs-settings-body');if(!body)return;
+  const allTypes=Array.from(new Set([...Object.keys(plan.before),...Object.keys(plan.after)])).sort();
+  let h='<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:12px;margin-bottom:12px">';
+  h+='<div style="font-weight:700;color:#92400E;font-size:14px;margin-bottom:6px">🔎 Dry-run preview — nothing saved yet</div>';
+  h+='<div style="font-size:11px;color:#78350F;margin-bottom:10px">Scanned '+plan.total+' cases. <b>'+plan.changes.length+'</b> would change Case Type. Review below, then choose Apply or Cancel.</div>';
+  // Before/after table
+  h+='<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px">';
+  h+='<thead><tr style="background:#FEF3C7"><th style="text-align:left;padding:6px;border:1px solid #FDE68A">Case Type</th><th style="text-align:right;padding:6px;border:1px solid #FDE68A">Before</th><th style="text-align:right;padding:6px;border:1px solid #FDE68A">After</th><th style="text-align:right;padding:6px;border:1px solid #FDE68A">Δ</th></tr></thead><tbody>';
+  allTypes.forEach(tid=>{
+    const b=plan.before[tid]||0,a=plan.after[tid]||0,d=a-b;
+    const lbl=plan.typeLabel[tid]||tid;
+    const dColor=d>0?'#059669':d<0?'#DC2626':'var(--text3)';
+    h+='<tr><td style="padding:6px;border:1px solid #FDE68A">'+esc(lbl)+' <span style="color:var(--text3);font-size:10px">('+tid+')</span></td><td style="text-align:right;padding:6px;border:1px solid #FDE68A">'+b+'</td><td style="text-align:right;padding:6px;border:1px solid #FDE68A"><b>'+a+'</b></td><td style="text-align:right;padding:6px;border:1px solid #FDE68A;color:'+dColor+';font-weight:600">'+(d>0?'+'+d:d===0?'—':d)+'</td></tr>';
+  });
+  h+='</tbody></table>';
+  // Sample changes
+  if(plan.changes.length){
+    h+='<details style="margin-bottom:10px"><summary style="cursor:pointer;font-size:11px;font-weight:600;color:#78350F">Show first 20 changes (of '+plan.changes.length+')</summary>';
+    h+='<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:6px"><thead><tr style="background:#FEF3C7"><th style="text-align:left;padding:4px 6px;border:1px solid #FDE68A">Case</th><th style="text-align:left;padding:4px 6px;border:1px solid #FDE68A">From</th><th style="text-align:left;padding:4px 6px;border:1px solid #FDE68A">To</th><th style="text-align:left;padding:4px 6px;border:1px solid #FDE68A">Why</th></tr></thead><tbody>';
+    plan.changes.slice(0,20).forEach(ch=>{
+      h+='<tr><td style="padding:4px 6px;border:1px solid #FDE68A">'+esc(ch.name)+'</td><td style="padding:4px 6px;border:1px solid #FDE68A">'+esc(ch.from)+'</td><td style="padding:4px 6px;border:1px solid #FDE68A"><b>'+esc(ch.to)+'</b></td><td style="padding:4px 6px;border:1px solid #FDE68A;color:var(--text2)">'+esc(ch.reason)+'</td></tr>';
+    });
+    h+='</tbody></table></details>';
+  }
+  h+='<div style="display:flex;gap:8px">';
+  h+='<button type="button" class="ctx-btn" onclick="document.getElementById(\'cs-settings-body\').innerHTML=renderCsSettingsBody()">Cancel</button>';
+  h+='<button type="button" class="ctx-btn" onclick="csAutoTagApply()" style="background:#DC2626;color:#fff;border-color:#DC2626"'+(plan.changes.length?'':' disabled')+'>✓ Apply &amp; save ('+plan.changes.length+' change'+(plan.changes.length===1?'':'s')+')</button>';
+  h+='</div>';
+  h+='</div>';
+  // Put the preview ABOVE the normal settings (which we still keep below for reference)
+  body.innerHTML=h+renderCsSettingsBody();
+}
+function csAutoTagApply(){
+  const plan=csAutoTagPlan();
+  if(!plan.changes.length){alert('Nothing to change.');return;}
+  if(!confirm('Apply '+plan.changes.length+' Case Type changes and sync to Supabase? This cannot be undone automatically.'))return;
+  const now=new Date().toISOString();
+  const by=(typeof getUserName==='function'?getUserName():'')||'';
+  plan.changes.forEach(ch=>{
+    const c=CASES[ch.id];if(!c)return;
+    const from=c.type||'(none)';
+    c.type=ch.to;
+    c.updatedAt=now;
+    if(!Array.isArray(c.log))c.log=[];
+    c.log.push({ts:now,type:'system',text:'Case Type auto-tagged: '+from+' → '+ch.to+' ('+ch.reason+')',by});
+  });
+  saveState();
+  // Re-render the current Cases view so the filter picks up the new types
+  if(typeof renderCsKanban==='function')renderCsKanban();
+  if(typeof renderCsTable==='function')renderCsTable();
+  if(typeof updateCsTabBadge==='function')updateCsTabBadge();
+  // Redraw settings body fresh
+  document.getElementById('cs-settings-body').innerHTML=renderCsSettingsBody();
+  alert('Auto-tag applied to '+plan.changes.length+' case'+(plan.changes.length===1?'':'s')+'. Changes saved to Supabase.');
 }
 
 // ---- IMPORT / EXPORT (CSV) ----
