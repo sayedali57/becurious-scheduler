@@ -9453,6 +9453,20 @@ function renderCsDashboard(){
   updateCsTabBadge();
 }
 
+// Debounced search handler that preserves focus + caret across the re-render.
+// Without this, innerHTML replacement inside renderCsKanban() blows away the
+// input on every keystroke and you can only type one letter at a time.
+let _csSearchTimer=null;
+function csOnSearchInput(inp){
+  _csSearch=inp.value;
+  const caret=inp.selectionStart;
+  clearTimeout(_csSearchTimer);
+  _csSearchTimer=setTimeout(()=>{
+    renderCsKanban();
+    const el=document.getElementById('cs-kanban-search');
+    if(el){el.focus();try{el.setSelectionRange(caret,caret);}catch(e){}}
+  },120);
+}
 // ---- KANBAN ----
 function renderCsKanban(){
   const el=document.getElementById('cs-kanban-outer');if(!el)return;
@@ -9499,7 +9513,7 @@ function renderCsKanban(){
     h+='<option value="'+g+'"'+(_csGroupBy===g?' selected':'')+'>'+lbl+'</option>';
   });
   h+='</select></label>';
-  h+='<input class="pl-search" placeholder="Search cases..." value="'+esc(_csSearch)+'" oninput="_csSearch=this.value;renderCsKanban()">';
+  h+='<input class="pl-search" id="cs-kanban-search" placeholder="Search cases..." value="'+esc(_csSearch)+'" oninput="csOnSearchInput(this)">';
   h+='<button class="ctx-btn" onclick="csOpenSettings()" title="Manage case lookups"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</button>';
   h+='<button class="ctx-btn" onclick="csExportCsv()" title="Export cases to CSV">&darr; Export</button>';
   h+='<button class="ctx-btn" onclick="csImportCsvDialog()" title="Import cases from CSV">&uarr; Import</button>';
@@ -9852,8 +9866,8 @@ function openCsModal(caseId){
   b+='<div class="cs2-log-list" id="cs-log-list">'+renderCsLogList(c)+'</div>';
   b+='<div class="cs2-log-composer">';
   b+='<select id="cs-log-type"><option value="outgoing">Out</option><option value="incoming">In</option><option value="note">Note</option></select>';
-  b+='<input id="cs-log-text" placeholder="Log a contact, reply, or note…">';
-  b+='<button onclick="csAddLogEntry(\''+c.id+'\')">Add</button>';
+  b+='<input id="cs-log-text" placeholder="Log a contact, reply, or note…" onkeydown="if(event.key===\'Enter\'){event.preventDefault();csAddLogEntry(\''+c.id+'\');}">';
+  b+='<button type="button" onclick="csAddLogEntry(\''+c.id+'\')">Add</button>';
   b+='</div>';
   b+='</div>';
 
@@ -9953,8 +9967,10 @@ function csDeleteNextAction(caseId,actionId){
 function csInsertNote(caseId){
   const c=CASES[caseId];if(!c)return;
   const ta=document.getElementById('cs-f-notes');
+  if(!ta)return;
   const txt=(ta.value||'').trim();if(!txt)return;
   const now=new Date().toISOString();
+  if(!Array.isArray(c.log))c.log=[];
   c.log.push({ts:now,type:'note',text:txt,by:(typeof getUserName==='function'?getUserName():'')});
   c.notes='';ta.value='';
   c.updatedAt=now;
@@ -10067,12 +10083,18 @@ function csQuickEscalate(caseId){
 }
 function csAddLogEntry(caseId){
   const c=CASES[caseId];if(!c)return;
-  const type=document.getElementById('cs-log-type').value;
-  const text=document.getElementById('cs-log-text').value.trim();
+  const typeEl=document.getElementById('cs-log-type');
+  const textEl=document.getElementById('cs-log-text');
+  if(!typeEl||!textEl)return;
+  const type=typeEl.value;
+  const text=(textEl.value||'').trim();
   if(!text)return;
+  if(!Array.isArray(c.log))c.log=[];
   c.log.push({ts:new Date().toISOString(),type,text,by:(typeof getUserName==='function'?getUserName():'')});
   c.updatedAt=new Date().toISOString();
-  csSaveCases();openCsModal(caseId);
+  textEl.value='';
+  csRefreshLogUI(c);
+  csSaveCases();
 }
 // Currently-selected script for the open Cases modal — picked when the user
 // clicks one of the quick-paste buttons, then sent when they click
