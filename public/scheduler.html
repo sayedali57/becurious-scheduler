@@ -3241,15 +3241,42 @@ function renderSlot(d,cid,si){
   const earlyTag=earlyMin>0?`<div class="hv2-early" title="Teacher can wait in the car or knock early">⏱ early (${earlyMin} min)</div>`:'';
 
   if(!sl_){
-    // Empty slot — show a rough clock hint so Saleh can eyeball where in the
-    // day a gap falls. Labels ladder from dayStartMin up to dayEndMin in
-    // SETTINGS.emptySlotStepMin increments (default 10 min). Once the ladder
-    // passes dayEndMin we stop labeling; those slots just read 'drop here'.
+    // Empty slot — show a clock hint for where in the day this gap actually
+    // falls. Anchor off the nearest FILLED slot behind us (or dayStart if
+    // the car hasn't started yet), then ladder forward in
+    // SETTINGS.emptySlotStepMin increments so consecutive empty slots read
+    // e.g. 10:00 · 10:10 · 10:20 after a morning start, or 16:10 · 16:20
+    // after a 16:05 finish. If the ladder would pass the next filled slot's
+    // start time (or dayEndMin), we stop labelling — the ladder should never
+    // advertise a time that overlaps an existing session.
     const emptyStep=parseInt(SETTINGS.emptySlotStepMin)||10;
     const emptyBase=parseInt(SETTINGS.dayStartMin)||600;
     const emptyEnd=parseInt(SETTINGS.dayEndMin)||(emptyBase+60*8);
-    const emptyMin=emptyBase+si*emptyStep;
-    const emptyTime=emptyMin<=emptyEnd?`<span class="hv2-empty-time">${ts(emptyMin)}</span> `:'';
+    const carSlots=SCHED[d]?.[cid]||[];
+    // Walk back to find the nearest filled slot before `si`.
+    let anchorMin=emptyBase, anchorIdx=-1;
+    for(let i=si-1;i>=0;i--){
+      const p=carSlots[i];
+      if(!p)continue;
+      // Use this slot's start + its full duration as the anchor (when it
+      // releases the car). slotStartMin/slotDur both already account for
+      // travel, session, buffer, branch swaps, etc.
+      anchorMin=slotStartMin(d,cid,i)+slotDur(p,d,cid,i);
+      anchorIdx=i;
+      break;
+    }
+    // Walk forward to find the next filled slot after `si` so we can clamp.
+    let nextFilledMin=null;
+    for(let i=si+1;i<carSlots.length;i++){
+      if(carSlots[i]){nextFilledMin=slotStartMin(d,cid,i);break;}
+    }
+    // Ladder step = 1 for the first empty slot after the anchor, 2 for the
+    // next, etc. So three empty slots after a 16:05 finish render as
+    // 16:15 · 16:25 · 16:35 (with 10-min step).
+    const stepsIn=si-anchorIdx;
+    const emptyMin=anchorMin+stepsIn*emptyStep;
+    const ceiling=nextFilledMin!=null?Math.min(nextFilledMin,emptyEnd):emptyEnd;
+    const emptyTime=emptyMin<=ceiling?`<span class="hv2-empty-time">${ts(emptyMin)}</span> `:'';
     return`<div class="slot-wrap">
       <div class="slot hv2${isActive?' active-slot':''}" ${base} ${handlers}>
         <div class="hv2-empty">${emptyTime}${isActive?'▸ drop here':'drop here'}</div>
