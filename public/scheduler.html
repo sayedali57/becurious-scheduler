@@ -7601,15 +7601,26 @@ function runAutoSchedule(){
       // Greedily fill empty slots
       for(let si=0;si<slots.length;si++){
         if(slots[si])continue; // already filled (manual, locked, or pickup)
-        // Day-end cutoff: if even a best-case session starting now would run past the
-        // configured latest-end-time, stop filling this car for this day. Uses the
-        // 10-minute travel floor from tm() as the minimum arrival time.
+        // Day-end cutoff (fast-path): if even a best-case session starting now would
+        // run past the configured latest-end-time, stop filling this car for this day.
+        // Uses the 10-minute travel floor from tm() as the minimum arrival time.
         const slotStart=slotStartMin(day,car.id,si);
         if(slotStart+10+sessionLen>endCutoff)break;
         const cands=candidateFor(day,car,pos,lastTeacher,si);
         if(!cands.length)break; // no-one can ride in this car today — stop filling
 
-        const pickSid=cands[0];
+        // Day-end cutoff (actual): the fast-path uses a 10-min travel floor, but
+        // real travel from the previous stop to a candidate's house can be much
+        // longer. Iterate the sorted candidates and pick the first one whose
+        // session would actually end by endCutoff. If none fit, stop this car's day.
+        let pickSid=null;
+        for(const _sid of cands){
+          const _s=SS[_sid];if(!_s)continue;
+          const _c=resolveGroupCoords(_s);
+          const _travel=tm(hv(pos.la,pos.ln,_c.la,_c.ln));
+          if(slotStart+_travel+sessionLen<=endCutoff){pickSid=_sid;break;}
+        }
+        if(!pickSid)break; // every remaining candidate would finish past the cutoff
         const pickS=SS[pickSid];
 
         if((pickS.sessionType||'1on1')==='group'){
@@ -7668,13 +7679,20 @@ function runAutoSchedule(){
             const s2=SS[nearSibling];
             const sl_={t:'d',ids:[pickSid,nearSibling]};
             ddRecomputeMetrics(sl_);
-            slots[si]=sl_;
-            remain[nearSibling]--;
-            onDay[day].add(nearSibling);
-            teacherDayCount[day][s2.t]=(teacherDayCount[day][s2.t]||0)+1;
-            placed++;
-            // Record affinity for sibling's teacher too
-            if(!teacherCarAffinity[day][s2.t])teacherCarAffinity[day][s2.t]=car.id;
+            // Day-end cutoff check for the double-drop: drop 2 arrives after
+            // travel-to-pickS + inter-drop travel, and both sessions end
+            // sessionLen later. Skip the pairing if that would run past cutoff.
+            const _travelToPick=tm(hv(pos.la,pos.ln,pickS.la,pickS.ln));
+            const _ddEnd=slotStart+_travelToPick+(ddTotalInter(sl_)||0)+sessionLen;
+            if(_ddEnd<=endCutoff){
+              slots[si]=sl_;
+              remain[nearSibling]--;
+              onDay[day].add(nearSibling);
+              teacherDayCount[day][s2.t]=(teacherDayCount[day][s2.t]||0)+1;
+              placed++;
+              // Record affinity for sibling's teacher too
+              if(!teacherCarAffinity[day][s2.t])teacherCarAffinity[day][s2.t]=car.id;
+            }
           }
         }
 
