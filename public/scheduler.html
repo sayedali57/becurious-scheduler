@@ -1636,6 +1636,43 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
       <button type="button" class="btn" onclick="closeSettingsModal();openDupModal()">🔍 Open data audit</button>
     </div>
 
+    <div class="set-section">
+      <div class="set-section-title">🎥 Live Session Days (per teacher)</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:8px">On the selected day(s) each week, this teacher is teaching a live class — their regular home visits pause automatically and the day view shows a red LIVE banner with a Mark Complete button.</div>
+      <div id="set-live-list"></div>
+      <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <select id="set-live-teacher" style="padding:5px 8px;font-size:12px"></select>
+        <input id="set-live-class" type="text" placeholder="Class name (e.g. 'Year 5 English')" style="padding:5px 8px;font-size:12px;flex:1;min-width:180px">
+        <label style="font-size:11px;display:flex;align-items:center;gap:3px"><input type="checkbox" class="set-live-day" value="Sun">Sun</label>
+        <label style="font-size:11px;display:flex;align-items:center;gap:3px"><input type="checkbox" class="set-live-day" value="Mon">Mon</label>
+        <label style="font-size:11px;display:flex;align-items:center;gap:3px"><input type="checkbox" class="set-live-day" value="Tue">Tue</label>
+        <label style="font-size:11px;display:flex;align-items:center;gap:3px"><input type="checkbox" class="set-live-day" value="Wed">Wed</label>
+        <label style="font-size:11px;display:flex;align-items:center;gap:3px"><input type="checkbox" class="set-live-day" value="Thu">Thu</label>
+        <button type="button" class="btn" onclick="saveLiveTeacher()">Save teacher</button>
+      </div>
+    </div>
+
+    <div class="set-section">
+      <div class="set-section-title">🏞️ Outdoor Days (school-wide)</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:8px">School outings when no home visits run. Can be a one-off date or a recurring weekday. On the day, all cars dim and a teal banner appears with a Mark Complete button — attendance is logged to every active (Care &amp; Continuity) student.</div>
+      <div id="set-outdoor-list"></div>
+      <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <select id="set-outdoor-mode" style="padding:5px 8px;font-size:12px" onchange="toggleOutdoorMode()">
+          <option value="date">One-off date</option>
+          <option value="recurring">Recurring weekday</option>
+        </select>
+        <input id="set-outdoor-date" type="date" style="padding:5px 8px;font-size:12px">
+        <select id="set-outdoor-day" style="padding:5px 8px;font-size:12px;display:none">
+          <option value="Sun">Sun</option><option value="Mon">Mon</option>
+          <option value="Tue">Tue</option><option value="Wed">Wed</option><option value="Thu">Thu</option>
+        </select>
+        <input id="set-outdoor-loc" type="text" placeholder="Location" style="padding:5px 8px;font-size:12px;flex:1;min-width:140px">
+        <input id="set-outdoor-start" type="time" style="padding:5px 8px;font-size:12px">
+        <input id="set-outdoor-end" type="time" style="padding:5px 8px;font-size:12px">
+        <button type="button" class="btn" onclick="addOutdoorDay()">Add</button>
+      </div>
+    </div>
+
     <div class="set-section" style="border:1px solid #f3b4b4;background:#fff5f5">
       <div class="set-section-title" style="color:#b42318">⚠ Danger zone — mass delete</div>
       <div style="font-size:11px;color:#b42318;margin-bottom:8px">Each button wipes that dataset permanently. You'll be asked for the team password before anything is deleted.</div>
@@ -1797,7 +1834,14 @@ const DEFAULT_SETTINGS={
   preventSameDayDouble:1,// 1 = never place the same student twice on the same day
   sundayActive:0,       // 1 = Sunday is a real scheduling day (not just the admin screen)
   thursdayActive:1,     // 1 = Thursday is a scheduling day; 0 hides the Thursday tab entirely
-  autoSchedulePin:''    // If non-empty, user must type this PIN before auto-schedule runs
+  autoSchedulePin:'',   // If non-empty, user must type this PIN before auto-schedule runs
+  // Outdoor Days — school-wide events where no home visits run. Each entry:
+  //   { id, mode:'recurring'|'date', day:'Mon', date:'yyyy-mm-dd',
+  //     location, startTime:'HH:MM', endTime:'HH:MM' }
+  outdoorDays:[],
+  // Immutable completion log for outdoor days. Keyed by the specific date
+  // the event actually fell on: { 'yyyy-mm-dd': { at, by, entryId } }
+  outdoorCompletions:{}
 };
 function activeDays(){
   // Returns only the days that are currently enabled for scheduling.
@@ -1831,7 +1875,62 @@ function migrateSettings(obj){
   });
   // PIN is a string
   SETTINGS.autoSchedulePin=(SETTINGS.autoSchedulePin==null?'':String(SETTINGS.autoSchedulePin)).trim();
+  // Outdoor Days: arrays/objects on old saved states may be missing
+  if(!Array.isArray(SETTINGS.outdoorDays))SETTINGS.outdoorDays=[];
+  if(!SETTINGS.outdoorCompletions||typeof SETTINGS.outdoorCompletions!=='object')SETTINGS.outdoorCompletions={};
   applySettings();
+}
+
+// ===== Live Sessions + Outdoor Days helpers =====
+// Convert a DAYS code ('Sun'...'Thu') + ISO week key ('YYYY-Www') to a yyyy-mm-dd date string.
+function dateForDayInWeek(dayCode,weekKey){
+  try{
+    const m=String(weekKey||'').match(/^(\d{4})-W(\d{1,2})$/);if(!m)return '';
+    const year=+m[1],wk=+m[2];
+    // ISO week 1 contains Jan 4. Find Monday of ISO week 1 then offset.
+    const jan4=new Date(Date.UTC(year,0,4));
+    const jan4Dow=jan4.getUTCDay()||7; // 1..7, Mon..Sun
+    const mon=new Date(jan4);mon.setUTCDate(jan4.getUTCDate()-(jan4Dow-1)+(wk-1)*7);
+    // DAYS: Sun Mon Tue Wed Thu -> offsets from Monday
+    const off={Mon:0,Tue:1,Wed:2,Thu:3,Fri:4,Sat:5,Sun:6}[dayCode];
+    if(off==null)return '';
+    const d=new Date(mon);d.setUTCDate(mon.getUTCDate()+off);
+    return d.toISOString().slice(0,10);
+  }catch(e){return '';}
+}
+function outdoorEntryFor(dayCode,weekKey){
+  // Returns the outdoor day entry active for this day/week, or null.
+  const wk=weekKey||activeWeekKey();
+  const date=dateForDayInWeek(dayCode,wk);
+  const list=Array.isArray(SETTINGS.outdoorDays)?SETTINGS.outdoorDays:[];
+  for(const e of list){
+    if(!e)continue;
+    if(e.mode==='date'&&e.date===date)return e;
+    if(e.mode==='recurring'&&e.day===dayCode)return e;
+  }
+  return null;
+}
+function isOutdoorDay(dayCode,weekKey){return !!outdoorEntryFor(dayCode,weekKey);}
+function outdoorCompletionKey(entry,dayCode,weekKey){
+  return dateForDayInWeek(dayCode,weekKey||activeWeekKey());
+}
+function isLiveDayForTeacher(teacherName,dayCode){
+  const t=TEACHERS&&TEACHERS[teacherName];if(!t)return false;
+  const ld=Array.isArray(t.liveDays)?t.liveDays:[];
+  return ld.includes(dayCode);
+}
+function liveTeachersFor(dayCode){
+  const out=[];
+  for(const name in (TEACHERS||{})){
+    const t=TEACHERS[name];if(!t)continue;
+    if(Array.isArray(t.liveDays)&&t.liveDays.includes(dayCode))out.push(name);
+  }
+  return out;
+}
+function appendStudentLog(sid,entry){
+  const s=SS&&SS[sid];if(!s)return;
+  if(!Array.isArray(s.log))s.log=[];
+  s.log.push({at:new Date().toISOString(),...entry});
 }
 
 // ===== SUPABASE (shared multi-user state) =====
@@ -2089,6 +2188,55 @@ async function dupDeleteCase(id){
   delete CASES[id];
   if(typeof csSaveCases==='function')csSaveCases();
   renderDupAudit();if(typeof renderCsKanban==='function')renderCsKanban();if(typeof updateCsTabBadge==='function')updateCsTabBadge();
+}
+
+// ===== Live Sessions + Outdoor Days completion handlers =====
+function markLiveComplete(teacherName,dayCode,dateKey){
+  const t=TEACHERS[teacherName];if(!t){alert('Teacher not found.');return;}
+  const cls=t.liveClass||'class';
+  const d=dateKey||dateForDayInWeek(dayCode,activeWeekKey());
+  if(!d){alert('Could not determine the date for this live session.');return;}
+  if(t.liveCompletions&&t.liveCompletions[d]){alert('This live session is already marked complete.');return;}
+  if(!confirm(`Mark ${teacherName}'s live session for ${cls} on ${d} as complete? A log entry will be added to every student in ${cls}. This cannot be undone.`))return;
+  const entryId='L'+Date.now().toString(36);
+  const by=(typeof getUserName==='function'?getUserName():'')||'';
+  t.liveCompletions=t.liveCompletions||{};
+  t.liveCompletions[d]={at:new Date().toISOString(),by,entryId,class:cls};
+  // Log to every student assigned to this teacher (treated as "her class")
+  let logged=0;
+  Object.values(SS).forEach(s=>{
+    if(!s||s.t!==teacherName)return;
+    appendStudentLog(s.id,{type:'live-session',entryId,by,text:`Live session completed — ${teacherName} ${cls} ${d}`});
+    logged++;
+  });
+  saveState();
+  if(typeof renderSched==='function')renderSched();
+  alert(`Live session marked complete. ${logged} student log entr${logged===1?'y':'ies'} added.`);
+}
+function markOutdoorComplete(dayCode,dateKey){
+  const entry=outdoorEntryFor(dayCode,activeWeekKey());
+  if(!entry){alert('No outdoor day is configured for today.');return;}
+  const d=dateKey||dateForDayInWeek(dayCode,activeWeekKey());
+  if(!d){alert('Could not determine the date.');return;}
+  SETTINGS.outdoorCompletions=SETTINGS.outdoorCompletions||{};
+  if(SETTINGS.outdoorCompletions[d]){alert('This outdoor day is already marked complete.');return;}
+  const loc=entry.location||'';
+  if(!confirm(`Mark outdoor day (${loc||'no location'}) on ${d} complete? A log entry will be added to every ACTIVE (Care & Continuity) student. This cannot be undone.`))return;
+  const entryId='O'+Date.now().toString(36);
+  const by=(typeof getUserName==='function'?getUserName():'')||'';
+  SETTINGS.outdoorCompletions[d]={at:new Date().toISOString(),by,entryId,location:loc,sourceId:entry.id};
+  // Log to every active student (status === 'active' in Care & Continuity)
+  let logged=0;
+  Object.values(SS).forEach(s=>{
+    if(!s)return;
+    const st=(s.status||'active').toLowerCase();
+    if(st!=='active')return; // skip inactive/exited
+    appendStudentLog(s.id,{type:'outdoor-day',entryId,by,text:`Outdoor session attended — ${d} ${loc}`.trim()});
+    logged++;
+  });
+  saveState();
+  if(typeof renderSched==='function')renderSched();
+  alert(`Outdoor day marked complete. ${logged} student log entr${logged===1?'y':'ies'} added.`);
 }
 
 // Mass-delete / reset helpers — password-gated. `what` is one of:
@@ -2675,6 +2823,10 @@ function deriveTeachersFromStudents(){
   // Back-fill Sunday availability on teacher records saved before Sunday was a valid day
   Object.values(TEACHERS).forEach(t=>{
     if(t&&t.days&&t.days.Sun==null)t.days.Sun=0;
+    // Live-session fields: default to empty so non-live teachers are unaffected
+    if(t&&!Array.isArray(t.liveDays))t.liveDays=[];
+    if(t&&t.liveClass==null)t.liveClass='';
+    if(t&&(!t.liveCompletions||typeof t.liveCompletions!=='object'))t.liveCompletions={};
   });
   Object.values(SS).forEach(s=>{
     if(!s.t)return;
@@ -2682,7 +2834,8 @@ function deriveTeachersFromStudents(){
       TEACHERS[s.t]={
         name:s.t, phone:'', branch:s.br||'Shuhada',
         days:{Sun:0,Mon:1,Tue:1,Wed:1,Thu:1},
-        maxPerDay:6, active:1, note:''
+        maxPerDay:6, active:1, note:'',
+        liveDays:[], liveClass:'', liveCompletions:{}
       };
     }
   });
@@ -3391,6 +3544,43 @@ function renderCars(){
     return;
   }
   grid.innerHTML='';
+  // ——— Outdoor Day + Live Session banners for the current day ———
+  const _wk=activeWeekKey();
+  const _outEntry=outdoorEntryFor(d,_wk);
+  const _outIsOn=!!_outEntry;
+  const _outDate=_outEntry?dateForDayInWeek(d,_wk):'';
+  const _outDone=_outEntry&&SETTINGS.outdoorCompletions&&SETTINGS.outdoorCompletions[_outDate];
+  const _liveTeachers=liveTeachersFor(d);
+  const _bannerHost=grid.parentElement;
+  // Remove any previous banners so re-renders don't stack
+  (_bannerHost.querySelectorAll&&_bannerHost.querySelectorAll('.sched-banner'))?.forEach(b=>b.remove());
+  if(_outIsOn){
+    const bar=document.createElement('div');bar.className='sched-banner outdoor-banner';
+    bar.style.cssText='background:linear-gradient(90deg,#0D9488,#14B8A6);color:#fff;padding:14px 18px;border-radius:10px;margin:8px 12px 12px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:0 3px 10px rgba(13,148,136,.25)';
+    const loc=esc(_outEntry.location||'Location TBD');
+    const tm=(_outEntry.startTime||'')+(_outEntry.endTime?' – '+_outEntry.endTime:'');
+    const doneTag=_outDone?` <span style="background:rgba(255,255,255,.22);padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600">✓ Completed ${new Date(_outDone.at).toLocaleDateString('en-GB')}</span>`:'';
+    const btn=_outDone?'':`<button onclick="markOutdoorComplete('${d}','${_outDate}')" style="margin-left:auto;background:#fff;color:#0D9488;border:none;padding:8px 16px;border-radius:8px;font-weight:700;cursor:pointer">Mark Complete</button>`;
+    bar.innerHTML=`<span style="font-size:22px">🏞️</span><div><div style="font-weight:700;font-size:16px">Outdoor Day — ${loc}${doneTag}</div><div style="opacity:.9;font-size:13px">${esc(tm)||''}${_outDate?' · '+_outDate:''} · All cars paused for school event</div></div>${btn}`;
+    _bannerHost.insertBefore(bar,grid);
+  }
+  if(_liveTeachers.length){
+    _liveTeachers.forEach(tn=>{
+      const t=TEACHERS[tn];if(!t)return;
+      const key=dateForDayInWeek(d,_wk);
+      const done=t.liveCompletions&&t.liveCompletions[key];
+      const bar=document.createElement('div');bar.className='sched-banner live-banner';
+      bar.style.cssText='background:linear-gradient(90deg,#DC2626,#EF4444);color:#fff;padding:12px 18px;border-radius:10px;margin:6px 12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 3px 10px rgba(220,38,38,.25)';
+      const cls=esc(t.liveClass||'class');
+      const doneTag=done?` <span style="background:rgba(255,255,255,.22);padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600">✓ Completed ${new Date(done.at).toLocaleDateString('en-GB')}</span>`:'';
+      const btn=done?'':`<button onclick="markLiveComplete('${tn.replace(/'/g,"\\'")}','${d}','${key}')" style="margin-left:auto;background:#fff;color:#DC2626;border:none;padding:7px 14px;border-radius:8px;font-weight:700;cursor:pointer">Mark Complete</button>`;
+      bar.innerHTML=`<span style="background:#fff;color:#DC2626;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.5px">● LIVE</span><div><div style="font-weight:700">${esc(tn)} — ${cls}${doneTag}</div><div style="opacity:.9;font-size:12px">Teaching live today — regular sessions paused</div></div>${btn}`;
+      _bannerHost.insertBefore(bar,grid);
+    });
+  }
+  // If outdoor, dim cars + pause slot rendering content with an overlay
+  if(_outIsOn){grid.style.opacity='.45';grid.style.pointerEvents='none';}
+  else{grid.style.opacity='';grid.style.pointerEvents='';}
   const carsOrdered=SETTINGS.sameBranchOnly?[...CARS].sort((a,b)=>(a.branch||'').localeCompare(b.branch||'')):CARS;
   carsOrdered.forEach(car=>{
     const col=document.createElement('div');col.className='carcol';col.dataset.cid=car.id;
@@ -3553,6 +3743,19 @@ function _hvConnector(kind,text){
 
 function renderSlot(d,cid,si){
   const sl_=SCHED[d]?.[cid]?.[si];
+  // If this slot belongs to a teacher who is live-teaching today, hide the
+  // content — their sessions pause while they're in live class. The LIVE
+  // banner at the top of the day already surfaces them. (Data is preserved,
+  // only the UI is suppressed.)
+  if(sl_){
+    let slT='';
+    if(sl_.t==='s'){slT=SS[sl_.id]?.t||'';}
+    else if(sl_.t==='d'||sl_.t==='g'){slT=SS[(sl_.ids||[])[0]]?.t||'';}
+    else if(sl_.t==='pick'){slT=SS[sl_.id]?.t||'';}
+    if(slT&&isLiveDayForTeacher(slT,d)){
+      return `<div class="slot-wrap"><div class="slot slot-live-paused" style="opacity:.35;border:1px dashed #DC2626;background:#FEF2F2;color:#991B1B;padding:10px;text-align:center;font-size:12px;border-radius:8px">⏸ ${esc(slT)} is live-teaching today</div></div>`;
+    }
+  }
   const startMin=slotStartMin(d,cid,si);
   const isActive=activeSlot&&activeSlot.d===d&&activeSlot.cid===cid&&activeSlot.si===si;
   const expAttr=_expandedSlots.has(slotKey(d,cid,si))?' data-expanded="true"':'';
@@ -7547,7 +7750,101 @@ function showSettingsModal(){
   qs('set-sunActive').checked=!!SETTINGS.sundayActive;
   qs('set-thuActive').checked=!!SETTINGS.thursdayActive;
   qs('set-autoPin').value=SETTINGS.autoSchedulePin||'';
+  renderLiveTeachersList();
+  renderOutdoorDaysList();
+  populateLiveTeacherSelect();
   qs('settingsmodal').style.display='flex';
+}
+function populateLiveTeacherSelect(){
+  const sel=qs('set-live-teacher');if(!sel)return;
+  const names=Object.keys(TEACHERS).sort();
+  sel.innerHTML='<option value="">— pick teacher —</option>'+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  sel.onchange=()=>{
+    const t=TEACHERS[sel.value];if(!t)return;
+    qs('set-live-class').value=t.liveClass||'';
+    document.querySelectorAll('.set-live-day').forEach(cb=>{cb.checked=Array.isArray(t.liveDays)&&t.liveDays.includes(cb.value);});
+  };
+}
+function renderLiveTeachersList(){
+  const host=qs('set-live-list');if(!host)return;
+  const rows=[];
+  Object.keys(TEACHERS).sort().forEach(n=>{
+    const t=TEACHERS[n];if(!t||!Array.isArray(t.liveDays)||!t.liveDays.length)return;
+    rows.push(`<div style="display:flex;gap:8px;padding:6px 8px;background:#FEF2F2;border:1px solid #FECACA;border-radius:6px;margin-bottom:4px;font-size:12px;align-items:center">
+      <span style="background:#DC2626;color:#fff;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:700">LIVE</span>
+      <b>${esc(n)}</b>
+      <span style="color:var(--text2)">${esc(t.liveClass||'—')}</span>
+      <span style="color:var(--text3)">${t.liveDays.join(', ')}</span>
+      <button type="button" class="btn" style="margin-left:auto;padding:3px 8px;font-size:11px" onclick="clearLiveTeacher('${n.replace(/'/g,"\\'")}')">Clear</button>
+    </div>`);
+  });
+  host.innerHTML=rows.length?rows.join(''):'<div style="font-size:11px;color:var(--text3);font-style:italic">No live-session teachers configured.</div>';
+}
+function saveLiveTeacher(){
+  const name=qs('set-live-teacher').value;
+  if(!name){alert('Pick a teacher first.');return;}
+  const t=TEACHERS[name];if(!t){alert('Teacher not found.');return;}
+  const cls=qs('set-live-class').value.trim();
+  const days=[...document.querySelectorAll('.set-live-day')].filter(cb=>cb.checked).map(cb=>cb.value);
+  t.liveDays=days;
+  t.liveClass=cls;
+  if(!t.liveCompletions)t.liveCompletions={};
+  saveState();
+  renderLiveTeachersList();
+  toast(days.length?`${name}: live on ${days.join(', ')}`:`${name}: live days cleared`);
+}
+function clearLiveTeacher(name){
+  const t=TEACHERS[name];if(!t)return;
+  if(!confirm(`Clear live-session days for ${name}? (Past completion log entries stay put.)`))return;
+  t.liveDays=[];t.liveClass='';
+  saveState();renderLiveTeachersList();
+  if(qs('set-live-teacher').value===name){qs('set-live-class').value='';document.querySelectorAll('.set-live-day').forEach(cb=>cb.checked=false);}
+}
+function toggleOutdoorMode(){
+  const mode=qs('set-outdoor-mode').value;
+  qs('set-outdoor-date').style.display=mode==='date'?'':'none';
+  qs('set-outdoor-day').style.display=mode==='recurring'?'':'none';
+}
+function renderOutdoorDaysList(){
+  const host=qs('set-outdoor-list');if(!host)return;
+  const list=Array.isArray(SETTINGS.outdoorDays)?SETTINGS.outdoorDays:[];
+  if(!list.length){host.innerHTML='<div style="font-size:11px;color:var(--text3);font-style:italic">No outdoor days configured.</div>';return;}
+  host.innerHTML=list.map(e=>{
+    const when=e.mode==='date'?esc(e.date||'—'):`Every ${esc(e.day||'—')}`;
+    const tm=(e.startTime||'')+(e.endTime?' – '+e.endTime:'');
+    return `<div style="display:flex;gap:8px;padding:6px 8px;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:6px;margin-bottom:4px;font-size:12px;align-items:center">
+      <span style="background:#0D9488;color:#fff;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:700">🏞</span>
+      <b>${when}</b>
+      <span style="color:var(--text2)">${esc(e.location||'—')}</span>
+      <span style="color:var(--text3)">${esc(tm)}</span>
+      <button type="button" class="btn" style="margin-left:auto;padding:3px 8px;font-size:11px" onclick="removeOutdoorDay('${e.id}')">Remove</button>
+    </div>`;
+  }).join('');
+}
+function addOutdoorDay(){
+  const mode=qs('set-outdoor-mode').value;
+  const loc=qs('set-outdoor-loc').value.trim();
+  const startTime=qs('set-outdoor-start').value;
+  const endTime=qs('set-outdoor-end').value;
+  if(!loc){alert('Location is required.');return;}
+  const entry={id:'od'+Date.now().toString(36),mode,location:loc,startTime,endTime};
+  if(mode==='date'){
+    const date=qs('set-outdoor-date').value;
+    if(!date){alert('Pick a date.');return;}
+    entry.date=date;
+  }else{
+    entry.day=qs('set-outdoor-day').value;
+  }
+  if(!Array.isArray(SETTINGS.outdoorDays))SETTINGS.outdoorDays=[];
+  SETTINGS.outdoorDays.push(entry);
+  saveState();renderOutdoorDaysList();
+  qs('set-outdoor-loc').value='';qs('set-outdoor-date').value='';qs('set-outdoor-start').value='';qs('set-outdoor-end').value='';
+  toast('Outdoor day added');
+}
+function removeOutdoorDay(id){
+  if(!confirm('Remove this outdoor day? Past completion log entries on student records stay put.'))return;
+  SETTINGS.outdoorDays=(SETTINGS.outdoorDays||[]).filter(e=>e.id!==id);
+  saveState();renderOutdoorDaysList();
 }
 function closeSettingsModal(){qs('settingsmodal').style.display='none';}
 function resetSettings(){
@@ -7799,6 +8096,8 @@ function runAutoSchedule(){
     const t=TEACHERS[tname];
     if(t&&!t.active)return false;
     if(t&&t.days&&!t.days[day])return false;
+    // Skip teachers on their live-session day — they're occupied with live class
+    if(t&&Array.isArray(t.liveDays)&&t.liveDays.includes(day))return false;
     const max=(t&&t.maxPerDay)||(SETTINGS.teacherDefaultMax||6);
     const used=teacherDayCount[day][tname]||0;
     return used<max;
@@ -7928,6 +8227,8 @@ function runAutoSchedule(){
 
   // ──── PHASE 1: Greedy fill (main auto-schedule loop) ────
   DAYS_ACTIVE.forEach(day=>{
+    // Skip outdoor days entirely — all teachers out on the school event
+    if(isOutdoorDay(day))return;
     CARS.forEach(car=>{
       const slots=SCHED[day][car.id];
       // Start position = car's home branch (default)
@@ -8087,6 +8388,7 @@ function runAutoSchedule(){
   if(autoPickup){
     let pickupsPlaced=0;
     DAYS_ACTIVE.forEach(day=>{
+      if(isOutdoorDay(day))return;
       // Collect all dropped student IDs this day
       const droppedThisDay=new Set();
       const pickedThisDay=new Set();
