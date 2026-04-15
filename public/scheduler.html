@@ -1592,6 +1592,19 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
       <div class="frow"><label>Auto-schedule PIN <span style="color:var(--text3);font-weight:400">(optional)</span></label><input id="set-autoPin" type="text" maxlength="12" autocomplete="off" placeholder="leave empty for no PIN"><small class="set-help">When set, anyone pressing <b>Auto-schedule</b> must type this PIN before the week is rebuilt. Prevents accidental clicks from wiping the schedule. Leave blank to disable.</small></div>
     </div>
 
+    <div class="set-section" style="border:1px solid #f3b4b4;background:#fff5f5">
+      <div class="set-section-title" style="color:#b42318">⚠ Danger zone — mass delete</div>
+      <div style="font-size:11px;color:#b42318;margin-bottom:8px">Each button wipes that dataset permanently. You'll be asked for the team password before anything is deleted.</div>
+      <div class="frow" style="display:flex;flex-wrap:wrap;gap:6px">
+        <button type="button" class="btn" style="background:#fee;border:1px solid #f3b4b4;color:#b42318" onclick="dangerWipe('cases')">🗑 Delete all Cases</button>
+        <button type="button" class="btn" style="background:#fee;border:1px solid #f3b4b4;color:#b42318" onclick="dangerWipe('students')">🗑 Delete all Students</button>
+        <button type="button" class="btn" style="background:#fee;border:1px solid #f3b4b4;color:#b42318" onclick="dangerWipe('teachers')">🗑 Delete all Teachers</button>
+        <button type="button" class="btn" style="background:#fee;border:1px solid #f3b4b4;color:#b42318" onclick="dangerWipe('schedule')">🗑 Clear Schedule</button>
+        <button type="button" class="btn" style="background:#fee;border:1px solid #f3b4b4;color:#b42318" onclick="dangerWipe('attendance')">🗑 Clear Attendance history</button>
+        <button type="button" class="btn" style="background:#b42318;border:1px solid #b42318;color:#fff;font-weight:600" onclick="dangerWipe('all')">⚠ WIPE EVERYTHING</button>
+      </div>
+    </div>
+
     <div class="mbtns" style="gap:6px">
       <button class="btn" onclick="resetSettings()" title="Restore all settings to defaults" style="opacity:.7">↺ Reset to defaults</button>
       <div style="flex:1"></div>
@@ -1817,6 +1830,56 @@ async function checkPasswordGate(){
   }
   document.body.innerHTML='<div style="padding:40px;text-align:center;font-family:system-ui;color:#666">Too many failed attempts.</div>';
   return false;
+}
+
+// Mass-delete / reset helpers — password-gated. `what` is one of:
+//   'cases', 'students', 'teachers', 'schedule', 'attendance', 'all'
+async function dangerWipe(what){
+  const labels={cases:'ALL cases',students:'ALL students (and their schedule placements)',teachers:'ALL teachers',schedule:'the ENTIRE schedule (all placements on all days)',attendance:'ALL attendance history',all:'EVERYTHING — cases, students, teachers, cars, schedule, and attendance'};
+  const label=labels[what];if(!label)return;
+  if(!confirm('This will permanently delete '+label+'.\n\nThis cannot be undone. Continue?'))return;
+  const pw=prompt('🔒 Confirm with team password to delete '+label+':');
+  if(pw==null)return;
+  const h=await _sha256hex(pw.trim());
+  if(h!==PW_HASH){alert('Wrong password. Nothing was deleted.');return;}
+  if(what==='cases'){
+    if(typeof CASES!=='undefined')Object.keys(CASES).forEach(k=>delete CASES[k]);
+    if(typeof csSaveCases==='function')csSaveCases();
+    if(typeof renderCsKanban==='function')renderCsKanban();
+    if(typeof updateCsTabBadge==='function')updateCsTabBadge();
+  }else if(what==='students'){
+    Object.keys(SS).forEach(k=>delete SS[k]);
+    // Remove any student placements from the schedule too
+    Object.keys(SCHED).forEach(d=>{(SCHED[d]||[]).forEach(car=>{(car||[]).forEach((sl,i)=>{if(sl&&(sl.t==='s'||sl.t==='d'||sl.t==='g'))car[i]=null;});});});
+    saveState();if(typeof renderSched==='function')renderSched();if(typeof renderPool==='function')renderPool();
+  }else if(what==='teachers'){
+    Object.keys(TEACHERS).forEach(k=>{_deletedTeachers.add(k);delete TEACHERS[k];});
+    saveState();if(typeof renderSched==='function')renderSched();
+  }else if(what==='schedule'){
+    Object.keys(SCHED).forEach(d=>{SCHED[d]=(SCHED[d]||[]).map(car=>(car||[]).map(()=>null));});
+    saveState();if(typeof renderSched==='function')renderSched();if(typeof renderPool==='function')renderPool();
+  }else if(what==='attendance'){
+    Object.keys(ATTEND).forEach(k=>delete ATTEND[k]);
+    saveState();if(typeof renderSched==='function')renderSched();
+  }else if(what==='all'){
+    if(!confirm('LAST CHANCE — you are about to wipe EVERYTHING. Type OK on the next prompt to confirm.'))return;
+    const c2=prompt('Type the word   WIPE   (in caps) to confirm full wipe:');
+    if(c2!=='WIPE'){alert('Cancelled — wipe aborted.');return;}
+    Object.keys(SS).forEach(k=>delete SS[k]);
+    Object.keys(TEACHERS).forEach(k=>{_deletedTeachers.add(k);delete TEACHERS[k];});
+    CARS.length=0;
+    Object.keys(SCHED).forEach(d=>delete SCHED[d]);
+    Object.keys(ATTEND).forEach(k=>delete ATTEND[k]);
+    if(typeof CASES!=='undefined')Object.keys(CASES).forEach(k=>delete CASES[k]);
+    saveState();
+    if(typeof csSaveCases==='function')csSaveCases();
+    if(typeof renderSched==='function')renderSched();
+    if(typeof renderPool==='function')renderPool();
+    if(typeof renderCsKanban==='function')renderCsKanban();
+    if(typeof updateCsTabBadge==='function')updateCsTabBadge();
+  }
+  alert(label.charAt(0).toUpperCase()+label.slice(1)+' deleted.');
+  if(typeof closeSettingsModal==='function'){try{closeSettingsModal();}catch(e){}}
 }
 
 // Who is using this browser — prompted on first use, stored locally
