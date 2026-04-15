@@ -9687,6 +9687,20 @@ function csParseCsv(text){
   if(cur.length||row.length){row.push(cur);rows.push(row);}
   return rows.filter(r=>r.length>1||(r.length===1&&r[0].trim()));
 }
+// Infer a Kanban stage from a case's signals — same rules as migrateCases v2.
+// Used for bulk-imported cases so they don't all land in 'New'.
+function csInferStage(c){
+  if(!c)return 'new';
+  if(c.status==='Resolved')return 'resolved';
+  if(c.paymentStatus==='paid'&&c.enrollmentStatus==='enrolled')return 'resolved';
+  if(c.enrollmentStatus==='withdraw_request'||c.enrollmentStatus==='withdrew')return 'escalated';
+  if(c.level===3||c.level===4)return 'escalated';
+  if(c.paymentStatus==='partial')return 'awaiting_parent';
+  if(Array.isArray(c.log)&&c.log.length>0)return 'contacted';
+  if(c.notes&&c.notes.trim().length>20)return 'negotiation';
+  return 'new';
+}
+
 function csImportCsvText(text){
   const rows=csParseCsv(text);
   if(rows.length<2){alert('CSV is empty.');return;}
@@ -9698,6 +9712,7 @@ function csImportCsvText(text){
     const r=rows[i];
     const get=name=>{const j=idx(name);return j>=0?(r[j]||'').trim():'';};
     const id=get('id')||csId();
+    const isNew=!CASES[id];
     const existing=CASES[id]||newCase({id});
     if(get('parentFullName'))existing.parentFullName=get('parentFullName');
     else if(get('familyName'))existing.parentFullName=get('familyName'); // legacy column
@@ -9708,7 +9723,11 @@ function csImportCsvText(text){
     if(get('segment'))existing.segment=get('segment');
     if(get('level'))existing.level=parseInt(get('level'),10)||existing.level;
     if(get('status'))existing.status=get('status');
-    if(get('stage')&&csStage(get('stage')))existing.stage=get('stage');
+    // Track whether the CSV explicitly provided a stage — if not, we'll
+    // infer one from the other signals after all columns are populated.
+    const stageFromCsv=get('stage');
+    const stageExplicit=!!(stageFromCsv&&csStage(stageFromCsv));
+    if(stageExplicit)existing.stage=stageFromCsv;
     if(get('paymentStatus'))existing.paymentStatus=get('paymentStatus');
     if(get('enrollmentStatus'))existing.enrollmentStatus=get('enrollmentStatus');
     if(get('amountKwd'))existing.amountKwd=parseFloat(get('amountKwd'))||0;
@@ -9717,7 +9736,11 @@ function csImportCsvText(text){
     if(get('assignedTo'))existing.assignedTo=get('assignedTo');
     if(get('outcome'))existing.outcome=get('outcome');
     if(get('notes'))existing.notes=get('notes');
-    if(CASES[id])updated++;else{added++;existing.createdAt=existing.createdAt||now;}
+    // When the CSV did not specify a stage, distribute the case into the
+    // correct Kanban column based on its signals — same rules as the load-time
+    // migration, so bulk imports don't all pile up in 'New'.
+    if(!stageExplicit&&(isNew||existing.stage==='new'))existing.stage=csInferStage(existing);
+    if(!isNew)updated++;else{added++;existing.createdAt=existing.createdAt||now;}
     existing.updatedAt=now;
     CASES[existing.id]=existing;
   }
