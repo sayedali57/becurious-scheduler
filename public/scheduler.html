@@ -2200,18 +2200,19 @@ function umRenderTable(){
   _umUsers.forEach(u=>{
     const isSelf=_currentUser&&u.id===_currentUser.id;
     h+='<tr>';
-    h+='<td>'+esc(u.name)+'</td>';
-    h+='<td>'+(u.email?esc(u.email):'<span style="color:#aaa">—</span>')+'</td>';
+    h+='<td><input type="text" value="'+esc(u.name)+'" onchange="umUpdateUser(\''+u.id+'\',\'name\',this.value)" style="width:90px"'+(isSelf?' disabled':'')+'></td>';
+    h+='<td><input type="email" value="'+(u.email?esc(u.email):'')+'" placeholder="add email" onchange="umUpdateUser(\''+u.id+'\',\'email\',this.value)" style="width:150px"></td>';
     h+='<td><select onchange="umUpdateUser(\''+u.id+'\',\'role\',this.value)"'+(isSelf?' disabled':'')+'>'+roles.map(r=>'<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+r.charAt(0).toUpperCase()+r.slice(1)+'</option>').join('')+'</select></td>';
     h+='<td><select onchange="umUpdateUser(\''+u.id+'\',\'branch\',this.value)"><option value="All"'+(u.branch==='All'?' selected':'')+'>All</option>'+branches.map(b=>'<option value="'+esc(b)+'"'+(u.branch===b?' selected':'')+'>'+esc(b)+'</option>').join('')+'</select></td>';
     h+='<td><span class="um-status um-status-'+u.status+'">'+u.status.charAt(0).toUpperCase()+u.status.slice(1)+'</span></td>';
-    h+='<td>';
+    h+='<td style="white-space:nowrap">';
     if(!isSelf){
       if(u.status==='inactive'){
-        h+='<button class="um-act-btn" onclick="umSetStatus(\''+u.id+'\',\'invited\')">Reactivate</button>';
+        h+='<button class="um-act-btn" onclick="umSetStatus(\''+u.id+'\',\'invited\')">Reactivate</button> ';
       }else{
-        h+='<button class="um-act-btn danger" onclick="umSetStatus(\''+u.id+'\',\'inactive\')">Deactivate</button>';
+        h+='<button class="um-act-btn danger" onclick="umSetStatus(\''+u.id+'\',\'inactive\')">Deactivate</button> ';
       }
+      h+='<button class="um-act-btn danger" onclick="umDeleteUser(\''+u.id+'\')" title="Permanently delete this user">Delete</button>';
     }
     h+='</td></tr>';
   });
@@ -2241,6 +2242,16 @@ async function umSetStatus(uid,status){
   if(u)u.status=status;
   umRenderTable();
   toast('User '+action+'d');
+}
+async function umDeleteUser(uid){
+  if(!supa)return;
+  const u=_umUsers.find(x=>x.id===uid);
+  if(!u)return;
+  if(!confirm('Permanently delete '+u.name+'? This cannot be undone.'))return;
+  await supa.from('app_users').delete().eq('id',uid);
+  _umUsers=_umUsers.filter(x=>x.id!==uid);
+  umRenderTable();
+  toast(u.name+' deleted');
 }
 async function umInviteUser(){
   const email=(document.getElementById('um-email').value||'').trim();
