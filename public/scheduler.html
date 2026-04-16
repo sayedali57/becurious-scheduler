@@ -8332,6 +8332,8 @@ function sendAllTeacherMessages(){
 
 // ===== SETTINGS MODAL =====
 function showSettingsModal(){
+  // Re-apply role permissions every time settings opens
+  applyRolePermissions();
   // Load user management table if admin
   if(_currentUser&&currentPerms().user_mgmt)umLoadUsers();
   // Hydrate form fields from SETTINGS
