@@ -831,10 +831,61 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 /* System-wide clickable student-name links */
 .link-name{cursor:pointer;color:inherit;transition:color .15s}
 .link-name:hover{color:var(--text);text-decoration:underline;text-decoration-color:#CBD5E1;text-underline-offset:2px}
+/* ===== AUTH LOGIN SCREEN ===== */
+#auth-overlay{position:fixed;inset:0;z-index:10000;background:#f8f9fa;display:flex;align-items:center;justify-content:center;font-family:'Inter',system-ui,sans-serif}
+.auth-card{text-align:center;padding:48px 40px;max-width:380px;width:100%}
+.auth-logo{width:48px;height:48px;margin:0 auto 12px}
+.auth-title{font-size:22px;font-weight:700;color:#1a1a1a;margin:0 0 4px}
+.auth-tagline{font-size:12px;color:#888;margin:0 0 32px}
+.auth-google-btn{display:inline-flex;align-items:center;gap:10px;padding:12px 28px;background:#fff;border:1px solid #dadce0;border-radius:8px;font-size:14px;font-weight:600;color:#3c4043;cursor:pointer;transition:background .15s,box-shadow .15s;font-family:inherit}
+.auth-google-btn:hover{background:#f7f8f8;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.auth-google-btn svg{flex-shrink:0}
+.auth-invite-note{font-size:11px;color:#999;margin-top:20px;line-height:1.5}
+.auth-error{margin-top:20px;padding:14px 18px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;color:#991B1B;font-size:12px;line-height:1.5;display:none}
+.auth-loading{margin-top:20px;font-size:12px;color:#666;display:none}
+/* ===== USER MANAGEMENT (Settings) ===== */
+.um-section{margin-top:14px;border:1px solid #E2E8F0;border-radius:8px;padding:12px 14px;background:#F8FAFC}
+.um-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
+.um-table th{text-align:left;padding:6px 8px;font-size:10px;font-weight:700;color:var(--text2);border-bottom:2px solid #E2E8F0;background:#F1F5F9}
+.um-table td{padding:5px 8px;border-bottom:1px solid #F1F5F9;vertical-align:middle}
+.um-table tr:hover{background:#FFFBEB}
+.um-table select,.um-table input{font-size:11px;padding:3px 6px;border:1px solid #CBD5E1;border-radius:4px;background:#fff;font-family:inherit}
+.um-invite-row{display:flex;gap:6px;margin-top:10px;align-items:center;flex-wrap:wrap}
+.um-invite-row input,.um-invite-row select{font-size:11px;padding:6px 10px;border:1px solid #CBD5E1;border-radius:6px;font-family:inherit}
+.um-invite-row input{flex:1;min-width:160px}
+.um-invite-row button{padding:6px 14px;background:#7c3aed;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
+.um-invite-row button:hover{background:#6d28d9}
+.um-status{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.um-status-invited{background:#FEF3C7;color:#92400E}
+.um-status-active{background:#D1FAE5;color:#065F46}
+.um-status-inactive{background:#FEE2E2;color:#991B1B}
+.um-act-btn{padding:3px 8px;border:1px solid #CBD5E1;border-radius:4px;font-size:10px;cursor:pointer;background:#fff;font-family:inherit}
+.um-act-btn:hover{background:#F1F5F9}
+.um-act-btn.danger{border-color:#FCA5A5;color:#DC2626}
+.um-act-btn.danger:hover{background:#FEF2F2}
+/* Menu user info */
+.menu-user-info{padding:8px 12px;border-bottom:1px solid #E2E8F0;margin-bottom:4px;font-size:11px;color:var(--text2)}
+.menu-user-info strong{display:block;font-size:12px;color:var(--text)}
+.menu-user-info small{color:var(--text3);font-size:10px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <body data-active-theme="hv" class="compact-slots">
+<!-- ===== AUTH LOGIN OVERLAY ===== -->
+<div id="auth-overlay">
+  <div class="auth-card">
+    <img class="auth-logo" src="/favicon.svg" alt="BeCurious">
+    <h1 class="auth-title">BeCurious Basecamp</h1>
+    <p class="auth-tagline">The details are the care.</p>
+    <button class="auth-google-btn" onclick="signInWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.998 23.998 0 0 0 0 24c0 3.77.9 7.35 2.56 10.56l7.97-5.97z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 5.97C6.51 42.62 14.62 48 24 48z"/></svg>
+      Sign in with Google
+    </button>
+    <p class="auth-invite-note">Access is by invitation only. Contact Saleh to request access.</p>
+    <div class="auth-error" id="auth-error"></div>
+    <div class="auth-loading" id="auth-loading">Checking your account…</div>
+  </div>
+</div>
 <!-- ===== TOP NAV ===== -->
 <div class="topnav">
   <div class="topnav-brand" title="Click ☰ Menu → Branding to change logo"><img src="/favicon.svg" alt="BeCurious"></div>
@@ -849,18 +900,21 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
     <div class="menu-wrap">
       <button class="topnav-btn menu-btn" onclick="toggleMainMenu()" title="Menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>Menu</button>
       <div class="menu-dropdown" id="main-menu" style="display:none">
+        <div class="menu-user-info" id="menu-user-info" style="display:none"><strong id="menu-user-name"></strong><small id="menu-user-role"></small></div>
         <button onclick="closeMainMenu();autoScheduleWeek()" title="Auto-place all pool students"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Auto-schedule week</button>
         <button onclick="closeMainMenu();showCarsModal()" title="Manage cars / drivers"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>Cars</button>
         <div class="menu-sep"></div>
         <button onclick="closeMainMenu();showStudentsTable()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Students</button>
         <button onclick="closeMainMenu();showTeachersModal()" title="Add, edit, deactivate teachers"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Manage teachers</button>
-        <button onclick="closeMainMenu();showSettingsModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>Settings</button>
+        <button onclick="closeMainMenu();showSettingsModal()" id="menu-settings"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>Settings</button>
         <button onclick="closeMainMenu();toggleCompactSlots()" title="Toggle compact / full slot cards"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>Compact slots</button>
         <button onclick="closeMainMenu();showBrandingDialog()" title="Upload logo or banner image"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>Branding (logo + banner)</button>
         <button onclick="closeMainMenu();showSharedHelp()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>Help</button>
         <div class="menu-sep"></div>
-        <button onclick="closeMainMenu();importState()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Import</button>
-        <button onclick="closeMainMenu();showExport()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>Export</button>
+        <button onclick="closeMainMenu();importState()" id="menu-import"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>Import</button>
+        <button onclick="closeMainMenu();showExport()" id="menu-export"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>Export</button>
+        <div class="menu-sep" id="menu-sep-signout"></div>
+        <button onclick="closeMainMenu();signOut()" id="menu-signout" style="color:#DC2626"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>Sign out</button>
       </div>
     </div>
     <span id="save-ind" class="topnav-sync">Connecting…</span>
@@ -1673,7 +1727,19 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
       </div>
     </div>
 
-    <div class="set-section" style="border:1px solid #f3b4b4;background:#fff5f5">
+    <div class="set-section" id="um-section" style="display:none;border:1px solid #7c3aed40;background:#FAF5FF">
+      <div class="set-section-title" style="color:#7c3aed">👥 User Management</div>
+      <div id="um-table-wrap" style="overflow-x:auto"></div>
+      <div class="um-invite-row" id="um-invite-row">
+        <input type="email" id="um-email" placeholder="Email address">
+        <input type="text" id="um-name" placeholder="Name">
+        <select id="um-role"><option value="admin">Admin</option><option value="director">Director</option><option value="operations">Operations</option><option value="coordinator" selected>Coordinator</option></select>
+        <select id="um-branch"></select>
+        <button type="button" onclick="umInviteUser()">Send Invite</button>
+      </div>
+    </div>
+
+    <div class="set-section" id="danger-zone-section" style="border:1px solid #f3b4b4;background:#fff5f5">
       <div class="set-section-title" style="color:#b42318">⚠ Danger zone — mass delete</div>
       <div style="font-size:11px;color:#b42318;margin-bottom:8px">Each button wipes that dataset permanently. You'll be asked for the team password before anything is deleted.</div>
       <div class="frow" style="display:flex;flex-wrap:wrap;gap:6px">
@@ -1950,22 +2016,154 @@ const _isDevDeploy=(()=>{
 const SUPA_ROW_ID=_isDevDeploy?'dev':'main';
 const supa=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(SUPA_URL,SUPA_KEY):null;
 
-// ===== PASSWORD GATE =====
-// To change the team password, replace PW_HASH below with the SHA-256 hex of your new password.
-// Quickest way to compute a new hash: open this page, open DevTools Console, and run:
-//   (async()=>{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('NEWPASSWORD'));console.log(Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join(''));})()
-// Copy the hex string it prints and paste it into PW_HASH below.
-const PW_HASH='72965adbd252658a80efaf2acda87bdb7125ac2eb32b3dc87562b66d16c2422c'; // sha256 of team password
-const PW_KEY='bc_auth_v1';
+// ===== AUTH GATE (Google OAuth + invite-based access) =====
+const PW_HASH='72965adbd252658a80efaf2acda87bdb7125ac2eb32b3dc87562b66d16c2422c'; // sha256 of team password (kept for danger-zone confirmation)
 
 async function _sha256hex(s){
   const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-async function checkPasswordGate(){
+
+// Global auth state — populated after successful login
+let _currentUser=null; // {id, auth_uid, email, name, role, branch, status}
+
+// Role permission matrix
+const ROLE_PERMS={
+  admin:      {settings:true, dangerZone:true, userMgmt:true, allBranches:true, export:true, import:true, delete:true, editData:true},
+  director:   {settings:false,dangerZone:false,userMgmt:false,allBranches:true, export:true, import:false,delete:false,editData:true},
+  operations: {settings:false,dangerZone:false,userMgmt:false,allBranches:true, export:true, import:true, delete:false,editData:true},
+  coordinator:{settings:false,dangerZone:false,userMgmt:false,allBranches:false,export:false,import:false,delete:false,editData:true}
+};
+
+function currentPerms(){return _currentUser?ROLE_PERMS[_currentUser.role]||{}:{};}
+
+async function signInWithGoogle(){
+  if(!supa){alert('Supabase not available. Check your connection.');return;}
+  const {error}=await supa.auth.signInWithOAuth({
+    provider:'google',
+    options:{redirectTo:window.location.origin+window.location.pathname}
+  });
+  if(error){
+    const el=document.getElementById('auth-error');
+    el.textContent='Sign-in failed: '+error.message;
+    el.style.display='block';
+  }
+}
+
+async function signOut(){
+  if(!supa)return;
+  await supa.auth.signOut();
+  _currentUser=null;
+  localStorage.removeItem('bc_user');
+  window.location.reload();
+}
+
+async function checkAuthGate(){
+  if(!supa){
+    // Supabase not loaded — fall back to password gate for offline use
+    return _fallbackPasswordGate();
+  }
+  const overlay=document.getElementById('auth-overlay');
+  const errorEl=document.getElementById('auth-error');
+  const loadingEl=document.getElementById('auth-loading');
+
+  // Check for existing session (persisted by Supabase client)
+  const {data:{session}}=await supa.auth.getSession();
+  if(!session){
+    // No session — show login screen
+    overlay.style.display='flex';
+    return false;
+  }
+
+  // Session exists — look up user in app_users
+  loadingEl.style.display='block';
+  const email=session.user.email;
+  const {data:appUser,error}=await supa.from('app_users').select('*').eq('email',email).single();
+  if(error||!appUser){
+    loadingEl.style.display='none';
+    errorEl.innerHTML='<strong>Your account has not been approved yet.</strong><br>Please contact Saleh to request access.';
+    errorEl.style.display='block';
+    document.querySelector('.auth-google-btn').style.display='none';
+    overlay.style.display='flex';
+    return false;
+  }
+  if(appUser.status==='inactive'){
+    loadingEl.style.display='none';
+    errorEl.innerHTML='<strong>Your account has been deactivated.</strong><br>Please contact Saleh to request reactivation.';
+    errorEl.style.display='block';
+    document.querySelector('.auth-google-btn').style.display='none';
+    overlay.style.display='flex';
+    return false;
+  }
+
+  // Activate if still 'invited'
+  if(appUser.status==='invited'){
+    await supa.from('app_users').update({status:'active',auth_uid:session.user.id,updated_at:new Date().toISOString()}).eq('id',appUser.id);
+    appUser.status='active';
+    appUser.auth_uid=session.user.id;
+  }
+  // Link auth_uid if not yet linked
+  if(!appUser.auth_uid){
+    await supa.from('app_users').update({auth_uid:session.user.id,updated_at:new Date().toISOString()}).eq('id',appUser.id);
+  }
+
+  // Set global auth state
+  _currentUser=appUser;
+  localStorage.setItem('bc_user',appUser.name);
+
+  // Hide login overlay, show app
+  overlay.style.display='none';
+
+  // Apply role-based UI
+  applyRolePermissions();
+  updateMenuUserInfo();
+  return true;
+}
+
+function applyRolePermissions(){
+  if(!_currentUser)return;
+  const p=currentPerms();
+  // Settings button
+  const settingsBtn=document.getElementById('menu-settings');
+  if(settingsBtn)settingsBtn.style.display=p.settings?'':'none';
+  // Import button
+  const importBtn=document.getElementById('menu-import');
+  if(importBtn)importBtn.style.display=p.import?'':'none';
+  // Export button
+  const exportBtn=document.getElementById('menu-export');
+  if(exportBtn)exportBtn.style.display=p.export?'':'none';
+  // Danger zone in settings
+  const dangerZone=document.getElementById('danger-zone-section');
+  if(dangerZone)dangerZone.style.display=p.dangerZone?'':'none';
+  // User management in settings
+  const umSection=document.getElementById('um-section');
+  if(umSection)umSection.style.display=p.userMgmt?'':'none';
+  // Branch switcher — hide for coordinators (they see only their branch)
+  if(!p.allBranches){
+    const brSel=document.getElementById('br-select');
+    if(brSel)brSel.style.display='none';
+    // Force their branch
+    if(typeof curBr!=='undefined')curBr=_currentUser.branch;
+  }
+}
+
+function updateMenuUserInfo(){
+  if(!_currentUser)return;
+  const wrap=document.getElementById('menu-user-info');
+  const nameEl=document.getElementById('menu-user-name');
+  const roleEl=document.getElementById('menu-user-role');
+  if(wrap)wrap.style.display='block';
+  if(nameEl)nameEl.textContent=_currentUser.name;
+  if(roleEl)roleEl.textContent=_currentUser.role.charAt(0).toUpperCase()+_currentUser.role.slice(1)+(_currentUser.branch!=='All'?' · '+_currentUser.branch:'');
+}
+
+// Fallback for offline/no-Supabase scenarios
+async function _fallbackPasswordGate(){
+  const PW_KEY='bc_auth_v1';
+  document.getElementById('auth-overlay').style.display='none';
   if(localStorage.getItem(PW_KEY)==='ok')return true;
   for(let tries=0;tries<5;tries++){
-    const pw=prompt('🔒 BeCurious Scheduler\n\nEnter team password:');
+    const pw=prompt('🔒 BeCurious Basecamp\n\nEnter team password:');
     if(pw==null){document.body.innerHTML='<div style="padding:40px;text-align:center;font-family:system-ui;color:#666">Access required.</div>';return false;}
     const h=await _sha256hex(pw.trim());
     if(h===PW_HASH){localStorage.setItem(PW_KEY,'ok');return true;}
@@ -1975,9 +2173,7 @@ async function checkPasswordGate(){
   return false;
 }
 
-// Password gate used by any destructive bulk action. Returns true iff the
-// user confirmed AND supplied the correct team password. `label` is shown
-// in both prompts so they know exactly what they are authorizing.
+// Confirmation gate for destructive actions (uses team password)
 async function confirmPasswordFor(label){
   if(!confirm('This will permanently delete '+label+'.\n\nThis cannot be undone. Continue?'))return false;
   const pw=prompt('🔒 Confirm with team password to delete '+label+':');
@@ -1985,6 +2181,84 @@ async function confirmPasswordFor(label){
   const h=await _sha256hex(pw.trim());
   if(h!==PW_HASH){alert('Wrong password. Nothing was deleted.');return false;}
   return true;
+}
+
+// ===== USER MANAGEMENT (admin only) =====
+let _umUsers=[];
+async function umLoadUsers(){
+  if(!supa)return;
+  const {data}=await supa.from('app_users').select('*').order('created_at',{ascending:true});
+  _umUsers=data||[];
+  umRenderTable();
+}
+function umRenderTable(){
+  const wrap=document.getElementById('um-table-wrap');
+  if(!wrap)return;
+  let h='<table class="um-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Branch</th><th>Status</th><th></th></tr></thead><tbody>';
+  const roles=['admin','director','operations','coordinator'];
+  const branches=typeof csBranches==='function'?csBranches():['Salam','Shuhada','Salwa'];
+  _umUsers.forEach(u=>{
+    const isSelf=_currentUser&&u.id===_currentUser.id;
+    h+='<tr>';
+    h+='<td>'+esc(u.name)+'</td>';
+    h+='<td>'+(u.email?esc(u.email):'<span style="color:#aaa">—</span>')+'</td>';
+    h+='<td><select onchange="umUpdateUser(\''+u.id+'\',\'role\',this.value)"'+(isSelf?' disabled':'')+'>'+roles.map(r=>'<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+r.charAt(0).toUpperCase()+r.slice(1)+'</option>').join('')+'</select></td>';
+    h+='<td><select onchange="umUpdateUser(\''+u.id+'\',\'branch\',this.value)"><option value="All"'+(u.branch==='All'?' selected':'')+'>All</option>'+branches.map(b=>'<option value="'+esc(b)+'"'+(u.branch===b?' selected':'')+'>'+esc(b)+'</option>').join('')+'</select></td>';
+    h+='<td><span class="um-status um-status-'+u.status+'">'+u.status.charAt(0).toUpperCase()+u.status.slice(1)+'</span></td>';
+    h+='<td>';
+    if(!isSelf){
+      if(u.status==='inactive'){
+        h+='<button class="um-act-btn" onclick="umSetStatus(\''+u.id+'\',\'invited\')">Reactivate</button>';
+      }else{
+        h+='<button class="um-act-btn danger" onclick="umSetStatus(\''+u.id+'\',\'inactive\')">Deactivate</button>';
+      }
+    }
+    h+='</td></tr>';
+  });
+  h+='</tbody></table>';
+  wrap.innerHTML=h;
+  // Also populate the branch dropdown in the invite form
+  const brSel=document.getElementById('um-branch');
+  if(brSel){
+    brSel.innerHTML='<option value="All">All</option>'+branches.map(b=>'<option value="'+esc(b)+'">'+esc(b)+'</option>').join('');
+  }
+}
+async function umUpdateUser(uid,field,val){
+  if(!supa)return;
+  const update={[field]:val,updated_at:new Date().toISOString()};
+  await supa.from('app_users').update(update).eq('id',uid);
+  const u=_umUsers.find(x=>x.id===uid);
+  if(u)u[field]=val;
+  umRenderTable();
+  toast('User updated');
+}
+async function umSetStatus(uid,status){
+  if(!supa)return;
+  const u=_umUsers.find(x=>x.id===uid);
+  const action=status==='inactive'?'deactivate':'reactivate';
+  if(!confirm('Are you sure you want to '+action+' '+(u?u.name:'this user')+'?'))return;
+  await supa.from('app_users').update({status,updated_at:new Date().toISOString()}).eq('id',uid);
+  if(u)u.status=status;
+  umRenderTable();
+  toast('User '+action+'d');
+}
+async function umInviteUser(){
+  const email=(document.getElementById('um-email').value||'').trim();
+  const name=(document.getElementById('um-name').value||'').trim();
+  const role=document.getElementById('um-role').value;
+  const branch=document.getElementById('um-branch').value;
+  if(!email||!name){alert('Email and name are required.');return;}
+  if(!email.includes('@')){alert('Please enter a valid email address.');return;}
+  // Check if email already exists
+  if(_umUsers.some(u=>u.email===email)){alert('A user with this email already exists.');return;}
+  // Insert into app_users
+  const {data,error}=await supa.from('app_users').insert({email,name,role,branch,status:'invited'}).select().single();
+  if(error){alert('Failed to add user: '+error.message);return;}
+  _umUsers.push(data);
+  umRenderTable();
+  document.getElementById('um-email').value='';
+  document.getElementById('um-name').value='';
+  toast('✓ '+name+' invited — share the app URL with them to sign in with Google.');
 }
 
 // ===== BULK-SELECT STATE =====
@@ -2241,6 +2515,38 @@ function markOutdoorComplete(dayCode,dateKey){
 
 // Mass-delete / reset helpers — password-gated. `what` is one of:
 //   'cases', 'students', 'teachers', 'schedule', 'attendance', 'all'
+// Non-blocking overlay used during heavy danger-zone wipes. Replaces the old
+// synchronous alert()s that blocked paints and produced 10+ second INP values
+// on Clear Schedule / WIPE EVERYTHING. Call _showWipeOverlay(msg) before heavy
+// work and _hideWipeOverlay() when done.
+function _showWipeOverlay(msg){
+  let el=document.getElementById('_wipeOverlay');
+  if(!el){
+    if(!document.getElementById('_wipeSpinKf')){
+      const st=document.createElement('style');
+      st.id='_wipeSpinKf';
+      st.textContent='@keyframes _wipeSpin{to{transform:rotate(360deg)}}';
+      document.head.appendChild(st);
+    }
+    el=document.createElement('div');
+    el.id='_wipeOverlay';
+    el.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:9999;display:flex;align-items:center;justify-content:center';
+    el.innerHTML='<div style="background:#fff;padding:18px 24px;border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,.25);font-size:13px;color:#111;display:flex;align-items:center;gap:10px"><span style="width:14px;height:14px;border:2px solid #d4d4d4;border-top-color:#b42318;border-radius:50%;display:inline-block;animation:_wipeSpin .7s linear infinite"></span><span id="_wipeOverlayMsg"></span></div>';
+    document.body.appendChild(el);
+  }
+  const m=document.getElementById('_wipeOverlayMsg');if(m)m.textContent=msg||'Working…';
+  el.style.display='flex';
+}
+function _hideWipeOverlay(){
+  const el=document.getElementById('_wipeOverlay');if(el)el.style.display='none';
+}
+// Yield to the browser so pending paints can flush before the next chunk of
+// synchronous work. Two ticks: rAF queues the paint, setTimeout lets the
+// compositor finish before we grab the thread again.
+function _yieldToBrowser(){
+  return new Promise(r=>requestAnimationFrame(()=>setTimeout(r,0)));
+}
+
 async function dangerWipe(what){
   const labels={cases:'ALL cases',students:'ALL students (and their schedule placements)',teachers:'ALL teachers',schedule:'the ENTIRE schedule (all placements on all days)',attendance:'ALL attendance history',all:'EVERYTHING — cases, students, teachers, cars, schedule, and attendance'};
   const label=labels[what];if(!label)return;
@@ -2249,48 +2555,78 @@ async function dangerWipe(what){
   if(pw==null)return;
   const h=await _sha256hex(pw.trim());
   if(h!==PW_HASH){alert('Wrong password. Nothing was deleted.');return;}
-  if(what==='cases'){
-    if(typeof CASES!=='undefined')Object.keys(CASES).forEach(k=>delete CASES[k]);
-    if(typeof csSaveCases==='function')csSaveCases();
-    if(typeof renderCsKanban==='function')renderCsKanban();
-    if(typeof updateCsTabBadge==='function')updateCsTabBadge();
-  }else if(what==='students'){
-    Object.keys(SS).forEach(k=>delete SS[k]);
-    // Remove any student placements from the schedule too
-    Object.keys(SCHED).forEach(d=>{(SCHED[d]||[]).forEach(car=>{(car||[]).forEach((sl,i)=>{if(sl&&(sl.t==='s'||sl.t==='d'||sl.t==='g'))car[i]=null;});});});
-    saveState();if(typeof renderSched==='function')renderSched();if(typeof renderPool==='function')renderPool();
-  }else if(what==='teachers'){
-    Object.keys(TEACHERS).forEach(k=>{_deletedTeachers.add(k);delete TEACHERS[k];});
-    saveState();if(typeof renderSched==='function')renderSched();
-  }else if(what==='schedule'){
-    Object.keys(SCHED).forEach(d=>{SCHED[d]=(SCHED[d]||[]).map(car=>(car||[]).map(()=>null));});
-    saveState();if(typeof renderSched==='function')renderSched();if(typeof renderPool==='function')renderPool();
-  }else if(what==='attendance'){
-    Object.keys(ATTEND).forEach(k=>delete ATTEND[k]);
-    saveState();if(typeof renderSched==='function')renderSched();
-  }else if(what==='all'){
+  // Second-chance confirmations for 'all' MUST happen before we show the overlay
+  // or close the modal — user can still cancel here.
+  if(what==='all'){
     if(!confirm('LAST CHANCE — you are about to wipe EVERYTHING. Type OK on the next prompt to confirm.'))return;
     const c2=prompt('Type the word   WIPE   (in caps) to confirm full wipe:');
     if(c2!=='WIPE'){alert('Cancelled — wipe aborted.');return;}
-    Object.keys(SS).forEach(k=>delete SS[k]);
-    Object.keys(TEACHERS).forEach(k=>{_deletedTeachers.add(k);delete TEACHERS[k];});
-    CARS.length=0;
-    Object.keys(SCHED).forEach(d=>delete SCHED[d]);
-    Object.keys(ATTEND).forEach(k=>delete ATTEND[k]);
-    if(typeof CASES!=='undefined')Object.keys(CASES).forEach(k=>delete CASES[k]);
-    saveState();
-    if(typeof csSaveCases==='function')csSaveCases();
-    if(typeof renderSched==='function')renderSched();
-    if(typeof renderPool==='function')renderPool();
-    if(typeof renderCsKanban==='function')renderCsKanban();
-    if(typeof updateCsTabBadge==='function')updateCsTabBadge();
   }
-  alert(label.charAt(0).toUpperCase()+label.slice(1)+' deleted.');
+  // Close settings first so its DOM isn't part of the re-render cost, then
+  // show a loading overlay and yield to the browser so the spinner actually
+  // paints before we hog the main thread with the wipe + renderSched.
   if(typeof closeSettingsModal==='function'){try{closeSettingsModal();}catch(e){}}
+  _showWipeOverlay('Clearing '+label.split(' — ')[0].split(' (')[0]+'…');
+  await _yieldToBrowser();
+  try{
+    if(what==='cases'){
+      if(typeof CASES!=='undefined')Object.keys(CASES).forEach(k=>delete CASES[k]);
+      if(typeof csSaveCases==='function')csSaveCases();
+      await _yieldToBrowser();
+      if(typeof renderCsKanban==='function')renderCsKanban();
+      if(typeof updateCsTabBadge==='function')updateCsTabBadge();
+    }else if(what==='students'){
+      Object.keys(SS).forEach(k=>delete SS[k]);
+      // Remove any student placements from the schedule too
+      Object.keys(SCHED).forEach(d=>{(SCHED[d]||[]).forEach(car=>{(car||[]).forEach((sl,i)=>{if(sl&&(sl.t==='s'||sl.t==='d'||sl.t==='g'))car[i]=null;});});});
+      saveState();
+      await _yieldToBrowser();
+      if(typeof renderSched==='function')renderSched();
+      if(typeof renderPool==='function')renderPool();
+    }else if(what==='teachers'){
+      Object.keys(TEACHERS).forEach(k=>{_deletedTeachers.add(k);delete TEACHERS[k];});
+      saveState();
+      await _yieldToBrowser();
+      if(typeof renderSched==='function')renderSched();
+    }else if(what==='schedule'){
+      Object.keys(SCHED).forEach(d=>{SCHED[d]=(SCHED[d]||[]).map(car=>(car||[]).map(()=>null));});
+      saveState();
+      await _yieldToBrowser();
+      if(typeof renderSched==='function')renderSched();
+      if(typeof renderPool==='function')renderPool();
+    }else if(what==='attendance'){
+      Object.keys(ATTEND).forEach(k=>delete ATTEND[k]);
+      saveState();
+      await _yieldToBrowser();
+      if(typeof renderSched==='function')renderSched();
+    }else if(what==='all'){
+      Object.keys(SS).forEach(k=>delete SS[k]);
+      Object.keys(TEACHERS).forEach(k=>{_deletedTeachers.add(k);delete TEACHERS[k];});
+      CARS.length=0;
+      Object.keys(SCHED).forEach(d=>delete SCHED[d]);
+      Object.keys(ATTEND).forEach(k=>delete ATTEND[k]);
+      if(typeof CASES!=='undefined')Object.keys(CASES).forEach(k=>delete CASES[k]);
+      saveState();
+      if(typeof csSaveCases==='function')csSaveCases();
+      await _yieldToBrowser();
+      if(typeof renderSched==='function')renderSched();
+      if(typeof renderPool==='function')renderPool();
+      if(typeof renderCsKanban==='function')renderCsKanban();
+      if(typeof updateCsTabBadge==='function')updateCsTabBadge();
+    }
+  }catch(e){
+    console.error('Wipe failed:',e);
+    toast('⚠ Wipe failed — see console');
+  }finally{
+    _hideWipeOverlay();
+  }
+  // Toast replaces the old blocking alert() so the click's paint can complete.
+  toast('✓ '+label.charAt(0).toUpperCase()+label.slice(1)+' deleted.');
 }
 
-// Who is using this browser — prompted on first use, stored locally
+// Who is using this browser — returns signed-in user's name, falls back to localStorage prompt
 function getUserName(){
+  if(_currentUser&&_currentUser.name)return _currentUser.name;
   let n=localStorage.getItem('bc_user');
   if(!n){
     n=(prompt('Your name? (so other coordinators see who edited)')||'').trim();
@@ -2298,6 +2634,15 @@ function getUserName(){
     localStorage.setItem('bc_user',n);
   }
   return n;
+}
+// Full audit string: "[Date] · [Time] · [Name] — [Action]"
+function auditStamp(action){
+  const now=new Date();
+  const d=now.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const t=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  const name=_currentUser?_currentUser.name:getUserName();
+  const email=_currentUser?(' ('+_currentUser.email+')'):'';
+  return d+' · '+t+' · '+name+email+' — '+action;
 }
 
 // ===== STATE =====
@@ -7731,6 +8076,8 @@ function sendAllTeacherMessages(){
 
 // ===== SETTINGS MODAL =====
 function showSettingsModal(){
+  // Load user management table if admin
+  if(_currentUser&&currentPerms().userMgmt)umLoadUsers();
   // Hydrate form fields from SETTINGS
   qs('set-sessionMin').value=SETTINGS.sessionMin;
   qs('set-bufferMin').value=SETTINGS.bufferMin;
@@ -9232,7 +9579,7 @@ let _csDragId=null;
 let _csSearch='';
 // Section 2: structured multi-select filters. Each key is an array of active
 // values; empty = no constraint on that dimension. Dimensions compound (AND).
-let _csFilters={status:[],risk:[],payment:[],type:[],branch:[],assignedTo:[]};
+let _csFilters={status:[],risk:[],payment:[],enrollment:[],type:[],branch:[],assignedTo:[]};
 let _csGroupBy='stage'; // stage | assignedTo | branch | segment
 // Filter mutation helpers — each re-renders the Kanban.
 function csAddFilter(dim,val){
@@ -9490,6 +9837,7 @@ function renderCsKanban(){
     }
     if(F.risk.length&&F.risk.indexOf(c.segment)<0)return false;
     if(F.payment.length&&F.payment.indexOf(c.paymentStatus)<0)return false;
+    if(F.enrollment.length&&F.enrollment.indexOf(c.enrollmentStatus||'enrolled')<0)return false;
     if(F.type.length&&F.type.indexOf(c.type)<0)return false;
     if(F.branch.length&&F.branch.indexOf(c.branch)<0)return false;
     if(F.assignedTo.length){
@@ -9528,6 +9876,7 @@ function renderCsKanban(){
     {k:'status',lbl:'Status',opts:[{v:'open',l:'Open'},{v:'stale',l:'Stale'},{v:'resolved',l:'Resolved'}]},
     {k:'risk',lbl:'Risk',opts:csSegments().map(s=>({v:s.id,l:s.label}))},
     {k:'payment',lbl:'Payment',opts:CS_PAYMENT_STATUSES.map(p=>({v:p.id,l:p.label}))},
+    {k:'enrollment',lbl:'Enrollment',opts:CS_ENROLLMENT_STATUSES.map(e=>({v:e.id,l:e.label}))},
     {k:'type',lbl:'Case Type',opts:csTypes().map(t=>({v:t.id,l:t.label}))},
     {k:'branch',lbl:'Branch',opts:csBranches().map(b=>({v:b,l:b}))},
     {k:'assignedTo',lbl:'Assigned To',opts:csEmployees().map(e=>({v:e,l:e})).concat([{v:'__unassigned__',l:'(Unassigned)'}])}
@@ -9543,11 +9892,12 @@ function renderCsKanban(){
   });
   // Active pills
   h+='<div class="cs-filter-pills">';
-  const dimLabels={status:'Status',risk:'Risk',payment:'Payment',type:'Type',branch:'Branch',assignedTo:'Assigned'};
+  const dimLabels={status:'Status',risk:'Risk',payment:'Payment',enrollment:'Enrollment',type:'Type',branch:'Branch',assignedTo:'Assigned'};
   const lookupLabel=(dim,v)=>{
     if(dim==='status')return ({open:'Open',stale:'Stale',resolved:'Resolved'})[v]||v;
     if(dim==='risk'){const s=csSegments().find(x=>x.id===v);return s?s.label:v;}
     if(dim==='payment'){const p=CS_PAYMENT_STATUSES.find(x=>x.id===v);return p?p.label:v;}
+    if(dim==='enrollment'){const e=CS_ENROLLMENT_STATUSES.find(x=>x.id===v);return e?e.label:v;}
     if(dim==='type'){const t=csTypes().find(x=>x.id===v);return t?t.label:v;}
     if(dim==='assignedTo'&&v==='__unassigned__')return 'Unassigned';
     return v;
@@ -10623,7 +10973,7 @@ function csImportCsvText(text){
 init();
 setSyncIndicator('connecting');
 (async()=>{
-  const ok=await checkPasswordGate();
+  const ok=await checkAuthGate();
   if(!ok)return;
   const fromSupa=await bootLoadFromSupabase();
   if(!fromSupa){
