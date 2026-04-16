@@ -1,0 +1,173 @@
+From 060c0e7399d3333872174fe5bbf01801246dec1e Mon Sep 17 00:00:00 2001
+From: Saleh <saleh@emergegcc.com>
+Date: Sun, 12 Apr 2026 16:33:19 +0300
+Subject: [PATCH] =?UTF-8?q?feat:=20rejected=20days=20per=20student=20?=
+ =?UTF-8?q?=E2=80=94=20parent=20day=20objections=20with=20red=20slot=20war?=
+ =?UTF-8?q?nings?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- New 'Rejected days' column in student roster: clickable day pills (red=rejected)
+- Slots on rejected days show red border + '⛔ REJECTED DAY' banner (all slot types)
+- Auto-scheduler completely skips rejected days for candidate selection + sibling pairing
+- diagnoseUnplaced explains when rejected days limit availability
+- Student model migrates with rejectedDays=[] default
+- 34/34 smoke tests pass
+---
+ public/scheduler.html | 54 ++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 48 insertions(+), 6 deletions(-)
+
+diff --git a/public/scheduler.html b/public/scheduler.html
+index 4b191a1..d3cab5a 100644
+--- a/public/scheduler.html
++++ b/public/scheduler.html
+@@ -94,6 +94,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
+ /* Locked (mandatory-time) slot */
+ .lock-badge{font-size:11px;cursor:help;margin-right:3px}
+ .slot.locked-slot{border-color:#7C3AED;border-style:solid;background:#FAF5FF}
++.slot.rejected-day-slot{border-color:#DC2626!important;border-style:solid!important;background:#FEF2F2!important;box-shadow:inset 0 0 0 1px #FECACA}
++.slot.rejected-day-slot::before{content:'⛔ REJECTED DAY';display:block;font-size:8px;font-weight:700;color:#DC2626;background:#FEE2E2;border-radius:3px;padding:2px 6px;margin-bottom:4px;text-align:center}
+ /* Unplaced reason banner in pool cards */
+ .unplaced-reason{font-size:8px;color:#B45309;background:#FEF3C7;border:1px solid #FCD34D;border-radius:4px;padding:2px 6px;margin:2px 0}
+ /* Car capacity bar */
+@@ -474,6 +476,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
+             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap" title="For group students: whose house does the car drive to?">Group Host</th>
+             <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Sess/wk</th>
+             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap" title="Fixed day+time per session (leave blank = flexible, parents have no preference)">Fixed times</th>
++            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap" title="Days the parent says NO to — auto-scheduler will skip these">Rejected days</th>
+             <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Visits</th>
+             <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Scheduled</th>
+             <th style="padding:8px 6px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">WA</th>
+@@ -1310,6 +1313,7 @@ function migrateStudents(){
+     if(s.sessionType==null||(s.sessionType!=='1on1'&&s.sessionType!=='group'))s.sessionType='1on1';
+     // Mandatory timing: array of {day,min} entries per session. null = flexible.
+     if(!Array.isArray(s.mandatory))s.mandatory=[];
++    if(!Array.isArray(s.rejectedDays))s.rejectedDays=[];
+   });
+ }
+ // Convert minutes to 24h HH:MM string for <input type="time">
+@@ -1825,9 +1829,14 @@ function diagnoseUnplaced(s){
+     return(c.branch||'').split('/').includes(s.br);
+   });
+   if(!hasCar){reasons.push(`No car covers ${s.br} branch`);return reasons.join('; ');}
++  // 2b. Rejected days — if parent rejected too many days, limited availability
++  const rej=s.rejectedDays||[];
++  const availAfterRej=activeDays().filter(d=>!rej.includes(d));
++  if(!availAfterRej.length){reasons.push(`Parent rejected ALL active days (${rej.join(', ')})`);return reasons.join('; ');}
++  if(rej.length>0&&availAfterRej.length<(s.sessionsPerWeek||1))reasons.push(`Parent rejected ${rej.join(',')} — only ${availAfterRej.length} day(s) left for ${s.sessionsPerWeek||1} session(s)`);
+   // 3. Teacher day availability — count how many active days teacher works
+-  const teacherDays=activeDays().filter(d=>!t||!t.days||t.days[d]);
+-  if(!teacherDays.length){reasons.push(`${s.t} has no active days`);return reasons.join('; ');}
++  const teacherDays=availAfterRej.filter(d=>!t||!t.days||t.days[d]);
++  if(!teacherDays.length){reasons.push(`${s.t} has no active days after rejected-day filter`);return reasons.join('; ');}
+   // 4. All available car slots full on teacher's days
+   const maxPD=(t&&t.maxPerDay)||(SETTINGS.teacherDefaultMax||6);
+   let allFull=true, teacherMaxed=true;
+@@ -2021,6 +2030,9 @@ function renderSlot(d,cid,si){
+   // the driver must detour back to branch.
+   const rideNote=teacherRideNote(d,cid,si);
+   const lockBadge=sl_.locked?'<span class="lock-badge" title="Mandatory time — locked by parent request">🔒</span>':'';
++  // Rejected-day check: any student in this slot on a day their parent rejected?
++  const slotIds=slotStudentIds(sl_);
++  const rejCls=slotIds.some(sid=>isRejectedDay(sid,d))?' rejected-day-slot':'';
+ 
+   if(sl_.t==='s'){
+     const s=SS[sl_.id];if(!s)return'';
+@@ -2054,7 +2066,7 @@ function renderSlot(d,cid,si){
+       </div></div>`;
+     return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
+       ${rideNote}
+-      <div class="slot filled${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}" ${base} ${handlers}>
++      <div class="slot filled${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" ${base} ${handlers}>
+         ${sl_.grp?`<div class="grp-banner">🏠 Group: <span class="grp-loc">${sl(sl_.grp.addr)}</span></div>`:''}
+         <div class="journey drop-j"><span class="j-from">${fromLabel}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
+         <div class="slot-toprow">${lockBadge}${warns}<button class="edit-ico" onclick="event.stopPropagation();editStudent('${s.id}')" title="Edit student">✏</button></div>
+@@ -2125,7 +2137,7 @@ function renderSlot(d,cid,si){
+     }).join('');
+     return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
+       ${rideNote}
+-      <div class="slot paired${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}" ${base} ${handlers}>
++      <div class="slot paired${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" ${base} ${handlers}>
+         ${sl_.grp?`<div class="grp-banner">🏠 Group: <span class="grp-loc">${sl(sl_.grp.addr)}</span> — all teachers same location</div>`:''}
+         <div class="journey drop-j"><span class="j-from">${fromLabel}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
+         <div class="slot-toprow">${warns}</div>
+@@ -2162,7 +2174,7 @@ function renderSlot(d,cid,si){
+     return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
+       ${pickRideNote}
+       ${xcarNote}
+-      <div class="slot pickup-slot${isActive?' active-slot':''}" ${base} ${handlers}>
++      <div class="slot pickup-slot${isActive?' active-slot':''}${rejCls}" ${base} ${handlers}>
+         <div class="journey pick-j"><span class="j-from">${sl(s.a)}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
+         <div class="slot-toprow">${warns}<button class="edit-ico" onclick="event.stopPropagation();editStudent('${s.id}')" title="Edit student">✏</button></div>
+         <div class="ss" draggable="true" data-sid="${s.id}" data-dtype="pick" style="border-left:3px solid ${col};padding-top:2px">
+@@ -2209,7 +2221,7 @@ function renderSlot(d,cid,si){
+     }).join('');
+     return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
+       ${rideNote}
+-      <div class="slot group-slot${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}" ${base} ${handlers}>
++      <div class="slot group-slot${isActive?' active-slot':''}${sl_.locked?' locked-slot':''}${rejCls}" ${base} ${handlers}>
+         <div class="grp-hdr">
+           <span style="font-size:9px;font-weight:700;color:#92400E">&#127968; GROUP</span>
+           <span class="grp-count-pill">${sl_.ids.length}/7 children</span>
+@@ -2582,6 +2594,7 @@ function renderStudentsTable(){
+       <td class="st-cell">${groupHostCell(s)}</td>
+       <td class="st-cell"><input class="st-inp num" value="${s.sessionsPerWeek||1}" type="number" min="1" max="7" onchange="patchStudent('${s.id}','sessionsPerWeek',+this.value)" style="width:52px" onkeydown="stNav(event,this)"></td>
+       <td class="st-cell" style="min-width:150px">${mandatoryCells(s)}</td>
++      <td class="st-cell">${rejectedDaysCells(s)}</td>
+       <td class="st-cell"><input class="st-inp num" value="${s.visits||0}" type="number" min="0" onchange="patchStudent('${s.id}','visits',+this.value)" style="width:52px" onkeydown="stNav(event,this)"></td>
+       <td class="st-cell" style="text-align:center;padding:6px 8px;white-space:nowrap">
+         <span class="sched-dot" style="background:${dotCol}"></span>${sched}/${total}
+@@ -2643,6 +2656,33 @@ function resolveGroupCoords(s){
+   return {la:s.la,ln:s.ln};
+ }
+ 
++// Rejected days: compact row of clickable day pills — toggling a day marks it
++// as rejected by the parent. Red = rejected, grey = available.
++function rejectedDaysCells(s){
++  const days=['Sun','Mon','Tue','Wed','Thu'];
++  const rej=s.rejectedDays||[];
++  return '<div style="display:flex;gap:2px">'+days.map(d=>{
++    const on=rej.includes(d);
++    return '<span onclick="toggleRejDay(\''+s.id+'\',\''+d+'\')" style="cursor:pointer;font-size:8px;font-weight:600;padding:2px 5px;border-radius:4px;user-select:none;'
++      +(on?'background:#FEE2E2;color:#DC2626;border:1px solid #FECACA':'background:#F3F4F6;color:var(--text3);border:1px solid #E5E7EB')
++      +'" title="'+(on?d+': REJECTED by parent — click to allow':d+': allowed — click to reject')+'">'+d+'</span>';
++  }).join('')+'</div>';
++}
++function toggleRejDay(sid,day){
++  const s=SS[sid];if(!s)return;
++  if(!Array.isArray(s.rejectedDays))s.rejectedDays=[];
++  const idx=s.rejectedDays.indexOf(day);
++  if(idx>=0)s.rejectedDays.splice(idx,1); else s.rejectedDays.push(day);
++  saveState();renderStudentsTable();
++  const row=qs('strow-'+sid);
++  if(row){row.style.background='#EAF3DE';setTimeout(()=>row.style.background='',800);}
++}
++// Check if a student is on a rejected day
++function isRejectedDay(sid,day){
++  const s=SS[sid];if(!s)return false;
++  return Array.isArray(s.rejectedDays)&&s.rejectedDays.includes(day);
++}
++
+ function patchMandatory(sid,idx,field,val){
+   const s=SS[sid];if(!s)return;
+   if(!Array.isArray(s.mandatory))s.mandatory=[];
+@@ -4825,6 +4865,7 @@ function runAutoSchedule(){
+     const all=Object.keys(remain).filter(sid=>{
+       if(remain[sid]<=0)return false;
+       const s=SS[sid];if(!s)return false;
++      if(isRejectedDay(sid,day))return false; // parent says NO to this day
+       if(preventDouble&&onDay[day].has(sid))return false;
+       if(!carServesBranch(car,s))return false;
+       if(!teacherCanTake(s.t,day))return false;
+@@ -4961,6 +5002,7 @@ function runAutoSchedule(){
+           const nearSibling=Object.keys(remain).find(sid2=>{
+             if(sid2===pickSid||remain[sid2]<=0)return false;
+             const s2=SS[sid2];if(!s2)return false;
++            if(isRejectedDay(sid2,day))return false;
+             if(preventDouble&&onDay[day].has(sid2))return false;
+             if(!isSpreadOk(sid2,day))return false;
+             if(!carServesBranch(car,s2))return false;
+-- 
+2.34.1
+

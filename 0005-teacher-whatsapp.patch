@@ -1,0 +1,134 @@
+From d1ba6f13c97de8f947bbec8a31acca22a7daed09 Mon Sep 17 00:00:00 2001
+From: Saleh <saleh@emergegcc.com>
+Date: Sat, 11 Apr 2026 20:10:57 +0300
+Subject: [PATCH] Teacher view: add WhatsApp button to send each teacher their
+ weekly schedule
+
+- New buildTeacherMessage(tname) formats a weekly schedule message grouped
+  by day, similar in tone to buildParentMessage. Lists each session as
+  "HH:MM - Student Name (Car N)".
+- New sendTeacherWhatsApp(tname) opens wa.me/<phone>?text=... in a new tab
+  using the teacher's saved phone from the Teachers table.
+- New sendAllTeacherMessages() opens one WhatsApp tab per eligible teacher
+  (phone + at least one scheduled session this week), staggered 350ms apart.
+- Teacher Weekly Report card now shows a green 'WhatsApp' button instead
+  of the plain phone link. Header bar gets a 'Send all teachers (N)' bulk
+  button on the right.
+- Disabled state + toast guidance when a teacher has no phone, or has a
+  phone but no sessions.
+- Smoke test 17 confirms buildTeacherMessage produces a non-empty message
+  for a teacher with sessions and returns null for an empty teacher.
+  17/17 passing.
+---
+ public/scheduler.html | 72 ++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 68 insertions(+), 4 deletions(-)
+
+diff --git a/public/scheduler.html b/public/scheduler.html
+index f8b2e33..0b0a78d 100644
+--- a/public/scheduler.html
++++ b/public/scheduler.html
+@@ -2770,10 +2770,13 @@ function renderTeacherWeeklyReport(){
+   const esc=v=>String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+   const dayOrder={Mon:0,Tue:1,Wed:2,Thu:3};
+   const names=Object.keys(byTeacher).sort((a,b)=>a.localeCompare(b));
++  // Count teachers with phone AND at least one scheduled session for the bulk button
++  const sendable=names.filter(n=>TEACHERS[n]?.phone&&(byTeacher[n]||[]).length>0).length;
+   const body=qs('rpt-body');
+   body.innerHTML=`
+-    <div style="padding:12px 18px;font-size:11px;color:var(--text2);border-bottom:1px solid var(--border);background:#FAFAFA">
+-      Per-teacher weekly view — each teacher's sessions across Mon–Thu, ordered by day and time.
++    <div style="padding:12px 18px;font-size:11px;color:var(--text2);border-bottom:1px solid var(--border);background:#FAFAFA;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
++      <span>Per-teacher weekly view — each teacher's sessions across the week, ordered by day and time.</span>
++      <button onclick="sendAllTeacherMessages()" ${sendable?'':'disabled'} style="margin-left:auto;padding:6px 14px;border-radius:6px;background:#25D366;color:#fff;border:none;font-size:11px;font-weight:600;cursor:${sendable?'pointer':'not-allowed'};opacity:${sendable?'1':'0.5'}">💬 Send all teachers (${sendable})</button>
+     </div>
+     <div style="padding:14px 18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px">
+       ${names.map(name=>{
+@@ -2782,7 +2785,10 @@ function renderTeacherWeeklyReport(){
+         sessions.sort((a,b)=>(dayOrder[a.d]-dayOrder[b.d])||(a.startM-b.startM));
+         const col=TC[name]||'#6A5FA8';
+         const sc=sessions.length;
+-        const phoneBtn=t.phone?`<a href="https://wa.me/${t.phone.replace(/[^0-9]/g,'')}" target="_blank" style="margin-left:auto;font-size:9px;color:var(--teal);text-decoration:none">💬 ${t.phone}</a>`:'';
++        // WhatsApp button — sends the full weekly schedule. Shows disabled-looking state
++        // if phone missing or no sessions; still clickable so the toast can explain why.
++        const canSend=!!(t.phone&&sessions.length);
++        const waBtn=`<button onclick="event.stopPropagation();sendTeacherWhatsApp('${esc(name).replace(/'/g,"\\'")}')" title="${canSend?('Send weekly schedule to '+esc(t.phone)):(t.phone?'No sessions this week':'No phone saved for this teacher')}" style="margin-left:auto;padding:3px 8px;border-radius:5px;background:${canSend?'#25D366':'#E5E7EB'};color:${canSend?'#fff':'#9CA3AF'};border:none;font-size:10px;font-weight:600;cursor:pointer">💬 WhatsApp</button>`;
+         const dayTags=['Mon','Tue','Wed','Thu'].map(d=>{
+           const ok=t.days?.[d];
+           return `<span style="font-size:8px;padding:1px 5px;border-radius:3px;background:${ok?'#D1FAE5':'#FEE2E2'};color:${ok?'#065F46':'#991B1B'}">${d}</span>`;
+@@ -2792,7 +2798,7 @@ function renderTeacherWeeklyReport(){
+             <div style="width:10px;height:10px;border-radius:50%;background:${col}"></div>
+             <div style="font-size:12px;font-weight:700">${esc(name)}</div>
+             <span style="font-size:9px;color:var(--text3);background:var(--bg);padding:1px 6px;border-radius:10px">${sc}/wk</span>
+-            ${phoneBtn}
++            ${waBtn}
+           </div>
+           <div style="font-size:9px;color:var(--text3);margin-bottom:6px">${dayTags} · max ${t.maxPerDay||6}/day${t.active?'':' · <span style="color:#DC2626">INACTIVE</span>'}</div>
+           ${sessions.length?`<div style="font-size:10px;line-height:1.6">
+@@ -2901,6 +2907,64 @@ function sendAllParentMessages(){
+   });
+ }
+ 
++// ===== TEACHER WHATSAPP NOTIFICATIONS =====
++// Build a WhatsApp-friendly weekly schedule message for a single teacher.
++// Format mirrors buildParentMessage() so tone stays consistent across the app.
++function buildTeacherMessage(tname){
++  const t=TEACHERS[tname];if(!t)return null;
++  const sessions=[];
++  forEachScheduledSlot(({d,cid,si,sid,sl_})=>{
++    const s=SS[sid];if(!s||s.t!==tname)return;
++    sessions.push({d,cid,si,sid,s,startM:slotStartMin(d,cid,si),car:CARS.find(c=>c.id===cid)});
++  });
++  if(!sessions.length)return null;
++  const dayOrder={Sun:-1,Mon:0,Tue:1,Wed:2,Thu:3};
++  const dayFull={Sun:'Sunday',Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday'};
++  sessions.sort((a,b)=>(dayOrder[a.d]-dayOrder[b.d])||(a.startM-b.startM));
++  const firstName=tname.split(' ')[0];
++  const header=`Salam\n\nHi ${firstName}, here is your BeCurious home visit schedule for the week (${sessions.length} session${sessions.length===1?'':'s'}):`;
++  // Group lines by day so the message reads cleanly on WhatsApp
++  const byDay={};
++  sessions.forEach(x=>{(byDay[x.d]=byDay[x.d]||[]).push(x);});
++  const lines=[];
++  Object.keys(byDay).sort((a,b)=>dayOrder[a]-dayOrder[b]).forEach(d=>{
++    lines.push(`\n*${dayFull[d]||d}*`);
++    byDay[d].forEach(x=>{
++      lines.push(`- ${ts(x.startM)} — ${x.s.n}${x.car?` (${x.car.label})`:''}`);
++    });
++  });
++  const footer=`\n\nPlease be ready 15 minutes before the first pickup each day. Reply here if any issues regarding the schedule.\n\n— BeCurious`;
++  return header+'\n'+lines.join('\n')+footer;
++}
++function sendTeacherWhatsApp(tname){
++  const t=TEACHERS[tname];if(!t){toast('Teacher not found');return;}
++  if(!t.phone){toast('No phone saved for '+tname+' — add it in the Teachers table first');return;}
++  const msg=buildTeacherMessage(tname);
++  if(!msg){toast(tname+' has no scheduled sessions this week');return;}
++  const phone=String(t.phone).replace(/[^0-9]/g,'');
++  const url='https://wa.me/'+phone+'?text='+encodeURIComponent(msg);
++  window.open(url,'_blank');
++}
++function sendAllTeacherMessages(){
++  // Only teachers with phone AND at least one scheduled session this week
++  const eligible=[];
++  const sessionsByTeacher={};
++  forEachScheduledSlot(({sid})=>{
++    const s=SS[sid];if(!s||!s.t)return;
++    sessionsByTeacher[s.t]=(sessionsByTeacher[s.t]||0)+1;
++  });
++  Object.keys(TEACHERS).forEach(name=>{
++    const t=TEACHERS[name];
++    if(t&&t.phone&&sessionsByTeacher[name])eligible.push(name);
++  });
++  if(!eligible.length){toast('No teachers with phone and scheduled sessions');return;}
++  if(!confirm(`Open ${eligible.length} WhatsApp tab(s) — one per teacher?\n\nYour browser may block pop-ups — allow them for this site first.`))return;
++  let opened=0;
++  eligible.forEach((name,i)=>{
++    setTimeout(()=>{sendTeacherWhatsApp(name);opened++;if(opened===eligible.length)toast(`${opened} teacher WhatsApp tab(s) opened`);},i*350);
++  });
++}
++
+ // ===== SETTINGS MODAL =====
+ function showSettingsModal(){
+   // Hydrate form fields from SETTINGS
+-- 
+2.34.1
+

@@ -1,0 +1,116 @@
+From eecd71951c0b804e9e3cc6df80955aa4880d2983 Mon Sep 17 00:00:00 2001
+From: Saleh <saleh@emergegcc.com>
+Date: Sat, 11 Apr 2026 19:33:45 +0300
+Subject: [PATCH] Settings: make pickup-handover time editable (was hardcoded
+ to 8 min)
+
+The pickup slot's duration used to be travel_time + 8 hardcoded minutes
+for the teacher to finish up and get in the car. That 8 is now a new
+Settings field:
+
+  SETTINGS.pickupHandoverMin  (default 8, range 0-30)
+
+Added "Pick-up handover (minutes)" input under Session timing in the
+Settings modal, with matching hydrate/save/validation. The "Handover
+buffer" label was also renamed to "Drop-off handover" for clarity, since
+we now have both a drop-off handover (at the start of a session) and a
+pick-up handover (at the end).
+
+slotDur() reads the value at render time, so changing it shifts every
+pickup slot and everything after it in the day by the same delta.
+Migration/defaults kept so existing v5 payloads without the new field
+fall back to 8.
+
+Parse clean, smoke 15/15.
+---
+ public/scheduler.html | 22 ++++++++++++++++------
+ 1 file changed, 16 insertions(+), 6 deletions(-)
+
+diff --git a/public/scheduler.html b/public/scheduler.html
+index 1c56f71..29c4712 100644
+--- a/public/scheduler.html
++++ b/public/scheduler.html
+@@ -533,12 +533,16 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
+       <div class="set-section-title">Session timing</div>
+       <div class="frow2">
+         <div class="frow"><label>Session length (minutes)</label><input id="set-sessionMin" type="number" min="15" max="180" step="5"><small class="set-help">How long each tutoring session lasts.</small></div>
+-        <div class="frow"><label>Handover buffer (minutes)</label><input id="set-bufferMin" type="number" min="0" max="30" step="1"><small class="set-help">Extra minutes added to every drop for setup / walking the child to the door.</small></div>
++        <div class="frow"><label>Drop-off handover (minutes)</label><input id="set-bufferMin" type="number" min="0" max="30" step="1"><small class="set-help">Extra minutes added after every drop for the teacher to settle in at the student's home before the session starts.</small></div>
+       </div>
+       <div class="frow2">
+         <div class="frow"><label>First car departure</label><input id="set-dayStart" type="time"><small class="set-help">When the first car leaves the branch.</small></div>
+         <div class="frow"><label>Max slots per car per day</label><input id="set-maxSlots" type="number" min="4" max="24"><small class="set-help">How many visits one car can do in a day.</small></div>
+       </div>
++      <div class="frow2">
++        <div class="frow"><label>Pick-up handover (minutes)</label><input id="set-pickHandover" type="number" min="0" max="30" step="1"><small class="set-help">Extra minutes added to every pick-up slot for the teacher to gather their things and get in the car.</small></div>
++        <div class="frow"></div>
++      </div>
+     </div>
+ 
+     <div class="set-section">
+@@ -672,12 +676,13 @@ const SAVE_KEY='bc_v3';
+ // ===== SETTINGS (user-tunable rules for scheduling + auto-schedule) =====
+ const DEFAULT_SETTINGS={
+   sessionMin:60,        // Session length in minutes
+-  bufferMin:5,          // Extra minutes added to each drop (setup/handover time)
++  bufferMin:5,          // Extra minutes added to each drop (setup/handover time at student's home)
+   dayStartMin:600,      // First car departure, minutes-of-day (600 = 10:00)
+   maxSlotsPerCar:14,    // Max visit slots per car per day
+   maxGroupSize:4,       // Max students auto-batched into one group slot
+   teacherDefaultMax:6,  // Default per-day max for new teacher records
+   chainBonusKm:100,     // How strongly auto-schedule prefers same-teacher chains (higher = stronger)
++  pickupHandoverMin:8,  // Extra minutes added to each pickup slot for the teacher to get in the car
+   sameBranchOnly:1,     // 1 = only place a student into a car whose branch matches theirs
+   autoPickup:1,         // 1 = auto-insert a pickup slot after every drop in auto-schedule
+   preventSameDayDouble:1,// 1 = never place the same student twice on the same day
+@@ -706,7 +711,7 @@ function migrateSettings(obj){
+   if(!obj||typeof obj!=='object'){SETTINGS={...DEFAULT_SETTINGS};applySettings();return;}
+   SETTINGS={...DEFAULT_SETTINGS,...obj};
+   // Coerce numeric fields
+-  ['sessionMin','bufferMin','dayStartMin','maxSlotsPerCar','maxGroupSize','teacherDefaultMax','chainBonusKm'].forEach(k=>{
++  ['sessionMin','bufferMin','dayStartMin','maxSlotsPerCar','maxGroupSize','teacherDefaultMax','chainBonusKm','pickupHandoverMin'].forEach(k=>{
+     const v=parseInt(SETTINGS[k]);
+     if(!isNaN(v))SETTINGS[k]=v;
+     else SETTINGS[k]=DEFAULT_SETTINGS[k];
+@@ -1190,8 +1195,10 @@ function slotDur(sl_,d,cid,si){
+     return tm(hv(prev.la,prev.ln,la,ln))+block;
+   }
+   if(sl_.t==='pick'){
+-    const s=SS[sl_.id];if(!s)return 20;
+-    return tm(hv(prev.la,prev.ln,s.la,s.ln))+8;
++    const s=SS[sl_.id];
++    const handover=parseInt(SETTINGS.pickupHandoverMin)||0;
++    if(!s)return 10+handover;
++    return tm(hv(prev.la,prev.ln,s.la,s.ln))+handover;
+   }
+   return 0;
+ }
+@@ -2891,6 +2898,7 @@ function showSettingsModal(){
+   qs('set-bufferMin').value=SETTINGS.bufferMin;
+   qs('set-dayStart').value=ts(SETTINGS.dayStartMin);
+   qs('set-maxSlots').value=SETTINGS.maxSlotsPerCar;
++  qs('set-pickHandover').value=SETTINGS.pickupHandoverMin;
+   qs('set-maxGroup').value=SETTINGS.maxGroupSize;
+   qs('set-teacherMax').value=SETTINGS.teacherDefaultMax;
+   qs('set-chainBonus').value=SETTINGS.chainBonusKm;
+@@ -2921,6 +2929,7 @@ function saveSettingsModal(){
+     bufferMin:parseInt(qs('set-bufferMin').value)||0,
+     dayStartMin:parseTimeToMin(qs('set-dayStart').value),
+     maxSlotsPerCar:parseInt(qs('set-maxSlots').value)||14,
++    pickupHandoverMin:parseInt(qs('set-pickHandover').value)||0,
+     maxGroupSize:parseInt(qs('set-maxGroup').value)||4,
+     teacherDefaultMax:parseInt(qs('set-teacherMax').value)||6,
+     chainBonusKm:parseInt(qs('set-chainBonus').value)||100,
+@@ -2933,7 +2942,8 @@ function saveSettingsModal(){
+   };
+   // Validation: clamp to sane ranges
+   if(next.sessionMin<15||next.sessionMin>180){toast('Session length must be 15–180 minutes');return;}
+-  if(next.bufferMin<0||next.bufferMin>30){toast('Buffer must be 0–30 minutes');return;}
++  if(next.bufferMin<0||next.bufferMin>30){toast('Drop-off handover must be 0–30 minutes');return;}
++  if(next.pickupHandoverMin<0||next.pickupHandoverMin>30){toast('Pick-up handover must be 0–30 minutes');return;}
+   if(next.maxSlotsPerCar<4||next.maxSlotsPerCar>24){toast('Slots per car must be 4–24');return;}
+   if(next.maxGroupSize<2||next.maxGroupSize>8){toast('Max group size must be 2–8');return;}
+   if(next.autoSchedulePin&&!/^[0-9A-Za-z]{3,12}$/.test(next.autoSchedulePin)){toast('PIN must be 3–12 letters/numbers (or leave empty)');return;}
+-- 
+2.34.1
+

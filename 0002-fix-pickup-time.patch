@@ -1,0 +1,123 @@
+From 1bb533600143a6df68ebe3d690270ee635b2d7fb Mon Sep 17 00:00:00 2001
+From: Saleh <saleh@emergegcc.com>
+Date: Sat, 11 Apr 2026 19:23:38 +0300
+Subject: [PATCH] Fix pickup-ready time to use Settings (session + buffer)
+ instead of hardcoded 65
+
+The auto-pickup badge inside every drop card and the pool's "ready at"
+column were hardcoded to drop_start + 65 minutes (i.e. 60 min session +
+5 min buffer from the old defaults). This meant:
+
+- When the user changed sessionMin or bufferMin in Settings, the pickup
+  badge kept showing the old default.
+- The badge also ignored travel time, so the number didn't match where
+  the next slot actually starts.
+
+findDropInfo() now returns a readyMin computed through slotDur(), which
+already accounts for travel + session + buffer from SETTINGS. For
+double-drop slots we compute per-student ready times (so each child's
+badge is correct). The single-drop, group, and pickup-slot render paths
+now all compute pickTime as startMin + travel + sessionBlockMin().
+
+Result: the pickup badge always agrees with the next slot's start time
+and reflects the current Settings. Parse clean, smoke 15/15.
+---
+ public/scheduler.html | 40 +++++++++++++++++++++++++++++++---------
+ 1 file changed, 31 insertions(+), 9 deletions(-)
+
+diff --git a/public/scheduler.html b/public/scheduler.html
+index a005549..1c56f71 100644
+--- a/public/scheduler.html
++++ b/public/scheduler.html
+@@ -821,7 +821,7 @@ function slotWarnings(d,cid,si){
+   if(sl_.t==='pick'){
+     const info=findDropInfo(sl_.id);
+     if(info){
+-      const readyMin=info.startMin+65;
++      const readyMin=info.readyMin;
+       if(startMin<readyMin)warns.push(`⚠ Early pickup: teacher session ends ${ts(readyMin)} but pickup scheduled at ${ts(startMin)} (${readyMin-startMin}min too early)`);
+     }
+     // Pickup with no corresponding drop on any day
+@@ -1202,8 +1202,24 @@ function findDropInfo(sid){
+     const slots=SCHED[d]?.[car.id]||[];
+     for(let si=0;si<slots.length;si++){
+       const sl_=slots[si];if(!sl_)continue;
+-      if((sl_.t==='s'&&sl_.id===sid)||(sl_.t==='d'&&sl_.ids?.includes(sid))||(sl_.t==='g'&&sl_.ids?.includes(sid)))
+-        return{d,cid:car.id,si,startMin:slotStartMin(d,car.id,si)};
++      if((sl_.t==='s'&&sl_.id===sid)||(sl_.t==='d'&&sl_.ids?.includes(sid))||(sl_.t==='g'&&sl_.ids?.includes(sid))){
++        const startMin=slotStartMin(d,car.id,si);
++        // readyMin = when this student is done with the session + buffer.
++        // slotDur already accounts for travel + session + buffer, so for the
++        // simple + group case it IS the slot end. For double-drop we overwrite
++        // with the per-student ready time below.
++        let readyMin=startMin+slotDur(sl_,d,car.id,si);
++        if(sl_.t==='d'&&sl_.ids){
++          const block=sessionBlockMin();
++          const s1=SS[sl_.ids[0]],s2=SS[sl_.ids[1]];
++          const prev=lastPos(d,car.id,si);
++          const travel1=s1?tm(hv(prev.la,prev.ln,s1.la,s1.ln)):0;
++          const interMin=sl_.inter||(s1&&s2?tm(hv(s1.la,s1.ln,s2.la,s2.ln)):0);
++          // first student's session ends first
++          readyMin=startMin+travel1+(sl_.ids[0]===sid?block:interMin+block);
++        }
++        return{d,cid:car.id,si,startMin,readyMin};
++      }
+     }
+   }
+   return null;
+@@ -1324,7 +1340,7 @@ function renderPool(){
+     let picks=pend.map(sid=>{
+       const s=SS[sid];if(!s)return null;
+       const info=findDropInfo(sid);
+-      const readyMin=info?info.startMin+65:600;
++      const readyMin=info?info.readyMin:600;
+       const distP=hasActive?hv(lastPos(activeSlot.d,activeSlot.cid,activeSlot.si).la,lastPos(activeSlot.d,activeSlot.cid,activeSlot.si).ln,s.la,s.ln):null;
+       const score=distP!==null?(distP*8+(readyMin<=nowMin?-80:readyMin-nowMin)):9999;
+       return{sid,s,readyMin,distP,score};
+@@ -1449,7 +1465,9 @@ function renderSlot(d,cid,si){
+     const travelMin=tm(hv(prev.la,prev.ln,effLa,effLn));
+     const fromLabel=prev.isBase?prev.a:sl(prev.a);
+     const toLabel=sl_.grp?`${sl(sl_.grp.addr)} (Group)`:sl(s.a);
+-    const pickTime=ts(startMin+65);
++    // Pickup-ready = car arrival at student (startMin + travel) + session block.
++    // Uses current Settings (sessionMin + bufferMin) instead of the old hardcoded 65.
++    const pickTime=ts(startMin+travelMin+sessionBlockMin());
+     const pickSlot=findPickSlot(sl_.id);
+     // After pickup: where does driver go next?
+     const pickNext=nextSlotPos(d,cid,si);
+@@ -1494,8 +1512,11 @@ function renderSlot(d,cid,si){
+     const time2=ts(startMin+travel1+(sl_.grp?0:interMin));
+     const fromLabel=prev.isBase?prev.a:sl(prev.a);
+     const toLabel=sl_.grp?`${sl(sl_.grp.addr)} (Group)`:sl(s1.a);
+-    const pickTime1=ts(startMin+travel1+65);
+-    const pickTime2=ts(startMin+travel1+(sl_.grp?0:interMin)+65);
++    // Each student's session is sessionMin + bufferMin long. Both start after
++    // their respective drop-off time; pickTime1 = drop1 + block, pickTime2 = drop2 + block.
++    const block=sessionBlockMin();
++    const pickTime1=ts(startMin+travel1+block);
++    const pickTime2=ts(startMin+travel1+(sl_.grp?0:interMin)+block);
+     const pick1=findPickSlot(sl_.ids[0]);const pick2=findPickSlot(sl_.ids[1]);
+     const pickNext=nextSlotPos(d,cid,si);
+     const pickToLabel=isLast?carBranch(cid)+' branch':sl(pickNext.a);
+@@ -1537,7 +1558,7 @@ function renderSlot(d,cid,si){
+     const travelMin=tm(hv(prev.la,prev.ln,s.la,s.ln));
+     const fromLabel=prev.isBase?prev.a:sl(prev.a);
+     const info=findDropInfo(sl_.id);
+-    const readyMin=info?info.startMin+65:600;
++    const readyMin=info?info.readyMin:600;
+     const onTime=startMin>=readyMin;
+     // Destination after pickup: next slot or branch
+     const after=nextSlotPos(d,cid,si);
+@@ -1564,7 +1585,8 @@ function renderSlot(d,cid,si){
+     const travelMin=sl_.grp?tm(hv(prev.la,prev.ln,grpLa,grpLn)):0;
+     const fromLabel=prev.isBase?prev.a:sl(prev.a);
+     const toLabel=grpAddr?sl(grpAddr):'Set location above';
+-    const pickTime=ts(startMin+65);
++    // Group pickup-ready = car arrival at group location + session block.
++    const pickTime=ts(startMin+travelMin+sessionBlockMin());
+     const pickNext=nextSlotPos(d,cid,si);
+     const pickToLabel=isLast?carBranch(cid)+' branch':sl(pickNext.a);
+     const canAdd=sl_.ids.length<7;
+-- 
+2.34.1
+

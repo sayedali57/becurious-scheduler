@@ -863,6 +863,25 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 .um-act-btn:hover{background:#F1F5F9}
 .um-act-btn.danger{border-color:#FCA5A5;color:#DC2626}
 .um-act-btn.danger:hover{background:#FEF2F2}
+/* ===== PERMISSIONS MODAL ===== */
+.perm-overlay{position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:20px}
+.perm-card{background:#fff;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.2);width:540px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden}
+.perm-header{padding:16px 20px;border-bottom:1px solid #E2E8F0;display:flex;align-items:center;justify-content:space-between}
+.perm-header h3{margin:0;font-size:15px;color:#1a1a1a}
+.perm-header small{color:var(--text3);font-size:11px}
+.perm-header button{background:none;border:none;font-size:18px;cursor:pointer;color:#999;padding:4px 8px}
+.perm-body{overflow-y:auto;padding:16px 20px;flex:1}
+.perm-cat{margin-bottom:16px}
+.perm-cat-title{font-size:11px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #F1F5F9}
+.perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 16px}
+.perm-row{display:flex;align-items:center;gap:8px;padding:5px 0}
+.perm-row label{font-size:11px;color:#333;cursor:pointer;user-select:none;flex:1}
+.perm-row input[type=checkbox]{width:15px;height:15px;accent-color:#7c3aed;cursor:pointer;flex-shrink:0}
+.perm-row.overridden label{color:#7c3aed;font-weight:600}
+.perm-footer{padding:12px 20px;border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center}
+.perm-footer .perm-reset{font-size:11px;color:#7c3aed;cursor:pointer;background:none;border:none;font-family:inherit;text-decoration:underline}
+.perm-footer .perm-save{padding:7px 20px;background:#7c3aed;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+.perm-footer .perm-save:hover{background:#6d28d9}
 /* Menu user info */
 .menu-user-info{padding:8px 12px;border-bottom:1px solid #E2E8F0;margin-bottom:4px;font-size:11px;color:var(--text2)}
 .menu-user-info strong{display:block;font-size:12px;color:var(--text)}
@@ -884,6 +903,20 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
     <p class="auth-invite-note">Access is by invitation only. Contact Saleh to request access.</p>
     <div class="auth-error" id="auth-error"></div>
     <div class="auth-loading" id="auth-loading">Checking your account…</div>
+  </div>
+</div>
+<!-- ===== PERMISSIONS MODAL ===== -->
+<div class="perm-overlay" id="perm-overlay" style="display:none">
+  <div class="perm-card">
+    <div class="perm-header">
+      <div><h3 id="perm-title">Permissions</h3><small id="perm-subtitle"></small></div>
+      <button onclick="permClose()">&times;</button>
+    </div>
+    <div class="perm-body" id="perm-body"></div>
+    <div class="perm-footer">
+      <button class="perm-reset" onclick="permResetToRole()">Reset to role defaults</button>
+      <button class="perm-save" onclick="permSave()">Save Permissions</button>
+    </div>
   </div>
 </div>
 <!-- ===== TOP NAV ===== -->
@@ -2128,21 +2161,20 @@ function applyRolePermissions(){
   if(settingsBtn)settingsBtn.style.display=p.settings?'':'none';
   // Import button
   const importBtn=document.getElementById('menu-import');
-  if(importBtn)importBtn.style.display=p.import?'':'none';
+  if(importBtn)importBtn.style.display=p.data_import?'':'none';
   // Export button
   const exportBtn=document.getElementById('menu-export');
-  if(exportBtn)exportBtn.style.display=p.export?'':'none';
+  if(exportBtn)exportBtn.style.display=p.data_export?'':'none';
   // Danger zone in settings
   const dangerZone=document.getElementById('danger-zone-section');
-  if(dangerZone)dangerZone.style.display=p.dangerZone?'':'none';
+  if(dangerZone)dangerZone.style.display=p.danger_zone?'':'none';
   // User management in settings
   const umSection=document.getElementById('um-section');
-  if(umSection)umSection.style.display=p.userMgmt?'':'none';
-  // Branch switcher — hide for coordinators (they see only their branch)
-  if(!p.allBranches){
+  if(umSection)umSection.style.display=p.user_mgmt?'':'none';
+  // Branch switcher — hide for users without all-branch access
+  if(!p.all_branches){
     const brSel=document.getElementById('br-select');
     if(brSel)brSel.style.display='none';
-    // Force their branch
     if(typeof curBr!=='undefined')curBr=_currentUser.branch;
   }
 }
@@ -2212,7 +2244,8 @@ function umRenderTable(){
       }else{
         h+='<button class="um-act-btn danger" onclick="umSetStatus(\''+u.id+'\',\'inactive\')">Deactivate</button> ';
       }
-      h+='<button class="um-act-btn danger" onclick="umDeleteUser(\''+u.id+'\')" title="Permanently delete this user">Delete</button>';
+      h+='<button class="um-act-btn danger" onclick="umDeleteUser(\''+u.id+'\')" title="Permanently delete this user">Delete</button> ';
+      h+='<button class="um-act-btn" onclick="permOpen(\''+u.id+'\')" style="border-color:#7c3aed60;color:#7c3aed">Permissions</button>';
     }
     h+='</td></tr>';
   });
@@ -2253,6 +2286,188 @@ async function umDeleteUser(uid){
   umRenderTable();
   toast(u.name+' deleted');
 }
+
+// ===== GRANULAR PERMISSIONS SYSTEM =====
+// Each permission is a boolean flag. Grouped into categories for the UI.
+// Role defaults auto-fill when a user is created, but admin can override per-user.
+const PERM_SCHEMA=[
+  {cat:'Schedule & Home Visits',perms:[
+    {k:'hv_view',         label:'View schedule'},
+    {k:'hv_edit',         label:'Edit slots (drag, drop, move)'},
+    {k:'hv_auto_schedule',label:'Run auto-scheduler'},
+    {k:'hv_manage_cars',  label:'Manage cars & drivers'},
+    {k:'hv_attendance',   label:'Mark attendance'},
+    {k:'hv_clear_schedule',label:'Clear schedule'},
+    {k:'hv_undo_redo',    label:'Undo / Redo'},
+    {k:'hv_dispatch',     label:'Send dispatch (WhatsApp)'}
+  ]},
+  {cat:'Cases',perms:[
+    {k:'cs_view',         label:'View cases'},
+    {k:'cs_create',       label:'Create cases'},
+    {k:'cs_edit',         label:'Edit cases'},
+    {k:'cs_delete',       label:'Delete cases'},
+    {k:'cs_change_stage', label:'Move case stages'},
+    {k:'cs_assign',       label:'Assign cases to staff'},
+    {k:'cs_export',       label:'Export cases CSV'},
+    {k:'cs_import',       label:'Import cases CSV'},
+    {k:'cs_settings',     label:'Manage case settings (types, stages)'},
+    {k:'cs_auto_tag',     label:'Run auto-tagger'}
+  ]},
+  {cat:'Pipeline (Admissions)',perms:[
+    {k:'pl_view',         label:'View pipeline'},
+    {k:'pl_create',       label:'Create leads'},
+    {k:'pl_edit',         label:'Edit leads'},
+    {k:'pl_delete',       label:'Delete leads'},
+    {k:'pl_move_stage',   label:'Move lead stages'},
+    {k:'pl_convert',      label:'Convert lead to student'},
+    {k:'pl_export',       label:'Export pipeline CSV'},
+    {k:'pl_import',       label:'Import pipeline CSV'}
+  ]},
+  {cat:'Students & Teachers',perms:[
+    {k:'st_view',         label:'View students'},
+    {k:'st_create',       label:'Add students'},
+    {k:'st_edit',         label:'Edit students'},
+    {k:'st_delete',       label:'Delete students'},
+    {k:'st_bulk_ops',     label:'Bulk operations (select all, delete selected)'},
+    {k:'st_whatsapp',     label:'Send parent WhatsApp'},
+    {k:'tc_view',         label:'View teachers'},
+    {k:'tc_create',       label:'Add teachers'},
+    {k:'tc_edit',         label:'Edit teachers'},
+    {k:'tc_delete',       label:'Delete teachers'},
+    {k:'tc_whatsapp',     label:'Send teacher WhatsApp'}
+  ]},
+  {cat:'Data & Reports',perms:[
+    {k:'data_export',     label:'Export data (JSON, CSV)'},
+    {k:'data_import',     label:'Import data (JSON, CSV)'},
+    {k:'data_audit',      label:'Run data audit (duplicates)'},
+    {k:'reports_view',    label:'View reports & analytics'},
+    {k:'branding',        label:'Change branding (logo, banner)'}
+  ]},
+  {cat:'Admin & System',perms:[
+    {k:'settings',        label:'Access Settings'},
+    {k:'user_mgmt',       label:'Manage users & permissions'},
+    {k:'danger_zone',     label:'Danger zone (mass delete, wipe)'},
+    {k:'all_branches',    label:'Access all branches'},
+  ]}
+];
+// Flat list of all permission keys
+const ALL_PERM_KEYS=PERM_SCHEMA.flatMap(c=>c.perms.map(p=>p.k));
+
+// Default permissions per role — true = granted, absent/false = denied
+const ROLE_DEFAULTS={
+  admin:Object.fromEntries(ALL_PERM_KEYS.map(k=>[k,true])),
+  director:(()=>{
+    const d=Object.fromEntries(ALL_PERM_KEYS.map(k=>[k,true]));
+    d.settings=false;d.user_mgmt=false;d.danger_zone=false;
+    d.st_delete=false;d.tc_delete=false;d.cs_delete=false;d.pl_delete=false;d.st_bulk_ops=false;
+    d.data_import=false;d.hv_clear_schedule=false;d.cs_import=false;d.pl_import=false;
+    d.cs_settings=false;d.cs_auto_tag=false;d.branding=false;
+    return d;
+  })(),
+  operations:(()=>{
+    const d=Object.fromEntries(ALL_PERM_KEYS.map(k=>[k,true]));
+    d.settings=false;d.user_mgmt=false;d.danger_zone=false;
+    d.st_delete=false;d.tc_delete=false;d.cs_delete=false;d.pl_delete=false;d.st_bulk_ops=false;
+    d.cs_settings=false;d.branding=false;
+    return d;
+  })(),
+  coordinator:(()=>{
+    const d=Object.fromEntries(ALL_PERM_KEYS.map(k=>[k,false]));
+    d.hv_view=true;d.hv_attendance=true;d.hv_dispatch=true;
+    d.cs_view=true;d.cs_create=true;d.cs_edit=true;d.cs_change_stage=true;d.cs_assign=true;
+    d.pl_view=true;d.pl_create=true;d.pl_edit=true;d.pl_move_stage=true;
+    d.st_view=true;d.st_create=true;d.st_edit=true;d.st_whatsapp=true;
+    d.tc_view=true;d.tc_whatsapp=true;
+    d.reports_view=true;
+    return d;
+  })()
+};
+
+// Get effective permissions for a user (their overrides merged on top of role defaults)
+function effectivePerms(user){
+  const base={...(ROLE_DEFAULTS[user.role]||{})};
+  if(user.permissions){
+    Object.keys(user.permissions).forEach(k=>{base[k]=user.permissions[k];});
+  }
+  return base;
+}
+
+// Replace the old currentPerms with the new granular system
+function currentPerms(){
+  if(!_currentUser)return {};
+  return effectivePerms(_currentUser);
+}
+
+// ---- Permissions modal ----
+let _permEditUid=null;
+let _permEditState={};
+
+function permOpen(uid){
+  const u=_umUsers.find(x=>x.id===uid);
+  if(!u)return;
+  _permEditUid=uid;
+  // Start with role defaults, then overlay any saved overrides
+  _permEditState={...(ROLE_DEFAULTS[u.role]||{})};
+  if(u.permissions){Object.keys(u.permissions).forEach(k=>{_permEditState[k]=u.permissions[k];});}
+  document.getElementById('perm-title').textContent=u.name+' — Permissions';
+  document.getElementById('perm-subtitle').textContent='Role: '+u.role.charAt(0).toUpperCase()+u.role.slice(1)+(u.branch!=='All'?' · '+u.branch:'');
+  permRender();
+  document.getElementById('perm-overlay').style.display='flex';
+}
+function permClose(){
+  document.getElementById('perm-overlay').style.display='none';
+  _permEditUid=null;
+}
+function permRender(){
+  const u=_umUsers.find(x=>x.id===_permEditUid);
+  const roleDefaults=ROLE_DEFAULTS[u?u.role:'coordinator']||{};
+  let h='';
+  PERM_SCHEMA.forEach(cat=>{
+    h+='<div class="perm-cat"><div class="perm-cat-title">'+esc(cat.cat)+'</div><div class="perm-grid">';
+    cat.perms.forEach(p=>{
+      const checked=!!_permEditState[p.k];
+      const isDefault=roleDefaults[p.k];
+      const overridden=checked!==!!isDefault;
+      h+='<div class="perm-row'+(overridden?' overridden':'')+'">';
+      h+='<input type="checkbox" id="perm-'+p.k+'"'+(checked?' checked':'')+' onchange="permToggle(\''+p.k+'\',this.checked)">';
+      h+='<label for="perm-'+p.k+'">'+esc(p.label)+(overridden?' *':'')+'</label>';
+      h+='</div>';
+    });
+    h+='</div></div>';
+  });
+  document.getElementById('perm-body').innerHTML=h;
+}
+function permToggle(key,val){
+  _permEditState[key]=val;
+  permRender();
+}
+function permResetToRole(){
+  const u=_umUsers.find(x=>x.id===_permEditUid);
+  if(!u)return;
+  _permEditState={...(ROLE_DEFAULTS[u.role]||{})};
+  permRender();
+  toast('Reset to '+u.role+' defaults');
+}
+async function permSave(){
+  if(!supa||!_permEditUid)return;
+  const u=_umUsers.find(x=>x.id===_permEditUid);
+  if(!u)return;
+  // Only store overrides (diff from role defaults) to keep it clean
+  const roleDefaults=ROLE_DEFAULTS[u.role]||{};
+  const overrides={};
+  ALL_PERM_KEYS.forEach(k=>{
+    if(!!_permEditState[k]!==!!roleDefaults[k])overrides[k]=!!_permEditState[k];
+  });
+  const permsToStore=Object.keys(overrides).length>0?overrides:null;
+  await supa.from('app_users').update({permissions:permsToStore,updated_at:new Date().toISOString()}).eq('id',u.id);
+  u.permissions=permsToStore;
+  // If editing own permissions, refresh global state
+  if(_currentUser&&_currentUser.id===u.id)_currentUser.permissions=permsToStore;
+  permClose();
+  umRenderTable();
+  toast('Permissions saved for '+u.name);
+}
+
 async function umInviteUser(){
   const email=(document.getElementById('um-email').value||'').trim();
   const name=(document.getElementById('um-name').value||'').trim();

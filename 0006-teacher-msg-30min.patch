@@ -1,0 +1,25 @@
+From 8200d8478cf9872fa5e19cd3f0c459849a61d6dc Mon Sep 17 00:00:00 2001
+From: Saleh <saleh@emergegcc.com>
+Date: Sat, 11 Apr 2026 20:57:05 +0300
+Subject: [PATCH] Teacher WhatsApp message: change readiness time to 30 minutes
+
+---
+ public/scheduler.html | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/public/scheduler.html b/public/scheduler.html
+index 0b0a78d..55087f1 100644
+--- a/public/scheduler.html
++++ b/public/scheduler.html
+@@ -2933,7 +2933,7 @@ function buildTeacherMessage(tname){
+       lines.push(`- ${ts(x.startM)} — ${x.s.n}${x.car?` (${x.car.label})`:''}`);
+     });
+   });
+-  const footer=`\n\nPlease be ready 15 minutes before the first pickup each day. Reply here if any issues regarding the schedule.\n\n— BeCurious`;
++  const footer=`\n\nPlease be ready 30 minutes before the first pickup each day. Reply here if any issues regarding the schedule.\n\n— BeCurious`;
+   return header+'\n'+lines.join('\n')+footer;
+ }
+ function sendTeacherWhatsApp(tname){
+-- 
+2.34.1
+

@@ -1,0 +1,546 @@
+From 250df8df53573d723705a1b2a8c8903f2ba6910f Mon Sep 17 00:00:00 2001
+From: BeCurious Scheduler <saleh@emergegcc.com>
+Date: Mon, 13 Apr 2026 01:20:49 +0300
+Subject: [PATCH] feat: data isolation, enhanced import, class field, driver
+ dashboard
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+1. Dev/main data isolation: Vercel preview/dev deployments now use a
+   separate Supabase row ('dev') so testing never overwrites live data.
+   Yellow "DEV" badge shown on non-production deployments.
+
+2. Enhanced spreadsheet import: reads Class, Type (1-on-1/Guest/Host),
+   Group Host, Rejected Days columns. New "Replace all" checkbox wipes
+   roster and schedule for fresh imports. Lat/Lon now optional (warn only).
+   Guests auto-link to host students in the same class.
+
+3. Class field: new "cls" property on students, visible in Students table,
+   sortable. groupHost dropdown now respects same-class rule — guests can
+   only be assigned to hosts in their class.
+
+4. Driver/cost dashboard: toolbar shows "Drivers" count (cars with ≥1
+   session today). New "Drivers / cost" tab in Reports shows drivers
+   needed per day, peak count, and which cars are in use — for daily
+   rental cost planning.
+
+Patch-0026
+---
+ public/scheduler.html | 297 ++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 244 insertions(+), 53 deletions(-)
+
+diff --git a/public/scheduler.html b/public/scheduler.html
+index 686829d..165f703 100644
+--- a/public/scheduler.html
++++ b/public/scheduler.html
+@@ -438,6 +438,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
+ <!-- ===== TOP NAV ===== -->
+ <div class="topnav">
+   <div class="topnav-brand">BE<span>:</span>CURIOUS</div>
++  <div id="env-badge" style="display:none;font-size:9px;font-weight:700;color:#FCD34D;background:rgba(251,191,36,.2);padding:2px 8px;border-radius:4px;margin-right:6px;letter-spacing:.5px"></div>
+   <button class="theme-tab active" data-theme="hv" onclick="switchTheme('hv')">🏠 Home Visits</button>
+   <button class="theme-tab" data-theme="pl" onclick="switchTheme('pl')">📨 Pipeline</button>
+   <div class="topnav-spacer"></div>
+@@ -461,6 +462,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
+       <div class="ctx-stat"><b id="st-s">0</b>Dropped</div>
+       <div class="ctx-stat"><b id="st-p">0</b>Pool</div>
+       <div class="ctx-stat"><b id="st-pk">0</b>Pickups</div>
++      <div class="ctx-stat" title="Drivers needed today (cars with at least one session)"><b id="st-drv">0</b>Drivers</div>
+       <div class="ctx-stat"><b id="st-u">0%</b>Done</div>
+     </div>
+     <div style="flex:1"></div>
+@@ -656,6 +658,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
+             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="sortStudents('n')">Name ⇅</th>
+             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="sortStudents('t')">Teacher ⇅</th>
+             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Branch</th>
++            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;cursor:pointer" onclick="sortStudents('cls')" title="School class / grade level">Class ⇅</th>
+             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Address</th>
+             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Latitude</th>
+             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Longitude</th>
+@@ -701,8 +704,15 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
+         </label>
+         <span id="import-fname" style="font-size:10px;color:var(--text3)"></span>
+       </div>
++      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:8px 12px;background:#FEF3C7;border:1px solid #F59E0B;border-radius:6px">
++        <label style="font-size:11px;font-weight:600;color:#92400E;display:flex;align-items:center;gap:6px;cursor:pointer">
++          <input type="checkbox" id="import-replace" style="accent-color:#D97706">
++          Replace all students (delete current roster and import fresh)
++        </label>
++        <span style="font-size:9px;color:#B45309">⚠ This clears the entire schedule</span>
++      </div>
+       <div style="font-size:10px;color:var(--text3);line-height:1.6;border:1px solid var(--border);border-radius:6px;padding:9px 12px;background:#FAFAFA;margin-bottom:12px">
+-        <b>Required columns:</b> Name, Teacher, Branch, Address, Latitude, Longitude. Optional: Sessions per week (default 1). Branch must be exactly <b>Shuhada</b>, <b>Salam</b>, or <b>Salwa</b>. The first row must be the header. Existing students are kept — new rows get fresh IDs. <b>Duplicates</b> (same Name + Teacher as an existing student, case-insensitive) are detected and skipped automatically.
++        <b>Required columns:</b> Name, Teacher, Branch, Address. <b>Optional:</b> Lat, Lon, Class, Type (1-on-1/Guest/Host), Group Host (name of host student), Sessions per week, Rejected Days (comma-separated: Mon, Tue, etc.). Branch must be <b>Shuhada</b>, <b>Salam</b>, or <b>Salwa</b>. Latitude/Longitude are needed for auto-scheduling but can be added later. Guests are auto-linked to their host if they share the same class.
+       </div>
+       <div id="import-preview"></div>
+     </div>
+@@ -754,6 +764,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
+       <button id="rpt-tab-student" class="rpt-tab on" onclick="switchReportTab('student')">📋 Student completion</button>
+       <button id="rpt-tab-teacher" class="rpt-tab" onclick="switchReportTab('teacher')">👩‍🏫 Teacher weekly view</button>
+       <button id="rpt-tab-parent" class="rpt-tab" onclick="switchReportTab('parent')">💬 Parent notifications</button>
++      <button id="rpt-tab-drivers" class="rpt-tab" onclick="switchReportTab('drivers')">🚗 Drivers / cost</button>
+     </div>
+     <div style="overflow:auto;flex:1" id="rpt-body"></div>
+   </div>
+@@ -1052,7 +1063,21 @@ function migrateSettings(obj){
+ // ===== SUPABASE (shared multi-user state) =====
+ const SUPA_URL='https://mzrklddpdliltwrrackj.supabase.co';
+ const SUPA_KEY='sb_publishable_QhVNl-SuiLxU2695vu1TqQ_rKhN3cp9';
+-const SUPA_ROW_ID='main';
++// Detect environment: Vercel preview/dev deployments get their own data row
++// so testing never overwrites the live schedule.
++const _isDevDeploy=(()=>{
++  try{
++    const h=location.hostname;
++    // Vercel preview URLs: <project>-git-dev-<user>.vercel.app or <project>-<hash>-<user>.vercel.app
++    if(h.includes('-git-dev'))return true;
++    // Also match localhost for local testing
++    if(h==='localhost'||h==='127.0.0.1')return true;
++    // Explicit URL param override: ?env=dev
++    if(new URLSearchParams(location.search).get('env')==='dev')return true;
++  }catch(e){}
++  return false;
++})();
++const SUPA_ROW_ID=_isDevDeploy?'dev':'main';
+ const supa=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(SUPA_URL,SUPA_KEY):null;
+ 
+ // ===== PASSWORD GATE =====
+@@ -1503,6 +1528,8 @@ function migrateStudents(){
+     // Mandatory timing: array of {day,min} entries per session. null = flexible.
+     if(!Array.isArray(s.mandatory))s.mandatory=[];
+     if(!Array.isArray(s.rejectedDays))s.rejectedDays=[];
++    if(s.cls==null)s.cls='';        // class/grade label (e.g. "Beavers", "KG1 Octupus")
++    if(s.groupHost==null)s.groupHost=''; // id of host student for guest sessions
+   });
+ }
+ // Convert minutes to 24h HH:MM string for <input type="time">
+@@ -1922,6 +1949,11 @@ function stats(){
+   qs('st-p').textContent=poolEntries().length;
+   qs('st-pk').textContent=pk;
+   qs('st-u').textContent=Math.round(sc/Math.max(1,tot)*100)+'%';
++  // Driver recommendation: count cars with ≥1 session per day
++  const drvPerDay={};
++  DAYS.forEach(d=>{let n=0;CARS.forEach(car=>{if((SCHED[d]?.[car.id]||[]).some(sl_=>sl_&&(sl_.t==='s'||sl_.t==='d')))n++;});drvPerDay[d]=n;});
++  const drvToday=drvPerDay[curDay]||0;
++  qs('st-drv').textContent=drvToday;
+   // Refresh the toolbar warnings count so Saleh sees it change as he edits.
+   try{
+     const wBtn=qs('warn-toolbar-btn');const wLab=qs('warn-toolbar-count');
+@@ -2777,6 +2809,7 @@ function renderStudentsTable(){
+           <option${s.br==='Salwa'?' selected':''}>Salwa</option>
+         </select>
+       </td>
++      <td class="st-cell"><input class="st-inp" value="${esc(s.cls||'')}" onchange="patchStudent('${s.id}','cls',this.value)" style="min-width:90px" onkeydown="stNav(event,this)" placeholder="e.g. Beavers"></td>
+       <td class="st-cell"><input class="st-inp" value="${esc(s.a)}" onchange="patchStudent('${s.id}','a',this.value)" style="min-width:160px" onkeydown="stNav(event,this)"></td>
+       <td class="st-cell"><input class="st-inp num" value="${s.la||''}" type="number" step="any" onchange="patchStudent('${s.id}','la',parseFloat(this.value))" style="width:90px" onkeydown="stNav(event,this)"></td>
+       <td class="st-cell"><input class="st-inp num" value="${s.ln||''}" type="number" step="any" onchange="patchStudent('${s.id}','ln',parseFloat(this.value))" style="width:90px" onkeydown="stNav(event,this)"></td>
+@@ -2832,8 +2865,17 @@ function mandatoryCells(s){
+ // house the car drives to. Only shown for group-type students, otherwise "—".
+ function groupHostCell(s){
+   if((s.sessionType||'1on1')!=='group') return '<span style="color:var(--text3);font-size:9px">—</span>';
+-  // Collect all group-type students with the same teacher (excluding self)
+-  const peers=Object.values(SS).filter(p=>p.id!==s.id&&p.t===s.t&&(p.sessionType||'1on1')==='group');
++  // Collect group-type peers: same teacher AND same class (guests can only go to hosts in the same class)
++  const sCls=(s.cls||'').trim().toLowerCase();
++  const peers=Object.values(SS).filter(p=>{
++    if(p.id===s.id)return false;
++    if(p.t!==s.t)return false;
++    if((p.sessionType||'1on1')!=='group')return false;
++    // Same-class rule: if both have a class set, they must match
++    const pCls=(p.cls||'').trim().toLowerCase();
++    if(sCls&&pCls&&sCls!==pCls)return false;
++    return true;
++  });
+   const host=s.groupHost||'';
+   let opts='<option value=""'+(host?'':' selected')+'>Self (own address)</option>';
+   peers.forEach(p=>{
+@@ -2953,9 +2995,11 @@ function stNav(e,inp){
+ }
+ 
+ function exportStudentsCSV(){
+-  const rows=[['ID','Name','Teacher','Branch','Address','Latitude','Longitude','Sessions/week','Visits']];
++  const rows=[['ID','Name','Teacher','Branch','Class','Address','Latitude','Longitude','Type','Group Host','Sessions/week','Rejected Days','Visits']];
+   Object.values(SS).sort((a,b)=>a.n.localeCompare(b.n)).forEach(s=>{
+-    rows.push([s.id,s.n,s.t,s.br,s.a,s.la,s.ln,s.sessionsPerWeek||1,s.visits||0]);
++    const hostName=s.groupHost&&SS[s.groupHost]?SS[s.groupHost].n:'';
++    const typeLabel=s.sessionType==='group'?(s.groupHost?'Guest':'Host'):'1-on-1';
++    rows.push([s.id,s.n,s.t,s.br,s.cls||'',s.a,s.la,s.ln,typeLabel,hostName,s.sessionsPerWeek||1,(s.rejectedDays||[]).join(', '),s.visits||0]);
+   });
+   const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+@@ -2972,8 +3016,18 @@ function openImportModal(){
+   qs('import-footer').style.display='none';
+   qs('import-fname').textContent='';
+   qs('import-file').value='';
++  if(qs('import-replace'))qs('import-replace').checked=false;
+   importParsedRows=[];
+ }
++// Re-parse when Replace toggle changes (affects duplicate detection)
++document.addEventListener('change',e=>{
++  if(e.target.id==='import-replace'&&importParsedRows.length){
++    // Need to re-run parse since replace mode changes duplicate logic
++    const file=qs('import-file')?.files?.[0];
++    if(file){qs('import-file').dispatchEvent(new Event('change'));}
++    else if(importParsedRows.length)renderImportPreview();
++  }
++});
+ function closeImportModal(){qs('importmodal').style.display='none';}
+ 
+ // Normalize header text for flexible column matching
+@@ -3032,49 +3086,76 @@ function parseImportRows(aoa){
+     a:headers.indexOf('address'),
+     la:headers.findIndex(h=>h==='latitude'||h==='lat'),
+     ln:headers.findIndex(h=>h==='longitude'||h==='lng'||h==='long'||h==='lon'),
+-    spw:headers.findIndex(h=>h==='sessionsperweek'||h==='sessionsweek'||h==='sessperweek'||h==='sessweek'),
++    spw:headers.findIndex(h=>h==='sessionsperweek'||h==='sessionsweek'||h==='sessperweek'||h==='sessweek'||h==='sesswk'),
++    cls:headers.findIndex(h=>h==='class'||h==='grade'||h==='level'),
++    typ:headers.findIndex(h=>h==='type'||h==='sessiontype'),
++    gh:headers.findIndex(h=>h==='grouphost'||h==='host'),
++    rej:headers.findIndex(h=>h==='rejecteddays'||h==='rejected'||h==='rejectdays'||h==='notdays'),
+   };
++  const isReplace=!!qs('import-replace')?.checked;
+   const missing=[];
+-  ['n','t','br','a','la','ln'].forEach(k=>{if(idx[k]===-1)missing.push({n:'Name',t:'Teacher',br:'Branch',a:'Address',la:'Latitude',ln:'Longitude'}[k]);});
++  // Name, Teacher, Branch, Address are always required. Lat/Lon optional (warn only).
++  ['n','t','br','a'].forEach(k=>{if(idx[k]===-1)missing.push({n:'Name',t:'Teacher',br:'Branch',a:'Address'}[k]);});
+   if(missing.length){
+     qs('import-preview').innerHTML='<div style="color:#B91C1C;font-size:11px;padding:10px">Missing required column(s): <b>'+missing.join(', ')+'</b></div>';
+     qs('import-footer').style.display='none';
+     return;
+   }
+-  // Build a set of existing (name|teacher) keys already in the roster so
+-  // we can flag duplicates. Case- and whitespace-insensitive.
++  const hasLatLon=idx.la>=0&&idx.ln>=0;
++  // Build a set of existing (name|teacher) keys for duplicate detection
+   const dedupKey=(n,t)=>String(n||'').trim().toLowerCase()+'|'+String(t||'').trim().toLowerCase();
+-  const existingKeys=new Set(Object.values(SS).map(s=>dedupKey(s.n,s.t)));
+-  const seenInFile=new Set(); // tracks duplicates within the uploaded file itself
++  const existingKeys=isReplace?new Set():new Set(Object.values(SS).map(s=>dedupKey(s.n,s.t)));
++  const seenInFile=new Set();
++
++  // Parse rejected days from comma/semicolon/space-separated string
++  const DAY_MAP={sun:'Sun',sunday:'Sun',mon:'Mon',monday:'Mon',tue:'Tue',tuesday:'Tue',wed:'Wed',wednesday:'Wed',thu:'Thu',thur:'Thu',thursday:'Thu'};
++  function parseRejDays(raw){
++    if(!raw)return[];
++    return String(raw).split(/[,;/]+/).map(s=>s.trim().toLowerCase()).filter(Boolean).map(s=>DAY_MAP[s]||null).filter(Boolean);
++  }
+ 
+   const rows=[];
+   for(let i=headerRowIdx+1;i<aoa.length;i++){
+     const r=aoa[i];
+-    if(!r||r.every(v=>v===''||v===null||v===undefined))continue; // skip blank rows
++    if(!r||r.every(v=>v===''||v===null||v===undefined))continue;
++    const la=hasLatLon?parseFloat(r[idx.la]):NaN;
++    const ln=hasLatLon?parseFloat(r[idx.ln]):NaN;
++    const rawType=idx.typ>=0?String(r[idx.typ]??'').trim().toLowerCase():'';
++    // Map spreadsheet type values to internal sessionType
++    let stype='1on1';
++    if(rawType==='group'||rawType==='host'||rawType==='guest')stype='group';
++    // Track host/guest designation separately
++    const isGuest=rawType==='guest';
++    const isHost=rawType==='host';
++
+     const d={
+       n:String(r[idx.n]??'').trim(),
+       t:String(r[idx.t]??'').trim(),
+       br:String(r[idx.br]??'').trim(),
+       a:String(r[idx.a]??'').trim(),
+-      la:parseFloat(r[idx.la]),
+-      ln:parseFloat(r[idx.ln]),
++      la,ln,
+       spw:idx.spw>=0?Math.max(1,parseInt(r[idx.spw])||1):1,
++      cls:idx.cls>=0?String(r[idx.cls]??'').trim():'',
++      stype,
++      isGuest,
++      isHost,
++      ghName:idx.gh>=0?String(r[idx.gh]??'').trim():'',
++      rejDays:parseRejDays(idx.rej>=0?r[idx.rej]:''),
+     };
+-    const errs=[];
++    const errs=[],warns=[];
+     if(!d.n)errs.push('Name');
+     if(!d.t)errs.push('Teacher');
+     if(!d.br)errs.push('Branch');
+     else{
+-      // Case-insensitive branch match, normalize to canonical case
+       const match=VALID_BRANCHES.find(b=>b.toLowerCase()===d.br.toLowerCase());
+       if(!match)errs.push('Branch must be Shuhada/Salam/Salwa');
+       else d.br=match;
+     }
+     if(!d.a)errs.push('Address');
+-    if(isNaN(d.la)||d.la<15||d.la>40)errs.push('Latitude (expect ~29)');
+-    if(isNaN(d.ln)||d.ln<30||d.ln>65)errs.push('Longitude (expect ~48)');
++    // Lat/Lon: warn if missing but don't block
++    if(hasLatLon&&(isNaN(d.la)||d.la<15||d.la>40))warns.push('Missing Lat');
++    if(hasLatLon&&(isNaN(d.ln)||d.ln<30||d.ln>65))warns.push('Missing Lon');
+ 
+-    // Duplicate detection (only meaningful if name + teacher are both present)
+     let dup=null;
+     if(d.n&&d.t){
+       const k=dedupKey(d.n,d.t);
+@@ -3084,11 +3165,7 @@ function parseImportRows(aoa){
+     }
+ 
+     rows.push({
+-      row:i+1,
+-      data:d,
+-      errors:errs,
+-      duplicate:dup,
+-      // A row is imported only if it has no errors AND is not a duplicate.
++      row:i+1,data:d,errors:errs,warnings:warns,duplicate:dup,
+       ok:errs.length===0 && !dup,
+     });
+   }
+@@ -3103,56 +3180,63 @@ function renderImportPreview(){
+     qs('import-footer').style.display='none';
+     return;
+   }
++  const isReplace=!!qs('import-replace')?.checked;
+   const okCount=rows.filter(r=>r.ok).length;
+   const dupCount=rows.filter(r=>r.duplicate&&r.errors.length===0).length;
+   const badCount=rows.filter(r=>r.errors.length>0).length;
++  const warnCount=rows.filter(r=>r.ok&&r.warnings&&r.warnings.length>0).length;
+   const parts=[`<span style="color:#059669"><b>${okCount}</b> ready</span>`];
++  if(warnCount)parts.push(`<span style="color:#B45309"><b>${warnCount}</b> with warnings</span>`);
+   if(dupCount)parts.push(`<span style="color:#B45309"><b>${dupCount}</b> duplicate${dupCount===1?'':'s'} (skipped)</span>`);
+   if(badCount)parts.push(`<span style="color:#B91C1C"><b>${badCount}</b> with errors (skipped)</span>`);
+   const header=`<div style="font-size:11px;margin-bottom:6px"><b>${rows.length}</b> row(s) found — ${parts.join(' · ')}</div>`;
++  const th_='padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);font-size:9px';
+   let tbl='<div style="max-height:340px;overflow:auto;border:1px solid var(--border);border-radius:6px"><table style="width:100%;border-collapse:collapse;font-size:10px">';
+   tbl+='<thead style="background:#FAFAFA;position:sticky;top:0"><tr>'
+-     + '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Row</th>'
+-     + '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Name</th>'
+-     + '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Teacher</th>'
+-     + '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Branch</th>'
+-     + '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Address</th>'
+-     + '<th style="padding:6px 8px;text-align:right;border-bottom:1px solid var(--border)">Lat</th>'
+-     + '<th style="padding:6px 8px;text-align:right;border-bottom:1px solid var(--border)">Lng</th>'
+-     + '<th style="padding:6px 8px;text-align:center;border-bottom:1px solid var(--border)">Sess/wk</th>'
+-     + '<th style="padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)">Status</th>'
++     + `<th style="${th_}">Row</th><th style="${th_}">Name</th><th style="${th_}">Teacher</th>`
++     + `<th style="${th_}">Branch</th><th style="${th_}">Class</th><th style="${th_}">Type</th>`
++     + `<th style="${th_}">Address</th><th style="${th_};text-align:right">Lat</th><th style="${th_};text-align:right">Lng</th>`
++     + `<th style="${th_};text-align:center">Sess/wk</th><th style="${th_}">Rejected</th><th style="${th_}">Status</th>`
+      + '</tr></thead><tbody>';
+   rows.forEach(r=>{
+-    // Priority: hard errors first (red), then duplicates (amber), then ok (white)
+     let bg='#fff',status='<span style="color:#059669">✓ Ready</span>';
+     if(r.errors.length){
+       bg='#FEF2F2';
+       status='<span style="color:#B91C1C" title="'+r.errors.join('; ')+'">✗ '+r.errors.join(', ')+'</span>';
+     }else if(r.duplicate){
+       bg='#FEF3C7';
+-      status='<span style="color:#B45309" title="Skipped: '+r.duplicate+'">⚠ Duplicate — '+r.duplicate+'</span>';
++      status='<span style="color:#B45309" title="Skipped: '+r.duplicate+'">⚠ '+r.duplicate+'</span>';
++    }else if(r.warnings&&r.warnings.length){
++      status='<span style="color:#B45309" title="'+r.warnings.join('; ')+'">⚠ '+r.warnings.join(', ')+'</span>';
+     }
++    const typeLabel=r.data.isGuest?'Guest':r.data.isHost?'Host':r.data.stype==='group'?'Group':'1on1';
++    const td='padding:4px 8px;border-bottom:1px solid #F0F0F0;font-size:9px';
+     tbl+=`<tr style="background:${bg}">`
+-       + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0;color:var(--text3)">${r.row}</td>`
+-       + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0">${_esc(r.data.n)}</td>`
+-       + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0">${_esc(r.data.t)}</td>`
+-       + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0">${_esc(r.data.br)}</td>`
+-       + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0">${_esc(r.data.a)}</td>`
+-       + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0;text-align:right;font-family:ui-monospace,Menlo,monospace">${isNaN(r.data.la)?'—':r.data.la.toFixed(5)}</td>`
+-       + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0;text-align:right;font-family:ui-monospace,Menlo,monospace">${isNaN(r.data.ln)?'—':r.data.ln.toFixed(5)}</td>`
+-       + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0;text-align:center">${r.data.spw}</td>`
+-       + `<td style="padding:5px 8px;border-bottom:1px solid #F0F0F0">${status}</td>`
++       + `<td style="${td};color:var(--text3)">${r.row}</td>`
++       + `<td style="${td}">${_esc(r.data.n)}</td>`
++       + `<td style="${td}">${_esc(r.data.t)}</td>`
++       + `<td style="${td}">${_esc(r.data.br)}</td>`
++       + `<td style="${td}">${_esc(r.data.cls)}</td>`
++       + `<td style="${td}">${typeLabel}</td>`
++       + `<td style="${td}">${_esc(r.data.a)}</td>`
++       + `<td style="${td};text-align:right;font-family:monospace">${isNaN(r.data.la)?'—':r.data.la.toFixed(5)}</td>`
++       + `<td style="${td};text-align:right;font-family:monospace">${isNaN(r.data.ln)?'—':r.data.ln.toFixed(5)}</td>`
++       + `<td style="${td};text-align:center">${r.data.spw}</td>`
++       + `<td style="${td}">${r.data.rejDays.join(', ')||'—'}</td>`
++       + `<td style="${td}">${status}</td>`
+        + `</tr>`;
+   });
+   tbl+='</tbody></table></div>';
+   qs('import-preview').innerHTML=header+tbl;
+   const skipped=dupCount+badCount;
++  const action=isReplace?'will replace the entire roster':'will be added';
+   qs('import-summary').innerHTML=okCount
+-    ?`${okCount} student${okCount===1?'':'s'} will be added${skipped?`, ${skipped} skipped`:''}.`
++    ?`${okCount} student${okCount===1?'':'s'} ${action}${skipped?`, ${skipped} skipped`:''}.`
+     :'No new students to import.';
+   qs('import-confirm-btn').disabled=okCount===0;
+   qs('import-confirm-btn').style.opacity=okCount===0?'0.5':'1';
+   qs('import-confirm-btn').style.cursor=okCount===0?'not-allowed':'pointer';
++  qs('import-confirm-btn').textContent=isReplace?'⚠ Replace all & import':'Import valid rows';
+   qs('import-footer').style.display='flex';
+ }
+ 
+@@ -3161,22 +3245,72 @@ function _esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
+ function confirmImport(){
+   const ok=importParsedRows.filter(r=>r.ok);
+   if(!ok.length)return;
++  const isReplace=!!qs('import-replace')?.checked;
++  if(isReplace){
++    if(!confirm('⚠ This will DELETE all current students and clear the entire schedule. Continue?'))return;
++    SS={};SCHED=blankSched();TEACHERS={};activeSlot=null;
++  }
+   let added=0;
++  // First pass: create all students so we can resolve groupHost names → IDs
++  const nameToId={};// 'name|teacher' → id
+   ok.forEach(r=>{
+     const d=r.data;
+-    const id='sx'+Date.now()+'_'+Math.floor(Math.random()*10000);
+-    SS[id]={id,n:d.n,t:d.t,br:d.br,a:d.a,la:d.la,ln:d.ln,visits:0,sessionsPerWeek:d.spw,parentPhone:'',sessionType:(d.stype==='group'?'group':'1on1')};
+-    // Auto-create teacher record for any new teacher seen in import
++    const id='sx'+Date.now()+'_'+(Math.floor(Math.random()*90000)+10000);
++    SS[id]={id,n:d.n,t:d.t,br:d.br,a:d.a,
++      la:isNaN(d.la)?0:d.la,ln:isNaN(d.ln)?0:d.ln,
++      visits:0,sessionsPerWeek:d.spw,parentPhone:'',
++      sessionType:d.stype||'1on1',
++      cls:d.cls||'',
++      groupHost:'',
++      rejectedDays:d.rejDays||[],
++      mandatory:[]};
++    nameToId[(d.n||'').trim().toLowerCase()+'|'+(d.t||'').trim().toLowerCase()]=id;
+     if(d.t&&!TEACHERS[d.t]){
+       TEACHERS[d.t]={name:d.t,phone:'',branch:d.br,days:{Sun:0,Mon:1,Tue:1,Wed:1,Thu:1},maxPerDay:SETTINGS.teacherDefaultMax||6,active:1,note:''};
+     }
+     added++;
+   });
++  // Second pass: resolve guest → host links
++  // A guest whose "Group Host" column matches another student name (same class) gets linked
++  ok.forEach(r=>{
++    const d=r.data;
++    if(!d.isGuest)return;
++    const myId=nameToId[(d.n||'').trim().toLowerCase()+'|'+(d.t||'').trim().toLowerCase()];
++    if(!myId||!SS[myId])return;
++    // Try to find host by explicit ghName column, or by matching HOST students in same class+teacher
++    let hostId=null;
++    if(d.ghName){
++      // Search by name (case-insensitive)
++      const ghLow=d.ghName.trim().toLowerCase();
++      hostId=Object.values(SS).find(s=>s.id!==myId&&s.n.trim().toLowerCase()===ghLow&&s.t===d.t)?.id;
++    }
++    if(!hostId){
++      // Auto-match: find a HOST student with same teacher + same class
++      const myCls=(d.cls||'').trim().toLowerCase();
++      if(myCls){
++        hostId=Object.values(SS).find(s=>{
++          if(s.id===myId)return false;
++          if(s.t!==d.t)return false;
++          if((s.cls||'').trim().toLowerCase()!==myCls)return false;
++          // Check if this student was imported as HOST
++          const orig=ok.find(x=>{
++            const xId=nameToId[(x.data.n||'').trim().toLowerCase()+'|'+(x.data.t||'').trim().toLowerCase()];
++            return xId===s.id;
++          });
++          return orig&&orig.data.isHost;
++        })?.id;
++      }
++    }
++    if(hostId)SS[myId].groupHost=hostId;
++  });
++  ensureSchedCoverage();
++  deriveTeachersFromStudents();
+   saveState();
+   if(qs('studentsmodal').style.display==='flex')renderStudentsTable();
+-  renderPool();
++  renderPool();renderSched();
+   closeImportModal();
+-  toast(`Imported ${added} student${added===1?'':'s'}`);
++  const verb=isReplace?'Replaced roster with':'Imported';
++  toast(`${verb} ${added} student${added===1?'':'s'}`);
+ }
+ 
+ qs('st-search')?.addEventListener('input',renderStudentsTable);
+@@ -4448,19 +4582,71 @@ function populateWeekDropdown(){
+ }
+ function switchReportTab(tab){
+   _rptTab=tab;
+-  ['student','teacher','parent'].forEach(t=>{
++  ['student','teacher','parent','drivers'].forEach(t=>{
+     const el=qs('rpt-tab-'+t);if(el)el.classList.toggle('on',t===tab);
+   });
+   renderReports();
+ }
+ function renderReports(){
+   _rptWeek=qs('rpt-week').value||currentWeekKey();
+-  // Keep the schedule-view picker in sync (both dropdowns drive the same _rptWeek)
+   const sw=qs('sched-week');if(sw)sw.value=_rptWeek;
+   updateSchedWeekBanner();
+   if(_rptTab==='student')renderStudentCompletionReport();
+   else if(_rptTab==='teacher')renderTeacherWeeklyReport();
+   else if(_rptTab==='parent')renderParentNotificationsReport();
++  else if(_rptTab==='drivers')renderDriversReport();
++}
++function renderDriversReport(){
++  const body=qs('rpt-body');if(!body)return;
++  const DAYS_ACTIVE=DAYS.filter(d=>{
++    if(d==='Sun'&&!SETTINGS.sundayActive)return false;
++    if(d==='Thu'&&!SETTINGS.thursdayActive)return false;
++    return true;
++  });
++  // Count cars with at least one session per day
++  const dayData=DAYS_ACTIVE.map(d=>{
++    let carsUsed=0,totalSessions=0,totalPickups=0;
++    const carList=[];
++    CARS.forEach(car=>{
++      const slots=SCHED[d]?.[car.id]||[];
++      let sess=0,picks=0;
++      slots.forEach(sl_=>{
++        if(!sl_)return;
++        if(sl_.t==='s')sess++;
++        if(sl_.t==='d')sess+=(sl_.ids||[]).length;
++        if(sl_.t==='pick')picks++;
++      });
++      if(sess>0){carsUsed++;carList.push({name:car.name||car.id,sess,picks});}
++      totalSessions+=sess;totalPickups+=picks;
++    });
++    return{day:d,carsUsed,totalSessions,totalPickups,carList};
++  });
++  const totalDriverDays=dayData.reduce((s,d)=>s+d.carsUsed,0);
++  let h=`<div style="padding:18px">`;
++  h+=`<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">`;
++  h+=`<div style="background:var(--purple-lt);border-radius:8px;padding:12px 18px;text-align:center;min-width:130px"><div style="font-size:24px;font-weight:700;color:var(--purple)">${totalDriverDays}</div><div style="font-size:10px;color:var(--text2)">Driver-days / week</div></div>`;
++  const maxPerDay=Math.max(...dayData.map(d=>d.carsUsed),0);
++  h+=`<div style="background:var(--amber-lt);border-radius:8px;padding:12px 18px;text-align:center;min-width:130px"><div style="font-size:24px;font-weight:700;color:var(--amber)">${maxPerDay}</div><div style="font-size:10px;color:var(--text2)">Peak drivers (1 day)</div></div>`;
++  h+=`</div>`;
++  // Table per day
++  h+=`<table style="width:100%;border-collapse:collapse;font-size:11px;border:1px solid var(--border);border-radius:8px">`;
++  h+=`<thead><tr style="background:var(--bg)">`;
++  h+=`<th style="padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:10px;font-weight:600">Day</th>`;
++  h+=`<th style="padding:8px 12px;text-align:center;border-bottom:2px solid var(--border);font-size:10px;font-weight:600">Drivers needed</th>`;
++  h+=`<th style="padding:8px 12px;text-align:center;border-bottom:2px solid var(--border);font-size:10px;font-weight:600">Sessions</th>`;
++  h+=`<th style="padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:10px;font-weight:600">Cars in use</th>`;
++  h+=`</tr></thead><tbody>`;
++  dayData.forEach(d=>{
++    const carNames=d.carList.map(c=>`${c.name} (${c.sess})`).join(', ')||'—';
++    h+=`<tr><td style="padding:7px 12px;border-bottom:1px solid var(--border);font-weight:600">${d.day}</td>`;
++    h+=`<td style="padding:7px 12px;border-bottom:1px solid var(--border);text-align:center;font-size:16px;font-weight:700;color:var(--purple)">${d.carsUsed}</td>`;
++    h+=`<td style="padding:7px 12px;border-bottom:1px solid var(--border);text-align:center">${d.totalSessions}</td>`;
++    h+=`<td style="padding:7px 12px;border-bottom:1px solid var(--border);font-size:10px;color:var(--text2)">${carNames}</td></tr>`;
++  });
++  h+=`</tbody></table>`;
++  h+=`<div style="font-size:10px;color:var(--text3);margin-top:10px">💡 A "driver" = a car with at least one session that day. Use this to plan daily driver rentals.</div>`;
++  h+=`</div>`;
++  body.innerHTML=h;
+ }
+ 
+ // ===== SHARED WEEK PICKER (schedule view + reports stay in sync) =====
+@@ -5865,6 +6051,11 @@ setSyncIndicator('connecting');
+   if(supaOnline)subscribeRealtime();
+   // Initialize theme: Home Visits active, Pipeline dashboard hidden
+   switchTheme('hv');
++  // Show environment badge on non-production deployments
++  if(_isDevDeploy){
++    const badge=qs('env-badge');
++    if(badge){badge.textContent='⚠ DEV — testing only';badge.style.display='inline-block';}
++  }
+ })();
+ </script>
+ </body>
+-- 
+2.34.1
+

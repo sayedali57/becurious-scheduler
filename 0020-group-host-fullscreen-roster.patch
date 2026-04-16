@@ -1,0 +1,120 @@
+From c2e499c54abfc68b09cfbd275a847c7c8a1041c0 Mon Sep 17 00:00:00 2001
+From: Saleh <saleh@emergegcc.com>
+Date: Sun, 12 Apr 2026 16:28:27 +0300
+Subject: [PATCH] feat: group host field + full-screen roster + host-based
+ auto-schedule routing
+
+- Student roster is now full-screen overlay (no cramped modal)
+- New 'Group Host' column for group-type students: dropdown of same-teacher peers
+- When set, auto-scheduler drives to the host's address, ignoring non-host coords
+- resolveGroupCoords() used in candidate scoring, groupmate sorting, and position advance
+- 33/33 smoke tests pass
+---
+ public/scheduler.html | 42 +++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 35 insertions(+), 7 deletions(-)
+
+diff --git a/public/scheduler.html b/public/scheduler.html
+index 0b7c581..4b191a1 100644
+--- a/public/scheduler.html
++++ b/public/scheduler.html
+@@ -441,8 +441,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
+ </div>
+ 
+ <!-- STUDENTS TABLE MODAL -->
+-<div class="modal" id="studentsmodal" style="display:none;align-items:flex-start;padding:20px">
+-  <div style="background:#fff;border-radius:12px;width:100%;max-width:1100px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.2)">
++<div class="modal" id="studentsmodal" style="display:none;align-items:stretch;padding:0">
++  <div style="background:#fff;width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden">
+     <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
+       <div>
+         <div style="font-size:15px;font-weight:700">Student roster</div>
+@@ -471,6 +471,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
+             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Longitude</th>
+             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Parent WhatsApp</th>
+             <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap" title="1on1 = own slot · Group = shares slot with same teacher">Type</th>
++            <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap" title="For group students: whose house does the car drive to?">Group Host</th>
+             <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Sess/wk</th>
+             <th style="padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap" title="Fixed day+time per session (leave blank = flexible, parents have no preference)">Fixed times</th>
+             <th style="padding:8px 10px;text-align:center;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap">Visits</th>
+@@ -2578,6 +2579,7 @@ function renderStudentsTable(){
+           <option value="group"${s.sessionType==='group'?' selected':''}>Group</option>
+         </select>
+       </td>
++      <td class="st-cell">${groupHostCell(s)}</td>
+       <td class="st-cell"><input class="st-inp num" value="${s.sessionsPerWeek||1}" type="number" min="1" max="7" onchange="patchStudent('${s.id}','sessionsPerWeek',+this.value)" style="width:52px" onkeydown="stNav(event,this)"></td>
+       <td class="st-cell" style="min-width:150px">${mandatoryCells(s)}</td>
+       <td class="st-cell"><input class="st-inp num" value="${s.visits||0}" type="number" min="0" onchange="patchStudent('${s.id}','visits',+this.value)" style="width:52px" onkeydown="stNav(event,this)"></td>
+@@ -2617,6 +2619,30 @@ function mandatoryCells(s){
+   return html;
+ }
+ 
++// Group Host cell: dropdown of same-teacher group students for picking whose
++// house the car drives to. Only shown for group-type students, otherwise "—".
++function groupHostCell(s){
++  if((s.sessionType||'1on1')!=='group') return '<span style="color:var(--text3);font-size:9px">—</span>';
++  // Collect all group-type students with the same teacher (excluding self)
++  const peers=Object.values(SS).filter(p=>p.id!==s.id&&p.t===s.t&&(p.sessionType||'1on1')==='group');
++  const host=s.groupHost||'';
++  let opts='<option value=""'+(host?'':' selected')+'>Self (own address)</option>';
++  peers.forEach(p=>{
++    opts+='<option value="'+p.id+'"'+(host===p.id?' selected':'')+'>'+esc(p.n)+'</option>';
++  });
++  return '<select class="st-sel" style="min-width:120px;font-size:9px" onchange="patchStudent(\''+s.id+'\',\'groupHost\',this.value)">'+opts+'</select>';
++}
++
++// Resolve the routing coordinates for a student. For group students with a
++// groupHost set, return the host student's lat/lng instead of their own.
++function resolveGroupCoords(s){
++  if(s.groupHost&&SS[s.groupHost]){
++    const h=SS[s.groupHost];
++    return {la:h.la,ln:h.ln};
++  }
++  return {la:s.la,ln:s.ln};
++}
++
+ function patchMandatory(sid,idx,field,val){
+   const s=SS[sid];if(!s)return;
+   if(!Array.isArray(s.mandatory))s.mandatory=[];
+@@ -4812,8 +4838,9 @@ function runAutoSchedule(){
+       const sa=SS[a],sb=SS[b];
+       const chA=(lastTeacher&&sa.t===lastTeacher)?chainBonus:0;
+       const chB=(lastTeacher&&sb.t===lastTeacher)?chainBonus:0;
+-      const dA=hv(pos.la,pos.ln,sa.la,sa.ln);
+-      const dB=hv(pos.la,pos.ln,sb.la,sb.ln);
++      const ca=resolveGroupCoords(sa),cb=resolveGroupCoords(sb);
++      const dA=hv(pos.la,pos.ln,ca.la,ca.ln);
++      const dB=hv(pos.la,pos.ln,cb.la,cb.ln);
+       return (chA+dA)-(chB+dB);
+     });
+   }
+@@ -4877,7 +4904,7 @@ function runAutoSchedule(){
+           const ids=slotStudentIds(sl_);
+           const lastSid=ids[ids.length-1];
+           const s=SS[lastSid];
+-          if(s){pos={la:s.la,ln:s.ln,isBase:false};lastTeacher=s.t;}
++          if(s){const rc=resolveGroupCoords(s);pos={la:rc.la,ln:rc.ln,isBase:false};lastTeacher=s.t;}
+           break;
+         }
+       }
+@@ -4911,7 +4938,7 @@ function runAutoSchedule(){
+               && teacherCanTake(SS[sid].t,day)
+               && (!preventDouble||!onDay[day].has(sid))
+               && carServesBranch(car,SS[sid]))
+-            .sort((a,b)=>hv(pickS.la,pickS.ln,SS[a].la,SS[a].ln)-hv(pickS.la,pickS.ln,SS[b].la,SS[b].ln));
++            .sort((a,b)=>{const ga=resolveGroupCoords(SS[a]),gb=resolveGroupCoords(SS[b]),pc=resolveGroupCoords(pickS);return hv(pc.la,pc.ln,ga.la,ga.ln)-hv(pc.la,pc.ln,gb.la,gb.ln);});
+           for(const sid of groupmates){
+             if(ids.length>=maxGroupSize)break;
+             ids.push(sid);
+@@ -4954,7 +4981,8 @@ function runAutoSchedule(){
+ 
+         // Advance drive position + teacher pointer to the newly-placed drop
+         lastTeacher=pickS.t;
+-        pos={la:pickS.la,ln:pickS.ln,isBase:false};
++        const driveCoords=resolveGroupCoords(pickS);
++        pos={la:driveCoords.la,ln:driveCoords.ln,isBase:false};
+ 
+         // Optionally insert pickup slots after this drop — one per student
+         // in the slot. For groups at the same address the driver still needs
+-- 
+2.34.1
+

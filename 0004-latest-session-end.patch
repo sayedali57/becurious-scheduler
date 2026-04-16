@@ -1,0 +1,125 @@
+From 3661da1f3d3f34d31c4835d4670cdcee0abd3d17 Mon Sep 17 00:00:00 2001
+From: Saleh <saleh@emergegcc.com>
+Date: Sat, 11 Apr 2026 19:46:56 +0300
+Subject: [PATCH] Settings: add 'Latest session end' cutoff so auto-schedule
+ respects a day-end time
+
+- New SETTINGS.dayEndMin (default 17:00). Latest-allowed end time for any
+  session; auto-schedule won't start a drop whose earliest-possible end
+  would fall past this time.
+- Per-car fill loop breaks as soon as even a best-case session (10-min
+  travel floor + sessionMin) would run past the cutoff.
+- Settings modal gets a 'Latest session end' time input next to 'First car
+  departure'. Max-slots moved to its own row.
+- Validation: dayEndMin must be after dayStartMin with room for at least
+  one session + 15 min.
+- Existing slots past the cutoff surface a warning flag in slotWarnings
+  (past-cutoff sessions are NOT auto-removed).
+- Smoke test 16: tight 10:00-12:00 window with 60-min sessions confirms
+  no drop is placed ending past the cutoff. 16/16 passing.
+---
+ public/scheduler.html | 29 ++++++++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
+
+diff --git a/public/scheduler.html b/public/scheduler.html
+index 29c4712..f8b2e33 100644
+--- a/public/scheduler.html
++++ b/public/scheduler.html
+@@ -537,11 +537,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
+       </div>
+       <div class="frow2">
+         <div class="frow"><label>First car departure</label><input id="set-dayStart" type="time"><small class="set-help">When the first car leaves the branch.</small></div>
+-        <div class="frow"><label>Max slots per car per day</label><input id="set-maxSlots" type="number" min="4" max="24"><small class="set-help">How many visits one car can do in a day.</small></div>
++        <div class="frow"><label>Latest session end</label><input id="set-dayEnd" type="time"><small class="set-help">Auto-schedule won't place any session that would finish after this time. Existing slots past this time get a warning but are not removed.</small></div>
+       </div>
+       <div class="frow2">
+         <div class="frow"><label>Pick-up handover (minutes)</label><input id="set-pickHandover" type="number" min="0" max="30" step="1"><small class="set-help">Extra minutes added to every pick-up slot for the teacher to gather their things and get in the car.</small></div>
+-        <div class="frow"></div>
++        <div class="frow"><label>Max slots per car per day</label><input id="set-maxSlots" type="number" min="4" max="24"><small class="set-help">How many visits one car can do in a day.</small></div>
+       </div>
+     </div>
+ 
+@@ -678,6 +678,7 @@ const DEFAULT_SETTINGS={
+   sessionMin:60,        // Session length in minutes
+   bufferMin:5,          // Extra minutes added to each drop (setup/handover time at student's home)
+   dayStartMin:600,      // First car departure, minutes-of-day (600 = 10:00)
++  dayEndMin:1020,       // Latest a session may end, minutes-of-day (1020 = 17:00); auto-schedule stops placing past this
+   maxSlotsPerCar:14,    // Max visit slots per car per day
+   maxGroupSize:4,       // Max students auto-batched into one group slot
+   teacherDefaultMax:6,  // Default per-day max for new teacher records
+@@ -711,7 +712,7 @@ function migrateSettings(obj){
+   if(!obj||typeof obj!=='object'){SETTINGS={...DEFAULT_SETTINGS};applySettings();return;}
+   SETTINGS={...DEFAULT_SETTINGS,...obj};
+   // Coerce numeric fields
+-  ['sessionMin','bufferMin','dayStartMin','maxSlotsPerCar','maxGroupSize','teacherDefaultMax','chainBonusKm','pickupHandoverMin'].forEach(k=>{
++  ['sessionMin','bufferMin','dayStartMin','dayEndMin','maxSlotsPerCar','maxGroupSize','teacherDefaultMax','chainBonusKm','pickupHandoverMin'].forEach(k=>{
+     const v=parseInt(SETTINGS[k]);
+     if(!isNaN(v))SETTINGS[k]=v;
+     else SETTINGS[k]=DEFAULT_SETTINGS[k];
+@@ -856,6 +857,15 @@ function slotWarnings(d,cid,si){
+     if(inter>20)warns.push(`⚠ Double-drop gap: ${inter}min between the two homes — driver may wait too long`);
+   }
+ 
++  // Latest-session-end cutoff: warn if this drop/group would end past the configured dayEndMin.
++  if(sl_.t==='s'||sl_.t==='d'||sl_.t==='g'){
++    const dayEnd=parseInt(SETTINGS.dayEndMin);
++    if(!isNaN(dayEnd)&&dayEnd>0){
++      const slotEnd=startMin+slotDur(sl_,d,cid,si);
++      if(slotEnd>dayEnd)warns.push(`⚠ Session ends ${ts(slotEnd)} — past the ${ts(dayEnd)} cutoff in ⚙ Settings`);
++    }
++  }
++
+   return warns;
+ }
+ 
+@@ -2897,6 +2907,7 @@ function showSettingsModal(){
+   qs('set-sessionMin').value=SETTINGS.sessionMin;
+   qs('set-bufferMin').value=SETTINGS.bufferMin;
+   qs('set-dayStart').value=ts(SETTINGS.dayStartMin);
++  qs('set-dayEnd').value=ts(SETTINGS.dayEndMin);
+   qs('set-maxSlots').value=SETTINGS.maxSlotsPerCar;
+   qs('set-pickHandover').value=SETTINGS.pickupHandoverMin;
+   qs('set-maxGroup').value=SETTINGS.maxGroupSize;
+@@ -2928,6 +2939,7 @@ function saveSettingsModal(){
+     sessionMin:parseInt(qs('set-sessionMin').value)||60,
+     bufferMin:parseInt(qs('set-bufferMin').value)||0,
+     dayStartMin:parseTimeToMin(qs('set-dayStart').value),
++    dayEndMin:parseTimeToMin(qs('set-dayEnd').value),
+     maxSlotsPerCar:parseInt(qs('set-maxSlots').value)||14,
+     pickupHandoverMin:parseInt(qs('set-pickHandover').value)||0,
+     maxGroupSize:parseInt(qs('set-maxGroup').value)||4,
+@@ -2945,6 +2957,8 @@ function saveSettingsModal(){
+   if(next.bufferMin<0||next.bufferMin>30){toast('Drop-off handover must be 0–30 minutes');return;}
+   if(next.pickupHandoverMin<0||next.pickupHandoverMin>30){toast('Pick-up handover must be 0–30 minutes');return;}
+   if(next.maxSlotsPerCar<4||next.maxSlotsPerCar>24){toast('Slots per car must be 4–24');return;}
++  if(next.dayEndMin<=next.dayStartMin){toast('Latest session end must be after first car departure');return;}
++  if(next.dayEndMin-next.dayStartMin<next.sessionMin+15){toast('Latest session end too close to car departure — no sessions would fit');return;}
+   if(next.maxGroupSize<2||next.maxGroupSize>8){toast('Max group size must be 2–8');return;}
+   if(next.autoSchedulePin&&!/^[0-9A-Za-z]{3,12}$/.test(next.autoSchedulePin)){toast('PIN must be 3–12 letters/numbers (or leave empty)');return;}
+   migrateSettings(next);
+@@ -3007,6 +3021,10 @@ function runAutoSchedule(){
+   const sameBranchOnly=!!SETTINGS.sameBranchOnly;
+   const autoPickup=!!SETTINGS.autoPickup;
+   const preventDouble=!!SETTINGS.preventSameDayDouble;
++  // Latest-session-end cutoff: stop placing drops once a session would finish past this time.
++  const dayEndMin=parseInt(SETTINGS.dayEndMin);
++  const endCutoff=(!isNaN(dayEndMin)&&dayEndMin>0)?dayEndMin:(24*60-1);
++  const sessionLen=parseInt(SETTINGS.sessionMin)||60;
+ 
+   // Only schedule on active days (Sunday/Thursday can be turned off in Settings).
+   const DAYS_ACTIVE=activeDays();
+@@ -3092,6 +3110,11 @@ function runAutoSchedule(){
+       // Greedily fill empty slots
+       for(let si=0;si<slots.length;si++){
+         if(slots[si])continue;
++        // Day-end cutoff: if even a best-case session starting now would run past the
++        // configured latest-end-time, stop filling this car for this day. Uses the
++        // 10-minute travel floor from tm() as the minimum arrival time.
++        const slotStart=slotStartMin(day,car.id,si);
++        if(slotStart+10+sessionLen>endCutoff)break;
+         const cands=candidateFor(day,car,pos,lastTeacher);
+         if(!cands.length)break; // no-one can ride in this car today — stop filling
+ 
+-- 
+2.34.1
+

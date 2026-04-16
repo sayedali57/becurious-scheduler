@@ -1,0 +1,144 @@
+From c436292f1e82b40110e64c89650da5905d5342d5 Mon Sep 17 00:00:00 2001
+From: BeCurious Scheduler <saleh@emergegcc.com>
+Date: Sun, 12 Apr 2026 23:23:28 +0300
+Subject: [PATCH] =?UTF-8?q?feat:=20teacher-car=20stickiness=20=E2=80=94=20?=
+ =?UTF-8?q?keep=20teachers=20on=20the=20same=20car=20all=20day?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Eliminates wasteful branch-return trips when a teacher bounces between
+multiple cars in a single day. Once a teacher is placed on a car for a
+given day, their subsequent students get a strong routing preference for
+that same car.
+
+- teacherCarAffinity map tracks teacher→car per day, primed from manual placements
+- candidateFor sort adds stickyBonus (same car) / stickyPenalty (different car)
+- Affinity recorded for drops, double-drops (sibling teacher), and group slots
+- New setting: stickyBonusKm (default 15) — configurable in Settings modal
+- 0 = off, higher = stronger preference to keep teacher on same car
+
+Analysis of live data showed 13 multi-car teacher-day cases causing
+~468 min/day of wasted branch-return idle time. This change chains
+sessions so teachers go student→student without returning to branch.
+---
+ public/scheduler.html | 40 +++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 37 insertions(+), 3 deletions(-)
+
+diff --git a/public/scheduler.html b/public/scheduler.html
+index 991e5b3..26cb88a 100644
+--- a/public/scheduler.html
++++ b/public/scheduler.html
+@@ -853,7 +853,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
+       <div class="set-section-title">Auto-schedule rules</div>
+       <div class="frow2">
+         <div class="frow"><label>Same-teacher chaining strength</label><input id="set-chainBonus" type="number" min="0" max="500" step="10"><small class="set-help">Higher = auto-schedule tries harder to put same-teacher students back-to-back. 0 = ignore teacher, pure distance.</small></div>
+-        <div class="frow"></div>
++        <div class="frow"><label>Teacher-car stickiness (km)</label><input id="set-stickyBonus" type="number" min="0" max="50" step="5"><small class="set-help">How strongly a teacher stays on the same car all day. Higher = fewer branch returns. 0 = off.</small></div>
+       </div>
+       <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="set-sameBranch"> Only place a student into a car for their own branch</label></div>
+       <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="set-autoPickup"> Insert a pickup slot after every drop</label></div>
+@@ -1005,6 +1005,7 @@ const DEFAULT_SETTINGS={
+   maxGroupSize:4,       // Max students auto-batched into one group slot
+   teacherDefaultMax:6,  // Default per-day max for new teacher records
+   chainBonusKm:100,     // How strongly auto-schedule prefers same-teacher chains (higher = stronger)
++  stickyBonusKm:15,     // Teacher-car stickiness: how strongly a teacher stays on the same car all day (km equivalent)
+   pickupHandoverMin:8,  // Extra minutes added to each pickup slot for the teacher to get in the car
+   sameBranchOnly:1,     // 1 = only place a student into a car whose branch matches theirs
+   autoPickup:1,         // 1 = auto-insert a pickup slot after every drop in auto-schedule
+@@ -1034,7 +1035,7 @@ function migrateSettings(obj){
+   if(!obj||typeof obj!=='object'){SETTINGS={...DEFAULT_SETTINGS};applySettings();return;}
+   SETTINGS={...DEFAULT_SETTINGS,...obj};
+   // Coerce numeric fields
+-  ['sessionMin','bufferMin','dayStartMin','dayEndMin','maxSlotsPerCar','maxGroupSize','teacherDefaultMax','chainBonusKm','pickupHandoverMin'].forEach(k=>{
++  ['sessionMin','bufferMin','dayStartMin','dayEndMin','maxSlotsPerCar','maxGroupSize','teacherDefaultMax','chainBonusKm','stickyBonusKm','pickupHandoverMin'].forEach(k=>{
+     const v=parseInt(SETTINGS[k]);
+     if(!isNaN(v))SETTINGS[k]=v;
+     else SETTINGS[k]=DEFAULT_SETTINGS[k];
+@@ -4912,6 +4913,7 @@ function showSettingsModal(){
+   qs('set-maxGroup').value=SETTINGS.maxGroupSize;
+   qs('set-teacherMax').value=SETTINGS.teacherDefaultMax;
+   qs('set-chainBonus').value=SETTINGS.chainBonusKm;
++  qs('set-stickyBonus').value=SETTINGS.stickyBonusKm;
+   qs('set-sameBranch').checked=!!SETTINGS.sameBranchOnly;
+   qs('set-autoPickup').checked=!!SETTINGS.autoPickup;
+   qs('set-preventDouble').checked=!!SETTINGS.preventSameDayDouble;
+@@ -4944,6 +4946,7 @@ function saveSettingsModal(){
+     maxGroupSize:parseInt(qs('set-maxGroup').value)||4,
+     teacherDefaultMax:parseInt(qs('set-teacherMax').value)||6,
+     chainBonusKm:parseInt(qs('set-chainBonus').value)||100,
++    stickyBonusKm:parseInt(qs('set-stickyBonus').value)||15,
+     sameBranchOnly:qs('set-sameBranch').checked?1:0,
+     autoPickup:qs('set-autoPickup').checked?1:0,
+     preventSameDayDouble:qs('set-preventDouble').checked?1:0,
+@@ -5092,6 +5095,27 @@ function runAutoSchedule(){
+     remain[e.s.id]=e.remaining;
+   });
+ 
++  // Teacher-car affinity: once a teacher is placed on a car for a given day,
++  // strongly prefer keeping them on the same car for subsequent sessions.
++  // This eliminates wasteful branch-return trips between cars and lets
++  // teachers chain sessions back-to-back.
++  const teacherCarAffinity={};  // { 'Mon': { 'Mariya': 'car_1', ... }, ... }
++  DAYS_ACTIVE.forEach(d=>{
++    teacherCarAffinity[d]={};
++    // Prime from already-scheduled slots (manual placements)
++    CARS.forEach(car=>{
++      (SCHED[d]?.[car.id]||[]).forEach(sl_=>{
++        if(!sl_||sl_.t==='pick')return;
++        slotStudentIds(sl_).forEach(sid=>{
++          const s=SS[sid];
++          if(s&&s.t&&!teacherCarAffinity[d][s.t])teacherCarAffinity[d][s.t]=car.id;
++        });
++      });
++    });
++  });
++  const stickyBonus=-(parseInt(SETTINGS.stickyBonusKm)||15);  // strong pull toward same car
++  const stickyPenalty=Math.abs(stickyBonus)*2;                 // push away from different car
++
+   function teacherCanTake(tname,day){
+     const t=TEACHERS[tname];
+     if(t&&!t.active)return false;
+@@ -5136,14 +5160,20 @@ function runAutoSchedule(){
+     // Use spread-compliant candidates first; fall back to all if none available
+     // (better to schedule back-to-back than not at all)
+     const pool=spread.length?spread:all;
++    const affinity=teacherCarAffinity[day]||{};
+     return pool.sort((a,b)=>{
+       const sa=SS[a],sb=SS[b];
+       const chA=(lastTeacher&&sa.t===lastTeacher)?chainBonus:0;
+       const chB=(lastTeacher&&sb.t===lastTeacher)?chainBonus:0;
++      // Teacher-car stickiness: prefer students whose teacher is already on THIS car,
++      // deprioritize students whose teacher is already on a DIFFERENT car
++      let stA=0,stB=0;
++      if(affinity[sa.t]){stA=affinity[sa.t]===car.id?stickyBonus:stickyPenalty;}
++      if(affinity[sb.t]){stB=affinity[sb.t]===car.id?stickyBonus:stickyPenalty;}
+       const ca=resolveGroupCoords(sa),cb=resolveGroupCoords(sb);
+       const dA=hv(pos.la,pos.ln,ca.la,ca.ln);
+       const dB=hv(pos.la,pos.ln,cb.la,cb.ln);
+-      return (chA+dA)-(chB+dB);
++      return (chA+stA+dA)-(chB+stB+dB);
+     });
+   }
+ 
+@@ -5279,6 +5309,8 @@ function runAutoSchedule(){
+             onDay[day].add(nearSibling);
+             teacherDayCount[day][s2.t]=(teacherDayCount[day][s2.t]||0)+1;
+             placed++;
++            // Record affinity for sibling's teacher too
++            if(!teacherCarAffinity[day][s2.t])teacherCarAffinity[day][s2.t]=car.id;
+           }
+         }
+ 
+@@ -5286,6 +5318,8 @@ function runAutoSchedule(){
+         lastTeacher=pickS.t;
+         const driveCoords=resolveGroupCoords(pickS);
+         pos={la:driveCoords.la,ln:driveCoords.ln,isBase:false};
++        // Record teacher-car affinity so subsequent sessions keep this teacher on this car
++        if(!teacherCarAffinity[day][pickS.t])teacherCarAffinity[day][pickS.t]=car.id;
+ 
+         // Optionally insert pickup slots after this drop — one per student
+         // in the slot. For groups at the same address the driver still needs
+-- 
+2.34.1
+

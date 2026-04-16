@@ -1,0 +1,261 @@
+From f298b00d5b18ddac1e5d494c97252f1567a7531f Mon Sep 17 00:00:00 2001
+From: Claude <claude@anthropic.local>
+Date: Sat, 11 Apr 2026 21:46:03 +0300
+Subject: [PATCH] Completion editing: week picker, bulk actions, per-student
+ mark/reset
+
+- Adds an attendance-week dropdown to the schedule view toolbar so past
+  or future weeks can be edited without opening Reports. Syncs both ways
+  with the Reports dropdown via setSelectedWeek().
+- Shows an orange banner when viewing a non-current week so operators
+  never mistakenly mark attendance in the wrong week.
+- Student completion report gains four actions, all undoable for 10s:
+    * 'Mark all N as completed' (bulk)
+    * 'Reset week' (with confirm)
+    * per-row 'Mark all done' (one student, one week)
+    * per-row reset
+- Undo uses _withAttendSnapshot so any failure leaves ATTEND untouched.
+- Initial render calls populateSchedWeekPicker after Supabase loads
+  attendance so the picker is seeded with real weeks.
+---
+ public/scheduler.html | 159 ++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 152 insertions(+), 7 deletions(-)
+
+diff --git a/public/scheduler.html b/public/scheduler.html
+index c45ab27..4c1d6cc 100644
+--- a/public/scheduler.html
++++ b/public/scheduler.html
+@@ -282,7 +282,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
+       <div class="dt" data-day="Tue" onclick="gd('Tue')">Tuesday</div>
+       <div class="dt" data-day="Wed" onclick="gd('Wed')">Wednesday</div>
+       <div class="dt" data-day="Thu" onclick="gd('Thu')">Thursday · Far</div>
++      <div style="flex:1"></div>
++      <div class="week-picker-wrap" style="display:flex;align-items:center;gap:6px;padding:0 10px">
++        <label for="sched-week" style="font-size:10px;color:var(--text2);font-weight:600">Attendance week</label>
++        <select id="sched-week" onchange="setSelectedWeek(this.value)" style="padding:4px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px;background:#fff;outline:none"></select>
++      </div>
+     </div>
++    <!-- Banner shown only when viewing a non-current attendance week -->
++    <div id="sched-week-banner" style="display:none;padding:7px 14px;background:#FEF3CD;border-bottom:1px solid #F59E0B;color:#92400E;font-size:11px;font-weight:600;text-align:center"></div>
+     <div class="sched-outer" id="sched-outer"><div class="cargrid" id="cargrid"></div></div>
+     <div class="legend">
+       <span style="font-size:9px;color:var(--text3);font-weight:500">Legend:</span>
+@@ -2880,6 +2887,8 @@ function populateWeekDropdown(){
+     return `<option value="${w}"${w===cur?' selected':''}>${label}</option>`;
+   }).join('');
+   _rptWeek=cur;
++  // Keep the schedule-view picker in sync whenever this list gets rebuilt
++  if(typeof populateSchedWeekPicker==='function')populateSchedWeekPicker();
+ }
+ function switchReportTab(tab){
+   _rptTab=tab;
+@@ -2890,11 +2899,64 @@ function switchReportTab(tab){
+ }
+ function renderReports(){
+   _rptWeek=qs('rpt-week').value||currentWeekKey();
++  // Keep the schedule-view picker in sync (both dropdowns drive the same _rptWeek)
++  const sw=qs('sched-week');if(sw)sw.value=_rptWeek;
++  updateSchedWeekBanner();
+   if(_rptTab==='student')renderStudentCompletionReport();
+   else if(_rptTab==='teacher')renderTeacherWeeklyReport();
+   else if(_rptTab==='parent')renderParentNotificationsReport();
+ }
+ 
++// ===== SHARED WEEK PICKER (schedule view + reports stay in sync) =====
++// Called by the schedule-view dropdown and the completion report's per-row actions.
++function setSelectedWeek(wk){
++  _rptWeek=wk||currentWeekKey();
++  // Mirror to both dropdowns so they never drift
++  const rw=qs('rpt-week');if(rw)rw.value=_rptWeek;
++  const sw=qs('sched-week');if(sw)sw.value=_rptWeek;
++  updateSchedWeekBanner();
++  // Re-render the schedule so each slot's attendance row picks up the new week
++  renderSched();
++  // If reports view is open, re-render it too
++  if(qs('reportsmodal')?.style.display==='flex'&&typeof renderReports==='function')renderReports();
++}
++// Populate the schedule-view week picker (and keep the banner consistent).
++function populateSchedWeekPicker(){
++  const sel=qs('sched-week');if(!sel)return;
++  const weeks=[];
++  for(let i=-8;i<=2;i++)weeks.push(weekKeyOffset(i));
++  Object.keys(ATTEND).forEach(w=>{if(!weeks.includes(w))weeks.push(w);});
++  weeks.sort();
++  const cur=currentWeekKey();
++  const active=_rptWeek||cur;
++  sel.innerHTML=weeks.map(w=>{
++    const label=w+(w===cur?' (current)':'');
++    return `<option value="${w}"${w===active?' selected':''}>${label}</option>`;
++  }).join('');
++  updateSchedWeekBanner();
++}
++// Show/hide the orange 'you are editing a past week' banner in the schedule view.
++function updateSchedWeekBanner(){
++  const banner=qs('sched-week-banner');if(!banner)return;
++  const cur=currentWeekKey();
++  const active=_rptWeek||cur;
++  if(active===cur){
++    banner.style.display='none';
++  }else{
++    const past=active<cur;
++    banner.style.display='block';
++    banner.style.background=past?'#FEF3CD':'#DBEAFE';
++    banner.style.borderBottomColor=past?'#F59E0B':'#3B82F6';
++    banner.style.color=past?'#92400E':'#1E3A8A';
++    banner.textContent=`⚠ You are editing attendance for ${active} ${past?'(past week)':'(future week)'} — every ✓ ✗ ⚠ click affects this week, not the current one. Click to return: `;
++    const link=document.createElement('a');
++    link.href='#';link.textContent=cur+' (current)';
++    link.style.cssText='color:inherit;text-decoration:underline;margin-left:4px;font-weight:700';
++    link.onclick=function(ev){ev.preventDefault();setSelectedWeek(cur);};
++    banner.appendChild(link);
++  }
++}
++
+ // Iterate every scheduled student-session in SCHED with attendance status.
+ // Only iterates ACTIVE days (Sunday/Thursday can be toggled off in Settings).
+ function forEachScheduledSlot(cb){
+@@ -2924,18 +2986,24 @@ function renderStudentCompletionReport(){
+     else tally[sid].unmarked++;
+   });
+   const rows=Object.values(tally).sort((a,b)=>a.s.n.localeCompare(b.s.n));
+-  let totalSched=0,totalDone=0,totalCan=0,totalNo=0;
+-  rows.forEach(r=>{totalSched+=r.sched;totalDone+=r.done;totalCan+=r.cancelled;totalNo+=r.noshow;});
++  let totalSched=0,totalDone=0,totalCan=0,totalNo=0,totalUn=0;
++  rows.forEach(r=>{totalSched+=r.sched;totalDone+=r.done;totalCan+=r.cancelled;totalNo+=r.noshow;totalUn+=r.unmarked;});
+   const esc=v=>String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
++  const cur=currentWeekKey();
++  const isPast=wk<cur;
+   const body=qs('rpt-body');
+   body.innerHTML=`
+-    <div style="padding:12px 18px;display:flex;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:#FAFAFA">
+-      <div style="font-size:11px;color:var(--text2)"><b>Week ${wk}</b> · ${totalSched} scheduled sessions</div>
+-      <div style="margin-left:auto;display:flex;gap:10px;font-size:10px;color:var(--text2)">
++    <div style="padding:12px 18px;display:flex;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:#FAFAFA;align-items:center">
++      <div style="font-size:11px;color:var(--text2)"><b>Week ${wk}</b>${isPast?' <span style="color:#92400E;background:#FEF3CD;padding:1px 6px;border-radius:3px;font-size:10px">past week</span>':wk===cur?'':' <span style="color:#1E3A8A;background:#DBEAFE;padding:1px 6px;border-radius:3px;font-size:10px">future week</span>'} · ${totalSched} scheduled sessions</div>
++      <div style="display:flex;gap:10px;font-size:10px;color:var(--text2);align-items:center">
+         <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#059669;margin-right:4px"></span>${totalDone} completed</span>
+         <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#DC2626;margin-right:4px"></span>${totalCan} cancelled</span>
+         <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#D97706;margin-right:4px"></span>${totalNo} no-show</span>
+-        <button onclick="exportReportCSV()" style="padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:#fff;font-size:10px;cursor:pointer">⬇ Export CSV</button>
++      </div>
++      <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
++        <button onclick="bulkMarkAllCompleted()" ${totalUn?'':'disabled'} title="${totalUn?'Mark every unmarked session this week as completed (undoable)':'Nothing to mark — no unmarked sessions'}" style="padding:5px 11px;border-radius:5px;background:${totalUn?'#059669':'#E5E7EB'};color:${totalUn?'#fff':'#9CA3AF'};border:none;font-size:10px;font-weight:700;cursor:${totalUn?'pointer':'not-allowed'}">✓ Mark all ${totalUn||''} as completed</button>
++        <button onclick="bulkResetWeek()" ${(totalDone+totalCan+totalNo)?'':'disabled'} title="Clear every attendance mark for this week (undoable)" style="padding:5px 11px;border-radius:5px;background:${(totalDone+totalCan+totalNo)?'#FEE2E2':'#F3F4F6'};color:${(totalDone+totalCan+totalNo)?'#991B1B':'#9CA3AF'};border:1px solid ${(totalDone+totalCan+totalNo)?'#FCA5A5':'#E5E7EB'};font-size:10px;font-weight:700;cursor:${(totalDone+totalCan+totalNo)?'pointer':'not-allowed'}">↺ Reset week</button>
++        <button onclick="exportReportCSV()" style="padding:5px 10px;border-radius:5px;border:1px solid var(--border);background:#fff;font-size:10px;cursor:pointer">⬇ CSV</button>
+       </div>
+     </div>
+     <table style="width:100%;border-collapse:collapse;font-size:11px">
+@@ -2949,11 +3017,14 @@ function renderStudentCompletionReport(){
+         <th style="padding:8px 10px;text-align:center;font-size:10px;color:var(--text2);border-bottom:2px solid var(--border)">⚠ No-show</th>
+         <th style="padding:8px 10px;text-align:center;font-size:10px;color:var(--text2);border-bottom:2px solid var(--border)">Unmarked</th>
+         <th style="padding:8px 10px;text-align:center;font-size:10px;color:var(--text2);border-bottom:2px solid var(--border)">Completion %</th>
++        <th style="padding:8px 10px;text-align:center;font-size:10px;color:var(--text2);border-bottom:2px solid var(--border)">Actions</th>
+       </tr></thead>
+       <tbody>
+         ${rows.map(r=>{
+           const pct=r.sched?Math.round(r.done/r.sched*100):null;
+           const col=pct==null?'#999':pct>=80?'#059669':pct>=50?'#D97706':'#DC2626';
++          const canMark=r.unmarked>0;
++          const canReset=(r.done+r.cancelled+r.noshow)>0;
+           return `<tr style="border-bottom:1px solid var(--border)">
+             <td style="padding:6px 10px">${esc(r.s.n)}</td>
+             <td style="padding:6px 10px">${esc(r.s.t)}</td>
+@@ -2964,13 +3035,85 @@ function renderStudentCompletionReport(){
+             <td style="padding:6px 10px;text-align:center;color:#D97706;font-weight:${r.noshow?'700':'400'}">${r.noshow||'—'}</td>
+             <td style="padding:6px 10px;text-align:center;color:var(--text3)">${r.unmarked||'—'}</td>
+             <td style="padding:6px 10px;text-align:center;font-weight:600;color:${col}">${pct==null?'—':pct+'%'}</td>
++            <td style="padding:4px 10px;text-align:center;white-space:nowrap">
++              <button onclick="markStudentAllDone('${r.s.id}')" ${canMark?'':'disabled'} title="Mark this student's ${r.unmarked} unmarked session${r.unmarked===1?'':'s'} this week as completed" style="padding:3px 7px;border-radius:4px;background:${canMark?'#059669':'#F3F4F6'};color:${canMark?'#fff':'#9CA3AF'};border:none;font-size:9px;font-weight:600;cursor:${canMark?'pointer':'not-allowed'};margin-right:3px">✓ Mark all done</button>
++              <button onclick="resetStudentWeek('${r.s.id}')" ${canReset?'':'disabled'} title="Clear all attendance marks for this student this week" style="padding:3px 7px;border-radius:4px;background:${canReset?'#FEE2E2':'#F3F4F6'};color:${canReset?'#991B1B':'#9CA3AF'};border:1px solid ${canReset?'#FCA5A5':'#E5E7EB'};font-size:9px;font-weight:600;cursor:${canReset?'pointer':'not-allowed'}">↺</button>
++            </td>
+           </tr>`;
+-        }).join('')||'<tr><td colspan="9" style="padding:20px;text-align:center;color:var(--text3)">No students</td></tr>'}
++        }).join('')||'<tr><td colspan="10" style="padding:20px;text-align:center;color:var(--text3)">No students</td></tr>'}
+       </tbody>
+     </table>
+   `;
+ }
+ 
++// ===== COMPLETION EDITING =====
++// Snapshot-based undo for bulk attendance changes.
++function _snapshotAttend(){return JSON.parse(JSON.stringify(ATTEND));}
++function _restoreAttend(snap){ATTEND=snap;saveState();if(typeof renderSched==='function')renderSched();if(typeof renderReports==='function'&&qs('reportsmodal')?.style.display==='flex')renderReports();}
++function _withAttendSnapshot(label,fn){
++  const snap=_snapshotAttend();
++  let n=0;
++  try{n=fn()||0;}catch(e){console.error(e);toast('Action failed: '+e.message);return;}
++  saveState();
++  if(typeof renderSched==='function')renderSched();
++  if(qs('reportsmodal')?.style.display==='flex'&&typeof renderReports==='function')renderReports();
++  if(n===0){toast('Nothing changed');return;}
++  toastUndo(label.replace('{n}',n),()=>{_restoreAttend(snap);toast('Reverted');},10000);
++}
++// Bulk: mark every unmarked session this week as completed.
++function bulkMarkAllCompleted(){
++  const wk=activeWeekKey();
++  _withAttendSnapshot(`Marked {n} sessions as completed`,()=>{
++    let n=0;
++    forEachScheduledSlot(({d,cid,si,sid})=>{
++      const st=getAtt(d,cid,si,sid,wk);
++      if(st==='unmarked'||st==null||st===''){setAtt(d,cid,si,sid,'completed');n++;}
++    });
++    return n;
++  });
++}
++// Bulk: clear every attendance mark this week (keeps schedule slots intact).
++function bulkResetWeek(){
++  const wk=activeWeekKey();
++  if(!confirm(`Clear every attendance mark for ${wk}? Scheduled sessions are kept; only the ✓ ✗ ⚠ marks are reset. You can undo for 10 seconds.`))return;
++  _withAttendSnapshot(`Reset {n} attendance marks`,()=>{
++    let n=0;
++    forEachScheduledSlot(({d,cid,si,sid})=>{
++      const st=getAtt(d,cid,si,sid,wk);
++      if(st&&st!=='unmarked'){setAtt(d,cid,si,sid,'');n++;}
++    });
++    return n;
++  });
++}
++// Per-row: mark one student's unmarked sessions this week as completed.
++function markStudentAllDone(sid){
++  const s=SS[sid];if(!s)return;
++  const wk=activeWeekKey();
++  _withAttendSnapshot(`Marked {n} of ${s.n}'s sessions completed`,()=>{
++    let n=0;
++    forEachScheduledSlot(({d,cid,si,sid:slotSid})=>{
++      if(slotSid!==sid)return;
++      const st=getAtt(d,cid,si,sid,wk);
++      if(st==='unmarked'||st==null||st===''){setAtt(d,cid,si,sid,'completed');n++;}
++    });
++    return n;
++  });
++}
++// Per-row: reset one student's attendance this week.
++function resetStudentWeek(sid){
++  const s=SS[sid];if(!s)return;
++  const wk=activeWeekKey();
++  _withAttendSnapshot(`Reset {n} of ${s.n}'s marks`,()=>{
++    let n=0;
++    forEachScheduledSlot(({d,cid,si,sid:slotSid})=>{
++      if(slotSid!==sid)return;
++      const st=getAtt(d,cid,si,sid,wk);
++      if(st&&st!=='unmarked'){setAtt(d,cid,si,sid,'');n++;}
++    });
++    return n;
++  });
++}
++
+ function exportReportCSV(){
+   const wk=activeWeekKey();
+   const rows=[['Week','Student','Teacher','Branch','Scheduled','Completed','Cancelled','NoShow','Unmarked','Completion%']];
+@@ -3534,6 +3677,8 @@ setSyncIndicator('connecting');
+     ensureSchedCoverage();
+   }
+   renderSched();renderPool();
++  // Populate the schedule-view week picker now that ATTEND is loaded
++  if(typeof populateSchedWeekPicker==='function')populateSchedWeekPicker();
+   setSyncIndicator(supaOnline?'synced':'offline');
+   if(supaOnline)subscribeRealtime();
+ })();
+-- 
+2.34.1
+

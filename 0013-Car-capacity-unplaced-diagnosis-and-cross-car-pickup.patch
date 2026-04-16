@@ -1,0 +1,199 @@
+From 99ac60903fa15d858f1b7532824e5f332a1fad5b Mon Sep 17 00:00:00 2001
+From: Claude <claude@becurious.com>
+Date: Sun, 12 Apr 2026 13:32:53 +0300
+Subject: [PATCH] Car capacity %, unplaced diagnosis, and cross-car pickup
+ visibility
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- Car capacity: each car column header now shows a filled/total slots
+  count with a color-coded progress bar (green <70%, amber 70-90%,
+  red ≥90%) so supervisors instantly see which cars have room.
+- Unplaced diagnosis: pool cards for students that couldn't be
+  auto-scheduled show a yellow ⚠ banner explaining why (teacher
+  inactive, no car for branch, teacher at daily max, all slots full).
+- Cross-car pickups: when a student is dropped by one car but picked
+  up by another, both columns now show clear indicators — the drop
+  card says "🔄 Car X picks up" and the pickup slot in Car X shows
+  "🔄 Dropped by Car Y — this car picks up [name]".
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+---
+ public/scheduler.html | 104 ++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 101 insertions(+), 3 deletions(-)
+
+diff --git a/public/scheduler.html b/public/scheduler.html
+index 0ee630b..c864f2c 100644
+--- a/public/scheduler.html
++++ b/public/scheduler.html
+@@ -94,6 +94,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
+ /* Locked (mandatory-time) slot */
+ .lock-badge{font-size:11px;cursor:help;margin-right:3px}
+ .slot.locked-slot{border-color:#7C3AED;border-style:solid;background:#FAF5FF}
++/* Unplaced reason banner in pool cards */
++.unplaced-reason{font-size:8px;color:#B45309;background:#FEF3C7;border:1px solid #FCD34D;border-radius:4px;padding:2px 6px;margin:2px 0}
++/* Car capacity bar */
++.car-cap{display:flex;align-items:center;gap:5px;padding:2px 8px;font-size:9px;font-weight:600;color:var(--text2)}
++.car-cap-bar{flex:1;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden}
++.car-cap-fill{height:100%;border-radius:3px;transition:width .3s}
++/* Cross-car pickup indicator */
++.xcar-pick{font-size:9px;font-weight:600;color:#0369A1;background:#E0F2FE;border:1px solid #7DD3FC;border-radius:5px;padding:4px 8px;margin:3px 0;text-align:center}
+ /* Journey line */
+ .journey{font-size:8px;font-weight:600;padding:3px 8px;display:flex;align-items:center;gap:3px;color:var(--text2);border-bottom:1px solid var(--border);background:var(--bg);flex-wrap:wrap}
+ .journey.drop-j{border-left:3px solid var(--purple)}
+@@ -1719,6 +1727,45 @@ function renderPool(){
+   stats();
+ }
+ 
++// Diagnose why a student still has unscheduled sessions.
++// Returns a short human-readable reason string (or '' if no issue detected).
++function diagnoseUnplaced(s){
++  const reasons=[];
++  // 1. Teacher inactive
++  const t=TEACHERS[s.t];
++  if(t&&!t.active){reasons.push(`Teacher ${s.t} is inactive`);return reasons.join('; ');}
++  // 2. No car serves their branch
++  const hasCar=CARS.some(c=>{
++    if(!SETTINGS.sameBranchOnly)return true;
++    return(c.branch||'').split('/').includes(s.br);
++  });
++  if(!hasCar){reasons.push(`No car covers ${s.br} branch`);return reasons.join('; ');}
++  // 3. Teacher day availability — count how many active days teacher works
++  const teacherDays=activeDays().filter(d=>!t||!t.days||t.days[d]);
++  if(!teacherDays.length){reasons.push(`${s.t} has no active days`);return reasons.join('; ');}
++  // 4. All available car slots full on teacher's days
++  const maxPD=(t&&t.maxPerDay)||(SETTINGS.teacherDefaultMax||6);
++  let allFull=true, teacherMaxed=true;
++  teacherDays.forEach(d=>{
++    // Count teacher's existing sessions this day
++    let teacherCount=0;
++    CARS.forEach(car=>(SCHED[d]?.[car.id]||[]).forEach(sl_=>{
++      if(!sl_)return;
++      slotStudentIds(sl_).forEach(sid=>{if(SS[sid]?.t===s.t)teacherCount++;});
++    }));
++    if(teacherCount<maxPD)teacherMaxed=false;
++    // Check if any matching car has empty slots
++    CARS.forEach(car=>{
++      if(SETTINGS.sameBranchOnly&&!(car.branch||'').split('/').includes(s.br))return;
++      if((SCHED[d]?.[car.id]||[]).some(x=>!x))allFull=false;
++    });
++  });
++  if(teacherMaxed)reasons.push(`${s.t} at max (${maxPD}/day) on all available days`);
++  if(allFull&&!teacherMaxed)reasons.push(`All ${s.br} car slots full`);
++  if(!reasons.length)reasons.push('Likely ran out of slots — try adding more slots or cars');
++  return reasons.join('; ');
++}
++
+ function dropCard(s,scheduled,total,distN,isSug){
+   const distBr=dbBr(s,s.br);const col=TC[s.t]||'#6A5FA8';
+   const ft=distBr>15?'tag-vfar':distBr>10?'tag-far':'';
+@@ -1732,11 +1779,15 @@ function dropCard(s,scheduled,total,distN,isSug){
+   const pillLabel=total>1?`${scheduled}/${total} this week`:`${scheduled===0?'Not yet':'✓'} scheduled`;
+   const pillHtml=`<span class="sess-pill ${pillCls}">${total>1?`${scheduled}/${total}`:scheduled===0?'0/1':'✓ 1/1'}</span>`;
+   const barHtml=total>1?`<div class="sess-progress"><div class="sess-bar" style="width:${pct}%;background:${pillCls==='done'?'#3B6D11':pillCls==='partial'?'#D97706':'#DC2626'}"></div></div>`:'';
++  // Diagnosis: why is this student still in the pool?
++  const reason=diagnoseUnplaced(s);
++  const reasonHtml=reason?`<div class="unplaced-reason">⚠ ${reason}</div>`:'';
+   return`<div class="sc" draggable="true" data-sid="${s.id}" data-dtype="drop" style="border-left-color:${col};${border}">
+     <div class="t" style="color:${col};display:flex;align-items:center;gap:4px;flex-wrap:wrap">▼ ${s.t}${sug}${distL}<span style="margin-left:auto">${pillHtml}</span></div>
+     <div class="n">${s.n}</div>
+     <div class="a">${s.a}</div>
+     ${barHtml}
++    ${reasonHtml}
+     <div class="tags"><span class="tag tag-br">${s.br}</span>${fl?`<span class="tag ${ft}">${fl}</span>`:''}${s.visits?`<span class="tag-v">${s.visits}v</span>`:''}</div>
+   </div>`;
+ }
+@@ -1755,7 +1806,34 @@ function renderCars(){
+     const col=document.createElement('div');col.className='carcol';
+     const slots=SCHED[d]?.[car.id]||[];
+     const driverStr=car.driver?` · ${car.driver}`:'';
++    // Capacity: count filled vs total slots (exclude pickup-only slots from "drop" capacity)
++    const totalSlots=slots.length;
++    const filledSlots=slots.filter(x=>x).length;
++    const capPct=totalSlots>0?Math.round(filledSlots/totalSlots*100):0;
++    const capColor=capPct>=90?'#DC2626':capPct>=70?'#D97706':'#059669';
++    const capHtml=`<div class="car-cap"><span>${filledSlots}/${totalSlots} slots</span><div class="car-cap-bar"><div class="car-cap-fill" style="width:${capPct}%;background:${capColor}"></div></div><span>${capPct}%</span></div>`;
++    // Cross-car pickups: find students DROPPED in other cars but PICKED UP in this car today
++    let xcarHtml='';
++    const xcarPicks=[];
++    slots.forEach((sl_,si)=>{
++      if(!sl_||sl_.t!=='pick')return;
++      const sid=sl_.id;const s=SS[sid];if(!s)return;
++      // Was this student dropped in a different car?
++      let droppedInOtherCar=false;let dropCarLabel='';
++      CARS.forEach(otherCar=>{
++        if(otherCar.id===car.id)return;
++        (SCHED[d]?.[otherCar.id]||[]).forEach(osl=>{
++          if(!osl)return;
++          if(osl.t==='s'&&osl.id===sid){droppedInOtherCar=true;dropCarLabel=otherCar.label;}
++          if(osl.t==='d'&&osl.ids?.includes(sid)){droppedInOtherCar=true;dropCarLabel=otherCar.label;}
++          if(osl.t==='g'&&osl.ids?.includes(sid)){droppedInOtherCar=true;dropCarLabel=otherCar.label;}
++        });
++      });
++      if(droppedInOtherCar)xcarPicks.push({sid,s,si,dropCarLabel});
++    });
++
+     col.innerHTML=`<div class="carhdr" onclick="editCar(${car.id})" title="Click to edit car details"><button class="wa-btn" onclick="event.stopPropagation();showDispatch('${d}',${car.id})" title="WhatsApp driver dispatch">📱</button>${car.label}<small>${car.branch}${driverStr}</small></div>
++      ${capHtml}
+       <div class="carslots" id="cs-${car.id}" data-cid="${car.id}" ondragover="ev(event)" ondrop="dropCar(event,this)" ondragleave="this.classList.remove('dover')" ondragenter="this.classList.add('dover')">
+         ${slots.map((_,si)=>renderSlot(d,car.id,si)).join('')}
+       </div>`;
+@@ -1878,11 +1956,15 @@ function renderSlot(d,cid,si){
+     const pickNext=nextSlotPos(d,cid,si);
+     const pickToLabel=isLast?carBranch(cid)+' branch':(pickNext.isBase?pickNext.a:sl(pickNext.a));
+     const grpCls=sl_.grp?'grp-on':'';
++    const isXcar=pickSlot&&pickSlot.cid!==cid;
++    const pickCarLabel=pickSlot?(CARS.find(c=>c.id===pickSlot.cid)?.label||'Car'):'';
+     const pickHtml=`<div class="auto-pick">
+       <div class="ap-row">
+         <span class="ap-badge">▲ ${pickTime}</span>
+         <span class="ap-name">${s.n}</span>
+-        ${pickSlot?`<span style="font-size:8px;color:var(--teal)">→ ${CARS.find(c=>c.id===pickSlot.cid)?.label||'Car'} → ${pickToLabel}</span>`
++        ${pickSlot?(isXcar
++          ?`<span style="font-size:8px;color:#0369A1;font-weight:700">🔄 ${pickCarLabel} picks up → ${pickToLabel}</span>`
++          :`<span style="font-size:8px;color:var(--teal)">→ ${pickCarLabel} → ${pickToLabel}</span>`)
+           :`<div class="sc pick-card" draggable="true" data-sid="${sl_.id}" data-dtype="pick" style="display:inline-flex;align-items:center;gap:4px;padding:2px 5px;cursor:grab;border-radius:4px;margin-left:auto;font-size:8px;border-left:2px solid var(--orange)"><span style="color:var(--orange);font-weight:700">Drag to assign →</span></div>`}
+       </div></div>`;
+     return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
+@@ -1926,11 +2008,17 @@ function renderSlot(d,cid,si){
+     const toLabel=sl_.grp?`${sl(sl_.grp.addr)} (Group)`:sl(s1.a);
+     const pickNext=nextSlotPos(d,cid,si);
+     const pickToLabel=isLast?carBranch(cid)+' branch':sl(pickNext.a);
+-    const pickRow=(s,pickT,pickSl,idx)=>`<div class="auto-pick"><div class="ap-row">
++    const pickRow=(s,pickT,pickSl,idx)=>{
++      const xc=pickSl&&pickSl.cid!==cid;
++      const pcl=pickSl?(CARS.find(c=>c.id===pickSl.cid)?.label||'Car'):'';
++      return`<div class="auto-pick"><div class="ap-row">
+       <span class="ap-badge">▲ ${pickT}</span><span class="ap-name">${s.n}</span>
+-      ${pickSl?`<span style="font-size:8px;color:var(--teal)">→ ${CARS.find(c=>c.id===pickSl.cid)?.label||'Car'} → ${pickToLabel}</span>`
++      ${pickSl?(xc
++        ?`<span style="font-size:8px;color:#0369A1;font-weight:700">🔄 ${pcl} picks up → ${pickToLabel}</span>`
++        :`<span style="font-size:8px;color:var(--teal)">→ ${pcl} → ${pickToLabel}</span>`)
+         :`<div class="sc pick-card" draggable="true" data-sid="${ids[idx]}" data-dtype="pick" style="display:inline-flex;align-items:center;gap:3px;padding:2px 5px;cursor:grab;border-radius:4px;margin-left:auto;font-size:8px;border-left:2px solid var(--orange)"><span style="color:var(--orange);font-weight:700">Drag →</span></div>`}
+     </div></div>`;
++    };
+     const grpCls=sl_.grp?'grp-on':'';
+     const totalKm=(sl_.km||ddTotalKm(sl_)||0).toFixed(1);
+     const totalInter=legs.reduce((a,b)=>a+b,0);
+@@ -1978,7 +2066,17 @@ function renderSlot(d,cid,si){
+     // Destination after pickup: next slot or branch
+     const after=nextSlotPos(d,cid,si);
+     const toLabel=after.isBase?after.a:sl(after.a);
++    // Cross-car detection: was this student dropped by a DIFFERENT car?
++    let xcarNote='';
++    if(info&&info.cid!==cid){
++      const dropCar=CARS.find(c=>c.id===info.cid);
++      xcarNote=`<div class="xcar-pick">🔄 Dropped by <b>${dropCar?.label||'Car ?'}</b> — this car picks up ${s.n}</div>`;
++    }
++    // Teacher ride annotation for pickups — show which teacher is being collected
++    const pickRideNote=teacherRideNote(d,cid,si);
+     return`<div class="slot-wrap"><div class="time-gutter">${timeStr}</div>
++      ${pickRideNote}
++      ${xcarNote}
+       <div class="slot pickup-slot${isActive?' active-slot':''}" ${base} ${handlers}>
+         <div class="journey pick-j"><span class="j-from">${sl(s.a)}</span><span class="j-arr">→</span><span class="j-to">${toLabel}</span></div>
+         <div class="slot-toprow">${warns}<button class="edit-ico" onclick="event.stopPropagation();editStudent('${s.id}')" title="Edit student">✏</button></div>
+-- 
+2.34.1
+

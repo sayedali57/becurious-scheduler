@@ -1,0 +1,138 @@
+From 88b56ff3c06f4d3417f53b68e744c72fb6a5fcd7 Mon Sep 17 00:00:00 2001
+From: Claude <claude@becurious.com>
+Date: Sun, 12 Apr 2026 14:21:54 +0300
+Subject: [PATCH] Fix auto-scheduler: pickups for all students + Phase 2 pickup
+ sweep
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Phase 1 fix: the auto-scheduler now places pickups for EVERY student
+in double-drops, triple-drops, and group slots — not just the anchor
+student. Previously a 4-child group only got 1 pickup; now all 4 get
+their own pickup slot.
+
+Phase 2 (new): after the greedy fill, a second pass scans each day
+for dropped students that still have no pickup. It distributes those
+pickups across ANY car with empty slots on that day, preferring the
+same car and slots closest to the student's ready time. This fills
+the remaining car capacity with pickups that couldn't fit during the
+initial placement.
+
+The toast message now also reports remaining pending pickups so the
+supervisor knows if manual pickup assignment is still needed.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+---
+ public/scheduler.html | 82 +++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 75 insertions(+), 7 deletions(-)
+
+diff --git a/public/scheduler.html b/public/scheduler.html
+index 2f062d0..c92b9fd 100644
+--- a/public/scheduler.html
++++ b/public/scheduler.html
+@@ -4361,26 +4361,94 @@ function runAutoSchedule(){
+         lastTeacher=pickS.t;
+         pos={la:pickS.la,ln:pickS.ln,isBase:false};
+ 
+-        // Optionally insert a pickup slot after this drop
++        // Optionally insert pickup slots after this drop — one per student
++        // in the slot. For groups at the same address the driver still needs
++        // to pick up each child individually (teachers finish at different
++        // times), so we create a pickup for every student, not just the anchor.
+         if(autoPickup){
+-          const pickNext=slots.findIndex((x,k)=>k>si&&!x);
+-          if(pickNext>=0){
+-            // For group slots the driver will pick everyone up at the same address;
+-            // we only need one pickup marker — use the anchor student.
+-            slots[pickNext]={t:'pick',id:pickSid};
+-            si=pickNext; // skip past the pickup so we don't try to fill it
++          const allIds=slots[si].t==='s'?[slots[si].id]
++            :slots[si].t==='d'?(slots[si].ids||[])
++            :slots[si].t==='g'?(slots[si].ids||[])
++            :[pickSid];
++          for(const pid of allIds){
++            const psi=slots.findIndex((x,k)=>k>si&&!x);
++            if(psi>=0){slots[psi]={t:'pick',id:pid};si=psi;}
+           }
+         }
+       }
+     });
+   });
+ 
++  // ──── PHASE 2: Pickup sweep ────
++  // Some drops didn't get pickups in Phase 1 because their car ran out of
++  // slots. Scan every day for dropped students that have no pickup, then
++  // try to place one in ANY car that has an empty slot on that day.
++  if(autoPickup){
++    let pickupsPlaced=0;
++    DAYS_ACTIVE.forEach(day=>{
++      // Collect all dropped student IDs this day
++      const droppedThisDay=new Set();
++      const pickedThisDay=new Set();
++      CARS.forEach(car=>{
++        (SCHED[day]?.[car.id]||[]).forEach(sl_=>{
++          if(!sl_)return;
++          if(sl_.t==='pick')pickedThisDay.add(sl_.id);
++          else slotStudentIds(sl_).forEach(sid=>droppedThisDay.add(sid));
++        });
++      });
++      // Find students dropped but not picked up
++      const needPickup=[...droppedThisDay].filter(sid=>!pickedThisDay.has(sid));
++      if(!needPickup.length)return;
++      // Sort by ready-time so earlier pickups get placed first
++      needPickup.sort((a,b)=>{
++        const ia=findDropInfo(a),ib=findDropInfo(b);
++        return(ia?.readyMin||0)-(ib?.readyMin||0);
++      });
++      // Try to place each in any car with an empty slot on this day
++      for(const sid of needPickup){
++        const s=SS[sid];if(!s)continue;
++        const info=findDropInfo(sid);
++        const readyMin=info?info.readyMin:0;
++        // Score cars: prefer same car as drop, then nearest empty slot to ready time
++        let bestCar=null,bestSi=-1,bestScore=Infinity;
++        CARS.forEach(car=>{
++          const slots=SCHED[day]?.[car.id]||[];
++          for(let si=0;si<slots.length;si++){
++            if(slots[si])continue;
++            const smin=slotStartMin(day,car.id,si);
++            // Prefer slots at or after ready time; penalize early slots
++            const timeDiff=smin-readyMin;
++            const score=(timeDiff<0?Math.abs(timeDiff)*3:timeDiff)
++              +(info&&info.cid===car.id?0:20); // bonus for same car
++            if(score<bestScore){bestScore=score;bestCar=car;bestSi=si;}
++          }
++        });
++        if(bestCar&&bestSi>=0){
++          SCHED[day][bestCar.id][bestSi]={t:'pick',id:sid};
++          pickupsPlaced++;
++        }
++      }
++    });
++  }
++
+   // Students that still have remaining sessions = couldn't be placed
+   const unplaced=Object.entries(remain).filter(([,n])=>n>0).length;
+   renderSched();renderPool();saveState();
+   const scopeLabel=scopeBr==='All'?'':` for ${scopeBr}`;
+   let msg=`Auto-schedule${scopeLabel} done — ${placed} session(s) placed`;
+   if(unplaced)msg+=`, ${unplaced} still in pool (check teacher availability / branches / day limits)`;
++  // Count remaining pending pickups
++  let pendingPicks=0;
++  DAYS_ACTIVE.forEach(day=>{
++    const dropped=new Set(),picked=new Set();
++    CARS.forEach(car=>(SCHED[day]?.[car.id]||[]).forEach(sl_=>{
++      if(!sl_)return;
++      if(sl_.t==='pick')picked.add(sl_.id);
++      else slotStudentIds(sl_).forEach(sid=>dropped.add(sid));
++    }));
++    pendingPicks+=[...dropped].filter(sid=>!picked.has(sid)).length;
++  });
++  if(pendingPicks)msg+=` · ${pendingPicks} pending pickup(s) — add more slots or cars`;
+   toast(msg);
+ }
+ 
+-- 
+2.34.1
+

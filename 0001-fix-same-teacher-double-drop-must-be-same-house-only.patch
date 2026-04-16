@@ -1,0 +1,64 @@
+From c86a72e854713e39924828337c3b0d87577a735e Mon Sep 17 00:00:00 2001
+From: BeCurious Scheduler <saleh@emergegcc.com>
+Date: Sun, 12 Apr 2026 23:45:47 +0300
+Subject: [PATCH] fix: same-teacher double-drop must be same house only
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+One teacher cannot physically be in two homes simultaneously.
+Auto-scheduler nearSibling now requires ≤0.05km (same house) for
+same-teacher pairs; different-teacher pairs keep the 0.5km threshold.
+Manual tryPair warns before pairing same teacher at different addresses.
+
+Patch-0025
+---
+ public/scheduler.html | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/public/scheduler.html b/public/scheduler.html
+index 26cb88a..686829d 100644
+--- a/public/scheduler.html
++++ b/public/scheduler.html
+@@ -2579,6 +2579,10 @@ function tryPair(sid1,sid2,d,cid,si){
+   const s1=SS[sid1],s2=SS[sid2];if(!s1||!s2)return;
+   const dist=hv(s1.la,s1.ln,s2.la,s2.ln);
+   if(dist>3.5){toast(`${dist.toFixed(1)}km apart — too far to double-drop (max 3.5km)`);return;}
++  // Warn if same teacher + different address — teacher can't be in two homes at once
++  if(s1.t===s2.t&&dist>0.05){
++    if(!confirm(`⚠ Same teacher (${s1.t}) at different addresses (${dist.toFixed(1)}km apart).\n\nA teacher can't do two sessions in two homes at the same time.\nOnly pair same-teacher students if they're at the SAME house.\n\nContinue anyway?`))return;
++  }
+   if(!_clearDragSrc(sid1))rmFromSched(sid1,{onlyDay:d});
+   const sl_={t:'d',ids:[sid2,sid1]};
+   ddRecomputeMetrics(sl_);
+@@ -5287,9 +5291,12 @@ function runAutoSchedule(){
+           onDay[day].add(pickSid);
+           teacherDayCount[day][pickS.t]=(teacherDayCount[day][pickS.t]||0)+1;
+           placed++;
+-          // Look for another pool student at the same address (≤0.5km) —
+-          // siblings with different teachers should share a ride as a
+-          // double-drop even if their teachers differ.
++          // Look for another pool student nearby to create a double-drop.
++          // RULE: same teacher can only double-drop at the SAME house (≤0.05km)
++          // because one teacher can't be in two homes simultaneously.
++          // Different teachers can double-drop up to 0.5km apart — the car
++          // drops teacher A at house 1, drives to house 2, drops teacher B,
++          // and both sessions run in parallel.
+           const nearSibling=Object.keys(remain).find(sid2=>{
+             if(sid2===pickSid||remain[sid2]<=0)return false;
+             const s2=SS[sid2];if(!s2)return false;
+@@ -5298,7 +5305,10 @@ function runAutoSchedule(){
+             if(!isSpreadOk(sid2,day))return false;
+             if(!carServesBranch(car,s2))return false;
+             if(!teacherCanTake(s2.t,day))return false;
+-            return hv(pickS.la,pickS.ln,s2.la,s2.ln)<=0.5;
++            const dist=hv(pickS.la,pickS.ln,s2.la,s2.ln);
++            const sameTeacher=s2.t===pickS.t;
++            // Same teacher → must be same house (≤50m); different teachers → up to 500m
++            return sameTeacher ? dist<=0.05 : dist<=0.5;
+           });
+           if(nearSibling){
+             const s2=SS[nearSibling];
+-- 
+2.34.1
+
