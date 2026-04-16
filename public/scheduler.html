@@ -2061,15 +2061,6 @@ async function _sha256hex(s){
 let _currentUser=null; // {id, auth_uid, email, name, role, branch, status}
 
 // Role permission matrix
-const ROLE_PERMS={
-  admin:      {settings:true, dangerZone:true, userMgmt:true, allBranches:true, export:true, import:true, delete:true, editData:true},
-  director:   {settings:false,dangerZone:false,userMgmt:false,allBranches:true, export:true, import:false,delete:false,editData:true},
-  operations: {settings:false,dangerZone:false,userMgmt:false,allBranches:true, export:true, import:true, delete:false,editData:true},
-  coordinator:{settings:false,dangerZone:false,userMgmt:false,allBranches:false,export:false,import:false,delete:false,editData:true}
-};
-
-function currentPerms(){return _currentUser?ROLE_PERMS[_currentUser.role]||{}:{};}
-
 async function signInWithGoogle(){
   if(!supa){alert('Supabase not available. Check your connection.');return;}
   const {error}=await supa.auth.signInWithOAuth({
@@ -8303,7 +8294,7 @@ function sendAllTeacherMessages(){
 // ===== SETTINGS MODAL =====
 function showSettingsModal(){
   // Load user management table if admin
-  if(_currentUser&&currentPerms().userMgmt)umLoadUsers();
+  if(_currentUser&&currentPerms().user_mgmt)umLoadUsers();
   // Hydrate form fields from SETTINGS
   qs('set-sessionMin').value=SETTINGS.sessionMin;
   qs('set-bufferMin').value=SETTINGS.bufferMin;
