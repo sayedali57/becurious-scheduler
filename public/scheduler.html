@@ -2082,20 +2082,14 @@ async function signOut(){
   window.location.reload();
 }
 
-async function checkAuthGate(){
-  if(!supa){
-    // Supabase not loaded — fall back to password gate for offline use
-    return _fallbackPasswordGate();
-  }
+async function _handleSession(session){
   const overlay=document.getElementById('auth-overlay');
   const errorEl=document.getElementById('auth-error');
   const loadingEl=document.getElementById('auth-loading');
 
-  // Check for existing session (persisted by Supabase client)
-  const {data:{session}}=await supa.auth.getSession();
   if(!session){
-    // No session — show login screen
     overlay.style.display='flex';
+    loadingEl.style.display='none';
     return false;
   }
 
@@ -2142,6 +2136,51 @@ async function checkAuthGate(){
   applyRolePermissions();
   updateMenuUserInfo();
   return true;
+}
+
+async function checkAuthGate(){
+  if(!supa){
+    // Supabase not loaded — fall back to password gate for offline use
+    return _fallbackPasswordGate();
+  }
+
+  // First try the existing stored session
+  const {data:{session}}=await supa.auth.getSession();
+  if(session){
+    return _handleSession(session);
+  }
+
+  // No stored session yet — if the URL has an OAuth code (redirect from Google),
+  // wait for Supabase to finish exchanging it before giving up
+  const params=new URLSearchParams(window.location.search);
+  const hasCode=params.has('code');
+  const hasHash=window.location.hash&&window.location.hash.includes('access_token');
+  if(hasCode||hasHash){
+    // Wait for the auth state change that fires after token exchange
+    return new Promise(resolve=>{
+      const timeout=setTimeout(()=>{
+        sub.unsubscribe();
+        document.getElementById('auth-overlay').style.display='flex';
+        document.getElementById('auth-loading').style.display='none';
+        resolve(false);
+      },10000); // 10s safety timeout
+      const {data:{subscription:sub}}=supa.auth.onAuthStateChange(async(event,sess)=>{
+        if(event==='SIGNED_IN'&&sess){
+          clearTimeout(timeout);
+          sub.unsubscribe();
+          // Clean the URL so a refresh doesn't re-trigger exchange
+          window.history.replaceState({},'',window.location.pathname);
+          const ok=await _handleSession(sess);
+          resolve(ok);
+        }
+      });
+      document.getElementById('auth-loading').style.display='block';
+    });
+  }
+
+  // No session, no OAuth callback — show login
+  document.getElementById('auth-overlay').style.display='flex';
+  return false;
 }
 
 function applyRolePermissions(){
