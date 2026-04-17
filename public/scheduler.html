@@ -12,10 +12,10 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
 /* ===== TOP NAV — theme switcher ===== */
-.topnav{background:#FFFFFF;color:var(--text);padding:0 14px;border-bottom:1px solid var(--border);gap:4px;position:relative;display:flex;align-items:center;flex-shrink:0}
+.topnav{background:#FFFFFF;color:var(--text);padding:0 14px;border-bottom:1px solid var(--border);gap:4px;position:relative;display:flex;align-items:center;flex-shrink:0;height:72px;overflow:visible}
 .topnav::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:#6A5FA8;opacity:.15}
-.topnav-brand{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 0;margin-right:6px;border-right:1px solid var(--border)}
-.topnav-brand img{height:28px;width:auto;max-width:140px;display:block;object-fit:contain}
+.topnav-brand{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 16px;margin-right:6px;border-right:1px solid var(--border)}
+.topnav-brand img{height:60px;width:auto;display:block;object-fit:contain}
 .theme-tab{padding:8px 14px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;transition:all .12s;letter-spacing:0;display:inline-flex;align-items:center;gap:7px;font-family:inherit}
 .theme-tab:hover{color:var(--text)}
 .theme-tab.active{color:var(--text);font-weight:700}
@@ -989,7 +989,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 <!-- ===== AUTH LOGIN OVERLAY ===== -->
 <div id="auth-overlay">
   <div class="auth-card">
-    <img class="auth-logo" src="/favicon.svg" alt="BeCurious">
+    <img class="auth-logo" src="/Be-Curious-Logo-Transparent.png" alt="BeCurious">
     <h1 class="auth-title">BeCurious Basecamp</h1>
     <p class="auth-tagline">The details are the care.</p>
     <button class="auth-google-btn" onclick="signInWithGoogle()">
@@ -1017,7 +1017,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 </div>
 <!-- ===== TOP NAV ===== -->
 <div class="topnav">
-  <div class="topnav-brand" title="Click ☰ Menu → Branding to change logo"><img src="/favicon.svg" alt="BeCurious"></div>
+  <div class="topnav-brand" title="Click ☰ Menu → Branding to change logo"><img src="/Be-Curious-Logo-Transparent.png" alt="BeCurious"></div>
   <div id="env-badge" style="display:none;font-size:9px;font-weight:700;color:#92400E;background:#FEF3C7;padding:3px 10px;border-radius:999px;margin-right:6px;letter-spacing:.4px"></div>
   <button class="theme-tab active" data-theme="home" onclick="switchTheme('home')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>Home</button>
   <button class="theme-tab" data-theme="hv" onclick="switchTheme('hv')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Schedule</button>
@@ -5066,7 +5066,7 @@ function applyCustomBranding(){
   const logoUrl=localStorage.getItem('bc_logo');
   const logoEl=document.querySelector('.topnav-brand img');
   if(logoEl&&logoUrl)logoEl.src=logoUrl;
-  else if(logoEl)logoEl.src='/favicon.svg';
+  else if(logoEl)logoEl.src='/Be-Curious-Logo-Transparent.png';
   const bannerUrl=localStorage.getItem('bc_banner');
   if(bannerUrl){
     document.documentElement.style.setProperty('--bc-banner-url',`url(${bannerUrl})`);
