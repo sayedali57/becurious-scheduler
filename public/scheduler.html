@@ -5120,11 +5120,26 @@ function setCustomBanner(file){
   });
 }
 function clearCustomBanner(){try{localStorage.removeItem('bc_banner');}catch(e){}applyCustomBranding();toast('Banner removed');}
+function setAuthTitle(v){try{localStorage.setItem('bc_auth_title',v);}catch(e){}applyCustomBranding();}
+function setAuthTagline(v){try{localStorage.setItem('bc_auth_tagline',v);}catch(e){}applyCustomBranding();}
 function applyCustomBranding(){
   const logoUrl=localStorage.getItem('bc_logo');
+  // Navbar logo
   const logoEl=document.querySelector('.topnav-brand img');
   if(logoEl&&logoUrl)logoEl.src=logoUrl;
   else if(logoEl)logoEl.src='/Be-Curious-Logo-Transparent.png';
+  // Auth screen logo
+  const authLogoEl=document.querySelector('.auth-logo');
+  if(authLogoEl&&logoUrl)authLogoEl.src=logoUrl;
+  else if(authLogoEl)authLogoEl.src='/Be-Curious-Logo-Transparent.png';
+  // Auth screen title & tagline
+  const authTitle=localStorage.getItem('bc_auth_title');
+  const authTagline=localStorage.getItem('bc_auth_tagline');
+  const titleEl=document.querySelector('.auth-title');
+  const tagEl=document.querySelector('.auth-tagline');
+  if(titleEl&&authTitle)titleEl.textContent=authTitle;
+  if(tagEl&&authTagline)tagEl.textContent=authTagline;
+  // Banner
   const bannerUrl=localStorage.getItem('bc_banner');
   if(bannerUrl){
     document.documentElement.style.setProperty('--bc-banner-url',`url(${bannerUrl})`);
@@ -5139,16 +5154,24 @@ function showBrandingDialog(){
   const html=`<div id="branding-modal" style="position:fixed;inset:0;background:rgba(58,53,48,.45);z-index:9999;display:flex;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
     <div style="background:#fff;border-radius:14px;padding:22px 24px;width:480px;max-width:92vw;border:1px solid #E5E0D5;box-shadow:0 20px 60px rgba(58,53,48,.15)">
       <h3 style="margin:0 0 4px;font-size:16px">Branding</h3>
-      <p style="font-size:11px;color:var(--text3);margin-bottom:14px">Upload a custom logo (small, replaces the lightning bolt) or a banner image (wider, shown above the top navigation). Stored in your browser only.</p>
+      <p style="font-size:11px;color:var(--text3);margin-bottom:14px">Customize the logo, login screen text, and banner. Changes are stored in your browser and apply immediately.</p>
       <div style="border:1px dashed var(--border);border-radius:10px;padding:12px;margin-bottom:10px">
-        <div style="font-weight:600;font-size:12px;margin-bottom:6px">Logo (recommended ~64×64 PNG)</div>
+        <div style="font-weight:600;font-size:12px;margin-bottom:6px">Logo (used in navbar + login screen)</div>
         <input type="file" accept="image/*" onchange="setCustomLogo(this.files[0])">
-        <button onclick="clearCustomLogo()" style="margin-left:8px;font-size:10px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer">Reset to default</button>
+        <button onclick="clearCustomLogo()" style="margin-left:8px;font-size:10px;padding:3px 8px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer">Reset to default</button>
+      </div>
+      <div style="border:1px dashed var(--border);border-radius:10px;padding:12px;margin-bottom:10px">
+        <div style="font-weight:600;font-size:12px;margin-bottom:6px">Login Screen Title</div>
+        <input type="text" id="brand-auth-title" placeholder="BeCurious Basecamp" value="${(localStorage.getItem('bc_auth_title')||'').replace(/"/g,'&quot;')}" onchange="setAuthTitle(this.value)" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;color:var(--text)">
+      </div>
+      <div style="border:1px dashed var(--border);border-radius:10px;padding:12px;margin-bottom:10px">
+        <div style="font-weight:600;font-size:12px;margin-bottom:6px">Login Screen Tagline</div>
+        <input type="text" id="brand-auth-tagline" placeholder="The details are the care." value="${(localStorage.getItem('bc_auth_tagline')||'').replace(/"/g,'&quot;')}" onchange="setAuthTagline(this.value)" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;color:var(--text)">
       </div>
       <div style="border:1px dashed var(--border);border-radius:10px;padding:12px;margin-bottom:14px">
         <div style="font-weight:600;font-size:12px;margin-bottom:6px">Banner (wide image, e.g. 1600×120)</div>
         <input type="file" accept="image/*" onchange="setCustomBanner(this.files[0])">
-        <button onclick="clearCustomBanner()" style="margin-left:8px;font-size:10px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer">Remove banner</button>
+        <button onclick="clearCustomBanner()" style="margin-left:8px;font-size:10px;padding:3px 8px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer">Remove banner</button>
       </div>
       <div style="text-align:right"><button onclick="document.getElementById('branding-modal').style.display='none'" style="padding:7px 14px;border:1px solid var(--border);border-radius:8px;background:var(--purple);color:#fff;font-weight:600;cursor:pointer">Done</button></div>
     </div></div>`;
