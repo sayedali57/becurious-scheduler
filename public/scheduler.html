@@ -19,6 +19,7 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;bac
 .theme-tab{padding:8px 14px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;transition:all .12s;letter-spacing:0;display:inline-flex;align-items:center;gap:7px;font-family:inherit}
 .theme-tab:hover{color:var(--text)}
 .theme-tab.active{color:var(--text);font-weight:700}
+.theme-tab.active[data-theme="home"]{border-bottom-color:#6A5FA8;color:#6A5FA8}
 .theme-tab.active[data-theme="hv"]{border-bottom-color:var(--teal);color:var(--accent-dk)}
 .theme-tab.active[data-theme="pl"]{border-bottom-color:var(--orange);color:#C2410C}
 .topnav-spacer{flex:1}
@@ -886,6 +887,101 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 .menu-user-info{padding:8px 12px;border-bottom:1px solid #E2E8F0;margin-bottom:4px;font-size:11px;color:var(--text2)}
 .menu-user-info strong{display:block;font-size:12px;color:var(--text)}
 .menu-user-info small{color:var(--text3);font-size:10px}
+/* ===== HOME DASHBOARD ===== */
+#theme-home{background:#F0EDE5;min-height:calc(100vh - 48px)}
+#theme-home .bc-content{display:grid;grid-template-columns:1fr 300px;gap:0;height:calc(100vh - 48px);overflow:hidden}
+#theme-home .bc-left{padding:24px 28px;display:flex;flex-direction:column;gap:20px;overflow-y:auto}
+#theme-home .bc-right{background:#fff;border-left:1px solid #E5E0D5;padding:24px 20px;display:flex;flex-direction:column;gap:24px;overflow-y:auto}
+.bc-welcome{background:#6A5FA8;border-radius:16px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden}
+.bc-welcome::before{content:'';position:absolute;right:-20px;top:-20px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.06)}
+.bc-welcome::after{content:'';position:absolute;right:40px;bottom:-40px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.04)}
+.bc-welcome-text{position:relative;z-index:1}
+.bc-welcome-sub{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:6px;font-weight:400}
+.bc-welcome-name{font-size:26px;color:#fff;letter-spacing:-.02em;margin-bottom:4px;font-weight:700}
+.bc-welcome-tagline{font-size:13px;color:rgba(255,255,255,.5);font-style:italic}
+.bc-welcome-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:8px 18px;border-radius:20px;font-size:13px;font-family:inherit;cursor:pointer;position:relative;z-index:1;white-space:nowrap;transition:background .2s}
+.bc-welcome-btn:hover{background:rgba(255,255,255,.25)}
+.bc-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.bc-metric{background:#fff;border-radius:12px;padding:16px 18px;border:1px solid #E5E0D5}
+.bc-metric-label{font-size:11px;color:#9A9590;text-transform:uppercase;letter-spacing:.06em;font-weight:500;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.bc-metric-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.bc-metric-value{font-size:28px;font-weight:600;color:#3A3530;line-height:1;margin-bottom:6px}
+.bc-metric-sub{font-size:11px;color:#9A9590;display:flex;align-items:center;gap:4px}
+.bc-metric-badge{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px}
+.bc-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.bc-section-title{font-size:13px;font-weight:600;color:#3A3530;letter-spacing:.02em;text-transform:uppercase}
+.bc-section-link{font-size:12px;color:#6A5FA8;cursor:pointer;font-weight:500}
+.bc-section-link:hover{text-decoration:underline}
+.bc-cases{display:flex;flex-direction:column;gap:8px}
+.bc-case-row{background:#fff;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;border:1px solid #E5E0D5;cursor:pointer;transition:border-color .2s}
+.bc-case-row:hover{border-color:#6A5FA8}
+.bc-case-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.bc-case-info{flex:1;min-width:0}
+.bc-case-name{font-size:13px;font-weight:500;color:#3A3530;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bc-case-meta{font-size:11px;color:#9A9590;margin-top:2px}
+.bc-case-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.bc-stage-badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;white-space:nowrap}
+.bc-case-due{font-size:10px;color:#9A9590}
+.bc-case-due.overdue{color:#A32D2D}
+.bc-schedule-list{display:flex;flex-direction:column;gap:8px}
+.bc-session{background:#fff;border-radius:10px;padding:12px 14px;border:1px solid #E5E0D5;display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;cursor:pointer;transition:border-color .2s}
+.bc-session:hover{border-color:#4DBFAD}
+.bc-session-time{text-align:center}
+.bc-session-hour{font-size:15px;font-weight:600;color:#3A3530;line-height:1}
+.bc-session-ampm{font-size:10px;color:#9A9590;text-transform:uppercase;letter-spacing:.04em}
+.bc-session-info{min-width:0}
+.bc-session-student{font-size:13px;font-weight:500;color:#3A3530}
+.bc-session-teacher{font-size:11px;color:#9A9590;margin-top:2px}
+.bc-session-right{text-align:right}
+.bc-session-car{font-size:11px;font-weight:600;color:#6A5FA8;background:#EAE8F5;padding:2px 8px;border-radius:4px;display:inline-block}
+.bc-session-dist{font-size:10px;color:#9A9590;margin-top:4px}
+.bc-right-section{display:flex;flex-direction:column;gap:12px}
+.bc-right-title{font-size:12px;font-weight:600;color:#3A3530;text-transform:uppercase;letter-spacing:.06em}
+.bc-profile-card{text-align:center;padding:4px 0 8px}
+.bc-profile-avatar{width:52px;height:52px;border-radius:50%;background:#6A5FA8;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;color:#fff;margin:0 auto 10px}
+.bc-profile-name{font-size:15px;font-weight:600;color:#3A3530;margin-bottom:2px}
+.bc-profile-role{font-size:12px;color:#9A9590;margin-bottom:12px}
+.bc-profile-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bc-profile-stat{background:#F0EDE5;border-radius:8px;padding:10px;text-align:center}
+.bc-stat-num{font-size:18px;font-weight:600;color:#3A3530}
+.bc-stat-lbl{font-size:10px;color:#9A9590;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.bc-alert-list{display:flex;flex-direction:column;gap:8px}
+.bc-alert{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:8px;cursor:pointer;transition:opacity .2s}
+.bc-alert:hover{opacity:.85}
+.bc-alert-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.bc-alert-text{font-size:12px;color:#3A3530;line-height:1.4}
+.bc-alert-time{font-size:10px;color:#9A9590;margin-top:3px}
+.bc-alert-urgent{background:#FCEBEB}
+.bc-alert-warn{background:#FAEEDA}
+.bc-alert-info{background:#EAE8F5}
+.bc-mini-calendar{display:flex;flex-direction:column;gap:8px}
+.bc-cal-header{display:flex;align-items:center;justify-content:space-between}
+.bc-cal-month{font-size:13px;font-weight:600;color:#3A3530}
+.bc-cal-nav{display:flex;gap:4px}
+.bc-cal-btn{width:24px;height:24px;border-radius:6px;border:1px solid #E5E0D5;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;color:#5A5650}
+.bc-cal-btn:hover{background:#F0EDE5}
+.bc-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.bc-cal-day-head{text-align:center;font-size:10px;color:#9A9590;font-weight:600;padding:4px 0;text-transform:uppercase;letter-spacing:.04em}
+.bc-cal-day{text-align:center;font-size:12px;padding:5px 0;border-radius:6px;cursor:pointer;color:#5A5650;position:relative}
+.bc-cal-day:hover{background:#F0EDE5}
+.bc-cal-day.today{background:#6A5FA8;color:#fff;font-weight:600}
+.bc-cal-day.has-event::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:#4DBFAD}
+.bc-cal-day.today.has-event::after{background:rgba(255,255,255,.6)}
+.bc-cal-day.muted{color:#C4BEB0}
+.bc-unscheduled{background:#FDF0EB;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-top:12px}
+.bc-unsch-icon{width:32px;height:32px;background:#E87C50;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bc-unsch-text{flex:1}
+.bc-unsch-num{font-size:20px;font-weight:600;color:#C45A20;line-height:1}
+.bc-unsch-label{font-size:11px;color:#C45A20;margin-top:2px}
+.bc-unsch-action{font-size:11px;font-weight:600;color:#6A5FA8;cursor:pointer;white-space:nowrap}
+.bc-unsch-action:hover{text-decoration:underline}
+.bc-divider{height:1px;background:#F0EDE5;margin:0 -20px}
+.bc-empty{text-align:center;padding:24px 16px;color:#9A9590;font-size:13px}
+@media(max-width:900px){
+#theme-home .bc-content{grid-template-columns:1fr}
+#theme-home .bc-right{border-left:none;border-top:1px solid #E5E0D5}
+.bc-metrics{grid-template-columns:repeat(2,1fr)}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -923,7 +1019,8 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 <div class="topnav">
   <div class="topnav-brand" title="Click ☰ Menu → Branding to change logo"><img src="/favicon.svg" alt="BeCurious"></div>
   <div id="env-badge" style="display:none;font-size:9px;font-weight:700;color:#92400E;background:#FEF3C7;padding:3px 10px;border-radius:999px;margin-right:6px;letter-spacing:.4px"></div>
-  <button class="theme-tab active" data-theme="hv" onclick="switchTheme('hv')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home Visits</button>
+  <button class="theme-tab active" data-theme="home" onclick="switchTheme('home')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>Home</button>
+  <button class="theme-tab" data-theme="hv" onclick="switchTheme('hv')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Schedule</button>
   <button class="theme-tab" data-theme="cs" onclick="switchTheme('cs')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>Cases<span id="cs-tab-badge" style="display:none;background:#DC2626;color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:999px;margin-left:6px"></span></button>
   <button class="theme-tab" data-theme="pl" onclick="switchTheme('pl')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Pipeline</button>
   <div class="topnav-spacer"></div>
@@ -955,8 +1052,16 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
   </div>
 </div>
 
+<!-- ===== THEME: HOME DASHBOARD ===== -->
+<div class="theme-panel" id="theme-home">
+<div class="bc-content">
+  <div class="bc-left" id="bc-left"></div>
+  <aside class="bc-right" id="bc-right"></aside>
+</div>
+</div>
+
 <!-- ===== THEME: HOME VISITS ===== -->
-<div class="theme-panel active" id="theme-hv">
+<div class="theme-panel" id="theme-hv">
   <div class="hv-toolbar">
     <!-- hidden stat anchors kept so existing JS that updates these elements doesn't error -->
     <span style="display:none"><b id="st-s">0</b><b id="st-p">0</b><b id="st-pk">0</b><b id="st-drv">0</b><b id="st-u">0%</b></span>
@@ -6772,8 +6877,425 @@ function renderTeachersInline(){
   }
 }
 
+// ===== HOME DASHBOARD =====
+let _bcCalMonth=new Date().getMonth();
+let _bcCalYear=new Date().getFullYear();
+
+function _bcBranchFilter(){
+  if(!_currentUser||!_currentUser.branch||_currentUser.branch==='All')return null;
+  return _currentUser.branch;
+}
+function _bcFilterStudents(br){
+  const all=Object.entries(SS).map(([id,s])=>Object.assign({_id:id},s));
+  if(!br)return all;
+  return all.filter(s=>s.br===br);
+}
+function _bcFilterCases(br){
+  const all=Object.values(CASES);
+  if(!br)return all;
+  return all.filter(c=>(c.branch||'').split('/').includes(br));
+}
+function _bcFilterPipeline(br){
+  const all=Object.values(PIPELINE);
+  if(!br)return all;
+  return all.filter(l=>(l.branch||'').includes(br));
+}
+function _bcTodayKey(){
+  const d=new Date().getDay();
+  return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d];
+}
+function _bcTodaySessions(br){
+  const day=_bcTodayKey();
+  const slots=[];
+  if(!SCHED[day])return slots;
+  SCHED[day].forEach((carSlots,ci)=>{
+    if(!carSlots)return;
+    const car=CARS[ci];
+    if(!car)return;
+    if(br&&!(car.branch||'').split('/').includes(br))return;
+    let startMin=parseInt(SETTINGS.dayStartMin)||480;
+    const sesMin=parseInt(SETTINGS.sessionMin)||45;
+    const bufMin=parseInt(SETTINGS.bufferMin)||15;
+    carSlots.forEach((sl,si)=>{
+      if(!sl)return;
+      const ids=sl.t==='s'?[sl.id]:sl.t==='d'||sl.t==='g'?sl.ids||[]:(sl.t==='pick'?[sl.id]:[]);
+      ids.forEach(sid=>{
+        const s=SS[sid];
+        if(!s)return;
+        if(br&&s.br!==br)return;
+        const teacher=s.teacher?TEACHERS[s.teacher]:null;
+        const dist=dbBr(s,s.br);
+        slots.push({
+          time:startMin+(si*(sesMin+bufMin)),
+          name:s.n||s.nameAr||'Student',
+          teacher:teacher?teacher.name:'',
+          address:s.a?sl(s.a):'',
+          car:car.label||('Car '+(ci+1)),
+          dist:dist,
+          sid:sid,
+          day:day,
+          ci:ci,
+          si:si
+        });
+      });
+    });
+  });
+  slots.sort((a,b)=>a.time-b.time);
+  return slots;
+}
+function _bcUnscheduledCount(br){
+  const students=_bcFilterStudents(br).filter(s=>(s.enrollmentStatus||'enrolled')==='enrolled');
+  const scheduledIds=new Set();
+  const days=['Sun','Mon','Tue','Wed','Thu'];
+  days.forEach(d=>{
+    if(!SCHED[d])return;
+    SCHED[d].forEach(car=>{
+      if(!car)return;
+      car.forEach(sl=>{
+        if(!sl)return;
+        if(sl.t==='s'&&sl.id)scheduledIds.add(sl.id);
+        if((sl.t==='d'||sl.t==='g')&&sl.ids)sl.ids.forEach(id=>scheduledIds.add(id));
+        if(sl.t==='pick'&&sl.id)scheduledIds.add(sl.id);
+      });
+    });
+  });
+  return students.filter(s=>!scheduledIds.has(s._id)).length;
+}
+function _bcPriorityCases(br){
+  const cases=_bcFilterCases(br).filter(c=>c.stage!=='resolved');
+  // Score: overdue first, then escalated, then high-risk, then by dueDate
+  const scored=cases.map(c=>{
+    let score=0;
+    if(csIsOverdue(c))score+=1000;
+    if(c.stage==='escalated')score+=500;
+    if(c.level>=3)score+=200;
+    if(c.paymentStatus==='unpaid')score+=50;
+    if(c.dueDate){
+      const daysToDue=Math.floor((new Date(c.dueDate)-Date.now())/(86400000));
+      score+=Math.max(0,100-daysToDue);
+    }
+    return{c,score};
+  });
+  scored.sort((a,b)=>b.score-a.score);
+  return scored.slice(0,5).map(x=>x.c);
+}
+function _bcAlerts(br){
+  const alerts=[];
+  // 1. Overdue cases
+  const overdueCases=_bcFilterCases(br).filter(c=>csIsOverdue(c));
+  if(overdueCases.length>0){
+    alerts.push({type:'urgent',text:overdueCases.length+' case'+(overdueCases.length>1?'s':'')+' overdue',sub:'Requires action today',action:'cs'});
+  }
+  // 2. Underutilized cars
+  const day=_bcTodayKey();
+  if(SCHED[day]){
+    SCHED[day].forEach((carSlots,ci)=>{
+      const car=CARS[ci];
+      if(!car||!carSlots)return;
+      if(br&&!(car.branch||'').split('/').includes(br))return;
+      const filled=carSlots.filter(s=>s!==null).length;
+      if(filled>0&&filled<3){
+        alerts.push({type:'warn',text:(car.label||'Car '+(ci+1))+' has only '+filled+' session'+(filled>1?'s':'')+' today',sub:'Schedule optimization needed',action:'hv'});
+      }
+    });
+  }
+  // 3. Branches with unscheduled + no car
+  const branches=typeof csBranches==='function'?csBranches():['Salam','Shuhada','Salwa'];
+  if(!br){
+    branches.forEach(b=>{
+      const unsch=_bcUnscheduledCount(b);
+      if(unsch>3){
+        const hasCar=CARS.some(c=>(c.branch||'').split('/').includes(b));
+        if(!hasCar){
+          alerts.push({type:'info',text:b+' — '+unsch+' students still unscheduled',sub:'No dedicated car assigned',action:'hv'});
+        }
+      }
+    });
+  }
+  // 4. Stale cases (no activity in 7+ days)
+  const now=Date.now();
+  const staleCases=_bcFilterCases(br).filter(c=>{
+    if(c.stage==='resolved')return false;
+    const lastLog=Array.isArray(c.log)&&c.log.length?c.log[c.log.length-1]:null;
+    if(!lastLog)return true;
+    const ts=lastLog.ts||lastLog.timestamp||c.updatedAt||c.createdAt;
+    if(!ts)return true;
+    return(now-new Date(ts).getTime())>7*86400000;
+  });
+  if(staleCases.length>0){
+    alerts.push({type:'warn',text:staleCases.length+' case'+(staleCases.length>1?'s':'')+' with no activity in 7+ days',sub:'Follow-up recommended',action:'cs'});
+  }
+  // 5. Stale pipeline leads (no follow-up in 5+ days)
+  const staleLeads=_bcFilterPipeline(br).filter(l=>{
+    if(l.stage==='enrolled'||l.stage==='lost')return false;
+    const last=Array.isArray(l.contacts)&&l.contacts.length?l.contacts[l.contacts.length-1]:null;
+    const ts=last?last.date:l.createdAt;
+    if(!ts)return true;
+    return(now-new Date(ts).getTime())>5*86400000;
+  });
+  if(staleLeads.length>0){
+    alerts.push({type:'info',text:staleLeads.length+' pipeline lead'+(staleLeads.length>1?'s':'')+' with no follow-up in 5+ days',sub:'Engagement declining',action:'pl'});
+  }
+  return alerts.slice(0,5);
+}
+
+function _bcStageClass(stage){
+  const map={new:'bc-stage-new',contacted:'bc-stage-contacted',in_negotiation:'bc-stage-negotiation',negotiation:'bc-stage-negotiation',escalated:'bc-stage-escalated',awaiting_parent:'bc-stage-awaiting'};
+  return map[stage]||'bc-stage-new';
+}
+function _bcStageLabel(stageId){
+  const s=typeof csStage==='function'?csStage(stageId):null;
+  return s?s.label:(stageId||'New').replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+}
+function _bcStageBadgeStyle(stageId){
+  const s=typeof csStage==='function'?csStage(stageId):null;
+  if(s&&s.color)return'background:'+s.color+'20;color:'+s.color;
+  const colors={new:'#6A5FA8',contacted:'#0F6E56',in_negotiation:'#C45A20',negotiation:'#C45A20',escalated:'#A32D2D',awaiting_parent:'#5A5650',resolved:'#065F46'};
+  const c=colors[stageId]||'#6A5FA8';
+  return'background:'+c+'20;color:'+c;
+}
+function _bcFormatDue(dateStr){
+  if(!dateStr)return'';
+  const d=new Date(dateStr);if(isNaN(d))return'';
+  const now=new Date();
+  const diff=Math.floor((d-now)/(86400000));
+  if(diff<-1)return{text:'Due '+Math.abs(diff)+' days ago',overdue:true};
+  if(diff===-1)return{text:'Due yesterday',overdue:true};
+  if(diff===0)return{text:'Due today',overdue:true};
+  if(diff===1)return{text:'Due tomorrow',overdue:false};
+  const mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return{text:'Due '+mo[d.getMonth()]+' '+d.getDate(),overdue:false};
+}
+function _bcFormatTime(totalMin){
+  const h=Math.floor(totalMin/60);
+  const m=totalMin%60;
+  const hr12=h>12?h-12:(h===0?12:h);
+  const ampm=h>=12?'pm':'am';
+  return{hour:hr12+':'+(m<10?'0':'')+m,ampm:ampm};
+}
+
+function renderHomeDashboard(){
+  const br=_bcBranchFilter();
+  const E=typeof esc==='function'?esc:(s=>(s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'));
+
+  // ===== COUNTS =====
+  const students=_bcFilterStudents(br).filter(s=>(s.enrollmentStatus||'enrolled')==='enrolled');
+  const activeCount=students.length;
+  const allCases=_bcFilterCases(br);
+  const openCases=allCases.filter(c=>c.stage!=='resolved');
+  const highRisk=openCases.filter(c=>c.level>=3).length;
+  const leads=_bcFilterPipeline(br).filter(l=>l.stage!=='enrolled'&&l.stage!=='lost');
+  const closeToEnroll=_bcFilterPipeline(br).filter(l=>l.stage==='offer_made'||l.stage==='toured').length;
+  const todaySessions=_bcTodaySessions(br);
+  const carsToday=new Set(todaySessions.map(s=>s.car)).size;
+  const unscheduled=_bcUnscheduledCount(br);
+  const weekNum=parseInt(currentWeekKey().split('W')[1])||1;
+
+  // New this week (created in last 7 days)
+  const weekAgo=Date.now()-7*86400000;
+  const newThisWeek=students.filter(s=>s.createdAt&&new Date(s.createdAt).getTime()>weekAgo).length;
+
+  // Greeting
+  const hour=new Date().getHours();
+  const greeting=hour<12?'Good morning':hour<17?'Good afternoon':'Good evening';
+  const userName=_currentUser?_currentUser.name:'';
+  const userRole=_currentUser?_currentUser.role:'';
+  const userBranch=_currentUser?_currentUser.branch:'All';
+
+  // ===== LEFT PANEL =====
+  let left='';
+
+  // Welcome banner
+  left+='<div class="bc-welcome">';
+  left+='<div class="bc-welcome-text">';
+  left+='<div class="bc-welcome-sub">'+E(greeting)+', '+E(userName)+'</div>';
+  left+='<div class="bc-welcome-name">The details are the care.</div>';
+  left+='<div class="bc-welcome-tagline">'+openCases.length+' open cases · '+unscheduled+' unscheduled · Week '+weekNum+'</div>';
+  left+='</div>';
+  left+='<button class="bc-welcome-btn" onclick="switchTheme(\'cs\')">View cases</button>';
+  left+='</div>';
+
+  // Metric cards
+  left+='<div class="bc-metrics">';
+  left+='<div class="bc-metric"><div class="bc-metric-label"><div class="bc-metric-dot" style="background:#4DBFAD"></div>Active students</div><div class="bc-metric-value">'+activeCount+'</div><div class="bc-metric-sub"><span class="bc-metric-badge" style="background:#E6F7F5;color:#0F6E56">'+(newThisWeek>0?'+'+newThisWeek+' this week':'—')+'</span></div></div>';
+  left+='<div class="bc-metric"><div class="bc-metric-label"><div class="bc-metric-dot" style="background:#E87C50"></div>Open cases</div><div class="bc-metric-value">'+openCases.length+'</div><div class="bc-metric-sub"><span class="bc-metric-badge" style="background:#FCEBEB;color:#A32D2D">'+highRisk+' high-risk</span></div></div>';
+  left+='<div class="bc-metric"><div class="bc-metric-label"><div class="bc-metric-dot" style="background:#6A5FA8"></div>Pipeline leads</div><div class="bc-metric-value">'+leads.length+'</div><div class="bc-metric-sub"><span class="bc-metric-badge" style="background:#EAE8F5;color:#6A5FA8">'+closeToEnroll+' close to enroll</span></div></div>';
+  left+='<div class="bc-metric"><div class="bc-metric-label"><div class="bc-metric-dot" style="background:#C4BEB0"></div>Sessions today</div><div class="bc-metric-value">'+todaySessions.length+'</div><div class="bc-metric-sub"><span class="bc-metric-badge" style="background:#F0EDE5;color:#5A5650">'+carsToday+' car'+(carsToday!==1?'s':'')+' running</span></div></div>';
+  left+='</div>';
+
+  // Priority cases
+  const pcases=_bcPriorityCases(br);
+  left+='<div>';
+  left+='<div class="bc-section-header"><div class="bc-section-title">Priority cases</div><div class="bc-section-link" onclick="switchTheme(\'cs\')">View all '+openCases.length+' →</div></div>';
+  if(pcases.length===0){
+    left+='<div class="bc-empty">No open cases</div>';
+  }else{
+    left+='<div class="bc-cases">';
+    pcases.forEach(c=>{
+      const name=c.parentFullName||c.childName||'Unknown';
+      const initials=typeof csInitials==='function'?csInitials(name):name.slice(0,2);
+      const avCol=typeof csAvatarColor==='function'?csAvatarColor(name):{bg:'#EAE8F5',fg:'#6A5FA8'};
+      const cType=typeof csTypes==='function'?(csTypes().find(t=>t.id===c.type)||{}).label||'':'';
+      const meta=[c.branch||'',cType,c.paymentStatus==='unpaid'?(c.amountKwd||0)+' KWD unsettled':''].filter(Boolean).join(' · ');
+      const due=_bcFormatDue(c.dueDate);
+      left+='<div class="bc-case-row" onclick="bcOpenCase(\''+c.id+'\')">';
+      left+='<div class="bc-case-avatar" style="background:'+avCol.bg+';color:'+avCol.fg+'">'+E(initials)+'</div>';
+      left+='<div class="bc-case-info"><div class="bc-case-name">'+E(name)+'</div><div class="bc-case-meta">'+E(meta)+'</div></div>';
+      left+='<div class="bc-case-right"><div class="bc-stage-badge" style="'+_bcStageBadgeStyle(c.stage)+'">'+E(_bcStageLabel(c.stage))+'</div>';
+      if(due)left+='<div class="bc-case-due'+(due.overdue?' overdue':'')+'">'+E(due.text)+'</div>';
+      left+='</div></div>';
+    });
+    left+='</div>';
+  }
+  left+='</div>';
+
+  // Today's visits
+  left+='<div>';
+  left+='<div class="bc-section-header"><div class="bc-section-title">Today\'s visits</div><div class="bc-section-link" onclick="switchTheme(\'hv\')">Open schedule →</div></div>';
+  if(todaySessions.length===0){
+    left+='<div class="bc-empty">No sessions scheduled for today</div>';
+  }else{
+    left+='<div class="bc-schedule-list">';
+    todaySessions.slice(0,4).forEach(s=>{
+      const t=_bcFormatTime(s.time);
+      left+='<div class="bc-session" onclick="bcOpenSession(\''+s.day+'\','+s.ci+','+s.si+')">';
+      left+='<div class="bc-session-time"><div class="bc-session-hour">'+t.hour+'</div><div class="bc-session-ampm">'+t.ampm+'</div></div>';
+      left+='<div class="bc-session-info"><div class="bc-session-student">'+E(s.name)+'</div><div class="bc-session-teacher">'+E([s.teacher,s.address].filter(Boolean).join(' · '))+'</div></div>';
+      left+='<div class="bc-session-right"><div class="bc-session-car">'+E(s.car)+'</div><div class="bc-session-dist">'+s.dist.toFixed(1)+'km</div></div>';
+      left+='</div>';
+    });
+    left+='</div>';
+  }
+  // Unscheduled alert
+  if(unscheduled>0){
+    left+='<div class="bc-unscheduled"><div class="bc-unsch-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>';
+    left+='<div class="bc-unsch-text"><div class="bc-unsch-num">'+unscheduled+'</div><div class="bc-unsch-label">students without scheduled visits</div></div>';
+    left+='<div class="bc-unsch-action" onclick="switchTheme(\'hv\')">Schedule now →</div></div>';
+  }
+  left+='</div>';
+
+  document.getElementById('bc-left').innerHTML=left;
+
+  // ===== RIGHT PANEL =====
+  let right='';
+
+  // Profile card
+  const initials=userName.split(/\s+/).slice(0,2).map(w=>(w[0]||'').toUpperCase()).join('');
+  const roleLabel=(userRole.charAt(0).toUpperCase()+userRole.slice(1))+(userBranch!=='All'?' · '+userBranch:' · All branches');
+  const visibleBranches=userBranch==='All'?(typeof csBranches==='function'?csBranches():[]).length:1;
+  right+='<div class="bc-right-section"><div class="bc-profile-card">';
+  right+='<div class="bc-profile-avatar">'+E(initials)+'</div>';
+  right+='<div class="bc-profile-name">'+E(userName)+'</div>';
+  right+='<div class="bc-profile-role">'+E(roleLabel)+'</div>';
+  right+='<div class="bc-profile-stats">';
+  right+='<div class="bc-profile-stat"><div class="bc-stat-num">'+activeCount+'</div><div class="bc-stat-lbl">Students</div></div>';
+  right+='<div class="bc-profile-stat"><div class="bc-stat-num">'+(visibleBranches||1)+'</div><div class="bc-stat-lbl">Branches</div></div>';
+  right+='<div class="bc-profile-stat"><div class="bc-stat-num">'+carsToday+'</div><div class="bc-stat-lbl">Cars today</div></div>';
+  right+='<div class="bc-profile-stat"><div class="bc-stat-num">'+openCases.length+'</div><div class="bc-stat-lbl">Open cases</div></div>';
+  right+='</div></div></div>';
+
+  right+='<div class="bc-divider"></div>';
+
+  // Alerts
+  const alerts=_bcAlerts(br);
+  right+='<div class="bc-right-section"><div class="bc-right-title">Alerts</div>';
+  if(alerts.length===0){
+    right+='<div class="bc-empty" style="padding:12px;font-size:12px">All clear — no alerts</div>';
+  }else{
+    right+='<div class="bc-alert-list">';
+    const dotColors={urgent:'#A32D2D',warn:'#BA7517',info:'#6A5FA8'};
+    const alertClasses={urgent:'bc-alert-urgent',warn:'bc-alert-warn',info:'bc-alert-info'};
+    alerts.forEach(a=>{
+      right+='<div class="bc-alert '+(alertClasses[a.type]||'bc-alert-info')+'" onclick="switchTheme(\''+(a.action||'cs')+'\')">';
+      right+='<div class="bc-alert-dot" style="background:'+(dotColors[a.type]||'#6A5FA8')+'"></div>';
+      right+='<div><div class="bc-alert-text">'+E(a.text)+'</div><div class="bc-alert-time">'+E(a.sub)+'</div></div></div>';
+    });
+    right+='</div>';
+  }
+  right+='</div>';
+
+  right+='<div class="bc-divider"></div>';
+
+  // Mini calendar
+  right+=_bcRenderCalendar();
+
+  document.getElementById('bc-right').innerHTML=right;
+}
+
+function _bcRenderCalendar(){
+  const y=_bcCalYear,m=_bcCalMonth;
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const firstDay=new Date(y,m,1).getDay();
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const daysInPrev=new Date(y,m,0).getDate();
+  const today=new Date();
+  const isThisMonth=today.getFullYear()===y&&today.getMonth()===m;
+  const todayDate=today.getDate();
+
+  // Find days with scheduled sessions
+  const dayMap=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const scheduledDays=new Set();
+  for(let d=1;d<=daysInMonth;d++){
+    const dt=new Date(y,m,d);
+    const dayKey=dayMap[dt.getDay()];
+    if(SCHED[dayKey]){
+      const hasSessions=SCHED[dayKey].some(car=>car&&car.some(sl=>sl!==null));
+      if(hasSessions)scheduledDays.add(d);
+    }
+  }
+
+  let h='<div class="bc-right-section"><div class="bc-mini-calendar">';
+  h+='<div class="bc-cal-header"><div class="bc-cal-month">'+months[m]+' '+y+'</div>';
+  h+='<div class="bc-cal-nav"><div class="bc-cal-btn" onclick="bcCalNav(-1)">‹</div><div class="bc-cal-btn" onclick="bcCalNav(1)">›</div></div></div>';
+  h+='<div class="bc-cal-grid">';
+  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d=>{h+='<div class="bc-cal-day-head">'+d+'</div>';});
+
+  // Previous month padding
+  for(let i=firstDay-1;i>=0;i--){
+    h+='<div class="bc-cal-day muted">'+(daysInPrev-i)+'</div>';
+  }
+  // Current month
+  for(let d=1;d<=daysInMonth;d++){
+    const cls=['bc-cal-day'];
+    if(isThisMonth&&d===todayDate)cls.push('today');
+    if(scheduledDays.has(d))cls.push('has-event');
+    const dt=new Date(y,m,d);
+    const dayKey=dayMap[dt.getDay()];
+    h+='<div class="'+cls.join(' ')+'" onclick="bcCalDay(\''+dayKey+'\','+d+')">'+d+'</div>';
+  }
+  // Next month padding
+  const totalCells=firstDay+daysInMonth;
+  const remaining=totalCells%7===0?0:7-(totalCells%7);
+  for(let i=1;i<=remaining;i++){
+    h+='<div class="bc-cal-day muted">'+i+'</div>';
+  }
+  h+='</div></div></div>';
+  return h;
+}
+
+// Dashboard navigation handlers
+function bcOpenCase(id){
+  switchTheme('cs');
+  // Try to open the case modal after a short delay for rendering
+  setTimeout(()=>{if(typeof openCsModal==='function')openCsModal(id);},200);
+}
+function bcOpenSession(day,ci,si){
+  switchTheme('hv');
+  setTimeout(()=>{if(typeof gd==='function')gd(day);},200);
+}
+function bcCalNav(dir){
+  _bcCalMonth+=dir;
+  if(_bcCalMonth>11){_bcCalMonth=0;_bcCalYear++;}
+  if(_bcCalMonth<0){_bcCalMonth=11;_bcCalYear--;}
+  renderHomeDashboard();
+}
+function bcCalDay(dayKey,date){
+  switchTheme('hv');
+  setTimeout(()=>{if(typeof gd==='function')gd(dayKey);},200);
+}
+
 // ===== THEME SWITCHING =====
-let _activeTheme='hv';
+let _activeTheme='home';
 function switchTheme(theme){
   _activeTheme=theme;
   document.body.setAttribute('data-active-theme',theme);
@@ -6785,6 +7307,9 @@ function switchTheme(theme){
   // Route through switchPlView/switchCsView so the outer-div display state
   // gets set correctly (otherwise kanban-outer stays display:none from CSS
   // and the board looks empty until you toggle views manually).
+  if(theme==='home'){
+    renderHomeDashboard();
+  }
   if(theme==='pl'){
     switchPlView(_plView||'kanban');
   }
@@ -11251,8 +11776,8 @@ setSyncIndicator('connecting');
   if(typeof populateSchedWeekPicker==='function')populateSchedWeekPicker();
   setSyncIndicator(supaOnline?'synced':'offline');
   if(supaOnline)subscribeRealtime();
-  // Initialize theme: Home Visits active, Pipeline dashboard hidden
-  switchTheme('hv');
+  // Initialize theme: Home Dashboard active
+  switchTheme('home');
   try{updateCsTabBadge();}catch(e){}
   // Apply any saved custom branding (logo + banner) and seed the undo baseline
   try{applyCustomBranding();}catch(e){}
