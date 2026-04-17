@@ -984,7 +984,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 #theme-home .bc-right{border-left:none;border-top:1px solid #E5E0D5}
 .bc-metrics{grid-template-columns:repeat(2,1fr)}
 }
-/* ===== ACTIVITY TAB ===== */
+/* ===== ACTIVITY TAB (TickTick-inspired) ===== */
 #theme-tasks{background:#F0EDE5;min-height:100vh;padding:0}
 .act-header{display:flex;align-items:center;gap:12px;padding:14px 24px 0;flex-wrap:wrap}
 .act-header h2{font-size:18px;font-weight:700;color:#3A3530;margin:0;flex:1}
@@ -1015,6 +1015,32 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 .act-form-save:hover{background:#5A4F96}
 .act-form-cancel{padding:8px 20px;border:1px solid #E5E0D5;background:#fff;color:#5A5650;border-radius:8px;font-size:13px;cursor:pointer}
 .act-form-cancel:hover{border-color:#6A5FA8;color:#6A5FA8}
+/* Priority flags — TickTick style */
+.act-flag{width:18px;height:18px;flex-shrink:0;cursor:pointer;position:relative}
+.act-flag svg{width:18px;height:18px}
+.act-flag.high svg{fill:#DC2626;stroke:#DC2626}
+.act-flag.medium svg{fill:#F59E0B;stroke:#F59E0B}
+.act-flag.low svg{fill:#3B82F6;stroke:#3B82F6}
+.act-flag.none svg{fill:none;stroke:#D5D0C8}
+.act-flag-picker{position:absolute;top:100%;left:0;z-index:50;display:flex;gap:6px;background:#fff;border:1px solid #E5E0D5;border-radius:8px;padding:6px 10px;box-shadow:0 4px 12px rgba(58,53,48,.12)}
+.act-flag-picker .act-flag{cursor:pointer}
+/* Tags */
+.act-tag{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:1px 8px;border-radius:999px;background:#EAE8F5;color:#6A5FA8;white-space:nowrap}
+.act-tag.gcal{background:#E8F0FE;color:#1A73E8}
+.act-tag-add{font-size:10px;color:#9A9590;cursor:pointer;padding:1px 6px;border:1px dashed #D5D0C8;border-radius:999px}
+.act-tag-add:hover{border-color:#6A5FA8;color:#6A5FA8}
+/* Pin indicator */
+.act-pin{color:#E87C50;font-size:12px;margin-right:2px;flex-shrink:0}
+/* Subtasks */
+.act-subtasks{margin-top:6px;padding-left:32px}
+.act-subtask{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:12px;color:#5A5650}
+.act-subtask-check{width:14px;height:14px;border:1.5px solid #D5D0C8;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.act-subtask-check.checked{background:#4DBFAD;border-color:#4DBFAD}
+.act-subtask-check.checked::after{content:'✓';color:#fff;font-size:9px;font-weight:700}
+.act-subtask.done{text-decoration:line-through;color:#9A9590}
+.act-subtask-progress{font-size:10px;color:#9A9590;margin-left:4px}
+.act-add-subtask{font-size:11px;color:#9A9590;cursor:pointer;padding:3px 0 3px 32px;display:flex;align-items:center;gap:4px}
+.act-add-subtask:hover{color:#6A5FA8}
 /* Task sections */
 .act-body{padding:12px 24px 24px}
 .act-section{margin-bottom:16px}
@@ -1027,21 +1053,27 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 .act-section.today .act-badge{background:#6A5FA8}
 .act-section.upcoming .act-badge{background:#9A9590}
 .act-section.done .act-badge{background:#4DBFAD}
+.act-section.wontdo .act-badge{background:#9A9590}
 .act-section.delegated .act-badge{background:#BA7517}
 /* Task rows */
-.act-task{display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #E5E0D5;border-radius:10px;margin-bottom:6px;transition:border-color .2s;position:relative}
+.act-task{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:#fff;border:1px solid #E5E0D5;border-radius:10px;margin-bottom:6px;transition:border-color .2s;position:relative}
 .act-task:hover{border-color:#6A5FA8}
 .act-task.overdue{border-left:3px solid #E87C50}
-.act-task.done{opacity:.6}
+.act-task.done{opacity:.55}
 .act-task.done .act-task-title{text-decoration:line-through;color:#9A9590}
+.act-task.wontdo{opacity:.45}
+.act-task.wontdo .act-task-title{text-decoration:line-through;color:#9A9590}
+.act-task.pinned{border-color:#E87C50;background:#FFFBF8}
 /* Checkbox */
-.act-check{width:20px;height:20px;border:2px solid #E5E0D5;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.act-check{width:20px;height:20px;border:2px solid #E5E0D5;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;margin-top:1px}
 .act-check:hover{border-color:#6A5FA8}
 .act-check.checked{background:#6A5FA8;border-color:#6A5FA8}
 .act-check.checked::after{content:'✓';color:#fff;font-size:12px;font-weight:700}
+.act-check.wontdo{background:#9A9590;border-color:#9A9590}
+.act-check.wontdo::after{content:'✕';color:#fff;font-size:12px;font-weight:700}
 /* Task content */
 .act-task-body{flex:1;min-width:0}
-.act-task-title{font-size:13px;font-weight:600;color:#3A3530;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act-task-title{font-size:13px;font-weight:600;color:#3A3530;margin:0}
 .act-task-meta{display:flex;align-items:center;gap:8px;margin-top:3px;flex-wrap:wrap}
 .act-task-meta span{font-size:11px;color:#9A9590}
 .act-task-link{font-size:11px;color:#6A5FA8;cursor:pointer;text-decoration:none;font-weight:500}
@@ -1051,13 +1083,14 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 .act-type-badge.appointment{background:#E8F7F4;color:#4DBFAD}
 .act-type-badge.delegation{background:#FEF3C7;color:#92400E}
 .act-type-badge.task{background:#EAE8F5;color:#6A5FA8}
-.act-priority-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.act-priority-dot.high{background:#E87C50}
-.act-priority-dot.medium{background:#BA7517}
-.act-priority-dot.low{background:#9A9590}
 .act-task-time{font-size:11px;color:#4DBFAD;font-weight:600}
+.act-task-duration{font-size:10px;color:#9A9590}
 .act-task-branch{font-size:10px;color:#9A9590;background:#F0EDE5;padding:1px 6px;border-radius:4px}
 .act-task-from{font-size:11px;color:#92400E;font-style:italic}
+/* Task actions row (right side) */
+.act-task-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-top:1px}
+.act-task-actions svg{cursor:pointer;color:#C5C0B8;transition:color .2s}
+.act-task-actions svg:hover{color:#6A5FA8}
 /* Undo toast */
 .act-undo-toast{position:fixed;bottom:24px;right:24px;background:#3A3530;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 8px 24px rgba(58,53,48,.2);animation:actSlideUp .25s ease}
 @keyframes actSlideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
@@ -1068,18 +1101,20 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 .act-team-header strong{font-size:14px;color:#3A3530}
 .act-team-header small{font-size:12px;color:#9A9590}
 .act-team-header .act-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:#6A5FA8;color:#fff}
-/* Weekly view */
-.act-week{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
-.act-week-col{background:#fff;border:1px solid #E5E0D5;border-radius:10px;min-height:200px}
-.act-week-col.today{border-color:#6A5FA8;background:#FDFCFB}
-.act-week-day{padding:10px 12px;border-bottom:1px solid #E5E0D5;font-size:12px;font-weight:700;color:#3A3530;text-align:center}
-.act-week-day.today{color:#6A5FA8}
-.act-week-tasks{padding:8px}
-.act-week-card{padding:8px 10px;background:#F0EDE5;border:1px solid #E5E0D5;border-radius:8px;margin-bottom:6px;cursor:grab;font-size:12px;transition:border-color .2s}
-.act-week-card:hover{border-color:#6A5FA8}
-.act-week-card.done{opacity:.5;text-decoration:line-through}
-.act-week-card .act-priority-dot{display:inline-block;margin-right:4px;vertical-align:middle}
-.act-week-card-time{color:#4DBFAD;font-weight:600;font-size:11px;margin-right:4px}
+/* Weekly view — time-slot grid */
+.act-week-grid{display:grid;grid-template-columns:50px repeat(5,1fr);background:#fff;border:1px solid #E5E0D5;border-radius:14px;overflow:hidden}
+.act-week-corner{background:#FAFAF8;border-bottom:1px solid #E5E0D5;border-right:1px solid #E5E0D5;padding:8px}
+.act-week-dayhead{background:#FAFAF8;border-bottom:1px solid #E5E0D5;border-right:1px solid #E5E0D5;padding:10px 8px;text-align:center;font-size:12px;font-weight:700;color:#3A3530}
+.act-week-dayhead:last-child{border-right:none}
+.act-week-dayhead.today{color:#6A5FA8;background:#F8F6FD}
+.act-week-time{font-size:10px;color:#9A9590;text-align:right;padding:2px 6px 0 0;border-right:1px solid #E5E0D5;height:48px;box-sizing:border-box}
+.act-week-cell{border-right:1px solid #F0EDE5;border-bottom:1px solid #F0EDE5;height:48px;position:relative;box-sizing:border-box;cursor:pointer}
+.act-week-cell:last-child{border-right:none}
+.act-week-cell.today{background:#FDFCFB}
+.act-week-cell:hover{background:#F8F6FD}
+.act-week-block{position:absolute;left:2px;right:2px;background:#6A5FA8;color:#fff;border-radius:6px;padding:3px 6px;font-size:10px;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer;z-index:5;box-shadow:0 1px 3px rgba(106,95,168,.3)}
+.act-week-block.apt{background:#4DBFAD}
+.act-week-block:hover{opacity:.85}
 /* Monthly view */
 .act-month{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .act-month-head{font-size:11px;font-weight:700;color:#9A9590;text-align:center;padding:8px 0}
@@ -1093,14 +1128,30 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 .act-month-apt{width:6px;height:6px;border-radius:50%;background:#4DBFAD;display:inline-block;margin-left:4px;vertical-align:middle}
 .act-month-pop{position:absolute;top:100%;left:50%;transform:translateX(-50%);z-index:100;background:#fff;border:1px solid #E5E0D5;border-radius:10px;box-shadow:0 8px 24px rgba(58,53,48,.15);padding:12px;min-width:220px;max-height:300px;overflow-y:auto;display:none}
 .act-month-pop.open{display:block}
-/* Edit inline */
+/* Edit modal */
 .act-edit-overlay{position:fixed;inset:0;background:rgba(58,53,48,.3);z-index:9000;display:flex;align-items:center;justify-content:center}
-.act-edit-card{background:#fff;border-radius:14px;border:1px solid #E5E0D5;box-shadow:0 20px 60px rgba(58,53,48,.15);padding:24px;width:480px;max-width:90vw;max-height:80vh;overflow-y:auto}
+.act-edit-card{background:#fff;border-radius:14px;border:1px solid #E5E0D5;box-shadow:0 20px 60px rgba(58,53,48,.15);padding:24px;width:520px;max-width:90vw;max-height:85vh;overflow-y:auto}
 .act-edit-card h3{font-size:16px;font-weight:700;color:#3A3530;margin:0 0 16px}
+/* Subtask editor in edit modal */
+.act-edit-subtasks{margin:12px 0;padding:12px;background:#FAFAF8;border-radius:10px;border:1px solid #F0EDE5}
+.act-edit-subtasks h4{font-size:12px;font-weight:700;color:#5A5650;margin:0 0 8px}
+.act-edit-st-row{display:flex;align-items:center;gap:8px;padding:4px 0}
+.act-edit-st-row input[type="text"]{flex:1;padding:6px 10px;border:1px solid #E5E0D5;border-radius:6px;font-size:12px}
+.act-edit-st-del{color:#9A9590;cursor:pointer;font-size:14px}
+.act-edit-st-del:hover{color:#DC2626}
+.act-edit-st-add{font-size:12px;color:#6A5FA8;cursor:pointer;padding:4px 0;display:flex;align-items:center;gap:4px}
+.act-edit-st-add:hover{text-decoration:underline}
+/* Tags editor */
+.act-tag-editor{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}
+.act-tag-editor .act-tag{padding:3px 10px;font-size:11px}
+.act-tag-editor .act-tag .act-tag-x{margin-left:4px;cursor:pointer;font-weight:700;color:#6A5FA880}
+.act-tag-editor .act-tag .act-tag-x:hover{color:#DC2626}
+.act-tag-input{padding:4px 8px;border:1px dashed #D5D0C8;border-radius:999px;font-size:11px;width:80px;outline:none;background:transparent}
+.act-tag-input:focus{border-color:#6A5FA8}
 @media(max-width:900px){
 .act-header{padding:10px 16px 0}
 .act-body{padding:10px 16px 24px}
-.act-week{grid-template-columns:1fr}
+.act-week-grid{grid-template-columns:40px 1fr;overflow-x:auto}
 .act-month{grid-template-columns:repeat(7,1fr);font-size:10px}
 .act-new-form{margin:12px 16px 0}
 }
@@ -1199,17 +1250,29 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
     <div class="act-form-row">
       <div style="flex:2;min-width:200px"><label>Title *</label><input type="text" id="act-f-title" placeholder="What needs to be done?"></div>
       <div style="min-width:120px"><label>Type</label><select id="act-f-type" onchange="actFormTypeChange()"><option value="task">Task</option><option value="appointment">Appointment</option></select></div>
-      <div style="min-width:120px"><label>Priority</label><select id="act-f-priority"><option value="medium">Medium</option><option value="high">High</option><option value="low">Low</option></select></div>
+      <div style="min-width:100px"><label>Priority</label>
+        <div style="display:flex;gap:8px;padding:6px 0" id="act-f-priority-flags">
+          <span class="act-flag high" onclick="actSetFormPri('high')" title="High"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></span>
+          <span class="act-flag medium" onclick="actSetFormPri('medium')" title="Medium" style="opacity:.4"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></span>
+          <span class="act-flag low" onclick="actSetFormPri('low')" title="Low" style="opacity:.4"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></span>
+          <span class="act-flag none" onclick="actSetFormPri('none')" title="No priority" style="opacity:.4"><svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></span>
+        </div>
+        <input type="hidden" id="act-f-priority" value="high">
+      </div>
     </div>
     <div class="act-form-row">
       <div style="min-width:140px"><label>Due date *</label><input type="date" id="act-f-date"></div>
-      <div style="min-width:120px;display:none" id="act-f-time-wrap"><label>Time *</label><input type="time" id="act-f-time"></div>
+      <div style="min-width:100px" id="act-f-start-wrap" style="display:none"><label>Start time</label><input type="time" id="act-f-start"></div>
+      <div style="min-width:100px" id="act-f-end-wrap" style="display:none"><label>End time</label><input type="time" id="act-f-end"></div>
       <div style="min-width:140px"><label>Assign to</label><select id="act-f-assign"></select></div>
       <div style="min-width:120px"><label>Branch</label><select id="act-f-branch"></select></div>
     </div>
     <div class="act-form-row">
-      <div style="flex:1;min-width:200px"><label>Link to (optional)</label><input type="text" id="act-f-link" placeholder="Search cases, students, or pipeline..." oninput="actLinkSearch(this.value)"><div id="act-f-link-results" style="display:none;position:absolute;background:#fff;border:1px solid #E5E0D5;border-radius:8px;box-shadow:0 4px 12px rgba(58,53,48,.1);max-height:160px;overflow-y:auto;z-index:100;width:300px"></div></div>
-      <div style="flex:1;min-width:200px"><label>Description (optional)</label><textarea id="act-f-desc" rows="2" placeholder="Add details..."></textarea></div>
+      <div style="flex:1;min-width:200px;position:relative"><label>Link to (optional)</label><input type="text" id="act-f-link" placeholder="Search cases, students, or pipeline..." oninput="actLinkSearch(this.value)"><div id="act-f-link-results" style="display:none;position:absolute;background:#fff;border:1px solid #E5E0D5;border-radius:8px;box-shadow:0 4px 12px rgba(58,53,48,.1);max-height:160px;overflow-y:auto;z-index:100;width:300px"></div></div>
+      <div style="flex:1;min-width:200px"><label>Tags</label><div class="act-tag-editor" id="act-f-tags"><input class="act-tag-input" id="act-f-tag-input" placeholder="+ tag" onkeydown="if(event.key==='Enter'){event.preventDefault();actAddFormTag(this.value);this.value='';}"></div></div>
+    </div>
+    <div class="act-form-row">
+      <div style="flex:1"><label>Description (optional)</label><textarea id="act-f-desc" rows="2" placeholder="Add details..."></textarea></div>
     </div>
     <div class="act-form-actions">
       <button class="act-form-cancel" onclick="actToggleNewForm()">Cancel</button>
@@ -9900,16 +9963,31 @@ function toastUndo(msg,onUndo,ms){
   setTimeout(()=>{if(!used)t.remove();},ms||10000);
 }
 
-// ===== ACTIVITY / TASKS ENGINE =====
+// ===== ACTIVITY / TASKS ENGINE (TickTick-inspired) =====
 let _actView='day';
 let _actTeamMode=false;
 let _actUndoTimer=null;
 let _actUndoTask=null;
 let _actLinkSelection=null; // {model,id,label}
+let _actFormTags=[];
+let _actFormPriority='high';
+const ACT_FLAG_SVG='<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>';
 
 function actId(){return 'task_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);}
 function actToday(){return new Date().toISOString().slice(0,10);}
 function actDaysBetween(a,b){return Math.round((new Date(b)-new Date(a))/86400000);}
+// Migrate existing tasks to new fields
+function migrateTasks(){
+  Object.values(TASKS).forEach(t=>{
+    if(!t)return;
+    if(!Array.isArray(t.subtasks))t.subtasks=[];
+    if(!Array.isArray(t.tags))t.tags=[];
+    if(typeof t.pinned!=='boolean')t.pinned=false;
+    if(typeof t.start_time!=='string')t.start_time=t.due_time||'';
+    if(typeof t.end_time!=='string')t.end_time='';
+    if(t.status!=='wontdo'&&t.status!=='done'&&t.status!=='pending'&&t.status!=='in_progress'&&t.status!=='overdue')t.status='pending';
+  });
+}
 
 // ---- Auto-pull engine ----
 function actAutoPull(){
@@ -9929,6 +10007,7 @@ function actAutoPull(){
       TASKS[actId()]={
         id:null,title:na.text||'Case action',description:'',type:'auto',status:'pending',
         priority:'medium',due_date:c.dueDate||today,due_time:'',
+        start_time:'',end_time:'',subtasks:[],tags:[],pinned:false,
         assigned_to:c.assignedTo||opsName,delegated_by:'',
         linked_to:{model:'case',id:c.id},branch:c.branch||'',
         created_at:now.toISOString(),completed_at:'',created_by:'system',auto_source:src
@@ -9951,6 +10030,7 @@ function actAutoPull(){
       TASKS[actId()]={
         id:null,title:'Follow up with '+(l.familyName||'Lead'),description:'',type:'auto',status:'pending',
         priority:'medium',due_date:today,due_time:'',
+        start_time:'',end_time:'',subtasks:[],tags:[],pinned:false,
         assigned_to:l.assignedTo||opsName,delegated_by:'',
         linked_to:{model:'pipeline',id:l.id},branch:l.branch||'',
         created_at:now.toISOString(),completed_at:'',created_by:'system',auto_source:src
@@ -9967,6 +10047,7 @@ function actAutoPull(){
     TASKS[actId()]={
       id:null,title:'Reactivation call — '+(s.n||'Student'),description:'',type:'auto',status:'pending',
       priority:'medium',due_date:today,due_time:'',
+      start_time:'',end_time:'',subtasks:[],tags:[],pinned:false,
       assigned_to:opsName,delegated_by:'',
       linked_to:{model:'student',id:s.id},branch:s.br||'',
       created_at:now.toISOString(),completed_at:'',created_by:'system',auto_source:src
@@ -9985,6 +10066,7 @@ function actAutoPull(){
       TASKS[actId()]={
         id:null,title:'Escalation follow-up — '+(c.parentFullName||'Case'),description:'',type:'auto',status:'pending',
         priority:'high',due_date:today,due_time:'',
+        start_time:'',end_time:'',subtasks:[],tags:[],pinned:false,
         assigned_to:opsName,delegated_by:'',
         linked_to:{model:'case',id:c.id},branch:c.branch||'',
         created_at:now.toISOString(),completed_at:'',created_by:'system',auto_source:src
@@ -10002,6 +10084,7 @@ function actAutoPull(){
     TASKS[actId()]={
       id:null,title:'Overdue: '+(c.parentFullName||'Case #'+c.id.slice(-5)),description:'',type:'auto',status:'overdue',
       priority:'high',due_date:c.dueDate,due_time:'',
+      start_time:'',end_time:'',subtasks:[],tags:[],pinned:false,
       assigned_to:c.assignedTo||opsName,delegated_by:'',
       linked_to:{model:'case',id:c.id},branch:c.branch||'',
       created_at:now.toISOString(),completed_at:'',created_by:'system',auto_source:src
@@ -10075,6 +10158,8 @@ async function actRender(){
   if(supa&&(!_umUsers||!_umUsers.length)){
     try{const {data}=await supa.from('app_users').select('*').order('created_at',{ascending:true});_umUsers=data||[];}catch(e){}
   }
+  // Migrate old tasks to new schema
+  migrateTasks();
   // Run auto-pull first
   actAutoPull();
   // Show/hide team toggle based on role
@@ -10124,14 +10209,18 @@ function actRenderDay(){
   tasks=tasks.filter(t=>t.assigned_to===me);
 
   const overdue=tasks.filter(t=>t.status==='overdue');
-  const dueToday=tasks.filter(t=>t.status!=='done'&&t.status!=='overdue'&&t.due_date===today);
-  const upcoming=tasks.filter(t=>t.status!=='done'&&t.status!=='overdue'&&t.due_date>today&&t.due_date<=upcomingDate);
-  const delegatedByMe=Object.values(TASKS).filter(t=>t&&t.delegated_by===me&&t.assigned_to!==me);
+  const dueToday=tasks.filter(t=>t.status!=='done'&&t.status!=='wontdo'&&t.status!=='overdue'&&t.due_date===today);
+  const upcoming=tasks.filter(t=>t.status!=='done'&&t.status!=='wontdo'&&t.status!=='overdue'&&t.due_date>today&&t.due_date<=upcomingDate);
+  const delegatedByMe=Object.values(TASKS).filter(t=>t&&t.delegated_by===me&&t.assigned_to!==me&&t.status!=='done'&&t.status!=='wontdo');
   const doneToday=tasks.filter(t=>t.status==='done'&&t.completed_at&&t.completed_at.slice(0,10)===today);
+  const wontdoToday=tasks.filter(t=>t.status==='wontdo');
 
-  // Sort by priority
-  const priOrd={high:0,medium:1,low:2};
-  const sortPri=(a,b)=>(priOrd[a.priority]||1)-(priOrd[b.priority]||1);
+  // Sort: pinned first, then by priority
+  const priOrd={high:0,medium:1,low:2,none:3};
+  const sortPri=(a,b)=>{
+    if(a.pinned&&!b.pinned)return -1;if(!a.pinned&&b.pinned)return 1;
+    return (priOrd[a.priority]||2)-(priOrd[b.priority]||2);
+  };
   overdue.sort(sortPri);dueToday.sort(sortPri);upcoming.sort(sortPri);
 
   // Progress
@@ -10149,7 +10238,10 @@ function actRenderDay(){
     h+=actSectionHtml('Delegated by me','delegated',delegatedByMe,false);
   }
   h+=actSectionHtml('Done today','done',doneToday,true);
-  if(!overdue.length&&!dueToday.length&&!upcoming.length&&!doneToday.length&&!delegatedByMe.length){
+  if(wontdoToday.length){
+    h+=actSectionHtml("Won't do",'wontdo',wontdoToday,true);
+  }
+  if(!overdue.length&&!dueToday.length&&!upcoming.length&&!doneToday.length&&!delegatedByMe.length&&!wontdoToday.length){
     h='<div style="text-align:center;padding:60px 20px;color:#9A9590"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#E5E0D5" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></svg><p style="margin-top:12px;font-size:14px">No tasks yet</p><p style="font-size:12px">Click "+ New Task" to create one, or tasks will auto-appear from Cases, Pipeline, and Students.</p></div>';
   }
   body.innerHTML=h;
@@ -10171,27 +10263,86 @@ function actSectionHtml(label,cls,tasks,collapsed){
 
 function actTaskRowHtml(t){
   const isDone=t.status==='done';
+  const isWontdo=t.status==='wontdo';
   const isOverdue=t.status==='overdue';
-  let h='<div class="act-task'+(isDone?' done':'')+(isOverdue?' overdue':'')+'" data-task-id="'+t.id+'">';
-  h+='<div class="act-check'+(isDone?' checked':'')+'" onclick="actToggleDone(\''+t.id+'\')"></div>';
+  let cls='act-task';
+  if(isDone)cls+=' done';if(isWontdo)cls+=' wontdo';if(isOverdue)cls+=' overdue';if(t.pinned)cls+=' pinned';
+  let h='<div class="'+cls+'" data-task-id="'+t.id+'">';
+  // Checkbox
+  let checkCls='act-check';if(isDone)checkCls+=' checked';if(isWontdo)checkCls+=' wontdo';
+  h+='<div class="'+checkCls+'" onclick="actToggleDone(\''+t.id+'\')"></div>';
   h+='<div class="act-task-body">';
-  h+='<div class="act-task-title">'+esc(t.title)+'</div>';
+  // Title row with pin
+  h+='<div class="act-task-title">';
+  if(t.pinned)h+='<span class="act-pin">📌</span>';
+  h+=esc(t.title);
+  // Subtask progress
+  if(t.subtasks&&t.subtasks.length){
+    const stDone=t.subtasks.filter(s=>s.done).length;
+    h+=' <span class="act-subtask-progress">'+stDone+'/'+t.subtasks.length+'</span>';
+  }
+  h+='</div>';
   h+='<div class="act-task-meta">';
-  h+='<span class="act-priority-dot '+t.priority+'"></span>';
-  if(t.due_time){h+='<span class="act-task-time">'+t.due_time+'</span>';}
+  // Priority flag
+  h+='<span class="act-flag '+(t.priority||'none')+'">'+ACT_FLAG_SVG+'</span>';
+  // Time / duration
+  if(t.start_time){
+    h+='<span class="act-task-time">'+t.start_time;
+    if(t.end_time)h+=' – '+t.end_time;
+    h+='</span>';
+  }
   if(t.linked_to&&t.linked_to.model){
     const linkLabel=actLinkLabel(t.linked_to);
     if(linkLabel){h+='<a class="act-task-link" onclick="actOpenLink(\''+t.linked_to.model+'\',\''+t.linked_to.id+'\')">'+esc(linkLabel)+'</a>';}
   }
   h+='<span class="act-type-badge '+t.type+'">'+t.type+'</span>';
+  // Tags
+  (t.tags||[]).forEach(tag=>{h+='<span class="act-tag'+(tag==='gcal'?' gcal':'')+'">'+esc(tag)+'</span>';});
   if(t.branch){h+='<span class="act-task-branch">'+esc(t.branch)+'</span>';}
   if(t.delegated_by){h+='<span class="act-task-from">from '+esc(t.delegated_by)+'</span>';}
   if(_actTeamMode&&t.assigned_to){h+='<span style="font-size:11px;color:#5A5650;font-weight:500">→ '+esc(t.assigned_to)+'</span>';}
-  h+='</div></div>';
-  // Edit button
-  h+='<svg onclick="actEditTask(\''+t.id+'\')" style="cursor:pointer;flex-shrink:0;color:#9A9590" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  h+='</div>';
+  // Subtasks (inline, collapsed by default — show first 3)
+  if(t.subtasks&&t.subtasks.length&&!isDone&&!isWontdo){
+    h+='<div class="act-subtasks">';
+    t.subtasks.slice(0,3).forEach((st,i)=>{
+      h+='<div class="act-subtask'+(st.done?' done':'')+'">';
+      h+='<div class="act-subtask-check'+(st.done?' checked':'')+'" onclick="event.stopPropagation();actToggleSubtask(\''+t.id+'\','+i+')"></div>';
+      h+='<span>'+esc(st.text)+'</span>';
+      h+='</div>';
+    });
+    if(t.subtasks.length>3)h+='<div style="font-size:10px;color:#9A9590;padding:2px 0">+'+(t.subtasks.length-3)+' more...</div>';
+    h+='</div>';
+  }
+  h+='</div>';
+  // Right side actions
+  h+='<div class="act-task-actions">';
+  // Pin toggle
+  h+='<svg onclick="event.stopPropagation();actTogglePin(\''+t.id+'\')" width="14" height="14" viewBox="0 0 24 24" fill="'+(t.pinned?'#E87C50':'none')+'" stroke="'+(t.pinned?'#E87C50':'currentColor')+'" stroke-width="2"><path d="M12 17v5"/><path d="M9 2h6l-1 7h4l-2 6H8L6 9h4z"/></svg>';
+  // Won\'t do
+  h+='<svg onclick="event.stopPropagation();actWontDo(\''+t.id+'\')" title="Won\'t do" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+  // Edit
+  h+='<svg onclick="event.stopPropagation();actEditTask(\''+t.id+'\')" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  h+='</div>';
   h+='</div>';
   return h;
+}
+
+function actToggleSubtask(taskId,idx){
+  const t=TASKS[taskId];if(!t||!t.subtasks||!t.subtasks[idx])return;
+  t.subtasks[idx].done=!t.subtasks[idx].done;
+  saveState();actRender();
+}
+function actTogglePin(id){
+  const t=TASKS[id];if(!t)return;
+  t.pinned=!t.pinned;
+  saveState();actRender();
+}
+function actWontDo(id){
+  const t=TASKS[id];if(!t)return;
+  if(t.status==='wontdo'){t.status='pending';t.completed_at='';}
+  else{t.status='wontdo';t.completed_at=new Date().toISOString();}
+  saveState();actRender();
 }
 
 function actLinkLabel(link){
@@ -10248,7 +10399,7 @@ function actRenderTeamView(body,progWrap,tasks,today){
   body.innerHTML=h;
 }
 
-// ---- Weekly view ----
+// ---- Weekly view — time-slot calendar grid ----
 function actRenderWeek(){
   const body=document.getElementById('act-body');
   const progWrap=document.getElementById('act-progress');
@@ -10258,50 +10409,116 @@ function actRenderWeek(){
   const today=actToday();
   // Build 5-day week (Sun-Thu for Kuwait)
   const d=new Date();
-  const dow=d.getDay(); // 0=Sun
-  const startOffset=dow; // go back to Sunday
-  const weekStart=new Date(d);weekStart.setDate(d.getDate()-startOffset);
+  const dow=d.getDay();
+  const weekStart=new Date(d);weekStart.setDate(d.getDate()-dow);
   const days=[];
   for(let i=0;i<5;i++){
     const dd=new Date(weekStart);dd.setDate(weekStart.getDate()+i);
     days.push(dd.toISOString().slice(0,10));
   }
   const dayNames=['Sun','Mon','Tue','Wed','Thu'];
-  let tasks=_actTeamMode?Object.values(TASKS).filter(t=>t):Object.values(TASKS).filter(t=>t&&t.assigned_to===me);
-  let h='<div class="act-week">';
+  let tasks=_actTeamMode?Object.values(TASKS).filter(t=>t&&t.status!=='done'&&t.status!=='wontdo'):
+    Object.values(TASKS).filter(t=>t&&t.assigned_to===me&&t.status!=='done'&&t.status!=='wontdo');
+  // Hours 7AM – 8PM
+  const startHour=7,endHour=20;
+  let h='<div class="act-week-grid" style="grid-template-rows:auto repeat('+(endHour-startHour)+',48px)">';
+  // Header row
+  h+='<div class="act-week-corner"></div>';
   days.forEach((day,i)=>{
     const isToday=day===today;
-    const dayTasks=tasks.filter(t=>t.due_date===day&&t.status!=='done');
-    h+='<div class="act-week-col'+(isToday?' today':'')+'">';
-    h+='<div class="act-week-day'+(isToday?' today':'')+'">'+dayNames[i]+'<br><small>'+day.slice(5)+'</small></div>';
-    h+='<div class="act-week-tasks" data-date="'+day+'" ondragover="event.preventDefault()" ondrop="actWeekDrop(event,\''+day+'\')">';
-    dayTasks.sort((a,b)=>{
-      if(a.due_time&&b.due_time)return a.due_time.localeCompare(b.due_time);
-      if(a.due_time)return -1;if(b.due_time)return 1;
-      const p={high:0,medium:1,low:2};return(p[a.priority]||1)-(p[b.priority]||1);
-    });
-    dayTasks.forEach(t=>{
-      h+='<div class="act-week-card" draggable="true" ondragstart="actWeekDrag(event,\''+t.id+'\')" onclick="actEditTask(\''+t.id+'\')">';
-      h+='<span class="act-priority-dot '+t.priority+'"></span>';
-      if(t.due_time){h+='<span class="act-week-card-time">'+t.due_time+'</span>';}
-      h+=esc(t.title);
-      h+='</div>';
-    });
-    h+='</div></div>';
+    const dateObj=new Date(day+'T12:00:00');
+    const dayNum=dateObj.getDate();
+    h+='<div class="act-week-dayhead'+(isToday?' today':'')+'">'+dayNames[i]+'<br><span style="font-size:16px;font-weight:800">'+dayNum+'</span></div>';
   });
+  // Time rows
+  for(let hr=startHour;hr<endHour;hr++){
+    const label=hr===0?'12 AM':hr<12?hr+' AM':hr===12?'12 PM':(hr-12)+' PM';
+    h+='<div class="act-week-time">'+label+'</div>';
+    days.forEach((day,di)=>{
+      const isToday=day===today;
+      h+='<div class="act-week-cell'+(isToday?' today':'')+'" data-date="'+day+'" data-hour="'+hr+'" onclick="actWeekCellClick(\''+day+'\','+hr+')" ondragover="event.preventDefault()" ondrop="actWeekDrop(event,\''+day+'\','+hr+')"></div>';
+    });
+  }
   h+='</div>';
   body.innerHTML=h;
+  // Place time blocks
+  tasks.forEach(t=>{
+    if(!t.due_date||!t.start_time)return;
+    const di=days.indexOf(t.due_date);
+    if(di<0)return;
+    const [sh,sm]=(t.start_time||'08:00').split(':').map(Number);
+    const [eh,em]=t.end_time?(t.end_time.split(':').map(Number)):[sh+1,sm];
+    const topMin=(sh-startHour)*60+sm;
+    const durMin=Math.max((eh*60+em)-(sh*60+sm),30);
+    if(sh<startHour||sh>=endHour)return;
+    const topPx=(topMin/60)*48;
+    const heightPx=(durMin/60)*48;
+    const colStart=di+2; // grid column (1-indexed, +1 for time col)
+    const rowStart=sh-startHour+2; // grid row (+1 for header)
+    const isApt=t.type==='appointment';
+    const block=document.createElement('div');
+    block.className='act-week-block'+(isApt?' apt':'');
+    block.style.cssText='grid-column:'+colStart+';position:absolute;top:'+topPx+'px;height:'+heightPx+'px;left:2px;right:2px';
+    block.textContent=t.start_time+' '+t.title;
+    block.title=t.title+(t.end_time?' ('+t.start_time+' – '+t.end_time+')':'');
+    block.draggable=true;
+    block.onclick=()=>actEditTask(t.id);
+    block.ondragstart=e=>{_actDragId=t.id;e.dataTransfer.effectAllowed='move';};
+    // Find the correct cell to position relative to
+    const cells=body.querySelectorAll('.act-week-cell[data-date="'+t.due_date+'"]');
+    if(cells.length>0){
+      const targetCell=cells[0].parentElement;
+      // Find the cell at the right row
+      const cellIdx=sh-startHour;
+      if(cells[cellIdx]){
+        cells[cellIdx].style.position='relative';
+        cells[cellIdx].appendChild(block);
+      }
+    }
+  });
+  // Also show untimed tasks at the top as all-day items
+  const untimedByDay={};
+  tasks.forEach(t=>{
+    if(!t.due_date||t.start_time)return;
+    const di=days.indexOf(t.due_date);
+    if(di<0)return;
+    if(!untimedByDay[di])untimedByDay[di]=[];
+    untimedByDay[di].push(t);
+  });
+  const headerCells=body.querySelectorAll('.act-week-dayhead');
+  headerCells.forEach((cell,i)=>{
+    const ut=untimedByDay[i];
+    if(!ut||!ut.length)return;
+    let badge=document.createElement('div');
+    badge.style.cssText='font-size:10px;color:#9A9590;margin-top:4px';
+    badge.textContent=ut.length+' task'+(ut.length>1?'s':'');
+    badge.style.cursor='pointer';
+    badge.onclick=()=>{switchTheme('tasks');_actView='day';actRender();};
+    cell.appendChild(badge);
+  });
 }
 
 let _actDragId=null;
-function actWeekDrag(e,id){_actDragId=id;e.dataTransfer.effectAllowed='move';}
-function actWeekDrop(e,date){
+function actWeekDrop(e,date,hour){
   e.preventDefault();
   if(!_actDragId||!TASKS[_actDragId])return;
-  TASKS[_actDragId].due_date=date;
-  saveState();
-  actRender();
-  _actDragId=null;
+  const t=TASKS[_actDragId];
+  t.due_date=date;
+  if(hour!==undefined){
+    t.start_time=String(hour).padStart(2,'0')+':00';
+    if(!t.end_time)t.end_time=String(hour+1).padStart(2,'0')+':00';
+  }
+  saveState();actRender();_actDragId=null;
+}
+function actWeekCellClick(date,hour){
+  // Quick-create a task at this time slot
+  actToggleNewForm();
+  setTimeout(()=>{
+    const dateEl=document.getElementById('act-f-date');if(dateEl)dateEl.value=date;
+    const startEl=document.getElementById('act-f-start');if(startEl)startEl.value=String(hour).padStart(2,'0')+':00';
+    const endEl=document.getElementById('act-f-end');if(endEl)endEl.value=String(hour+1).padStart(2,'0')+':00';
+    const typeEl=document.getElementById('act-f-type');if(typeEl){typeEl.value='appointment';actFormTypeChange();}
+  },50);
 }
 
 // ---- Monthly view ----
@@ -10376,26 +10593,33 @@ function actToggleNewForm(){
     // Pre-fill defaults
     document.getElementById('act-f-title').value='';
     document.getElementById('act-f-type').value='task';
-    document.getElementById('act-f-priority').value='medium';
     document.getElementById('act-f-date').value=actToday();
-    document.getElementById('act-f-time').value='';
-    document.getElementById('act-f-time-wrap').style.display='none';
     document.getElementById('act-f-desc').value='';
     document.getElementById('act-f-link').value='';
     _actLinkSelection=null;
+    // Reset priority flags to medium
+    actSetFormPri('medium');
+    // Reset tags
+    _actFormTags=[];
+    actRenderFormTags();
+    // Reset start/end time
+    const startEl=document.getElementById('act-f-start');if(startEl)startEl.value='';
+    const endEl=document.getElementById('act-f-end');if(endEl)endEl.value='';
+    const startWrap=document.getElementById('act-f-start-wrap');if(startWrap)startWrap.style.display='none';
+    const endWrap=document.getElementById('act-f-end-wrap');if(endWrap)endWrap.style.display='none';
     // Populate assign dropdown
     actPopulateAssignDropdown('act-f-assign');
     actPopulateBranchDropdown('act-f-branch');
-    // Pre-fill link if we have one
-    if(_actLinkSelection){
-      document.getElementById('act-f-link').value=_actLinkSelection.label||'';
-    }
   }
 }
 
 function actFormTypeChange(){
   const type=document.getElementById('act-f-type').value;
-  document.getElementById('act-f-time-wrap').style.display=type==='appointment'?'block':'none';
+  const isAppt=type==='appointment';
+  const startWrap=document.getElementById('act-f-start-wrap');
+  const endWrap=document.getElementById('act-f-end-wrap');
+  if(startWrap)startWrap.style.display=isAppt?'block':'none';
+  if(endWrap)endWrap.style.display=isAppt?'block':'none';
 }
 
 function actPopulateAssignDropdown(selectId){
@@ -10461,37 +10685,79 @@ function actSelectLink(model,id,label){
   document.getElementById('act-f-link-results').style.display='none';
 }
 
+// ---- Priority flag picker (new task form) ----
+function actSetFormPri(pri){
+  document.getElementById('act-f-priority').value=pri;
+  const wrap=document.getElementById('act-f-priority-flags');
+  if(!wrap)return;
+  wrap.querySelectorAll('.act-flag').forEach(f=>{
+    const isPri=f.classList.contains(pri);
+    f.style.opacity=isPri?'1':'.4';
+  });
+}
+
+// ---- Tag editor (new task form) ----
+function actAddFormTag(val){
+  const tag=(val||'').trim().toLowerCase();
+  if(!tag||_actFormTags.includes(tag))return;
+  _actFormTags.push(tag);
+  actRenderFormTags();
+}
+function actRemoveFormTag(idx){
+  _actFormTags.splice(idx,1);
+  actRenderFormTags();
+}
+function actRenderFormTags(){
+  const wrap=document.getElementById('act-f-tags');
+  if(!wrap)return;
+  let h='';
+  _actFormTags.forEach((t,i)=>{
+    h+='<span class="act-tag-badge" style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:11px;background:#EDE9E0;color:#6A5FA8;margin-right:4px">'+esc(t)+'<span style="cursor:pointer;font-weight:700;margin-left:2px" onclick="actRemoveFormTag('+i+')">&times;</span></span>';
+  });
+  h+='<input class="act-tag-input" id="act-f-tag-input" placeholder="+ tag" onkeydown="if(event.key===\'Enter\'){event.preventDefault();actAddFormTag(this.value);this.value=\'\';}">';
+  wrap.innerHTML=h;
+}
+
 function actSaveNewTask(){
   const title=document.getElementById('act-f-title').value.trim();
   if(!title){document.getElementById('act-f-title').style.borderColor='#E87C50';return;}
   const type=document.getElementById('act-f-type').value;
   const priority=document.getElementById('act-f-priority').value;
   const dueDate=document.getElementById('act-f-date').value;
-  const dueTime=type==='appointment'?document.getElementById('act-f-time').value:'';
+  const startTime=(document.getElementById('act-f-start')||{}).value||'';
+  const endTime=(document.getElementById('act-f-end')||{}).value||'';
   const assignTo=document.getElementById('act-f-assign').value;
   const branch=document.getElementById('act-f-branch').value;
   const desc=document.getElementById('act-f-desc').value.trim();
   const me=_currentUser?_currentUser.name:'';
 
   if(!dueDate){document.getElementById('act-f-date').style.borderColor='#E87C50';return;}
-  if(type==='appointment'&&!dueTime){document.getElementById('act-f-time').style.borderColor='#E87C50';return;}
+  if(type==='appointment'&&!startTime){
+    const el=document.getElementById('act-f-start');if(el)el.style.borderColor='#E87C50';return;
+  }
 
   const id=actId();
   const taskType=(assignTo&&assignTo!==me)?'delegation':type;
   TASKS[id]={
     id,title,description:desc,
     type:taskType,status:'pending',priority,
-    due_date:dueDate,due_time:dueTime,
+    due_date:dueDate,due_time:startTime,
+    start_time:startTime,
+    end_time:endTime,
     assigned_to:assignTo||me,
     delegated_by:(assignTo&&assignTo!==me)?me:'',
     linked_to:_actLinkSelection?{model:_actLinkSelection.model,id:_actLinkSelection.id}:{model:null,id:''},
     branch,
+    subtasks:[],
+    tags:_actFormTags.slice(),
+    pinned:false,
     created_at:new Date().toISOString(),
     completed_at:'',
     created_by:me,
     auto_source:''
   };
   _actLinkSelection=null;
+  _actFormTags=[];
   saveState();
   actToggleNewForm();
   actRender();
@@ -10561,41 +10827,93 @@ function actLogCompletion(t){
 }
 
 // ---- Edit task ----
+let _actEditTags=[];
+let _actEditSubtasks=[];
+
 function actEditTask(id){
   const t=TASKS[id];
   if(!t)return;
   const perms=currentPerms();
   const canEdit=perms.tk_edit!==false;
-  // Close any existing
   const existing=document.querySelector('.act-edit-overlay');
   if(existing)existing.remove();
   const me=_currentUser?_currentUser.name:'';
+
+  // Clone subtasks/tags for editing
+  _actEditSubtasks=(t.subtasks||[]).map(s=>({text:s.text||'',done:!!s.done}));
+  _actEditTags=(t.tags||[]).slice();
+
   const overlay=document.createElement('div');
   overlay.className='act-edit-overlay';
   overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
-  let h='<div class="act-edit-card">';
-  h+='<h3>Edit Task</h3>';
+
+  const flagSvg='<svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>';
+  const pri=t.priority||'none';
+
+  let h='<div class="act-edit-card" style="max-width:520px">';
+  h+='<h3 style="margin:0 0 16px;font-size:16px;color:#3A3530">Edit Task</h3>';
+
+  // Title
   h+='<div class="act-form-row"><div style="flex:1"><label>Title</label><input type="text" id="act-e-title" value="'+esc(t.title)+'"'+(canEdit?'':' disabled')+'></div></div>';
+
+  // Priority flags + Pin toggle
+  h+='<div class="act-form-row" style="align-items:center">';
+  h+='<div><label>Priority</label><div style="display:flex;gap:8px;padding:4px 0" id="act-e-priority-flags">';
+  ['high','medium','low','none'].forEach(p=>{
+    h+='<span class="act-flag '+p+'" onclick="actSetEditPri(\''+p+'\')" title="'+p+'" style="opacity:'+(p===pri?'1':'.4')+'">'+flagSvg+'</span>';
+  });
+  h+='</div><input type="hidden" id="act-e-priority" value="'+esc(pri)+'"></div>';
+  h+='<div style="margin-left:auto;display:flex;align-items:center;gap:8px">';
+  h+='<label style="cursor:pointer;display:flex;align-items:center;gap:4px"><input type="checkbox" id="act-e-pinned"'+(t.pinned?' checked':'')+(canEdit?'':' disabled')+'> Pin</label>';
+  h+='</div></div>';
+
+  // Type + Status row
   h+='<div class="act-form-row">';
-  h+='<div style="min-width:120px"><label>Type</label><select id="act-e-type"'+(canEdit?'':' disabled')+'><option value="task"'+(t.type==='task'?' selected':'')+'>Task</option><option value="appointment"'+(t.type==='appointment'?' selected':'')+'>Appointment</option><option value="delegation"'+(t.type==='delegation'?' selected':'')+'>Delegation</option><option value="auto"'+(t.type==='auto'?' selected':'')+'>Auto</option></select></div>';
-  h+='<div style="min-width:120px"><label>Priority</label><select id="act-e-priority"'+(canEdit?'':' disabled')+'><option value="high"'+(t.priority==='high'?' selected':'')+'>High</option><option value="medium"'+(t.priority==='medium'?' selected':'')+'>Medium</option><option value="low"'+(t.priority==='low'?' selected':'')+'>Low</option></select></div>';
-  h+='<div style="min-width:120px"><label>Status</label><select id="act-e-status"'+(canEdit?'':' disabled')+'><option value="pending"'+(t.status==='pending'?' selected':'')+'>Pending</option><option value="in_progress"'+(t.status==='in_progress'?' selected':'')+'>In Progress</option><option value="done"'+(t.status==='done'?' selected':'')+'>Done</option><option value="overdue"'+(t.status==='overdue'?' selected':'')+'>Overdue</option></select></div>';
+  h+='<div style="min-width:120px"><label>Type</label><select id="act-e-type" onchange="actEditTypeChange()"'+(canEdit?'':' disabled')+'><option value="task"'+(t.type==='task'?' selected':'')+'>Task</option><option value="appointment"'+(t.type==='appointment'?' selected':'')+'>Appointment</option><option value="delegation"'+(t.type==='delegation'?' selected':'')+'>Delegation</option><option value="auto"'+(t.type==='auto'?' selected':'')+'>Auto</option></select></div>';
+  h+='<div style="min-width:120px"><label>Status</label><select id="act-e-status"'+(canEdit?'':' disabled')+'><option value="pending"'+(t.status==='pending'?' selected':'')+'>Pending</option><option value="in_progress"'+(t.status==='in_progress'?' selected':'')+'>In Progress</option><option value="done"'+(t.status==='done'?' selected':'')+'>Done</option><option value="overdue"'+(t.status==='overdue'?' selected':'')+'>Overdue</option><option value="wontdo"'+(t.status==='wontdo'?' selected':'')+'>Won\'t Do</option></select></div>';
   h+='</div>';
+
+  // Date + Start/End time
   h+='<div class="act-form-row">';
   h+='<div style="min-width:140px"><label>Due date</label><input type="date" id="act-e-date" value="'+(t.due_date||'')+'"'+(canEdit?'':' disabled')+'></div>';
-  h+='<div style="min-width:120px"><label>Time</label><input type="time" id="act-e-time" value="'+(t.due_time||'')+'"'+(canEdit?'':' disabled')+'></div>';
+  const showTime=t.type==='appointment';
+  h+='<div style="min-width:100px'+(showTime?'':';display:none')+'" id="act-e-start-wrap"><label>Start</label><input type="time" id="act-e-start" value="'+(t.start_time||t.due_time||'')+'"'+(canEdit?'':' disabled')+'></div>';
+  h+='<div style="min-width:100px'+(showTime?'':';display:none')+'" id="act-e-end-wrap"><label>End</label><input type="time" id="act-e-end" value="'+(t.end_time||'')+'"'+(canEdit?'':' disabled')+'></div>';
+  h+='</div>';
+
+  // Assign + Branch
+  h+='<div class="act-form-row">';
   h+='<div style="min-width:140px"><label>Assign to</label><select id="act-e-assign"'+(canEdit?'':' disabled')+'></select></div>';
   h+='<div style="min-width:120px"><label>Branch</label><select id="act-e-branch"'+(canEdit?'':' disabled')+'></select></div>';
   h+='</div>';
-  h+='<div class="act-form-row"><div style="flex:1"><label>Description</label><textarea id="act-e-desc" rows="3"'+(canEdit?'':' disabled')+'>'+esc(t.description||'')+'</textarea></div></div>';
-  h+='<div class="act-form-actions">';
+
+  // Description
+  h+='<div class="act-form-row"><div style="flex:1"><label>Description</label><textarea id="act-e-desc" rows="2"'+(canEdit?'':' disabled')+'>'+esc(t.description||'')+'</textarea></div></div>';
+
+  // Subtasks editor
+  h+='<div style="margin-top:8px"><label style="font-size:12px;font-weight:600;color:#6A5FA8">Subtasks</label>';
+  h+='<div id="act-e-subtasks"></div>';
+  if(canEdit){
+    h+='<div style="margin-top:4px"><input type="text" id="act-e-sub-input" placeholder="+ Add subtask" style="font-size:12px;padding:6px 10px;border:1px dashed #D6D0C4;border-radius:8px;width:100%;box-sizing:border-box" onkeydown="if(event.key===\'Enter\'){event.preventDefault();actEditAddSubtask(this.value);this.value=\'\';}"></div>';
+  }
+  h+='</div>';
+
+  // Tags editor
+  h+='<div style="margin-top:8px"><label style="font-size:12px;font-weight:600;color:#6A5FA8">Tags</label>';
+  h+='<div class="act-tag-editor" id="act-e-tags"></div>';
+  h+='</div>';
+
+  // Actions
+  h+='<div class="act-form-actions" style="margin-top:16px">';
   if(canEdit&&perms.tk_delete!==false){h+='<button class="act-form-cancel" style="color:#991B1B;border-color:#FECACA" onclick="actDeleteTask(\''+id+'\')">Delete</button>';}
   h+='<button class="act-form-cancel" onclick="this.closest(\'.act-edit-overlay\').remove()">Cancel</button>';
   if(canEdit){h+='<button class="act-form-save" onclick="actSaveEdit(\''+id+'\')">Save</button>';}
   h+='</div></div>';
+
   overlay.innerHTML=h;
   document.body.appendChild(overlay);
-  // Populate dropdowns
+
+  // Populate dropdowns and render dynamic sections
   setTimeout(()=>{
     actPopulateAssignDropdown('act-e-assign');
     actPopulateBranchDropdown('act-e-branch');
@@ -10603,7 +10921,71 @@ function actEditTask(id){
     if(assignSel)assignSel.value=t.assigned_to||'';
     const branchSel=document.getElementById('act-e-branch');
     if(branchSel)branchSel.value=t.branch||'';
+    actRenderEditSubtasks();
+    actRenderEditTags();
   },0);
+}
+
+function actSetEditPri(pri){
+  document.getElementById('act-e-priority').value=pri;
+  const wrap=document.getElementById('act-e-priority-flags');
+  if(!wrap)return;
+  wrap.querySelectorAll('.act-flag').forEach(f=>{
+    f.style.opacity=f.classList.contains(pri)?'1':'.4';
+  });
+}
+
+function actEditTypeChange(){
+  const type=document.getElementById('act-e-type').value;
+  const isAppt=type==='appointment';
+  const sw=document.getElementById('act-e-start-wrap');
+  const ew=document.getElementById('act-e-end-wrap');
+  if(sw)sw.style.display=isAppt?'':'none';
+  if(ew)ew.style.display=isAppt?'':'none';
+}
+
+function actRenderEditSubtasks(){
+  const wrap=document.getElementById('act-e-subtasks');
+  if(!wrap)return;
+  let h='';
+  _actEditSubtasks.forEach((s,i)=>{
+    h+='<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px">';
+    h+='<input type="checkbox"'+(s.done?' checked':'')+' onchange="_actEditSubtasks['+i+'].done=this.checked">';
+    h+='<input type="text" value="'+esc(s.text)+'" style="flex:1;border:none;border-bottom:1px solid #EDE9E0;padding:2px 4px;font-size:12px;background:transparent" onchange="_actEditSubtasks['+i+'].text=this.value">';
+    h+='<span style="cursor:pointer;color:#991B1B;font-size:14px" onclick="_actEditSubtasks.splice('+i+',1);actRenderEditSubtasks()">&times;</span>';
+    h+='</div>';
+  });
+  wrap.innerHTML=h;
+}
+
+function actEditAddSubtask(val){
+  const text=(val||'').trim();
+  if(!text)return;
+  _actEditSubtasks.push({text,done:false});
+  actRenderEditSubtasks();
+}
+
+function actRenderEditTags(){
+  const wrap=document.getElementById('act-e-tags');
+  if(!wrap)return;
+  let h='';
+  _actEditTags.forEach((t,i)=>{
+    h+='<span class="act-tag-badge" style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:11px;background:#EDE9E0;color:#6A5FA8;margin-right:4px">'+esc(t)+'<span style="cursor:pointer;font-weight:700;margin-left:2px" onclick="actEditRemoveTag('+i+')">&times;</span></span>';
+  });
+  h+='<input class="act-tag-input" placeholder="+ tag" style="border:none;outline:none;font-size:12px;min-width:60px;background:transparent" onkeydown="if(event.key===\'Enter\'){event.preventDefault();actEditAddTag(this.value);this.value=\'\';}">';
+  wrap.innerHTML=h;
+}
+
+function actEditAddTag(val){
+  const tag=(val||'').trim().toLowerCase();
+  if(!tag||_actEditTags.includes(tag))return;
+  _actEditTags.push(tag);
+  actRenderEditTags();
+}
+
+function actEditRemoveTag(idx){
+  _actEditTags.splice(idx,1);
+  actRenderEditTags();
 }
 
 function actSaveEdit(id){
@@ -10615,7 +10997,12 @@ function actSaveEdit(id){
   t.priority=document.getElementById('act-e-priority').value;
   t.status=document.getElementById('act-e-status').value;
   t.due_date=document.getElementById('act-e-date').value;
-  t.due_time=document.getElementById('act-e-time').value;
+  t.start_time=(document.getElementById('act-e-start')||{}).value||'';
+  t.end_time=(document.getElementById('act-e-end')||{}).value||'';
+  t.due_time=t.start_time;
+  t.pinned=!!document.getElementById('act-e-pinned').checked;
+  t.subtasks=_actEditSubtasks.slice();
+  t.tags=_actEditTags.slice();
   const newAssign=document.getElementById('act-e-assign').value;
   if(newAssign!==t.assigned_to){
     t.delegated_by=me;
@@ -10625,6 +11012,7 @@ function actSaveEdit(id){
   t.branch=document.getElementById('act-e-branch').value;
   t.description=document.getElementById('act-e-desc').value.trim();
   if(t.status==='done'&&!t.completed_at)t.completed_at=new Date().toISOString();
+  if(t.status==='wontdo')t.completed_at=t.completed_at||new Date().toISOString();
   saveState();
   document.querySelector('.act-edit-overlay').remove();
   actRender();
