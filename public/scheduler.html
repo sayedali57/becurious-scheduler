@@ -6906,30 +6906,32 @@ function _bcTodayKey(){
 }
 function _bcTodaySessions(br){
   const day=_bcTodayKey();
-  const slots=[];
-  if(!SCHED[day])return slots;
-  SCHED[day].forEach((carSlots,ci)=>{
-    if(!carSlots)return;
-    const car=CARS[ci];
+  const results=[];
+  if(!SCHED[day])return results;
+  const dayData=SCHED[day];
+  CARS.forEach((car,ci)=>{
     if(!car)return;
+    const carSlots=dayData[car.id]||dayData[ci];
+    if(!carSlots||!Array.isArray(carSlots))return;
     if(br&&!(car.branch||'').split('/').includes(br))return;
     let startMin=parseInt(SETTINGS.dayStartMin)||480;
     const sesMin=parseInt(SETTINGS.sessionMin)||45;
     const bufMin=parseInt(SETTINGS.bufferMin)||15;
-    carSlots.forEach((sl,si)=>{
-      if(!sl)return;
-      const ids=sl.t==='s'?[sl.id]:sl.t==='d'||sl.t==='g'?sl.ids||[]:(sl.t==='pick'?[sl.id]:[]);
+    carSlots.forEach((s_,si)=>{
+      if(!s_)return;
+      const ids=s_.t==='s'?[s_.id]:s_.t==='d'||s_.t==='g'?s_.ids||[]:(s_.t==='pick'?[s_.id]:[]);
       ids.forEach(sid=>{
         const s=SS[sid];
         if(!s)return;
         if(br&&s.br!==br)return;
         const teacher=s.teacher?TEACHERS[s.teacher]:null;
         const dist=dbBr(s,s.br);
-        slots.push({
+        const addr=s.a?sl(s.a):'';
+        results.push({
           time:startMin+(si*(sesMin+bufMin)),
           name:s.n||s.nameAr||'Student',
           teacher:teacher?teacher.name:'',
-          address:s.a?sl(s.a):'',
+          address:addr,
           car:car.label||('Car '+(ci+1)),
           dist:dist,
           sid:sid,
@@ -6940,8 +6942,8 @@ function _bcTodaySessions(br){
       });
     });
   });
-  slots.sort((a,b)=>a.time-b.time);
-  return slots;
+  results.sort((a,b)=>a.time-b.time);
+  return results;
 }
 function _bcUnscheduledCount(br){
   const students=_bcFilterStudents(br).filter(s=>(s.enrollmentStatus||'enrolled')==='enrolled');
@@ -6949,13 +6951,15 @@ function _bcUnscheduledCount(br){
   const days=['Sun','Mon','Tue','Wed','Thu'];
   days.forEach(d=>{
     if(!SCHED[d])return;
-    SCHED[d].forEach(car=>{
-      if(!car)return;
-      car.forEach(sl=>{
-        if(!sl)return;
-        if(sl.t==='s'&&sl.id)scheduledIds.add(sl.id);
-        if((sl.t==='d'||sl.t==='g')&&sl.ids)sl.ids.forEach(id=>scheduledIds.add(id));
-        if(sl.t==='pick'&&sl.id)scheduledIds.add(sl.id);
+    const dayData=SCHED[d];
+    // SCHED[d] is an object keyed by car id, each value is an array of slots
+    Object.values(dayData).forEach(carSlots=>{
+      if(!carSlots||!Array.isArray(carSlots))return;
+      carSlots.forEach(s_=>{
+        if(!s_)return;
+        if(s_.t==='s'&&s_.id)scheduledIds.add(s_.id);
+        if((s_.t==='d'||s_.t==='g')&&s_.ids)s_.ids.forEach(id=>scheduledIds.add(id));
+        if(s_.t==='pick'&&s_.id)scheduledIds.add(s_.id);
       });
     });
   });
@@ -6989,9 +6993,11 @@ function _bcAlerts(br){
   // 2. Underutilized cars
   const day=_bcTodayKey();
   if(SCHED[day]){
-    SCHED[day].forEach((carSlots,ci)=>{
-      const car=CARS[ci];
-      if(!car||!carSlots)return;
+    const dayData=SCHED[day];
+    CARS.forEach((car,ci)=>{
+      if(!car)return;
+      const carSlots=dayData[car.id]||dayData[ci];
+      if(!carSlots||!Array.isArray(carSlots))return;
       if(br&&!(car.branch||'').split('/').includes(br))return;
       const filled=carSlots.filter(s=>s!==null).length;
       if(filled>0&&filled<3){
@@ -7246,7 +7252,7 @@ function _bcRenderCalendar(){
     const dt=new Date(y,m,d);
     const dayKey=dayMap[dt.getDay()];
     if(SCHED[dayKey]){
-      const hasSessions=SCHED[dayKey].some(car=>car&&car.some(sl=>sl!==null));
+      const hasSessions=Object.values(SCHED[dayKey]).some(car=>Array.isArray(car)&&car.some(sl=>sl!==null));
       if(hasSessions)scheduledDays.add(d);
     }
   }
