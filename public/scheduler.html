@@ -2239,6 +2239,7 @@ async function _handleSession(session){
 
   // Apply role-based UI
   applyRolePermissions();
+  applyModuleAccess();
   updateMenuUserInfo();
   return true;
 }
@@ -2426,6 +2427,11 @@ async function umDeleteUser(uid){
 // Each permission is a boolean flag. Grouped into categories for the UI.
 // Role defaults auto-fill when a user is created, but admin can override per-user.
 const PERM_SCHEMA=[
+  {cat:'Module Access',isModules:true,perms:[
+    {k:'mod_schedule', label:'Schedule module',  theme:'hv'},
+    {k:'mod_cases',    label:'Cases module',     theme:'cs'},
+    {k:'mod_pipeline', label:'Pipeline module',  theme:'pl'}
+  ]},
   {cat:'Schedule & Home Visits',perms:[
     {k:'hv_view',         label:'View schedule'},
     {k:'hv_edit',         label:'Edit slots (drag, drop, move)'},
@@ -2489,6 +2495,9 @@ const PERM_SCHEMA=[
 const ALL_PERM_KEYS=PERM_SCHEMA.flatMap(c=>c.perms.map(p=>p.k));
 
 // Default permissions per role — true = granted, absent/false = denied
+// Module permission keys (for easy reference)
+const ALL_MODULE_KEYS=PERM_SCHEMA.filter(c=>c.isModules).flatMap(c=>c.perms.map(p=>p.k));
+
 const ROLE_DEFAULTS={
   admin:Object.fromEntries(ALL_PERM_KEYS.map(k=>[k,true])),
   director:(()=>{
@@ -2508,6 +2517,7 @@ const ROLE_DEFAULTS={
   })(),
   coordinator:(()=>{
     const d=Object.fromEntries(ALL_PERM_KEYS.map(k=>[k,false]));
+    d.mod_schedule=true;d.mod_cases=true;d.mod_pipeline=true;
     d.hv_view=true;d.hv_attendance=true;d.hv_dispatch=true;
     d.cs_view=true;d.cs_create=true;d.cs_edit=true;d.cs_change_stage=true;d.cs_assign=true;
     d.pl_view=true;d.pl_create=true;d.pl_edit=true;d.pl_move_stage=true;
@@ -2531,6 +2541,24 @@ function effectivePerms(user){
 function currentPerms(){
   if(!_currentUser)return {};
   return effectivePerms(_currentUser);
+}
+
+// ===== MODULE ACCESS — hide/show entire tabs based on module permissions =====
+function applyModuleAccess(){
+  const perms=currentPerms();
+  const modCat=PERM_SCHEMA.find(c=>c.isModules);
+  if(!modCat)return;
+  let activeHidden=false;
+  modCat.perms.forEach(p=>{
+    const btn=document.querySelector('.theme-tab[data-theme="'+p.theme+'"]');
+    if(!btn)return;
+    const allowed=perms[p.k]!==false; // default true if key missing
+    btn.style.display=allowed?'':'none';
+    // If the currently active theme just got hidden, flag it
+    if(!allowed&&_activeTheme===p.theme)activeHidden=true;
+  });
+  // If user's current view was hidden, go Home
+  if(activeHidden)switchTheme('home');
 }
 
 // ---- Permissions modal ----
@@ -2558,17 +2586,34 @@ function permRender(){
   const roleDefaults=ROLE_DEFAULTS[u?u.role:'coordinator']||{};
   let h='';
   PERM_SCHEMA.forEach(cat=>{
-    h+='<div class="perm-cat"><div class="perm-cat-title">'+esc(cat.cat)+'</div><div class="perm-grid">';
-    cat.perms.forEach(p=>{
-      const checked=!!_permEditState[p.k];
-      const isDefault=roleDefaults[p.k];
-      const overridden=checked!==!!isDefault;
-      h+='<div class="perm-row'+(overridden?' overridden':'')+'">';
-      h+='<input type="checkbox" id="perm-'+p.k+'"'+(checked?' checked':'')+' onchange="permToggle(\''+p.k+'\',this.checked)">';
-      h+='<label for="perm-'+p.k+'">'+esc(p.label)+(overridden?' *':'')+'</label>';
+    if(cat.isModules){
+      // Render module toggles as big switches at the top
+      h+='<div class="perm-cat perm-modules"><div class="perm-cat-title" style="font-size:13px;color:var(--purple);margin-bottom:8px">'+esc(cat.cat)+'</div>';
+      h+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
+      cat.perms.forEach(p=>{
+        const checked=!!_permEditState[p.k];
+        const overridden=checked!==!!roleDefaults[p.k];
+        h+='<label class="mod-toggle'+(checked?' on':'')+'" style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;border:1px solid '+(checked?'var(--purple)':'var(--border)')+';background:'+(checked?'var(--purple-lt)':'var(--card)')+';cursor:pointer;font-size:13px;font-weight:600;color:'+(checked?'var(--purple-dk)':'var(--text3)')+';transition:all .15s">';
+        h+='<input type="checkbox" id="perm-'+p.k+'"'+(checked?' checked':'')+' onchange="permToggle(\''+p.k+'\',this.checked)" style="width:16px;height:16px;accent-color:var(--purple)">';
+        h+=esc(p.label.replace(' module',''))+(overridden?' *':'');
+        h+='</label>';
+      });
       h+='</div>';
-    });
-    h+='</div></div>';
+      h+='<div style="font-size:11px;color:var(--text3);margin-top:6px">Turning a module off hides its tab completely for this user.</div>';
+      h+='</div>';
+    }else{
+      h+='<div class="perm-cat"><div class="perm-cat-title">'+esc(cat.cat)+'</div><div class="perm-grid">';
+      cat.perms.forEach(p=>{
+        const checked=!!_permEditState[p.k];
+        const isDefault=roleDefaults[p.k];
+        const overridden=checked!==!!isDefault;
+        h+='<div class="perm-row'+(overridden?' overridden':'')+'">';
+        h+='<input type="checkbox" id="perm-'+p.k+'"'+(checked?' checked':'')+' onchange="permToggle(\''+p.k+'\',this.checked)">';
+        h+='<label for="perm-'+p.k+'">'+esc(p.label)+(overridden?' *':'')+'</label>';
+        h+='</div>';
+      });
+      h+='</div></div>';
+    }
   });
   document.getElementById('perm-body').innerHTML=h;
 }
@@ -2597,7 +2642,10 @@ async function permSave(){
   await supa.from('app_users').update({permissions:permsToStore,updated_at:new Date().toISOString()}).eq('id',u.id);
   u.permissions=permsToStore;
   // If editing own permissions, refresh global state
-  if(_currentUser&&_currentUser.id===u.id)_currentUser.permissions=permsToStore;
+  if(_currentUser&&_currentUser.id===u.id){
+    _currentUser.permissions=permsToStore;
+    applyModuleAccess();
+  }
   permClose();
   umRenderTable();
   toast('Permissions saved for '+u.name);
@@ -7310,6 +7358,15 @@ function bcCalDay(dayKey,date){
 // ===== THEME SWITCHING =====
 let _activeTheme='home';
 function switchTheme(theme){
+  // Block navigation to modules the user doesn't have access to
+  if(theme!=='home'&&_currentUser){
+    const perms=currentPerms();
+    const modCat=PERM_SCHEMA.find(c=>c.isModules);
+    if(modCat){
+      const modPerm=modCat.perms.find(p=>p.theme===theme);
+      if(modPerm&&perms[modPerm.k]===false){theme='home';}
+    }
+  }
   _activeTheme=theme;
   document.body.setAttribute('data-active-theme',theme);
   // Toggle theme tabs
@@ -11791,6 +11848,7 @@ setSyncIndicator('connecting');
   if(supaOnline)subscribeRealtime();
   // Initialize theme: Home Dashboard active
   switchTheme('home');
+  try{applyModuleAccess();}catch(e){}
   try{updateCsTabBadge();}catch(e){}
   // Apply any saved custom branding (logo + banner) and seed the undo baseline
   try{applyCustomBranding();}catch(e){}
