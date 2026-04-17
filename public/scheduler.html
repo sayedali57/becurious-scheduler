@@ -10205,12 +10205,12 @@ function actLinkLabel(link){
 function actOpenLink(model,id){
   if(model==='case'){
     switchTheme('cs');
-    setTimeout(()=>{if(typeof csOpenCase==='function')csOpenCase(id);},200);
+    setTimeout(()=>{if(typeof openCsModal==='function')openCsModal(id);},200);
   }else if(model==='student'){
     if(typeof openStudentProfile==='function')openStudentProfile(id);
   }else if(model==='pipeline'){
     switchTheme('pl');
-    setTimeout(()=>{if(typeof plOpenLead==='function')plOpenLead(id);},200);
+    setTimeout(()=>{if(typeof openPlModal==='function')openPlModal(id);},200);
   }
 }
 
