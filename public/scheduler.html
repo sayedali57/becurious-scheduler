@@ -984,6 +984,126 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 #theme-home .bc-right{border-left:none;border-top:1px solid #E5E0D5}
 .bc-metrics{grid-template-columns:repeat(2,1fr)}
 }
+/* ===== ACTIVITY TAB ===== */
+#theme-tasks{background:#F0EDE5;min-height:100vh;padding:0}
+.act-header{display:flex;align-items:center;gap:12px;padding:14px 24px 0;flex-wrap:wrap}
+.act-header h2{font-size:18px;font-weight:700;color:#3A3530;margin:0;flex:1}
+.act-view-btns{display:flex;gap:4px;background:#E5E0D5;border-radius:8px;padding:2px}
+.act-view-btn{padding:6px 12px;border:none;background:none;border-radius:6px;font-size:12px;font-weight:600;color:#5A5650;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:4px}
+.act-view-btn.active{background:#fff;color:#6A5FA8;box-shadow:0 1px 3px rgba(58,53,48,.1)}
+.act-view-btn:hover:not(.active){color:#3A3530}
+.act-team-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:#5A5650;margin-left:8px}
+.act-team-toggle input{accent-color:#6A5FA8}
+.act-new-btn{padding:8px 16px;border:none;background:#6A5FA8;color:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
+.act-new-btn:hover{background:#5A4F96}
+/* Progress bar */
+.act-progress{padding:0 24px;margin-top:10px}
+.act-progress-text{font-size:12px;color:#5A5650;margin-bottom:4px}
+.act-progress-bar{height:4px;background:#E5E0D5;border-radius:4px;overflow:hidden}
+.act-progress-fill{height:100%;background:linear-gradient(90deg,#6A5FA8,#4DBFAD);border-radius:4px;transition:width .4s ease}
+/* New task form (inline) */
+.act-new-form{background:#fff;border:1px solid #E5E0D5;border-radius:14px;margin:12px 24px 0;padding:20px;display:none;animation:actSlideDown .25s ease}
+@keyframes actSlideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.act-new-form .act-form-row{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.act-new-form input,.act-new-form select,.act-new-form textarea{padding:8px 12px;border:1px solid #E5E0D5;border-radius:8px;font-size:13px;color:#3A3530;background:#FAFAF8;font-family:inherit;transition:border-color .2s}
+.act-new-form input:focus,.act-new-form select:focus,.act-new-form textarea:focus{outline:none;border-color:#6A5FA8}
+.act-new-form input[type="text"],.act-new-form textarea{flex:1;min-width:200px}
+.act-new-form textarea{resize:vertical;min-height:60px}
+.act-new-form label{font-size:12px;font-weight:600;color:#5A5650;margin-bottom:2px;display:block}
+.act-form-actions{display:flex;gap:8px;justify-content:flex-end}
+.act-form-save{padding:8px 20px;border:none;background:#6A5FA8;color:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
+.act-form-save:hover{background:#5A4F96}
+.act-form-cancel{padding:8px 20px;border:1px solid #E5E0D5;background:#fff;color:#5A5650;border-radius:8px;font-size:13px;cursor:pointer}
+.act-form-cancel:hover{border-color:#6A5FA8;color:#6A5FA8}
+/* Task sections */
+.act-body{padding:12px 24px 24px}
+.act-section{margin-bottom:16px}
+.act-section-head{display:flex;align-items:center;gap:8px;padding:8px 0;cursor:pointer;user-select:none}
+.act-section-head h3{font-size:14px;font-weight:700;color:#3A3530;margin:0}
+.act-section-head .act-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;color:#fff}
+.act-section-head .act-chevron{color:#9A9590;transition:transform .2s;font-size:10px}
+.act-section-head .act-chevron.collapsed{transform:rotate(-90deg)}
+.act-section.overdue .act-badge{background:#E87C50}
+.act-section.today .act-badge{background:#6A5FA8}
+.act-section.upcoming .act-badge{background:#9A9590}
+.act-section.done .act-badge{background:#4DBFAD}
+.act-section.delegated .act-badge{background:#BA7517}
+/* Task rows */
+.act-task{display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #E5E0D5;border-radius:10px;margin-bottom:6px;transition:border-color .2s;position:relative}
+.act-task:hover{border-color:#6A5FA8}
+.act-task.overdue{border-left:3px solid #E87C50}
+.act-task.done{opacity:.6}
+.act-task.done .act-task-title{text-decoration:line-through;color:#9A9590}
+/* Checkbox */
+.act-check{width:20px;height:20px;border:2px solid #E5E0D5;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.act-check:hover{border-color:#6A5FA8}
+.act-check.checked{background:#6A5FA8;border-color:#6A5FA8}
+.act-check.checked::after{content:'✓';color:#fff;font-size:12px;font-weight:700}
+/* Task content */
+.act-task-body{flex:1;min-width:0}
+.act-task-title{font-size:13px;font-weight:600;color:#3A3530;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act-task-meta{display:flex;align-items:center;gap:8px;margin-top:3px;flex-wrap:wrap}
+.act-task-meta span{font-size:11px;color:#9A9590}
+.act-task-link{font-size:11px;color:#6A5FA8;cursor:pointer;text-decoration:none;font-weight:500}
+.act-task-link:hover{text-decoration:underline}
+.act-type-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:999px;text-transform:uppercase;letter-spacing:.3px}
+.act-type-badge.auto{background:#F0EDE5;color:#9A9590}
+.act-type-badge.appointment{background:#E8F7F4;color:#4DBFAD}
+.act-type-badge.delegation{background:#FEF3C7;color:#92400E}
+.act-type-badge.task{background:#EAE8F5;color:#6A5FA8}
+.act-priority-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.act-priority-dot.high{background:#E87C50}
+.act-priority-dot.medium{background:#BA7517}
+.act-priority-dot.low{background:#9A9590}
+.act-task-time{font-size:11px;color:#4DBFAD;font-weight:600}
+.act-task-branch{font-size:10px;color:#9A9590;background:#F0EDE5;padding:1px 6px;border-radius:4px}
+.act-task-from{font-size:11px;color:#92400E;font-style:italic}
+/* Undo toast */
+.act-undo-toast{position:fixed;bottom:24px;right:24px;background:#3A3530;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 8px 24px rgba(58,53,48,.2);animation:actSlideUp .25s ease}
+@keyframes actSlideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.act-undo-toast button{background:#6A5FA8;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer}
+/* Team view */
+.act-team-group{margin-bottom:20px}
+.act-team-header{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #E5E0D5;margin-bottom:8px}
+.act-team-header strong{font-size:14px;color:#3A3530}
+.act-team-header small{font-size:12px;color:#9A9590}
+.act-team-header .act-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:#6A5FA8;color:#fff}
+/* Weekly view */
+.act-week{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.act-week-col{background:#fff;border:1px solid #E5E0D5;border-radius:10px;min-height:200px}
+.act-week-col.today{border-color:#6A5FA8;background:#FDFCFB}
+.act-week-day{padding:10px 12px;border-bottom:1px solid #E5E0D5;font-size:12px;font-weight:700;color:#3A3530;text-align:center}
+.act-week-day.today{color:#6A5FA8}
+.act-week-tasks{padding:8px}
+.act-week-card{padding:8px 10px;background:#F0EDE5;border:1px solid #E5E0D5;border-radius:8px;margin-bottom:6px;cursor:grab;font-size:12px;transition:border-color .2s}
+.act-week-card:hover{border-color:#6A5FA8}
+.act-week-card.done{opacity:.5;text-decoration:line-through}
+.act-week-card .act-priority-dot{display:inline-block;margin-right:4px;vertical-align:middle}
+.act-week-card-time{color:#4DBFAD;font-weight:600;font-size:11px;margin-right:4px}
+/* Monthly view */
+.act-month{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.act-month-head{font-size:11px;font-weight:700;color:#9A9590;text-align:center;padding:8px 0}
+.act-month-day{background:#fff;border:1px solid #E5E0D5;border-radius:8px;min-height:60px;padding:6px;cursor:pointer;transition:border-color .2s;position:relative}
+.act-month-day:hover{border-color:#6A5FA8}
+.act-month-day.today{border-color:#6A5FA8;background:#FDFCFB}
+.act-month-day.other{opacity:.4}
+.act-month-num{font-size:12px;font-weight:600;color:#3A3530}
+.act-month-day.today .act-month-num{color:#6A5FA8;font-weight:700}
+.act-month-count{font-size:10px;background:#6A5FA8;color:#fff;padding:1px 5px;border-radius:999px;margin-top:2px;display:inline-block}
+.act-month-apt{width:6px;height:6px;border-radius:50%;background:#4DBFAD;display:inline-block;margin-left:4px;vertical-align:middle}
+.act-month-pop{position:absolute;top:100%;left:50%;transform:translateX(-50%);z-index:100;background:#fff;border:1px solid #E5E0D5;border-radius:10px;box-shadow:0 8px 24px rgba(58,53,48,.15);padding:12px;min-width:220px;max-height:300px;overflow-y:auto;display:none}
+.act-month-pop.open{display:block}
+/* Edit inline */
+.act-edit-overlay{position:fixed;inset:0;background:rgba(58,53,48,.3);z-index:9000;display:flex;align-items:center;justify-content:center}
+.act-edit-card{background:#fff;border-radius:14px;border:1px solid #E5E0D5;box-shadow:0 20px 60px rgba(58,53,48,.15);padding:24px;width:480px;max-width:90vw;max-height:80vh;overflow-y:auto}
+.act-edit-card h3{font-size:16px;font-weight:700;color:#3A3530;margin:0 0 16px}
+@media(max-width:900px){
+.act-header{padding:10px 16px 0}
+.act-body{padding:10px 16px 24px}
+.act-week{grid-template-columns:1fr}
+.act-month{grid-template-columns:repeat(7,1fr);font-size:10px}
+.act-new-form{margin:12px 16px 0}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -1022,6 +1142,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
   <div class="topnav-brand" title="Click ☰ Menu → Branding to change logo"><img src="/Be-Curious-Logo-Transparent.png" alt="BeCurious"></div>
   <div id="env-badge" style="display:none;font-size:9px;font-weight:700;color:#92400E;background:#FEF3C7;padding:3px 10px;border-radius:999px;margin-right:6px;letter-spacing:.4px"></div>
   <button class="theme-tab active" data-theme="home" onclick="switchTheme('home')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>Home</button>
+  <button class="theme-tab" data-theme="tasks" onclick="switchTheme('tasks')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></svg>Activity</button>
   <button class="theme-tab" data-theme="hv" onclick="switchTheme('hv')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Schedule</button>
   <button class="theme-tab" data-theme="cs" onclick="switchTheme('cs')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>Cases<span id="cs-tab-badge" style="display:none;background:#DC2626;color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:999px;margin-left:6px"></span></button>
   <button class="theme-tab" data-theme="pl" onclick="switchTheme('pl')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Pipeline</button>
@@ -1060,6 +1181,43 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
   <div class="bc-left" id="bc-left"></div>
   <aside class="bc-right" id="bc-right"></aside>
 </div>
+</div>
+
+<!-- ===== THEME: ACTIVITY ===== -->
+<div class="theme-panel" id="theme-tasks">
+  <div class="act-header">
+    <h2>Activity</h2>
+    <div class="act-view-btns">
+      <button class="act-view-btn active" data-view="day" onclick="actSwitchView('day')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Day</button>
+      <button class="act-view-btn" data-view="week" onclick="actSwitchView('week')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="4" x2="9" y2="22"/><line x1="15" y1="4" x2="15" y2="22"/></svg>Week</button>
+      <button class="act-view-btn" data-view="month" onclick="actSwitchView('month')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Month</button>
+    </div>
+    <label class="act-team-toggle" id="act-team-toggle" style="display:none"><input type="checkbox" onchange="actToggleTeam(this.checked)"> Team view</label>
+    <button class="act-new-btn" onclick="actToggleNewForm()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>New Task</button>
+  </div>
+  <div class="act-new-form" id="act-new-form">
+    <div class="act-form-row">
+      <div style="flex:2;min-width:200px"><label>Title *</label><input type="text" id="act-f-title" placeholder="What needs to be done?"></div>
+      <div style="min-width:120px"><label>Type</label><select id="act-f-type" onchange="actFormTypeChange()"><option value="task">Task</option><option value="appointment">Appointment</option></select></div>
+      <div style="min-width:120px"><label>Priority</label><select id="act-f-priority"><option value="medium">Medium</option><option value="high">High</option><option value="low">Low</option></select></div>
+    </div>
+    <div class="act-form-row">
+      <div style="min-width:140px"><label>Due date *</label><input type="date" id="act-f-date"></div>
+      <div style="min-width:120px;display:none" id="act-f-time-wrap"><label>Time *</label><input type="time" id="act-f-time"></div>
+      <div style="min-width:140px"><label>Assign to</label><select id="act-f-assign"></select></div>
+      <div style="min-width:120px"><label>Branch</label><select id="act-f-branch"></select></div>
+    </div>
+    <div class="act-form-row">
+      <div style="flex:1;min-width:200px"><label>Link to (optional)</label><input type="text" id="act-f-link" placeholder="Search cases, students, or pipeline..." oninput="actLinkSearch(this.value)"><div id="act-f-link-results" style="display:none;position:absolute;background:#fff;border:1px solid #E5E0D5;border-radius:8px;box-shadow:0 4px 12px rgba(58,53,48,.1);max-height:160px;overflow-y:auto;z-index:100;width:300px"></div></div>
+      <div style="flex:1;min-width:200px"><label>Description (optional)</label><textarea id="act-f-desc" rows="2" placeholder="Add details..."></textarea></div>
+    </div>
+    <div class="act-form-actions">
+      <button class="act-form-cancel" onclick="actToggleNewForm()">Cancel</button>
+      <button class="act-form-save" onclick="actSaveNewTask()">Save Task</button>
+    </div>
+  </div>
+  <div class="act-progress" id="act-progress"></div>
+  <div class="act-body" id="act-body"></div>
 </div>
 
 <!-- ===== THEME: HOME VISITS ===== -->
@@ -2430,9 +2588,17 @@ async function umDeleteUser(uid){
 // Role defaults auto-fill when a user is created, but admin can override per-user.
 const PERM_SCHEMA=[
   {cat:'Module Access',isModules:true,perms:[
+    {k:'mod_tasks',    label:'Activity module',  theme:'tasks'},
     {k:'mod_schedule', label:'Schedule module',  theme:'hv'},
     {k:'mod_cases',    label:'Cases module',     theme:'cs'},
     {k:'mod_pipeline', label:'Pipeline module',  theme:'pl'}
+  ]},
+  {cat:'Activity',perms:[
+    {k:'tk_view',      label:'View tasks'},
+    {k:'tk_create',    label:'Create tasks'},
+    {k:'tk_edit',      label:'Edit / reassign tasks'},
+    {k:'tk_delete',    label:'Delete tasks'},
+    {k:'tk_team',      label:'Team view (see all users)'}
   ]},
   {cat:'Schedule & Home Visits',perms:[
     {k:'hv_view',         label:'View schedule'},
@@ -2505,7 +2671,7 @@ const ROLE_DEFAULTS={
   director:(()=>{
     const d=Object.fromEntries(ALL_PERM_KEYS.map(k=>[k,true]));
     d.settings=false;d.user_mgmt=false;d.danger_zone=false;
-    d.st_delete=false;d.tc_delete=false;d.cs_delete=false;d.pl_delete=false;d.st_bulk_ops=false;
+    d.st_delete=false;d.tc_delete=false;d.cs_delete=false;d.pl_delete=false;d.tk_delete=false;d.st_bulk_ops=false;
     d.data_import=false;d.hv_clear_schedule=false;d.cs_import=false;d.pl_import=false;
     d.cs_settings=false;d.cs_auto_tag=false;d.branding=false;
     return d;
@@ -2513,13 +2679,14 @@ const ROLE_DEFAULTS={
   operations:(()=>{
     const d=Object.fromEntries(ALL_PERM_KEYS.map(k=>[k,true]));
     d.settings=false;d.user_mgmt=false;d.danger_zone=false;
-    d.st_delete=false;d.tc_delete=false;d.cs_delete=false;d.pl_delete=false;d.st_bulk_ops=false;
+    d.st_delete=false;d.tc_delete=false;d.cs_delete=false;d.pl_delete=false;d.tk_delete=false;d.st_bulk_ops=false;
     d.cs_settings=false;d.branding=false;
     return d;
   })(),
   coordinator:(()=>{
     const d=Object.fromEntries(ALL_PERM_KEYS.map(k=>[k,false]));
-    d.mod_schedule=true;d.mod_cases=true;d.mod_pipeline=true;
+    d.mod_tasks=true;d.mod_schedule=true;d.mod_cases=true;d.mod_pipeline=true;
+    d.tk_view=true;d.tk_create=true;d.tk_edit=true;d.tk_delete=false;d.tk_team=false;
     d.hv_view=true;d.hv_attendance=true;d.hv_dispatch=true;
     d.cs_view=true;d.cs_create=true;d.cs_edit=true;d.cs_change_stage=true;d.cs_assign=true;
     d.pl_view=true;d.pl_create=true;d.pl_edit=true;d.pl_move_stage=true;
@@ -2531,7 +2698,7 @@ const ROLE_DEFAULTS={
 };
 
 // Map each module key to the permission-key prefix it governs
-const MODULE_PREFIX_MAP={mod_schedule:'hv_',mod_cases:'cs_',mod_pipeline:'pl_'};
+const MODULE_PREFIX_MAP={mod_tasks:'tk_',mod_schedule:'hv_',mod_cases:'cs_',mod_pipeline:'pl_'};
 
 // Get effective permissions for a user (their overrides merged on top of role defaults)
 function effectivePerms(user){
@@ -3624,7 +3791,7 @@ function setLastEdit(name,when){
 
 function saveState(){
   // Always save locally (offline fallback, instant)
-  try{localStorage.setItem(SAVE_KEY,JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,CASES,CASE_SETTINGS:(typeof CASE_SETTINGS!=='undefined'?CASE_SETTINGS:null),_delT:[..._deletedTeachers],v:5}));}catch(e){}
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,CASES,TASKS,CASE_SETTINGS:(typeof CASE_SETTINGS!=='undefined'?CASE_SETTINGS:null),_delT:[..._deletedTeachers],v:5}));}catch(e){}
   // Don't echo remote updates back to Supabase
   if(applyingRemote)return;
   // Debounce pushes so a burst of edits only triggers one network call
@@ -3636,7 +3803,7 @@ function saveState(){
 async function pushToSupabase(){
   if(!supa){setSyncIndicator('offline');return;}
   try{
-    const payload={SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,CASES,CASE_SETTINGS:(typeof CASE_SETTINGS!=='undefined'?CASE_SETTINGS:null),_delT:[..._deletedTeachers],v:5};
+    const payload={SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,CASES,TASKS,CASE_SETTINGS:(typeof CASE_SETTINGS!=='undefined'?CASE_SETTINGS:null),_delT:[..._deletedTeachers],v:5};
     const fp=JSON.stringify(payload);
     if(fp===lastSyncFp){setSyncIndicator('synced');return;}
     const {error}=await supa.from('scheduler_state').update({
@@ -3668,6 +3835,7 @@ function tryLoadState(){
     ATTEND=data.ATTEND&&typeof data.ATTEND==='object'?data.ATTEND:{};
     PIPELINE=data.PIPELINE&&typeof data.PIPELINE==='object'?data.PIPELINE:{};
     CASES=data.CASES&&typeof data.CASES==='object'?data.CASES:{};
+    TASKS=data.TASKS&&typeof data.TASKS==='object'?data.TASKS:{};
     if(data.CASE_SETTINGS&&typeof data.CASE_SETTINGS==='object'&&typeof CASE_SETTINGS!=='undefined')CASE_SETTINGS=mergeCaseSettings(data.CASE_SETTINGS);
     if(typeof migrateCases==='function')migrateCases();
     if(typeof migratePipeline==='function')migratePipeline();
@@ -3697,6 +3865,7 @@ function applyRemoteData(payload,updatedBy,updatedAt){
     ATTEND=payload.ATTEND&&typeof payload.ATTEND==='object'?payload.ATTEND:{};
     PIPELINE=payload.PIPELINE&&typeof payload.PIPELINE==='object'?payload.PIPELINE:{};
     CASES=payload.CASES&&typeof payload.CASES==='object'?payload.CASES:{};
+    TASKS=payload.TASKS&&typeof payload.TASKS==='object'?payload.TASKS:{};
     if(payload.CASE_SETTINGS&&typeof payload.CASE_SETTINGS==='object'&&typeof CASE_SETTINGS!=='undefined')CASE_SETTINGS=mergeCaseSettings(payload.CASE_SETTINGS);
     if(typeof migrateCases==='function')migrateCases();
     if(typeof migratePipeline==='function')migratePipeline();
@@ -3708,7 +3877,7 @@ function applyRemoteData(payload,updatedBy,updatedAt){
       const arr=raw_s[d]?.[car.id]||[];
       SCHED[d][car.id]=arr.length>=MAX_SL?arr:[...arr,...Array(MAX_SL-arr.length).fill(null)];
     });});
-    lastSyncFp=JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,CASES,CASE_SETTINGS:(typeof CASE_SETTINGS!=='undefined'?CASE_SETTINGS:null),v:5});
+    lastSyncFp=JSON.stringify({SS,SCHED,CARS,TEACHERS,ATTEND,SETTINGS,PIPELINE,CASES,TASKS,CASE_SETTINGS:(typeof CASE_SETTINGS!=='undefined'?CASE_SETTINGS:null),v:5});
     setLastEdit(updatedBy,updatedAt);
     return true;
   }finally{
@@ -3740,7 +3909,7 @@ function subscribeRealtime(){
       (pl)=>{
         const newData=pl.new&&pl.new.data;
         if(!newData)return;
-        const fp=JSON.stringify({SS:newData.SS,SCHED:newData.SCHED,CARS:newData.CARS,TEACHERS:newData.TEACHERS||{},ATTEND:newData.ATTEND||{},SETTINGS:newData.SETTINGS||DEFAULT_SETTINGS,PIPELINE:newData.PIPELINE||{},CASES:newData.CASES||{},CASE_SETTINGS:newData.CASE_SETTINGS||null,v:5});
+        const fp=JSON.stringify({SS:newData.SS,SCHED:newData.SCHED,CARS:newData.CARS,TEACHERS:newData.TEACHERS||{},ATTEND:newData.ATTEND||{},SETTINGS:newData.SETTINGS||DEFAULT_SETTINGS,PIPELINE:newData.PIPELINE||{},CASES:newData.CASES||{},TASKS:newData.TASKS||{},CASE_SETTINGS:newData.CASE_SETTINGS||null,v:5});
         // Ignore our own echo
         if(fp===lastSyncFp)return;
         if(applyRemoteData(newData,pl.new.updated_by,pl.new.updated_at)){
@@ -7415,6 +7584,9 @@ function switchTheme(theme){
   if(theme==='home'){
     renderHomeDashboard();
   }
+  if(theme==='tasks'){
+    actRender();
+  }
   if(theme==='pl'){
     switchPlView(_plView||'kanban');
   }
@@ -9728,6 +9900,747 @@ function toastUndo(msg,onUndo,ms){
   setTimeout(()=>{if(!used)t.remove();},ms||10000);
 }
 
+// ===== ACTIVITY / TASKS ENGINE =====
+let _actView='day';
+let _actTeamMode=false;
+let _actUndoTimer=null;
+let _actUndoTask=null;
+let _actLinkSelection=null; // {model,id,label}
+
+function actId(){return 'task_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);}
+function actToday(){return new Date().toISOString().slice(0,10);}
+function actDaysBetween(a,b){return Math.round((new Date(b)-new Date(a))/86400000);}
+
+// ---- Auto-pull engine ----
+function actAutoPull(){
+  const today=actToday();
+  const now=new Date();
+  // Helper: find Operations users
+  const opsUsers=(_umUsers||[]).filter(u=>u.role==='operations'&&u.status==='active');
+  const opsName=opsUsers.length?opsUsers[0].name:'Operations';
+
+  // 1. Case next actions
+  Object.values(CASES).forEach(c=>{
+    if(!c||c.status==='Resolved')return;
+    (c.nextActions||[]).forEach(na=>{
+      if(na.done)return;
+      const src='case_na_'+c.id+'_'+na.id;
+      if(actFindBySource(src))return;
+      TASKS[actId()]={
+        id:null,title:na.text||'Case action',description:'',type:'auto',status:'pending',
+        priority:'medium',due_date:c.dueDate||today,due_time:'',
+        assigned_to:c.assignedTo||opsName,delegated_by:'',
+        linked_to:{model:'case',id:c.id},branch:c.branch||'',
+        created_at:now.toISOString(),completed_at:'',created_by:'system',auto_source:src
+      };
+      // Fix id
+      const keys=Object.keys(TASKS);
+      const last=keys[keys.length-1];
+      TASKS[last].id=last;
+    });
+  });
+
+  // 2. Pipeline stale leads (5+ days no log)
+  Object.values(PIPELINE).forEach(l=>{
+    if(!l||l.stage==='enrolled'||l.stage==='lost'||l.stage==='retained')return;
+    const lastLog=l.log&&l.log.length?l.log[l.log.length-1]:null;
+    const lastDate=lastLog?lastLog.ts:l.createdAt;
+    if(lastDate&&actDaysBetween(lastDate,today)>=5){
+      const src='pipeline_followup_'+l.id;
+      if(actFindBySource(src))return;
+      TASKS[actId()]={
+        id:null,title:'Follow up with '+(l.familyName||'Lead'),description:'',type:'auto',status:'pending',
+        priority:'medium',due_date:today,due_time:'',
+        assigned_to:l.assignedTo||opsName,delegated_by:'',
+        linked_to:{model:'pipeline',id:l.id},branch:l.branch||'',
+        created_at:now.toISOString(),completed_at:'',created_by:'system',auto_source:src
+      };
+      const keys=Object.keys(TASKS);TASKS[keys[keys.length-1]].id=keys[keys.length-1];
+    }
+  });
+
+  // 3. Inactive students
+  Object.values(SS).forEach(s=>{
+    if(!s||s.status!=='inactive')return;
+    const src='student_reactivation_'+s.id;
+    if(actFindBySource(src))return;
+    TASKS[actId()]={
+      id:null,title:'Reactivation call — '+(s.n||'Student'),description:'',type:'auto',status:'pending',
+      priority:'medium',due_date:today,due_time:'',
+      assigned_to:opsName,delegated_by:'',
+      linked_to:{model:'student',id:s.id},branch:s.br||'',
+      created_at:now.toISOString(),completed_at:'',created_by:'system',auto_source:src
+    };
+    const keys=Object.keys(TASKS);TASKS[keys[keys.length-1]].id=keys[keys.length-1];
+  });
+
+  // 4. Escalated cases stale 3+ days
+  Object.values(CASES).forEach(c=>{
+    if(!c||c.stage!=='escalated'||c.status==='Resolved')return;
+    const lastLog=c.log&&c.log.length?c.log[c.log.length-1]:null;
+    const lastDate=lastLog?lastLog.ts:c.createdAt;
+    if(lastDate&&actDaysBetween(lastDate,today)>=3){
+      const src='case_escalation_'+c.id;
+      if(actFindBySource(src))return;
+      TASKS[actId()]={
+        id:null,title:'Escalation follow-up — '+(c.parentFullName||'Case'),description:'',type:'auto',status:'pending',
+        priority:'high',due_date:today,due_time:'',
+        assigned_to:opsName,delegated_by:'',
+        linked_to:{model:'case',id:c.id},branch:c.branch||'',
+        created_at:now.toISOString(),completed_at:'',created_by:'system',auto_source:src
+      };
+      const keys=Object.keys(TASKS);TASKS[keys[keys.length-1]].id=keys[keys.length-1];
+    }
+  });
+
+  // 5. Overdue cases
+  Object.values(CASES).forEach(c=>{
+    if(!c||c.status==='Resolved'||!c.dueDate)return;
+    if(c.dueDate>=today)return;
+    const src='case_overdue_'+c.id;
+    if(actFindBySource(src))return;
+    TASKS[actId()]={
+      id:null,title:'Overdue: '+(c.parentFullName||'Case #'+c.id.slice(-5)),description:'',type:'auto',status:'overdue',
+      priority:'high',due_date:c.dueDate,due_time:'',
+      assigned_to:c.assignedTo||opsName,delegated_by:'',
+      linked_to:{model:'case',id:c.id},branch:c.branch||'',
+      created_at:now.toISOString(),completed_at:'',created_by:'system',auto_source:src
+    };
+    const keys=Object.keys(TASKS);TASKS[keys[keys.length-1]].id=keys[keys.length-1];
+  });
+
+  // Auto-complete: mark auto tasks done if source resolved
+  Object.values(TASKS).forEach(t=>{
+    if(!t||t.status==='done'||t.type!=='auto'||!t.auto_source)return;
+    const src=t.auto_source;
+    // Case next action completed
+    if(src.startsWith('case_na_')){
+      const parts=src.split('_');
+      const caseId=parts.slice(2,-1).join('_');  // handle underscores in id
+      const naId=parts[parts.length-1];
+      // Try to find case and action
+      const c=CASES[caseId]||Object.values(CASES).find(c2=>src.startsWith('case_na_'+c2.id));
+      if(c){
+        const na=(c.nextActions||[]).find(a=>a.id===naId||src.endsWith(a.id));
+        if(na&&na.done){t.status='done';t.completed_at=na.doneAt||now.toISOString();}
+        if(c.status==='Resolved'){t.status='done';t.completed_at=c.resolvedAt||now.toISOString();}
+      }
+    }
+    // Student reactivated
+    if(src.startsWith('student_reactivation_')){
+      const sid=src.replace('student_reactivation_','');
+      const s=SS[sid];
+      if(s&&s.status==='active'){t.status='done';t.completed_at=now.toISOString();}
+    }
+    // Pipeline moved forward
+    if(src.startsWith('pipeline_followup_')){
+      const lid=src.replace('pipeline_followup_','');
+      const l=PIPELINE[lid];
+      if(l){
+        const lastLog=l.log&&l.log.length?l.log[l.log.length-1]:null;
+        const lastDate=lastLog?lastLog.ts:l.createdAt;
+        if(lastDate&&actDaysBetween(lastDate,today)<5){t.status='done';t.completed_at=now.toISOString();}
+        if(l.stage==='enrolled'||l.stage==='lost'){t.status='done';t.completed_at=now.toISOString();}
+      }
+    }
+    // Case escalation resolved
+    if(src.startsWith('case_escalation_')){
+      const cid=src.replace('case_escalation_','');
+      const c=CASES[cid];
+      if(c&&(c.status==='Resolved'||c.stage!=='escalated')){t.status='done';t.completed_at=now.toISOString();}
+    }
+    // Case overdue resolved
+    if(src.startsWith('case_overdue_')){
+      const cid=src.replace('case_overdue_','');
+      const c=CASES[cid];
+      if(c&&c.status==='Resolved'){t.status='done';t.completed_at=now.toISOString();}
+    }
+  });
+
+  // Mark pending tasks whose due_date is past as overdue
+  Object.values(TASKS).forEach(t=>{
+    if(!t)return;
+    if(t.status==='pending'&&t.due_date&&t.due_date<today)t.status='overdue';
+    if((t.status==='overdue')&&t.due_date&&t.due_date>=today)t.status='pending';
+  });
+}
+
+function actFindBySource(src){
+  return Object.values(TASKS).find(t=>t&&t.auto_source===src&&t.status!=='done');
+}
+
+// ---- Render dispatcher ----
+async function actRender(){
+  // Ensure user list is loaded for task assignment
+  if(supa&&(!_umUsers||!_umUsers.length)){
+    try{const {data}=await supa.from('app_users').select('*').order('created_at',{ascending:true});_umUsers=data||[];}catch(e){}
+  }
+  // Run auto-pull first
+  actAutoPull();
+  // Show/hide team toggle based on role
+  const perms=currentPerms();
+  const teamToggle=document.getElementById('act-team-toggle');
+  if(teamToggle)teamToggle.style.display=(perms.tk_team!==false)?'':'none';
+  if(_actView==='day')actRenderDay();
+  else if(_actView==='week')actRenderWeek();
+  else if(_actView==='month')actRenderMonth();
+}
+
+function actSwitchView(v){
+  _actView=v;
+  document.querySelectorAll('.act-view-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
+  actRender();
+}
+
+function actToggleTeam(on){
+  _actTeamMode=on;
+  actRender();
+}
+
+// ---- My Day view ----
+function actRenderDay(){
+  const body=document.getElementById('act-body');
+  const progWrap=document.getElementById('act-progress');
+  if(!body)return;
+  const me=_currentUser?_currentUser.name:'';
+  const myBranch=_currentUser?_currentUser.branch:'';
+  const today=actToday();
+  const upcoming3=new Date();upcoming3.setDate(upcoming3.getDate()+3);
+  const upcomingDate=upcoming3.toISOString().slice(0,10);
+
+  let tasks=Object.values(TASKS).filter(t=>t);
+
+  if(_actTeamMode){
+    // Team view — group by person
+    const perms=currentPerms();
+    if(perms.all_branches===false&&myBranch&&myBranch!=='All'){
+      tasks=tasks.filter(t=>!t.branch||t.branch===myBranch);
+    }
+    actRenderTeamView(body,progWrap,tasks,today);
+    return;
+  }
+
+  // Personal view — only my tasks
+  tasks=tasks.filter(t=>t.assigned_to===me);
+
+  const overdue=tasks.filter(t=>t.status==='overdue');
+  const dueToday=tasks.filter(t=>t.status!=='done'&&t.status!=='overdue'&&t.due_date===today);
+  const upcoming=tasks.filter(t=>t.status!=='done'&&t.status!=='overdue'&&t.due_date>today&&t.due_date<=upcomingDate);
+  const delegatedByMe=Object.values(TASKS).filter(t=>t&&t.delegated_by===me&&t.assigned_to!==me);
+  const doneToday=tasks.filter(t=>t.status==='done'&&t.completed_at&&t.completed_at.slice(0,10)===today);
+
+  // Sort by priority
+  const priOrd={high:0,medium:1,low:2};
+  const sortPri=(a,b)=>(priOrd[a.priority]||1)-(priOrd[b.priority]||1);
+  overdue.sort(sortPri);dueToday.sort(sortPri);upcoming.sort(sortPri);
+
+  // Progress
+  const totalToday=[...overdue,...dueToday].length+doneToday.length;
+  const doneCount=doneToday.length;
+  const pct=totalToday?Math.round(doneCount/totalToday*100):0;
+  progWrap.innerHTML=totalToday?
+    '<div class="act-progress-text">'+doneCount+' of '+totalToday+' tasks complete</div><div class="act-progress-bar"><div class="act-progress-fill" style="width:'+pct+'%"></div></div>':'';
+
+  let h='';
+  h+=actSectionHtml('Overdue','overdue',overdue,false);
+  h+=actSectionHtml('Due today','today',dueToday,false);
+  h+=actSectionHtml('Upcoming (3 days)','upcoming',upcoming,true);
+  if(delegatedByMe.length){
+    h+=actSectionHtml('Delegated by me','delegated',delegatedByMe,false);
+  }
+  h+=actSectionHtml('Done today','done',doneToday,true);
+  if(!overdue.length&&!dueToday.length&&!upcoming.length&&!doneToday.length&&!delegatedByMe.length){
+    h='<div style="text-align:center;padding:60px 20px;color:#9A9590"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#E5E0D5" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></svg><p style="margin-top:12px;font-size:14px">No tasks yet</p><p style="font-size:12px">Click "+ New Task" to create one, or tasks will auto-appear from Cases, Pipeline, and Students.</p></div>';
+  }
+  body.innerHTML=h;
+}
+
+function actSectionHtml(label,cls,tasks,collapsed){
+  if(!tasks.length)return '';
+  let h='<div class="act-section '+cls+'">';
+  h+='<div class="act-section-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\';this.querySelector(\'.act-chevron\').classList.toggle(\'collapsed\')">';
+  h+='<span class="act-chevron'+(collapsed?' collapsed':'')+'">▼</span>';
+  h+='<h3>'+label+'</h3>';
+  h+='<span class="act-badge">'+tasks.length+'</span>';
+  h+='</div>';
+  h+='<div style="'+(collapsed?'display:none':'')+'">';
+  tasks.forEach(t=>{h+=actTaskRowHtml(t);});
+  h+='</div></div>';
+  return h;
+}
+
+function actTaskRowHtml(t){
+  const isDone=t.status==='done';
+  const isOverdue=t.status==='overdue';
+  let h='<div class="act-task'+(isDone?' done':'')+(isOverdue?' overdue':'')+'" data-task-id="'+t.id+'">';
+  h+='<div class="act-check'+(isDone?' checked':'')+'" onclick="actToggleDone(\''+t.id+'\')"></div>';
+  h+='<div class="act-task-body">';
+  h+='<div class="act-task-title">'+esc(t.title)+'</div>';
+  h+='<div class="act-task-meta">';
+  h+='<span class="act-priority-dot '+t.priority+'"></span>';
+  if(t.due_time){h+='<span class="act-task-time">'+t.due_time+'</span>';}
+  if(t.linked_to&&t.linked_to.model){
+    const linkLabel=actLinkLabel(t.linked_to);
+    if(linkLabel){h+='<a class="act-task-link" onclick="actOpenLink(\''+t.linked_to.model+'\',\''+t.linked_to.id+'\')">'+esc(linkLabel)+'</a>';}
+  }
+  h+='<span class="act-type-badge '+t.type+'">'+t.type+'</span>';
+  if(t.branch){h+='<span class="act-task-branch">'+esc(t.branch)+'</span>';}
+  if(t.delegated_by){h+='<span class="act-task-from">from '+esc(t.delegated_by)+'</span>';}
+  if(_actTeamMode&&t.assigned_to){h+='<span style="font-size:11px;color:#5A5650;font-weight:500">→ '+esc(t.assigned_to)+'</span>';}
+  h+='</div></div>';
+  // Edit button
+  h+='<svg onclick="actEditTask(\''+t.id+'\')" style="cursor:pointer;flex-shrink:0;color:#9A9590" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  h+='</div>';
+  return h;
+}
+
+function actLinkLabel(link){
+  if(!link||!link.model||!link.id)return '';
+  if(link.model==='case'){const c=CASES[link.id];return c?'Case: '+(c.parentFullName||link.id.slice(-5)):'';}
+  if(link.model==='student'){const s=SS[link.id];return s?'Student: '+(s.n||link.id):'';}
+  if(link.model==='pipeline'){const l=PIPELINE[link.id];return l?'Lead: '+(l.familyName||link.id.slice(-5)):'';}
+  return '';
+}
+
+function actOpenLink(model,id){
+  if(model==='case'){
+    switchTheme('cs');
+    setTimeout(()=>{if(typeof csOpenCase==='function')csOpenCase(id);},200);
+  }else if(model==='student'){
+    if(typeof openStudentProfile==='function')openStudentProfile(id);
+  }else if(model==='pipeline'){
+    switchTheme('pl');
+    setTimeout(()=>{if(typeof plOpenLead==='function')plOpenLead(id);},200);
+  }
+}
+
+// ---- Team view ----
+function actRenderTeamView(body,progWrap,tasks,today){
+  progWrap.innerHTML='';
+  // Group by assigned_to
+  const byPerson={};
+  tasks.forEach(t=>{
+    const p=t.assigned_to||'Unassigned';
+    if(!byPerson[p])byPerson[p]=[];
+    byPerson[p].push(t);
+  });
+  let h='';
+  Object.keys(byPerson).sort().forEach(name=>{
+    const pTasks=byPerson[name];
+    const todayCount=pTasks.filter(t=>t.due_date===today&&t.status!=='done').length;
+    const doneCount=pTasks.filter(t=>t.status==='done'&&t.completed_at&&t.completed_at.slice(0,10)===today).length;
+    const user=(_umUsers||[]).find(u=>u.name===name);
+    h+='<div class="act-team-group">';
+    h+='<div class="act-team-header">';
+    h+='<strong>'+esc(name)+'</strong>';
+    if(user){h+='<small>'+esc(user.role)+' · '+esc(user.branch||'')+'</small>';}
+    h+='<span class="act-badge">'+todayCount+' today</span>';
+    if(doneCount){h+='<span class="act-badge" style="background:#4DBFAD">'+doneCount+' done</span>';}
+    h+='</div>';
+    const active=pTasks.filter(t=>t.status!=='done').sort((a,b)=>{
+      const priOrd={high:0,medium:1,low:2};
+      return (priOrd[a.priority]||1)-(priOrd[b.priority]||1);
+    });
+    active.forEach(t=>{h+=actTaskRowHtml(t);});
+    h+='</div>';
+  });
+  if(!h)h='<div style="text-align:center;padding:40px;color:#9A9590">No team tasks found.</div>';
+  body.innerHTML=h;
+}
+
+// ---- Weekly view ----
+function actRenderWeek(){
+  const body=document.getElementById('act-body');
+  const progWrap=document.getElementById('act-progress');
+  if(!body)return;
+  progWrap.innerHTML='';
+  const me=_currentUser?_currentUser.name:'';
+  const today=actToday();
+  // Build 5-day week (Sun-Thu for Kuwait)
+  const d=new Date();
+  const dow=d.getDay(); // 0=Sun
+  const startOffset=dow; // go back to Sunday
+  const weekStart=new Date(d);weekStart.setDate(d.getDate()-startOffset);
+  const days=[];
+  for(let i=0;i<5;i++){
+    const dd=new Date(weekStart);dd.setDate(weekStart.getDate()+i);
+    days.push(dd.toISOString().slice(0,10));
+  }
+  const dayNames=['Sun','Mon','Tue','Wed','Thu'];
+  let tasks=_actTeamMode?Object.values(TASKS).filter(t=>t):Object.values(TASKS).filter(t=>t&&t.assigned_to===me);
+  let h='<div class="act-week">';
+  days.forEach((day,i)=>{
+    const isToday=day===today;
+    const dayTasks=tasks.filter(t=>t.due_date===day&&t.status!=='done');
+    h+='<div class="act-week-col'+(isToday?' today':'')+'">';
+    h+='<div class="act-week-day'+(isToday?' today':'')+'">'+dayNames[i]+'<br><small>'+day.slice(5)+'</small></div>';
+    h+='<div class="act-week-tasks" data-date="'+day+'" ondragover="event.preventDefault()" ondrop="actWeekDrop(event,\''+day+'\')">';
+    dayTasks.sort((a,b)=>{
+      if(a.due_time&&b.due_time)return a.due_time.localeCompare(b.due_time);
+      if(a.due_time)return -1;if(b.due_time)return 1;
+      const p={high:0,medium:1,low:2};return(p[a.priority]||1)-(p[b.priority]||1);
+    });
+    dayTasks.forEach(t=>{
+      h+='<div class="act-week-card" draggable="true" ondragstart="actWeekDrag(event,\''+t.id+'\')" onclick="actEditTask(\''+t.id+'\')">';
+      h+='<span class="act-priority-dot '+t.priority+'"></span>';
+      if(t.due_time){h+='<span class="act-week-card-time">'+t.due_time+'</span>';}
+      h+=esc(t.title);
+      h+='</div>';
+    });
+    h+='</div></div>';
+  });
+  h+='</div>';
+  body.innerHTML=h;
+}
+
+let _actDragId=null;
+function actWeekDrag(e,id){_actDragId=id;e.dataTransfer.effectAllowed='move';}
+function actWeekDrop(e,date){
+  e.preventDefault();
+  if(!_actDragId||!TASKS[_actDragId])return;
+  TASKS[_actDragId].due_date=date;
+  saveState();
+  actRender();
+  _actDragId=null;
+}
+
+// ---- Monthly view ----
+function actRenderMonth(){
+  const body=document.getElementById('act-body');
+  const progWrap=document.getElementById('act-progress');
+  if(!body)return;
+  progWrap.innerHTML='';
+  const me=_currentUser?_currentUser.name:'';
+  const today=actToday();
+  const now=new Date();
+  const year=now.getFullYear();
+  const month=now.getMonth();
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let tasks=_actTeamMode?Object.values(TASKS).filter(t=>t):Object.values(TASKS).filter(t=>t&&t.assigned_to===me);
+
+  let h='<div style="text-align:center;margin-bottom:12px;font-size:15px;font-weight:700;color:#3A3530">'+now.toLocaleString('en',{month:'long',year:'numeric'})+'</div>';
+  h+='<div class="act-month">';
+  dayNames.forEach(d=>{h+='<div class="act-month-head">'+d+'</div>';});
+  // Blank cells before first day
+  for(let i=0;i<firstDay;i++){h+='<div class="act-month-day other"></div>';}
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const isToday=dateStr===today;
+    const dayTasks=tasks.filter(t=>t.due_date===dateStr&&t.status!=='done');
+    const hasAppointment=dayTasks.some(t=>t.type==='appointment');
+    h+='<div class="act-month-day'+(isToday?' today':'')+'" onclick="actMonthPopToggle(this,\''+dateStr+'\')">';
+    h+='<div class="act-month-num">'+d+'</div>';
+    if(dayTasks.length){h+='<span class="act-month-count">'+dayTasks.length+'</span>';}
+    if(hasAppointment){h+='<span class="act-month-apt"></span>';}
+    h+='</div>';
+  }
+  h+='</div>';
+  body.innerHTML=h;
+}
+
+function actMonthPopToggle(el,date){
+  // Close any open popover
+  document.querySelectorAll('.act-month-pop.open').forEach(p=>p.remove());
+  const me=_currentUser?_currentUser.name:'';
+  let tasks=_actTeamMode?Object.values(TASKS).filter(t=>t):Object.values(TASKS).filter(t=>t&&t.assigned_to===me);
+  const dayTasks=tasks.filter(t=>t.due_date===date);
+  if(!dayTasks.length)return;
+  let h='<div class="act-month-pop open">';
+  h+='<div style="font-size:13px;font-weight:700;color:#3A3530;margin-bottom:8px">'+date+'</div>';
+  dayTasks.forEach(t=>{
+    h+='<div style="padding:6px 0;border-bottom:1px solid #F0EDE5;font-size:12px;color:'+(t.status==='done'?'#9A9590':'#3A3530')+';cursor:pointer" onclick="actEditTask(\''+t.id+'\')">';
+    h+='<span class="act-priority-dot '+t.priority+'" style="display:inline-block;margin-right:4px;vertical-align:middle"></span>';
+    if(t.due_time){h+='<span style="color:#4DBFAD;font-weight:600">'+t.due_time+'</span> ';}
+    h+=esc(t.title);
+    h+='</div>';
+  });
+  h+='</div>';
+  el.style.position='relative';
+  el.insertAdjacentHTML('beforeend',h);
+  // Close on outside click
+  setTimeout(()=>{
+    const close=e=>{if(!el.contains(e.target)){document.querySelectorAll('.act-month-pop.open').forEach(p=>p.remove());document.removeEventListener('click',close);}};
+    document.addEventListener('click',close);
+  },10);
+}
+
+// ---- New task form ----
+function actToggleNewForm(){
+  const form=document.getElementById('act-new-form');
+  if(!form)return;
+  const isOpen=form.style.display==='block';
+  form.style.display=isOpen?'none':'block';
+  if(!isOpen){
+    // Pre-fill defaults
+    document.getElementById('act-f-title').value='';
+    document.getElementById('act-f-type').value='task';
+    document.getElementById('act-f-priority').value='medium';
+    document.getElementById('act-f-date').value=actToday();
+    document.getElementById('act-f-time').value='';
+    document.getElementById('act-f-time-wrap').style.display='none';
+    document.getElementById('act-f-desc').value='';
+    document.getElementById('act-f-link').value='';
+    _actLinkSelection=null;
+    // Populate assign dropdown
+    actPopulateAssignDropdown('act-f-assign');
+    actPopulateBranchDropdown('act-f-branch');
+    // Pre-fill link if we have one
+    if(_actLinkSelection){
+      document.getElementById('act-f-link').value=_actLinkSelection.label||'';
+    }
+  }
+}
+
+function actFormTypeChange(){
+  const type=document.getElementById('act-f-type').value;
+  document.getElementById('act-f-time-wrap').style.display=type==='appointment'?'block':'none';
+}
+
+function actPopulateAssignDropdown(selectId){
+  const sel=document.getElementById(selectId);
+  if(!sel)return;
+  const me=_currentUser?_currentUser.name:'';
+  let h='<option value="'+esc(me)+'">'+esc(me)+' (me)</option>';
+  (_umUsers||[]).forEach(u=>{
+    if(u.name===me||u.status!=='active')return;
+    h+='<option value="'+esc(u.name)+'">'+esc(u.name)+'</option>';
+  });
+  sel.innerHTML=h;
+}
+
+function actPopulateBranchDropdown(selectId){
+  const sel=document.getElementById(selectId);
+  if(!sel)return;
+  const branches=typeof csBranches==='function'?csBranches():['Salam','Shuhada','Salwa'];
+  const myBranch=_currentUser?_currentUser.branch:'';
+  let h='';
+  branches.forEach(b=>{
+    h+='<option value="'+esc(b)+'"'+(b===myBranch?' selected':'')+'>'+esc(b)+'</option>';
+  });
+  sel.innerHTML=h;
+}
+
+function actLinkSearch(q){
+  const results=document.getElementById('act-f-link-results');
+  if(!results)return;
+  if(!q||q.length<2){results.style.display='none';return;}
+  const ql=q.toLowerCase();
+  let matches=[];
+  // Search cases
+  Object.values(CASES).forEach(c=>{
+    if(c&&(c.parentFullName||'').toLowerCase().includes(ql)){
+      matches.push({model:'case',id:c.id,label:'Case: '+c.parentFullName});
+    }
+  });
+  // Search students
+  Object.values(SS).forEach(s=>{
+    if(s&&(s.n||'').toLowerCase().includes(ql)){
+      matches.push({model:'student',id:s.id,label:'Student: '+s.n});
+    }
+  });
+  // Search pipeline
+  Object.values(PIPELINE).forEach(l=>{
+    if(l&&(l.familyName||'').toLowerCase().includes(ql)){
+      matches.push({model:'pipeline',id:l.id,label:'Lead: '+l.familyName});
+    }
+  });
+  if(!matches.length){results.style.display='none';return;}
+  let h='';
+  matches.slice(0,8).forEach(m=>{
+    h+='<div style="padding:8px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid #F0EDE5;color:#3A3530" onmouseover="this.style.background=\'#F0EDE5\'" onmouseout="this.style.background=\'#fff\'" onclick="actSelectLink(\''+m.model+'\',\''+m.id+'\',\''+esc(m.label)+'\')">'+esc(m.label)+'</div>';
+  });
+  results.innerHTML=h;
+  results.style.display='block';
+}
+
+function actSelectLink(model,id,label){
+  _actLinkSelection={model,id,label};
+  document.getElementById('act-f-link').value=label;
+  document.getElementById('act-f-link-results').style.display='none';
+}
+
+function actSaveNewTask(){
+  const title=document.getElementById('act-f-title').value.trim();
+  if(!title){document.getElementById('act-f-title').style.borderColor='#E87C50';return;}
+  const type=document.getElementById('act-f-type').value;
+  const priority=document.getElementById('act-f-priority').value;
+  const dueDate=document.getElementById('act-f-date').value;
+  const dueTime=type==='appointment'?document.getElementById('act-f-time').value:'';
+  const assignTo=document.getElementById('act-f-assign').value;
+  const branch=document.getElementById('act-f-branch').value;
+  const desc=document.getElementById('act-f-desc').value.trim();
+  const me=_currentUser?_currentUser.name:'';
+
+  if(!dueDate){document.getElementById('act-f-date').style.borderColor='#E87C50';return;}
+  if(type==='appointment'&&!dueTime){document.getElementById('act-f-time').style.borderColor='#E87C50';return;}
+
+  const id=actId();
+  const taskType=(assignTo&&assignTo!==me)?'delegation':type;
+  TASKS[id]={
+    id,title,description:desc,
+    type:taskType,status:'pending',priority,
+    due_date:dueDate,due_time:dueTime,
+    assigned_to:assignTo||me,
+    delegated_by:(assignTo&&assignTo!==me)?me:'',
+    linked_to:_actLinkSelection?{model:_actLinkSelection.model,id:_actLinkSelection.id}:{model:null,id:''},
+    branch,
+    created_at:new Date().toISOString(),
+    completed_at:'',
+    created_by:me,
+    auto_source:''
+  };
+  _actLinkSelection=null;
+  saveState();
+  actToggleNewForm();
+  actRender();
+  toast('Task created');
+}
+
+// ---- Complete / undo ----
+function actToggleDone(id){
+  const t=TASKS[id];
+  if(!t)return;
+  if(t.status==='done'){
+    // Undo
+    t.status=t.due_date<actToday()?'overdue':'pending';
+    t.completed_at='';
+    saveState();actRender();
+    return;
+  }
+  // Mark done
+  t.status='done';
+  t.completed_at=new Date().toISOString();
+  // Log to linked record
+  actLogCompletion(t);
+  saveState();actRender();
+  // Show undo toast
+  _actUndoTask=id;
+  if(_actUndoTimer)clearTimeout(_actUndoTimer);
+  const existing=document.querySelector('.act-undo-toast');
+  if(existing)existing.remove();
+  const toast_el=document.createElement('div');
+  toast_el.className='act-undo-toast';
+  toast_el.innerHTML='Task completed <button onclick="actUndoDone()">Undo</button>';
+  document.body.appendChild(toast_el);
+  _actUndoTimer=setTimeout(()=>{toast_el.remove();_actUndoTask=null;},10000);
+}
+
+function actUndoDone(){
+  if(!_actUndoTask||!TASKS[_actUndoTask])return;
+  const t=TASKS[_actUndoTask];
+  t.status=t.due_date<actToday()?'overdue':'pending';
+  t.completed_at='';
+  saveState();actRender();
+  const toast_el=document.querySelector('.act-undo-toast');
+  if(toast_el)toast_el.remove();
+  if(_actUndoTimer)clearTimeout(_actUndoTimer);
+  _actUndoTask=null;
+}
+
+function actLogCompletion(t){
+  if(!t.linked_to||!t.linked_to.model||!t.linked_to.id)return;
+  const me=_currentUser?_currentUser.name:'';
+  const stamp=new Date();
+  const d=stamp.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const tm=stamp.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  const text=d+' · '+tm+' · '+me+' — Task completed: '+t.title;
+  if(t.linked_to.model==='case'){
+    const c=CASES[t.linked_to.id];
+    if(c){if(!c.log)c.log=[];c.log.push({ts:stamp.toISOString(),type:'system',text:'Task completed: '+t.title,by:me});}
+  }
+  if(t.linked_to.model==='student'){
+    const s=SS[t.linked_to.id];
+    if(s){if(!s.log)s.log=[];s.log.push({at:stamp.toISOString(),type:'task-done',text:'Task completed: '+t.title,by:me});}
+  }
+  if(t.linked_to.model==='pipeline'){
+    const l=PIPELINE[t.linked_to.id];
+    if(l){if(!l.log)l.log=[];l.log.push({ts:stamp.toISOString(),type:'note',text:'Task completed: '+t.title});}
+  }
+}
+
+// ---- Edit task ----
+function actEditTask(id){
+  const t=TASKS[id];
+  if(!t)return;
+  const perms=currentPerms();
+  const canEdit=perms.tk_edit!==false;
+  // Close any existing
+  const existing=document.querySelector('.act-edit-overlay');
+  if(existing)existing.remove();
+  const me=_currentUser?_currentUser.name:'';
+  const overlay=document.createElement('div');
+  overlay.className='act-edit-overlay';
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+  let h='<div class="act-edit-card">';
+  h+='<h3>Edit Task</h3>';
+  h+='<div class="act-form-row"><div style="flex:1"><label>Title</label><input type="text" id="act-e-title" value="'+esc(t.title)+'"'+(canEdit?'':' disabled')+'></div></div>';
+  h+='<div class="act-form-row">';
+  h+='<div style="min-width:120px"><label>Type</label><select id="act-e-type"'+(canEdit?'':' disabled')+'><option value="task"'+(t.type==='task'?' selected':'')+'>Task</option><option value="appointment"'+(t.type==='appointment'?' selected':'')+'>Appointment</option><option value="delegation"'+(t.type==='delegation'?' selected':'')+'>Delegation</option><option value="auto"'+(t.type==='auto'?' selected':'')+'>Auto</option></select></div>';
+  h+='<div style="min-width:120px"><label>Priority</label><select id="act-e-priority"'+(canEdit?'':' disabled')+'><option value="high"'+(t.priority==='high'?' selected':'')+'>High</option><option value="medium"'+(t.priority==='medium'?' selected':'')+'>Medium</option><option value="low"'+(t.priority==='low'?' selected':'')+'>Low</option></select></div>';
+  h+='<div style="min-width:120px"><label>Status</label><select id="act-e-status"'+(canEdit?'':' disabled')+'><option value="pending"'+(t.status==='pending'?' selected':'')+'>Pending</option><option value="in_progress"'+(t.status==='in_progress'?' selected':'')+'>In Progress</option><option value="done"'+(t.status==='done'?' selected':'')+'>Done</option><option value="overdue"'+(t.status==='overdue'?' selected':'')+'>Overdue</option></select></div>';
+  h+='</div>';
+  h+='<div class="act-form-row">';
+  h+='<div style="min-width:140px"><label>Due date</label><input type="date" id="act-e-date" value="'+(t.due_date||'')+'"'+(canEdit?'':' disabled')+'></div>';
+  h+='<div style="min-width:120px"><label>Time</label><input type="time" id="act-e-time" value="'+(t.due_time||'')+'"'+(canEdit?'':' disabled')+'></div>';
+  h+='<div style="min-width:140px"><label>Assign to</label><select id="act-e-assign"'+(canEdit?'':' disabled')+'></select></div>';
+  h+='<div style="min-width:120px"><label>Branch</label><select id="act-e-branch"'+(canEdit?'':' disabled')+'></select></div>';
+  h+='</div>';
+  h+='<div class="act-form-row"><div style="flex:1"><label>Description</label><textarea id="act-e-desc" rows="3"'+(canEdit?'':' disabled')+'>'+esc(t.description||'')+'</textarea></div></div>';
+  h+='<div class="act-form-actions">';
+  if(canEdit&&perms.tk_delete!==false){h+='<button class="act-form-cancel" style="color:#991B1B;border-color:#FECACA" onclick="actDeleteTask(\''+id+'\')">Delete</button>';}
+  h+='<button class="act-form-cancel" onclick="this.closest(\'.act-edit-overlay\').remove()">Cancel</button>';
+  if(canEdit){h+='<button class="act-form-save" onclick="actSaveEdit(\''+id+'\')">Save</button>';}
+  h+='</div></div>';
+  overlay.innerHTML=h;
+  document.body.appendChild(overlay);
+  // Populate dropdowns
+  setTimeout(()=>{
+    actPopulateAssignDropdown('act-e-assign');
+    actPopulateBranchDropdown('act-e-branch');
+    const assignSel=document.getElementById('act-e-assign');
+    if(assignSel)assignSel.value=t.assigned_to||'';
+    const branchSel=document.getElementById('act-e-branch');
+    if(branchSel)branchSel.value=t.branch||'';
+  },0);
+}
+
+function actSaveEdit(id){
+  const t=TASKS[id];
+  if(!t)return;
+  const me=_currentUser?_currentUser.name:'';
+  t.title=document.getElementById('act-e-title').value.trim()||t.title;
+  t.type=document.getElementById('act-e-type').value;
+  t.priority=document.getElementById('act-e-priority').value;
+  t.status=document.getElementById('act-e-status').value;
+  t.due_date=document.getElementById('act-e-date').value;
+  t.due_time=document.getElementById('act-e-time').value;
+  const newAssign=document.getElementById('act-e-assign').value;
+  if(newAssign!==t.assigned_to){
+    t.delegated_by=me;
+    t.type='delegation';
+  }
+  t.assigned_to=newAssign;
+  t.branch=document.getElementById('act-e-branch').value;
+  t.description=document.getElementById('act-e-desc').value.trim();
+  if(t.status==='done'&&!t.completed_at)t.completed_at=new Date().toISOString();
+  saveState();
+  document.querySelector('.act-edit-overlay').remove();
+  actRender();
+  toast('Task updated');
+}
+
+function actDeleteTask(id){
+  if(!confirm('Delete this task?'))return;
+  delete TASKS[id];
+  saveState();
+  const overlay=document.querySelector('.act-edit-overlay');
+  if(overlay)overlay.remove();
+  actRender();
+  toast('Task deleted');
+}
+
 // ===== PIPELINE / CRM ENGINE (SOP 4.6.4) =====
 const PL_STAGES=[
   {id:'inquiry',label:'Inquiry',icon:'📨',color:'#6A5FA8'},
@@ -9772,6 +10685,7 @@ function newLead(overrides){
     contactCount:0,
     paymentStatus:'unpaid',          // unpaid | partial | paid
     enrollmentStatus:'enrolled',     // enrolled | withdraw_request | withdrew
+    assignedTo:'',
     notes:'',
     log:[],         // [{ts,type:'outgoing'|'incoming'|'note',text}]
     createdAt:now,
@@ -9787,6 +10701,7 @@ function migratePipeline(){
     if(!l)return;
     if(typeof l.paymentStatus!=='string')l.paymentStatus='unpaid';
     if(typeof l.enrollmentStatus!=='string')l.enrollmentStatus='enrolled';
+    if(typeof l.assignedTo!=='string')l.assignedTo='';
     if(!Array.isArray(l.log))l.log=[];
     if(l.convertedStudentId==null)l.convertedStudentId='';
   });
@@ -10039,6 +10954,12 @@ function openPlModal(leadId){
   b+='<div class="pl-field"><label>Branch</label><select id="pl-f-branch"><option'+(lead.branch==='Salam'?' selected':'')+'>Salam</option><option'+(lead.branch==='Shuhada'?' selected':'')+'>Shuhada</option><option'+(lead.branch==='Salwa'?' selected':'')+'>Salwa</option></select></div>';
   b+='<div class="pl-field"><label>Stage</label><select id="pl-f-stage">'+PL_STAGES.map(s=>'<option value="'+s.id+'"'+(lead.stage===s.id?' selected':'')+'>'+s.icon+' '+s.label+'</option>').join('')+'</select></div>';
   b+='</div>';
+  // Assigned To
+  b+='<div class="pl-field-row">';
+  b+='<div class="pl-field"><label>Assigned To</label><select id="pl-f-assigned"><option value="">— Unassigned —</option>';
+  (_umUsers||[]).forEach(u=>{if(u.status==='active')b+='<option value="'+esc(u.name)+'"'+(lead.assignedTo===u.name?' selected':'')+'>'+esc(u.name)+'</option>';});
+  b+='</select></div>';
+  b+='</div>';
 
   // Tour fields (shown for tour_booked and toured stages)
   b+='<div class="pl-field-row">';
@@ -10130,6 +11051,7 @@ function plSaveLead(leadId,isNew){
   existing.lostNote=document.getElementById('pl-f-lostnote').value.trim();
   const _payEl=document.getElementById('pl-f-payment');if(_payEl)existing.paymentStatus=_payEl.value;
   const _enrEl=document.getElementById('pl-f-enrollment');if(_enrEl)existing.enrollmentStatus=_enrEl.value;
+  const _assEl=document.getElementById('pl-f-assigned');if(_assEl)existing.assignedTo=_assEl.value;
   existing.notes=document.getElementById('pl-f-notes').value.trim();
   existing.updatedAt=now;
 
@@ -10462,6 +11384,7 @@ const CS_ENROLLMENT_STATUSES=[
 
 const CS_STALE_DAYS=4;
 let CASES={};
+let TASKS={};
 let _csView='kanban';
 let _csDragId=null;
 let _csSearch='';
