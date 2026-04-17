@@ -2528,12 +2528,22 @@ const ROLE_DEFAULTS={
   })()
 };
 
+// Map each module key to the permission-key prefix it governs
+const MODULE_PREFIX_MAP={mod_schedule:'hv_',mod_cases:'cs_',mod_pipeline:'pl_'};
+
 // Get effective permissions for a user (their overrides merged on top of role defaults)
 function effectivePerms(user){
   const base={...(ROLE_DEFAULTS[user.role]||{})};
   if(user.permissions){
     Object.keys(user.permissions).forEach(k=>{base[k]=user.permissions[k];});
   }
+  // When a module is OFF, force all its child permissions to false
+  Object.keys(MODULE_PREFIX_MAP).forEach(modKey=>{
+    if(base[modKey]===false){
+      const prefix=MODULE_PREFIX_MAP[modKey];
+      Object.keys(base).forEach(k=>{if(k.startsWith(prefix))base[k]=false;});
+    }
+  });
   return base;
 }
 
