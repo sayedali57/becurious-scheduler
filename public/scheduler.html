@@ -842,7 +842,9 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 .auth-google-btn:hover{background:#F0EDE5;box-shadow:0 1px 3px rgba(58,53,48,.12)}
 .auth-google-btn svg{flex-shrink:0}
 .auth-invite-note{font-size:11px;color:#9A9590;margin-top:20px;line-height:1.5}
-.auth-error{margin-top:20px;padding:14px 18px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;color:#991B1B;font-size:12px;line-height:1.5;display:none}
+.auth-error{margin-top:20px;padding:14px 18px;background:#FEF2F2;border:1px solid #FECACA;border-radius:14px;color:#991B1B;font-size:12px;line-height:1.5;display:none}
+.auth-signout-btn{margin-top:14px;padding:10px 24px;background:#F0EDE5;border:1px solid #E5E0D5;border-radius:8px;color:#3A3530;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s}
+.auth-signout-btn:hover{background:#E5E0D5;border-color:#6A5FA8;color:#6A5FA8}
 .auth-loading{margin-top:20px;font-size:12px;color:#9A9590;display:none}
 /* ===== USER MANAGEMENT (Settings) ===== */
 .um-section{margin-top:14px;border:1px solid #E5E0D5;border-radius:8px;padding:12px 14px;background:#F0EDE5}
@@ -2204,7 +2206,7 @@ async function _handleSession(session){
   const {data:appUser,error}=await supa.from('app_users').select('*').eq('email',email).single();
   if(error||!appUser){
     loadingEl.style.display='none';
-    errorEl.innerHTML='<strong>Your account has not been approved yet.</strong><br>Please contact Admin to request access.';
+    errorEl.innerHTML='<strong>Your account has not been approved yet.</strong><br>Please contact Admin to request access.<br><button class="auth-signout-btn" onclick="signOut()">Try a different account</button>';
     errorEl.style.display='block';
     document.querySelector('.auth-google-btn').style.display='none';
     overlay.style.display='flex';
@@ -2212,7 +2214,7 @@ async function _handleSession(session){
   }
   if(appUser.status==='inactive'){
     loadingEl.style.display='none';
-    errorEl.innerHTML='<strong>Your account has been deactivated.</strong><br>Please contact Admin to request reactivation.';
+    errorEl.innerHTML='<strong>Your account has been deactivated.</strong><br>Please contact Admin to request reactivation.<br><button class="auth-signout-btn" onclick="signOut()">Try a different account</button>';
     errorEl.style.display='block';
     document.querySelector('.auth-google-btn').style.display='none';
     overlay.style.display='flex';
