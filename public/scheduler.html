@@ -8,7 +8,7 @@
 <style>
 :root{--purple:#6A5FA8;--purple-lt:#EAE8F5;--purple-dk:#5A4F96;--teal:#4DBFAD;--teal-lt:#E6F7F5;--orange:#E87C50;--orange-lt:#FDF0EB;--green:#10B981;--green-lt:#D1FAE5;--red:#A32D2D;--red-lt:#FCEBEB;--amber:#BA7517;--amber-lt:#FAEEDA;--bg:#F0EDE5;--bg-dark:#3A3530;--bg-mid:#E5E0D5;--card:#FFFFFF;--border:#E5E0D5;--text:#3A3530;--text2:#5A5650;--text3:#9A9590;
 /* Theme accent — switched by JS */
---accent:var(--teal);--accent-lt:var(--teal-lt);--accent-dk:#0F6E56;--accent-bg:#F0EDE5}
+--accent:var(--purple);--accent-lt:var(--purple-lt);--accent-dk:var(--purple-dk);--accent-bg:#F0EDE5}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
 /* ===== TOP NAV — theme switcher ===== */
@@ -20,7 +20,7 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;bac
 .theme-tab:hover{color:var(--text)}
 .theme-tab.active{color:var(--text);font-weight:700}
 .theme-tab.active[data-theme="home"]{border-bottom-color:#6A5FA8;color:#6A5FA8}
-.theme-tab.active[data-theme="hv"]{border-bottom-color:var(--teal);color:var(--accent-dk)}
+.theme-tab.active[data-theme="hv"]{border-bottom-color:var(--purple);color:var(--purple-dk)}
 .theme-tab.active[data-theme="pl"]{border-bottom-color:var(--orange);color:#C2410C}
 .topnav-spacer{flex:1}
 .topnav-shared{display:flex;align-items:center;gap:4px}
@@ -57,14 +57,14 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;bac
 .pool-sect span{background:var(--orange);color:#fff;font-size:9px;padding:2px 7px;border-radius:999px;font-weight:700}
 .pool-empty{text-align:center;color:var(--text3);font-size:10px;padding:14px 5px}
 /* Smart panel */
-.active-info{background:linear-gradient(135deg,#059669,#0F6E56);color:#fff;border-radius:6px;padding:7px 9px;margin-bottom:6px;font-size:10px;line-height:1.5}
+.active-info{background:linear-gradient(135deg,var(--purple),var(--purple-dk));color:#fff;border-radius:6px;padding:7px 9px;margin-bottom:6px;font-size:10px;line-height:1.5}
 .ai-label{font-size:8px;opacity:.8;margin-bottom:1px}
 .ai-car{font-size:11px;font-weight:700}
 .ai-from{font-size:9px;opacity:.75}
 .sort-row{display:flex;gap:3px;margin-bottom:5px}
 .sb{flex:1;font-size:8px;padding:3px 1px;border-radius:4px;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text2);text-align:center;line-height:1.3}
 .sb.on{background:var(--purple-lt);color:var(--purple-dk);border-color:var(--purple)}
-.sb.son{background:#059669;color:#fff;border-color:#059669}
+.sb.son{background:var(--purple);color:#fff;border-color:var(--purple)}
 .teacher-dd{width:100%;padding:3px 7px;border:1px solid var(--border);border-radius:5px;font-size:10px;outline:none;margin-bottom:5px;color:var(--text)}
 /* Session cards */
 .sc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:6px;cursor:grab;user-select:none;transition:all .12s;position:relative}
@@ -81,7 +81,7 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;bac
 .tag-vfar{background:var(--red-lt);color:var(--red)}
 .tag-v{font-size:8px;background:#E0F2FE;color:#0369A1;padding:1px 4px;border-radius:3px;font-weight:600}
 .dist-label{font-size:8px;background:var(--teal-lt);color:var(--teal);padding:1px 4px;border-radius:3px;font-weight:600;margin-left:auto}
-.suggest-star{font-size:8px;background:#059669;color:#fff;padding:1px 4px;border-radius:3px;font-weight:700}
+.suggest-star{font-size:8px;background:var(--purple);color:#fff;padding:1px 4px;border-radius:3px;font-weight:700}
 /* Main schedule */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
 .daytabs{display:flex;background:#fff;border-bottom:1px solid var(--border);padding:0 14px;gap:4px;align-items:center;flex-shrink:0}
@@ -164,7 +164,7 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 .slot.doverslot.canpair{border-color:var(--teal);background:var(--teal-lt)}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,.4)}50%{box-shadow:0 0 0 5px rgba(52,211,153,.1)}}
 .slot.active-slot{border:2px solid #34D399;animation:pulse 2s infinite}
-.slot.active-slot .slot-empty{color:#059669;font-weight:600}
+.slot.active-slot .slot-empty{color:var(--purple);font-weight:600}
 .slot-empty{color:var(--text3);font-size:11px;font-weight:500;padding:10px}
 .slot.other-branch-slot{background:repeating-linear-gradient(45deg,var(--bg),var(--bg) 6px,var(--bg-mid) 6px,var(--bg-mid) 12px);border:1.5px dashed var(--border);cursor:not-allowed;opacity:.75}
 .slot.other-branch-slot:hover{border-color:var(--text3)}
@@ -202,7 +202,7 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 .audit-tbl th{text-align:left;padding:6px 8px;background:#F5F2EC;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);font-weight:600;white-space:nowrap;position:sticky;top:0}
 .audit-tbl td{padding:5px 8px;border-bottom:1px solid #EBE8E0;vertical-align:top}
 .audit-tbl tr:hover td{background:#FEFCE8}
-.a-ok{color:#059669;font-weight:600}.a-warn{color:#D97706;font-weight:600}.a-bad{color:#DC2626;font-weight:600}
+.a-ok{color:#10B981;font-weight:600}.a-warn{color:#D97706;font-weight:600}.a-bad{color:#DC2626;font-weight:600}
 .a-pill{display:inline-block;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px}
 .a-pill-green{background:#DCFCE7;color:#166534}.a-pill-amber{background:#FEF3C7;color:#92400E}.a-pill-red{background:#FEE2E2;color:#991B1B}
 .idle-bar{height:8px;border-radius:4px;background:#E5E0D5;position:relative;min-width:80px}
@@ -221,10 +221,10 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 .wk-car{flex:1;min-width:180px;max-width:280px}
 .wk-car-hdr{font-size:9px;font-weight:700;color:var(--text2);padding:4px 6px;background:#F5F2EC;border-radius:5px;margin-bottom:3px;display:flex;justify-content:space-between}
 .wk-slot{font-size:9px;padding:4px 6px;border-radius:5px;margin:2px 0;border-left:3px solid #ccc;background:#F5F2EC;line-height:1.4}
-.wk-slot.wk-drop{background:#F0FDF4;border-left-color:#059669}
+.wk-slot.wk-drop{background:var(--purple-lt);border-left-color:var(--purple)}
 .wk-slot.wk-pick{background:#FFF7ED;border-left-color:#EA580C;font-size:8px;opacity:.7}
-.wk-slot.wk-dd{background:#EFF6FF;border-left-color:#2563EB}
-.wk-slot.wk-grp{background:#FDF4FF;border-left-color:#9333EA}
+.wk-slot.wk-dd{background:var(--purple-lt);border-left-color:var(--purple)}
+.wk-slot.wk-grp{background:var(--orange-lt);border-left-color:var(--orange)}
 .wk-slot.wk-empty{background:#F5F2EC;border-left-color:#E5E0D5;color:#D5D0C5;font-style:italic}
 .wk-slot .wk-time{font-weight:700;color:var(--text2);margin-right:4px}
 .wk-slot .wk-teacher{font-weight:600;font-size:8px}
@@ -340,7 +340,7 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 /* Warning flag - JS popup instead of CSS hover (avoids column clipping) */
 .warn-flag{display:inline-flex;align-items:center;cursor:pointer;font-size:13px;line-height:1;border:none;background:none;padding:0}
 /* Warnings panel buttons */
-.wf-fix{padding:4px 9px;border-radius:5px;background:#059669;color:#fff;border:none;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap}
+.wf-fix{padding:4px 9px;border-radius:5px;background:var(--purple);color:#fff;border:none;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap}
 .wf-fix:hover{background:#047857}
 .wf-jump{padding:4px 8px;border-radius:5px;background:#EBE8E0;color:#3A3530;border:1px solid #E5E0D5;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap}
 .wf-jump:hover{background:#E5E0D5}
@@ -399,7 +399,7 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 .pl-card .pl-card-meta{display:flex;align-items:center;gap:6px;margin-top:5px;font-size:9px;color:var(--text3)}
 .pl-card .pl-card-meta .pl-src{background:var(--purple-lt);color:var(--purple-dk);padding:2px 6px;border-radius:4px;font-weight:600}
 .pl-card .pl-card-stale{position:absolute;top:4px;right:6px;font-size:8px;font-weight:700;color:#DC2626;background:#FEE2E2;border-radius:4px;padding:1px 5px}
-.pl-card .pl-card-hot{position:absolute;top:4px;right:6px;font-size:8px;font-weight:700;color:#059669;background:#D1FAE5;border-radius:4px;padding:1px 5px}
+.pl-card .pl-card-hot{position:absolute;top:4px;right:6px;font-size:8px;font-weight:700;color:var(--green);background:var(--green-lt);border-radius:4px;padding:1px 5px}
 /* Lead detail modal */
 .pl-modal-overlay{display:none;position:fixed;inset:0;background:rgba(58,53,48,.35);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);z-index:600;align-items:center;justify-content:center}
 .pl-modal{background:#fff;border-radius:14px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(58,53,48,.15);border:1px solid var(--border)}
@@ -427,9 +427,9 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 .pl-log-title{font-size:10px;font-weight:700;color:var(--text);margin-bottom:6px}
 .pl-log-list{max-height:180px;overflow-y:auto;margin-bottom:8px}
 .pl-log-entry{padding:5px 8px;border-radius:6px;margin-bottom:4px;font-size:10px;line-height:1.5}
-.pl-log-entry.outgoing{background:#EFF6FF;border-left:3px solid #2563EB}
-.pl-log-entry.incoming{background:#F0FDF4;border-left:3px solid #059669}
-.pl-log-entry.note{background:#FDF4FF;border-left:3px solid #9333EA}
+.pl-log-entry.outgoing{background:var(--purple-lt);border-left:3px solid var(--purple)}
+.pl-log-entry.incoming{background:var(--green-lt);border-left:3px solid var(--green)}
+.pl-log-entry.note{background:var(--amber-lt);border-left:3px solid var(--amber)}
 .pl-log-entry .pl-log-ts{font-size:8px;color:var(--text3);margin-bottom:1px}
 .pl-log-entry .pl-log-text{color:var(--text)}
 .pl-log-add{display:flex;gap:6px}
@@ -443,7 +443,7 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 .cs-topbar{background:#fff;color:var(--text);padding:5px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;border-bottom:1px solid var(--border)}
 #cs-dashboard-outer,#cs-kanban-outer,#cs-scripts-outer,#cs-table-outer{overflow-y:auto;flex:1;padding:14px;background:var(--bg)}
 #cs-dashboard-outer,#cs-scripts-outer,#cs-table-outer{display:none}
-#cs-table-outer table{width:100%;border-collapse:collapse;font-size:11px;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+#cs-table-outer table{width:100%;border-collapse:collapse;font-size:11px;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(58,53,48,.05)}
 #cs-table-outer th{padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid var(--border);font-size:10px;color:var(--text2);white-space:nowrap;background:var(--bg);position:sticky;top:0;z-index:1;cursor:pointer}
 #cs-table-outer td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
 #cs-table-outer td input,#cs-table-outer td select{border:1px solid transparent;background:transparent;padding:3px 5px;border-radius:4px;font:inherit;width:100%;outline:none}
@@ -461,13 +461,13 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 .cs-type{display:inline-block;font-size:8px;font-weight:700;padding:1px 6px;border-radius:4px}
 .cs-type-refund{background:#FEE2E2;color:#991B1B}
 .cs-type-cancel{background:#FEF3CD;color:#92400E}
-.cs-type-incident{background:#EDE9FE;color:#5B21B6}
-.cs-type-complaint{background:#DBEAFE;color:#1E40AF}
+.cs-type-incident{background:var(--purple-lt);color:var(--purple-dk)}
+.cs-type-complaint{background:var(--orange-lt);color:#C2410C}
 .cs-type-other{background:#EBE8E0;color:#3A3530}
 /* Level pill (escalation) */
 .cs-lvl{display:inline-block;font-size:8px;font-weight:700;padding:1px 6px;border-radius:4px;border:1px solid}
-.cs-lvl-1{background:#ECFDF5;color:#065F46;border-color:#A7F3D0}
-.cs-lvl-2{background:#EFF6FF;color:#1E40AF;border-color:#BFDBFE}
+.cs-lvl-1{background:var(--green-lt);color:#065F46;border-color:#A7F3D0}
+.cs-lvl-2{background:var(--purple-lt);color:var(--purple-dk);border-color:#C9C4E4}
 .cs-lvl-3{background:#FEF3CD;color:#92400E;border-color:#FDE68A}
 .cs-lvl-4{background:#FEE2E2;color:#991B1B;border-color:#FCA5A5}
 /* Card */
@@ -490,9 +490,9 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 /* Type badges — new ids for withdraw / teacher_concern; keep legacy for
    any un-migrated cases that still hold the old ids. */
 .cs-type-withdraw{background:#FEF3CD;color:#92400E}
-.cs-type-teacher_concern{background:#EDE9FE;color:#5B21B6}
+.cs-type-teacher_concern{background:var(--purple-lt);color:var(--purple-dk)}
 /* Assignment popover */
-.cs-assign-pop{position:absolute;z-index:5000;background:#fff;border:1px solid var(--border);border-radius:8px;padding:4px;box-shadow:0 6px 24px rgba(0,0,0,.12);min-width:180px;max-height:320px;overflow-y:auto;display:none}
+.cs-assign-pop{position:absolute;z-index:5000;background:#fff;border:1px solid var(--border);border-radius:8px;padding:4px;box-shadow:0 6px 24px rgba(58,53,48,.12);min-width:180px;max-height:320px;overflow-y:auto;display:none}
 .cs-assign-pop .cs-assign-opt{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;cursor:pointer;font-size:11px;color:var(--text)}
 .cs-assign-pop .cs-assign-opt:hover{background:var(--bg)}
 .cs-assign-pop .cs-assign-opt.active{background:#FEE2E2;color:#991B1B;font-weight:600}
@@ -709,7 +709,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 .sp-section h3{font-size:13px;font-weight:700;color:var(--purple);margin-bottom:8px}
 .sp-section p{font-size:11px;line-height:1.7;color:var(--text2);margin-bottom:6px}
 .sp-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;margin-right:4px}
-.sp-badge.hv{background:#E1F5EE;color:#0F6E56}
+.sp-badge.hv{background:var(--purple-lt);color:var(--purple-dk)}
 .sp-badge.pl{background:#FEF3ED;color:#C45A2D}
 .sp-badge.shared{background:var(--purple-lt);color:var(--purple)}
 /* Settings form fields */
@@ -865,8 +865,8 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 .um-act-btn.danger{border-color:#FCA5A5;color:#DC2626}
 .um-act-btn.danger:hover{background:#FEF2F2}
 /* ===== PERMISSIONS MODAL ===== */
-.perm-overlay{position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:20px}
-.perm-card{background:#fff;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.2);width:540px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden}
+.perm-overlay{position:fixed;inset:0;z-index:10001;background:rgba(58,53,48,.35);display:flex;align-items:center;justify-content:center;padding:20px}
+.perm-card{background:#fff;border-radius:12px;box-shadow:0 20px 60px rgba(58,53,48,.18);width:540px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden}
 .perm-header{padding:16px 20px;border-bottom:1px solid #E5E0D5;display:flex;align-items:center;justify-content:space-between}
 .perm-header h3{margin:0;font-size:15px;color:#3A3530}
 .perm-header small{color:var(--text3);font-size:11px}
@@ -1382,7 +1382,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 
 <!-- BULK IMPORT -->
 <div class="modal" id="importmodal" style="display:none;align-items:flex-start;padding:20px">
-  <div style="background:#fff;border-radius:12px;width:100%;max-width:880px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.2)">
+  <div style="background:#fff;border-radius:12px;width:100%;max-width:880px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(58,53,48,.18)">
     <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
       <div>
         <div style="font-size:15px;font-weight:700">Import students from spreadsheet</div>
@@ -1420,7 +1420,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 
 <!-- TEACHERS MODAL -->
 <div class="modal" id="teachersmodal" style="display:none;align-items:flex-start;padding:20px">
-  <div style="background:#fff;border-radius:12px;width:100%;max-width:980px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.2)">
+  <div style="background:#fff;border-radius:12px;width:100%;max-width:980px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(58,53,48,.18)">
     <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
       <div>
         <div style="font-size:15px;font-weight:700">Teachers</div>
@@ -1448,7 +1448,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 
 <!-- DUPLICATE AUDIT MODAL — find duplicates / similar names -->
 <div class="modal" id="dupmodal" style="display:none;align-items:flex-start;padding:20px">
-  <div style="background:#fff;border-radius:12px;width:100%;max-width:1100px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.2)">
+  <div style="background:#fff;border-radius:12px;width:100%;max-width:1100px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(58,53,48,.18)">
     <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
       <div>
         <div style="font-size:15px;font-weight:700">🔍 Data audit — find duplicates &amp; similar names</div>
@@ -1467,7 +1467,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 
 <!-- REPORTS MODAL -->
 <div class="modal" id="reportsmodal" style="display:none;align-items:flex-start;padding:20px">
-  <div style="background:#fff;border-radius:12px;width:100%;max-width:1000px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.2)">
+  <div style="background:#fff;border-radius:12px;width:100%;max-width:1000px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(58,53,48,.18)">
     <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
       <div>
         <div style="font-size:15px;font-weight:700">Reports</div>
@@ -1494,7 +1494,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 .rpt-tab:hover{color:var(--purple-dk)}
 .att-btn{font-size:9px;padding:1px 5px;border-radius:3px;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text2);font-weight:500;margin:0 1px}
 .att-btn:hover{border-color:var(--purple)}
-.att-btn.on-done{background:#D1FAE5;border-color:#059669;color:#065F46;font-weight:700}
+.att-btn.on-done{background:var(--green-lt);border-color:var(--green);color:#065F46;font-weight:700}
 .att-btn.on-cancel{background:#FEE2E2;border-color:#DC2626;color:#991B1B;font-weight:700}
 .att-btn.on-noshow{background:#FEF3C7;border-color:#D97706;color:#92400E;font-weight:700}
 .att-row{display:flex;align-items:center;gap:3px;padding:3px 7px 4px;font-size:9px;color:var(--text3);border-top:1px solid var(--border);flex-wrap:wrap}
@@ -1507,7 +1507,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
    HOME VISITS v2 — Clean labeled-field cards, thin connector lines
    Scoped under [data-active-theme="hv"] so Pipeline/Case are untouched.
    =================================================================== */
-[data-active-theme="hv"]{--hv2-ink:#3A3530;--hv2-muted:#5A5650;--hv2-faint:#9A9590;--hv2-line:#D5D0C5;--hv2-line-soft:#E5E0D5;--hv2-card-border:#3A3530;--hv2-bg:#F5F2EC;--hv2-teal:#0F766E;--hv2-teal-lt:#CCFBF1;--hv2-warn:#B45309;--hv2-warn-lt:#FEF3C7;--hv2-err:#B91C1C;--hv2-err-lt:#FEE2E2;--hv2-lock:#6D28D9;--hv2-lock-lt:#EDE9FE}
+[data-active-theme="hv"]{--hv2-ink:#3A3530;--hv2-muted:#5A5650;--hv2-faint:#9A9590;--hv2-line:#D5D0C5;--hv2-line-soft:#E5E0D5;--hv2-card-border:#3A3530;--hv2-bg:#F5F2EC;--hv2-teal:#6A5FA8;--hv2-teal-lt:#EAE8F5;--hv2-warn:#B45309;--hv2-warn-lt:#FEF3C7;--hv2-err:#B91C1C;--hv2-err-lt:#FEE2E2;--hv2-lock:#5A4F96;--hv2-lock-lt:#EAE8F5}
 
 /* Neutralize body bg and keep day tabs minimal */
 [data-active-theme="hv"] .daytabs{background:#fff;border-bottom:1px solid var(--hv2-line)}
@@ -1704,7 +1704,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .pool-sect{color:var(--hv2-muted);font-size:10.5px;font-weight:700;letter-spacing:.08em;padding:14px 12px 6px;text-transform:uppercase}
 [data-active-theme="hv"] .pool-empty{color:var(--hv2-faint);font-size:11px;font-style:italic;padding:20px 10px;text-align:center}
 [data-active-theme="hv"] .sc{background:#fff;border:1px solid var(--hv2-line);border-left:3px solid transparent !important;border-radius:8px;box-shadow:none;padding:10px 12px;margin-bottom:6px;cursor:grab}
-[data-active-theme="hv"] .sc:hover{border-color:var(--hv2-muted);box-shadow:0 1px 3px rgba(0,0,0,.05)}
+[data-active-theme="hv"] .sc:hover{border-color:var(--hv2-muted);box-shadow:0 1px 3px rgba(58,53,48,.05)}
 [data-active-theme="hv"] .sc .t{font-size:10px;font-weight:700;color:var(--hv2-teal) !important;background:transparent !important;text-transform:uppercase;letter-spacing:.06em;padding:0;margin-bottom:3px}
 [data-active-theme="hv"] .sc .n{font-size:13px;font-weight:700;color:var(--hv2-ink);margin:2px 0 3px}
 [data-active-theme="hv"] .sc .a{font-size:11px;color:var(--hv2-muted)}
@@ -2010,7 +2010,7 @@ document.addEventListener('click',function(e){const m=document.getElementById('m
 
 // ===== CONSTANTS =====
 const BP={Shuhada:[29.268183,48.028021],Salam:[29.297841,48.013465],Salwa:[29.295034,48.069593]};
-const TC={'Varti':'#6A5FA8','Safaa':'#0891B2','Nilma':'#0F6E56','Farah':'#EA580C','Maritel':'#DB2777','Siba':'#2563EB','Fatma':'#D97706','Mariya':'#7C3AED','Wafaa':'#047857','Hadeel':'#16A34A','Ann':'#DC2626','Nargis':'#1D4ED8','Soha':'#B45309','Saira/Aswini':'#78350F','Mehjabeen':'#991B1B','Mehjabeen/Manju':'#6D28D9','Khadija':'#0E7490','Mariam':'#4D7C0F','Sharifa':'#92400E','Maliha':'#1E40AF','Sofia':'#9D174D'};
+const TC={'Varti':'#6A5FA8','Safaa':'#4DBFAD','Nilma':'#10B981','Farah':'#E87C50','Maritel':'#C2410C','Siba':'#5A4F96','Fatma':'#D97706','Mariya':'#8B6FB0','Wafaa':'#065F46','Hadeel':'#10B981','Ann':'#DC2626','Nargis':'#6A5FA8','Soha':'#B45309','Saira/Aswini':'#78350F','Mehjabeen':'#A32D2D','Mehjabeen/Manju':'#5A4F96','Khadija':'#4DBFAD','Mariam':'#BA7517','Sharifa':'#92400E','Maliha':'#3A3530','Sofia':'#A32D2D'};
 const RAW=[['s1','Deeme alknadiri','Shuhada','Varti',29.268171,48.03091,'Shuhada, B4, St417, H33'],['s2','Dhari alkandari','Shuhada','Safaa',29.238145,48.053435,'Aladan, B2, St20, H4'],['s3','Abdulaziz Alsabti','Shuhada','Nilma',29.277549,47.998353,'Zahra, B5, St507, H16'],['s4','Haya AlOsaimi','Shuhada','Nilma',29.284271,48.001844,'Zahra, B20, St218, H18'],['s5','Ahmad Fathallah','Shuhada','Nilma',29.273805,48.034902,'Shuhada, B2, St205, H30'],['s6','Riyadh Alsaleh','Shuhada','Nilma',29.258834,48.06685,'Sabah Alsalem, B4, St5, H2'],['s7','Faisal Almeer','Shuhada','Nilma',29.308455,48.016416,'Alsurra, B2, St13, H4'],['s8','Jumanah Kareemi','Shuhada','Farah',29.233393,48.057133,'Aladan, B2, St42, H22'],['s9','Elaf alabdulelah','Shuhada','Farah',29.20406,48.063561,'Alqurain, B3, St8, H50'],['s10','Mona Alkandari','Shuhada','Farah',29.103605,48.069772,'N.Ahmadi, B15, St11, H5'],['s11','Ali alqoud','Shuhada','Farah',29.288286,48.070924,'Mishref, B1, St6, H32'],['s12','Mariam Bo Abbas','Shuhada','Farah',29.251472,48.052584,'Sabah Alsalem, B10, St1, H36'],['s13','Yaqoub Alhelal','Shuhada','Maritel',29.282841,47.993845,'Huteen, B3, St305, H22'],['s14','Hashim Algharaballi','Shuhada','Maritel',29.269133,48.025974,'Shuhada, B4, St410, H162'],['s15','Abdulmohsen Albassam','Shuhada','Maritel',29.286147,48.061443,'Mishref, B2, St3, H11'],['s16','Omar albaloul','Shuhada','Maritel',29.282697,48.024805,'Huteen, B3, St10, H44'],['s17','Mariam Al jumaie','Shuhada','Maritel',29.30068,47.887253,'AlAndalus, B3, St105, H52'],['s18','Ghaliah Boareki','Shuhada','Siba',29.279562,48.016506,'Huteen, B4, St415, HA8'],['s19','Hamad Fahad','Shuhada','Siba',29.242323,48.056733,'Sabah Alsalem, B13, St2, H21'],['s20','Fay Alrashed','Shuhada','Siba',29.199257,48.066797,'AlQurain, B3, St34, H41'],['s21','Saeed Almeer','Shuhada','Siba',29.308455,48.016416,'Alsurra, B2, St13, H4'],['s22','Fatimah Almahmeed','Shuhada','Fatma',29.310042,48.059533,'Rumaithiya, B1, St10, H15'],['s23','Khaled Abul','Shuhada','Fatma',29.277782,48.038307,'Abdullah Mubarak, B3, St311, H30'],['s24','Yousef Hussain','Shuhada','Fatma',29.250717,48.079723,'Sabah Alsalem, B7, St1, H26'],['s25','Sarah salem','Shuhada','Fatma',29.271061,47.878396,'Sabah Alnasser, B1, St102, H14'],['s26','Fatima Alsaffar','Shuhada','Mariya',29.270632,48.029082,'Shuhada, B4, St414, H1'],['s27','Mohammad Alali','Shuhada','Mariya',29.26662,48.02322,'Shuhada, B3, St306, H66'],['s28','Yousef Alhashash','Shuhada','Mariya',29.233181,48.054958,'Aladan, B2, St35, H10'],['s29','Ahmed Alsaqer','Shuhada','Mariya',29.269811,48.067818,'Mishref, B5, St15, H12'],['s30','Abdullah AlKhashti','Shuhada','Mariya',29.239612,47.916652,'Abdullah Almubarak, B2, St203, H2'],['s31','Turki alnami','Shuhada','Mariya',29.272517,48.02512,'Shuhada, B5, St512, H37'],['s32','Dalia Bouqamaz','Shuhada','Mariya',29.283217,47.991817,'Zahraa, B3, St301, H14'],['s33','Omar Fahad','Shuhada','Wafaa',29.242323,48.056733,'Sabah Alsalem, B13, St2, H21'],['s34','Khaled alkandari','Shuhada','Wafaa',29.103605,48.069772,'N.Ahmadi, B15, St11, H5'],['s35','Joudi altahous','Salam','Hadeel',29.282301,48.029976,'Hiteen, B3, St11, H99'],['s36','Moudhi almanee','Salam','Hadeel',29.270021,47.994088,'Alzahraa, B8, St810, H12'],['s37','Deema alqataan','Salam','Ann',29.286605,48.067622,'Mishref, B1, St50, H2B'],['s38','Abdalkareem alawadhai','Salam','Ann',29.292142,48.001628,'Alsideeq, B3, St305, H15'],['s39','Shaikha Almotawa','Salam','Ann',29.299692,48.019934,'Alsalam, B2, St211, H72'],['s40','Yousef Alrayes','Salam','Ann',29.301208,48.00294,'Alsalam, B1, St113, H12'],['s41','Abdulmohsen Alwuhaib','Salam','Ann',29.33677,47.964828,'Kifan, B1, Alquds St, H49A'],['s42','Dhai alshami','Salam','Ann',29.290442,48.006513,'Alsalam, B7, St717, H1'],['s43','Abdalmohsen ahmad','Salam','Ann',29.231194,48.084124,'Aladdan, B7, St9, H12'],['s44','Zaid alqassar','Salam','Ann',29.301951,48.041589,'Bayan, B3, St2, H5'],['s45','Alia albaker','Salam','Ann',29.291962,48.023897,'Salam, B5, St519, H10'],['s46','Yousef alrudaini','Salam','Nargis',29.293657,48.014559,'Alsalam, B4, St411, H7'],['s47','Bader Al Ali','Salam','Soha',29.292123,48.01024,'Alsalam, B6, St611, H37'],['s48','Zaina Alrukhayes','Salam','Soha',29.292554,48.021254,'Alsalam, B5, St507, H19'],['s49','Jassim almansouri','Salam','Soha',29.291189,47.890544,'Alardeya, B4, St4, H46'],['s50','Soud alhuwaidi','Salam','Saira/Aswini',29.29337,48.00731,'Alsalam, B7, St714, H3'],['s51','Omar shamsaldeen','Salam','Saira/Aswini',29.307967,48.042629,'Bayan, B2, St3, H25A'],['s52','Hamad alfoudri','Salam','Saira/Aswini',29.29179,48.015429,'Alsalam, B6, St603, H9'],['s53','Dhayi al shareifi','Salam','Saira/Aswini',29.291183,48.025481,'Alsalam, B5, St512, H23'],['s54','Dalal alsabah','Salam','Mehjabeen',29.307077,47.995242,'Qortouba, B2, St1, H35'],['s55','Yaqoub Alshatti','Salam','Mehjabeen',29.206705,48.099997,'Aboftera, B4, St242, H390'],['s56','Abdallah alhashmi','Salam','Mehjabeen/Manju',29.316523,47.853691,'Sulaibkhat, B2, St102, H4B'],['s57','Alzain al shamroukh','Salam','Mehjabeen/Manju',29.28501,48.021473,'Heteen, B1, St119, H28'],['s58','Abdulaziz alsaleem','Salam','Mehjabeen/Manju',29.211743,48.05994,'Alqusoor, B7, St25, H25'],['s59','Abdulmohsen Altahous','Salam','Mehjabeen/Manju',29.282301,48.029976,'Hiteen, B3, St11, H99'],['s60','Waleed algarabaili','Salam','Khadija',29.336969,47.965856,'Kifan, B1, St16, H46'],['s61','Abdalrahman alroudhan','Salam','Khadija',29.299736,48.006709,'Alsalam, B1, St129, H11'],['s62','Hamad alawadhi','Salam','Khadija',29.292142,48.001628,'Alsideeq, B3, St305, H15'],['s63','Fatima Alomeri','Salam','Mariam',29.285832,48.015943,'Hitteen, B2, St209, H12'],['s64','Fay Mohammad Alqoud','Salam','Mariam',29.235195,48.085796,'Almasayel, B5, St512, H95'],['s65','Danah al fozan','Salam','Mariam',29.336305,47.997013,'Alrawdha, B4, H40'],['s66','Nour alhajri','Salam','Sharifa',29.206954,48.068747,'Alqreen, B3, St4, H54'],['s67','Zaina al fahad','Salam','Sharifa',29.301567,48.002748,'Salam, B1, St112, H36'],['s68','Yousef Albaghli','Salam','Sharifa',29.302696,48.020289,'Alsalam, B2, St214, H49'],['s69','Hamad Alnaham','Salam','Maliha',29.294908,48.02159,'Alsalam, B2, St203, H19'],['s70','Rasha Algheith','Salam','Maliha',29.289509,48.016182,'Alsalam, B6, St606, H14'],['s71','Sayed behbahani','Salam','Maliha',29.20113,48.10021,'Boftera, B2, St132, H4'],['s72','Bader Alkhabbaz','Salam','Maliha',29.233227,48.077179,'Aladdan, B6, St10, H25'],['s73','Maryam alsaleem','Salam','Maliha',29.211743,48.05994,'Alqusoor, B7, St25, H25'],['s74','Jouri Alsbaei','Salam','Maliha',29.288865,47.993801,'Alsideeq, B6, St602, H15'],['s75','Layan Alawadhi','Salwa','Sofia',29.296988,48.069798,'Salwa, B6, St7, H8'],['s76','Jaber Almarri','Salwa','Sofia',29.29015,48.052485,'Bayan, B12, St1, H28'],['s77','Bader Aldarmi','Salwa','Sofia',29.307314,47.791623,'Alqayrwan, B3, St317, H21'],['s78','Rana Alhailaa','Salwa','Sofia',29.29664,48.072534,'Salwa, B6, St8, H23'],['s79','Mubarak Alshemri','Salwa','Sofia',29.237897,48.083171,'Aladdan, B7, St16, H14']];
 // DAYS is the FULL set of days the data structures support. Sunday is always
 // in the structure so we can toggle it on/off without losing data; the schedule
@@ -2949,8 +2949,8 @@ function _showWipeOverlay(msg){
     }
     el=document.createElement('div');
     el.id='_wipeOverlay';
-    el.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:9999;display:flex;align-items:center;justify-content:center';
-    el.innerHTML='<div style="background:#fff;padding:18px 24px;border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,.25);font-size:13px;color:#111;display:flex;align-items:center;gap:10px"><span style="width:14px;height:14px;border:2px solid #d4d4d4;border-top-color:#b42318;border-radius:50%;display:inline-block;animation:_wipeSpin .7s linear infinite"></span><span id="_wipeOverlayMsg"></span></div>';
+    el.style.cssText='position:fixed;inset:0;background:rgba(58,53,48,.35);z-index:9999;display:flex;align-items:center;justify-content:center';
+    el.innerHTML='<div style="background:#fff;padding:18px 24px;border-radius:10px;box-shadow:0 12px 40px rgba(58,53,48,.2);font-size:13px;color:#3A3530;display:flex;align-items:center;gap:10px"><span style="width:14px;height:14px;border:2px solid #d4d4d4;border-top-color:#b42318;border-radius:50%;display:inline-block;animation:_wipeSpin .7s linear infinite"></span><span id="_wipeOverlayMsg"></span></div>';
     document.body.appendChild(el);
   }
   const m=document.getElementById('_wipeOverlayMsg');if(m)m.textContent=msg||'Working…';
@@ -3554,7 +3554,7 @@ function migrateStudents(){
 // ===== STUDENT STATUS MODEL =====
 // Three operational statuses, each with different scheduling behavior.
 const STUDENT_STATUSES=[
-  {id:'active',  label:'Care & Continuity', color:'#0F766E', bg:'#CCFBF1', border:'#99F6E4'},
+  {id:'active',  label:'Care & Continuity', color:'#10B981', bg:'#D1FAE5', border:'#99F6E4'},
   {id:'inactive',label:'Inactive',          color:'#92400E', bg:'#FEF3CD', border:'#FDE68A'},
   {id:'exited',  label:'Exited',            color:'#991B1B', bg:'#FEE2E2', border:'#FCA5A5'},
 ];
@@ -4278,7 +4278,7 @@ function dropCard(s,scheduled,total,distN,isSug){
   const fl=distBr>15?distBr.toFixed(0)+'km VERY FAR':distBr>10?distBr.toFixed(0)+'km FAR':'';
   const distL=distN!==undefined?`<span class="dist-label">${distN.toFixed(1)}km next</span>`:'';
   const sug=isSug?'<span class="suggest-star">★</span>':'';
-  const border=isSug?'border:2px solid #059669':'';
+  const border=isSug?'border:2px solid #10B981':'';
   // Session progress pill
   const pillCls=scheduled===0?'zero':scheduled>=total?'done':'partial';
   const pct=total>1?Math.round(scheduled/total*100):null;
@@ -4320,11 +4320,11 @@ function renderCars(){
   (_bannerHost.querySelectorAll&&_bannerHost.querySelectorAll('.sched-banner'))?.forEach(b=>b.remove());
   if(_outIsOn){
     const bar=document.createElement('div');bar.className='sched-banner outdoor-banner';
-    bar.style.cssText='background:linear-gradient(90deg,#0D9488,#14B8A6);color:#fff;padding:14px 18px;border-radius:10px;margin:8px 12px 12px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:0 3px 10px rgba(13,148,136,.25)';
+    bar.style.cssText='background:linear-gradient(90deg,#10B981,#4DBFAD);color:#fff;padding:14px 18px;border-radius:10px;margin:8px 12px 12px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:0 3px 10px rgba(13,148,136,.25)';
     const loc=esc(_outEntry.location||'Location TBD');
     const tm=(_outEntry.startTime||'')+(_outEntry.endTime?' – '+_outEntry.endTime:'');
     const doneTag=_outDone?` <span style="background:rgba(255,255,255,.22);padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600">✓ Completed ${new Date(_outDone.at).toLocaleDateString('en-GB')}</span>`:'';
-    const btn=_outDone?'':`<button onclick="markOutdoorComplete('${d}','${_outDate}')" style="margin-left:auto;background:#fff;color:#0D9488;border:none;padding:8px 16px;border-radius:8px;font-weight:700;cursor:pointer">Mark Complete</button>`;
+    const btn=_outDone?'':`<button onclick="markOutdoorComplete('${d}','${_outDate}')" style="margin-left:auto;background:#fff;color:#10B981;border:none;padding:8px 16px;border-radius:8px;font-weight:700;cursor:pointer">Mark Complete</button>`;
     bar.innerHTML=`<span style="font-size:22px">🏞️</span><div><div style="font-weight:700;font-size:16px">Outdoor Day — ${loc}${doneTag}</div><div style="opacity:.9;font-size:13px">${esc(tm)||''}${_outDate?' · '+_outDate:''} · All cars paused for school event</div></div>${btn}`;
     _bannerHost.insertBefore(bar,grid);
   }
@@ -4354,7 +4354,7 @@ function renderCars(){
     const totalSlots=slots.length;
     const filledSlots=slots.filter(x=>x).length;
     const capPct=totalSlots>0?Math.round(filledSlots/totalSlots*100):0;
-    const capColor=capPct>=90?'#DC2626':capPct>=70?'#D97706':'#059669';
+    const capColor=capPct>=90?'#DC2626':capPct>=70?'#D97706':'#10B981';
     const capHtml=`<div class="car-cap"><span>${filledSlots}/${totalSlots} slots</span><div class="car-cap-bar"><div class="car-cap-fill" style="width:${capPct}%;background:${capColor}"></div></div><span>${capPct}%</span></div>`;
     // Cross-car pickups: find students DROPPED in other cars but PICKED UP in this car today
     let xcarHtml='';
@@ -5595,7 +5595,7 @@ function renderStudentsTable(){
   const totalActive=Object.values(SS).filter(s=>(s.status||'active')==='active').length;
   const totalInactive=Object.values(SS).filter(s=>s.status==='inactive').length;
   const totalExited=Object.values(SS).filter(s=>s.status==='exited').length;
-  qs('st-count').innerHTML=`${rows.length} shown · <b style="color:#0F766E">${totalActive}</b> Care &amp; Continuity · `+
+  qs('st-count').innerHTML=`${rows.length} shown · <b style="color:#10B981">${totalActive}</b> Care &amp; Continuity · `+
     `<a href="#" onclick="qs('st-filter-status').value='inactive';renderStudentsTable();return false" style="color:#92400E;font-weight:600;text-decoration:none">⚠ ${totalInactive} Needs Reactivation</a> · `+
     `<a href="#" onclick="qs('st-filter-status').value='exited';renderStudentsTable();return false" style="color:#991B1B;text-decoration:none">${totalExited} Exited</a>`;
   const tbody=qs('students-tbody');
@@ -6148,7 +6148,7 @@ function _spRenderLinkedRecords(sid){
   const rows=[];
   const statusColors={
     Open:{c:'#92400E',b:'#FEF3CD'},
-    Resolved:{c:'#0F766E',b:'#CCFBF1'},
+    Resolved:{c:'#10B981',b:'#D1FAE5'},
     Escalated:{c:'#991B1B',b:'#FEE2E2'}
   };
   if(typeof CASES==='object'&&CASES){
@@ -6156,7 +6156,7 @@ function _spRenderLinkedRecords(sid){
       if(!c||c.studentId!==sid)return;
       const title=c.parentFullName||'Unnamed case';
       const st=c.status||(c.resolvedAt?'Resolved':'Open');
-      const sc=statusColors[st]||{c:'#475569',b:'#F0EDE5'};
+      const sc=statusColors[st]||{c:'#5A5650',b:'#F0EDE5'};
       rows.push('<div class="sp-linked-row" onclick="spGotoCase(\''+c.id+'\')"><span class="sp-linked-type">Case</span><span class="sp-linked-title">'+esc(title)+'</span><span class="sp-linked-badge" style="color:'+sc.c+';background:'+sc.b+'">'+esc(st)+'</span><span class="sp-linked-meta">'+esc(c.branch||'')+'</span></div>');
     });
   }
@@ -6413,7 +6413,7 @@ function renderImportPreview(){
   const dupCount=rows.filter(r=>r.duplicate&&r.errors.length===0).length;
   const badCount=rows.filter(r=>r.errors.length>0).length;
   const warnCount=rows.filter(r=>r.ok&&r.warnings&&r.warnings.length>0).length;
-  const parts=[`<span style="color:#059669"><b>${okCount}</b> ready</span>`];
+  const parts=[`<span style="color:#10B981"><b>${okCount}</b> ready</span>`];
   if(warnCount)parts.push(`<span style="color:#B45309"><b>${warnCount}</b> with warnings</span>`);
   if(dupCount)parts.push(`<span style="color:#B45309"><b>${dupCount}</b> duplicate${dupCount===1?'':'s'} (skipped)</span>`);
   if(badCount)parts.push(`<span style="color:#B91C1C"><b>${badCount}</b> with errors (skipped)</span>`);
@@ -6427,7 +6427,7 @@ function renderImportPreview(){
      + `<th style="${th_};text-align:center">Sess/wk</th><th style="${th_}">Rejected</th><th style="${th_}">Status</th>`
      + '</tr></thead><tbody>';
   rows.forEach(r=>{
-    let bg='#fff',status='<span style="color:#059669">✓ Ready</span>';
+    let bg='#fff',status='<span style="color:#10B981">✓ Ready</span>';
     if(r.errors.length){
       bg='#FEF2F2';
       status='<span style="color:#B91C1C" title="'+r.errors.join('; ')+'">✗ '+r.errors.join(', ')+'</span>';
@@ -7459,7 +7459,7 @@ function renderWeekView(){
   const el=qs('week-outer');
   const filterBr=_wkBranch;
   // Day colors
-  const dayColors={Sun:'#7C3AED',Mon:'#2563EB',Tue:'#059669',Wed:'#D97706',Thu:'#DC2626'};
+  const dayColors={Sun:'#6A5FA8',Mon:'#4DBFAD',Tue:'#10B981',Wed:'#D97706',Thu:'#DC2626'};
   const dayFull={Sun:'Sunday',Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday'};
 
   // Filter bar
@@ -7471,9 +7471,9 @@ function renderWeekView(){
     </select>
   </div>`;
   h+=`<div class="wk-legend">
-    <span class="wk-filter-btn${_wkFilter.drop?' active':''}" onclick="_wkFilter.drop=!_wkFilter.drop;renderWeekView()"><i style="background:#F0FDF4;border:1px solid #059669"></i> Drop</span>
-    <span class="wk-filter-btn${_wkFilter.dd?' active':''}" onclick="_wkFilter.dd=!_wkFilter.dd;renderWeekView()"><i style="background:#EFF6FF;border:1px solid #2563EB"></i> Double/Triple</span>
-    <span class="wk-filter-btn${_wkFilter.grp?' active':''}" onclick="_wkFilter.grp=!_wkFilter.grp;renderWeekView()"><i style="background:#FDF4FF;border:1px solid #9333EA"></i> Group</span>
+    <span class="wk-filter-btn${_wkFilter.drop?' active':''}" onclick="_wkFilter.drop=!_wkFilter.drop;renderWeekView()"><i style="background:#D1FAE5;border:1px solid #10B981"></i> Drop</span>
+    <span class="wk-filter-btn${_wkFilter.dd?' active':''}" onclick="_wkFilter.dd=!_wkFilter.dd;renderWeekView()"><i style="background:#EAE8F5;border:1px solid #6A5FA8"></i> Double/Triple</span>
+    <span class="wk-filter-btn${_wkFilter.grp?' active':''}" onclick="_wkFilter.grp=!_wkFilter.grp;renderWeekView()"><i style="background:#FDF0EB;border:1px solid #E87C50"></i> Group</span>
     <span class="wk-filter-btn${_wkFilter.pick?' active':''}" onclick="_wkFilter.pick=!_wkFilter.pick;renderWeekView()"><i style="background:#FFF7ED;border:1px solid #EA580C"></i> Pickup</span>
   </div>`;
 
@@ -7497,7 +7497,7 @@ function renderWeekView(){
       const filled=slots.filter(x=>x).length;
       if(filled===0)return; // skip empty cars
       const capPct=slots.length>0?Math.round(filled/slots.length*100):0;
-      const capColor=capPct>=90?'#FEE2E2':capPct>=70?'#FEF3C7':'#F0FDF4';
+      const capColor=capPct>=90?'#FEE2E2':capPct>=70?'#FEF3C7':'#D1FAE5';
 
       carHtml+=`<div class="wk-car">`;
       carHtml+=`<div class="wk-car-hdr" style="background:${capColor}">${car.label} <span>${filled}/${slots.length} (${capPct}%)</span></div>`;
@@ -7524,7 +7524,7 @@ function renderWeekView(){
           if(_wkFilter.dd){const label=students.length===3?'TRIPLE':'DOUBLE';
           carHtml+=`<div class="wk-slot wk-dd">
             <span class="wk-time">${timeStr}</span>
-            <span style="font-size:8px;font-weight:700;color:#2563EB">${label}</span><br>
+            <span style="font-size:8px;font-weight:700;color:#6A5FA8">${label}</span><br>
             ${students.map(s=>`<span class="wk-student" style="color:${TC[s.t]||'#666'}">▼ ${s.t}</span> ${s.n}`).join('<br>')}
           </div>`;}
         }
@@ -7534,7 +7534,7 @@ function renderWeekView(){
           dayDrops+=children.length;children.forEach(s=>dayStudents.add(s.id));
           if(_wkFilter.grp){carHtml+=`<div class="wk-slot wk-grp">
             <span class="wk-time">${timeStr}</span>
-            <span style="font-size:8px;font-weight:700;color:#9333EA">GROUP (${children.length})</span><br>
+            <span style="font-size:8px;font-weight:700;color:#E87C50">GROUP (${children.length})</span><br>
             ${children.map(s=>`<span style="color:${TC[s.t]||'#666'};font-size:8px">● ${s.t}</span> ${s.n}`).join('<br>')}
           </div>`;}
         }
@@ -7663,11 +7663,11 @@ function auditStudents(filterBr,filterT,AD){
   const b2b=rows.filter(r=>r.backToBack).length;
 
   let h=`<div class="audit-summary">
-    <div class="audit-stat"><b style="color:#059669">${full}</b><small>Fully scheduled</small></div>
+    <div class="audit-stat"><b style="color:#10B981">${full}</b><small>Fully scheduled</small></div>
     <div class="audit-stat"><b style="color:#D97706">${partial}</b><small>Partial</small></div>
     <div class="audit-stat"><b style="color:#DC2626">${none}</b><small>Not scheduled</small></div>
-    <div class="audit-stat"><b style="color:#7C3AED">${noPick}</b><small>Missing pickup</small></div>
-    <div class="audit-stat"><b style="color:${b2b>0?'#DC2626':'#059669'}">${b2b}</b><small>Back-to-back ⚠</small></div>
+    <div class="audit-stat"><b style="color:#6A5FA8">${noPick}</b><small>Missing pickup</small></div>
+    <div class="audit-stat"><b style="color:${b2b>0?'#DC2626':'#10B981'}">${b2b}</b><small>Back-to-back ⚠</small></div>
     <div class="audit-stat"><b>${rows.length}</b><small>Total students</small></div>
   </div>`;
   h+=`<div style="max-height:60vh;overflow:auto"><table class="audit-tbl"><thead><tr>
@@ -7739,7 +7739,7 @@ function auditTeachers(filterBr,filterT,AD){
   let h=`<div class="audit-summary">
     <div class="audit-stat"><b>${teachers.length}</b><small>Active teachers</small></div>
     <div class="audit-stat"><b>${rows.reduce((a,r)=>a+r.totalSched,0)}</b><small>Total sessions</small></div>
-    <div class="audit-stat"><b style="color:${rows.some(r=>r.totalSched<r.totalNeeded)?'#D97706':'#059669'}">${rows.filter(r=>r.totalSched<r.totalNeeded).length}</b><small>Underbooked</small></div>
+    <div class="audit-stat"><b style="color:${rows.some(r=>r.totalSched<r.totalNeeded)?'#D97706':'#10B981'}">${rows.filter(r=>r.totalSched<r.totalNeeded).length}</b><small>Underbooked</small></div>
     <div class="audit-stat"><b style="color:#DC2626">${rows.filter(r=>Object.values(r.dayData).some(dd=>dd.atMax)).length}</b><small>At max on ≥1 day</small></div>
   </div>`;
   h+=`<div style="max-height:60vh;overflow:auto"><table class="audit-tbl"><thead><tr>
@@ -7841,13 +7841,13 @@ function auditIdle(filterBr,filterT,AD){
   const totalMin=Object.values(teacherIdle).reduce((a,b)=>a+b,0);
 
   let h=`<div class="audit-summary">
-    <div class="audit-stat"><b style="color:${totalEvents>0?'#DC2626':'#059669'}">${totalEvents}</b><small>Idle events</small></div>
+    <div class="audit-stat"><b style="color:${totalEvents>0?'#DC2626':'#10B981'}">${totalEvents}</b><small>Idle events</small></div>
     <div class="audit-stat"><b style="color:#D97706">${totalMin}</b><small>Est. wasted minutes</small></div>
     <div class="audit-stat"><b>${Object.keys(teacherIdle).length}</b><small>Teachers affected</small></div>
   </div>`;
 
   if(!filtered.length){
-    h+=`<div style="text-align:center;padding:40px;color:#059669;font-weight:600;font-size:14px">✓ No idle time detected — all teacher rides are efficient</div>`;
+    h+=`<div style="text-align:center;padding:40px;color:#10B981;font-weight:600;font-size:14px">✓ No idle time detected — all teacher rides are efficient</div>`;
     return h;
   }
 
@@ -7860,7 +7860,7 @@ function auditIdle(filterBr,filterT,AD){
     const cls=mins>30?'a-bad':mins>10?'a-warn':'a-ok';
     h+=`<tr><td><b style="color:${TC[t]||'#666'}">${t}</b></td><td>${events}</td>
       <td class="${cls}">${mins} min</td>
-      <td><div class="idle-bar"><div class="idle-fill" style="width:${pct}%;background:${mins>30?'#DC2626':mins>10?'#D97706':'#059669'}"></div></div></td></tr>`;
+      <td><div class="idle-bar"><div class="idle-fill" style="width:${pct}%;background:${mins>30?'#DC2626':mins>10?'#D97706':'#10B981'}"></div></div></td></tr>`;
   });
   h+=`</tbody></table></div>`;
 
@@ -7922,7 +7922,7 @@ function auditBranch(AD){
     <div class="audit-stat"><b>${branches.length}</b><small>Branches</small></div>
     <div class="audit-stat"><b>${Object.values(SS).length}</b><small>Total students</small></div>
     <div class="audit-stat"><b>${CARS.length}</b><small>Total cars</small></div>
-    <div class="audit-stat"><b style="color:${rows.every(r=>r.coveragePct>=95)?'#059669':'#D97706'}">${rows.length?Math.round(rows.reduce((a,r)=>a+r.coveragePct,0)/rows.length):100}%</b><small>Avg coverage</small></div>
+    <div class="audit-stat"><b style="color:${rows.every(r=>r.coveragePct>=95)?'#10B981':'#D97706'}">${rows.length?Math.round(rows.reduce((a,r)=>a+r.coveragePct,0)/rows.length):100}%</b><small>Avg coverage</small></div>
   </div>`;
   h+=`<div style="max-height:65vh;overflow:auto"><table class="audit-tbl"><thead><tr>
     <th>Branch</th><th>Students</th><th>Sessions needed</th><th>Scheduled</th><th>Coverage</th><th>Cars</th><th>Teachers</th>`;
@@ -7949,7 +7949,7 @@ function auditBranch(AD){
 function showHelp(){
   const v='v2.13 — April 2026';
   qs('help-content').innerHTML=`
-<style>.hfaq h4{margin:14px 0 6px;color:var(--purple);font-size:13px}.hfaq p,.hfaq li{font-size:11.5px;line-height:1.7;color:#3A3530}.hfaq ul{padding-left:18px;margin:4px 0 10px}.hfaq li{margin:3px 0}.hfaq .hsec{background:#F5F2EC;border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin:10px 0}.hfaq .htag{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;margin:0 3px}.hfaq .ht-new{background:#DCFCE7;color:#166534}.hfaq .ht-tip{background:#DBEAFE;color:#1E40AF}.hfaq .ht-warn{background:#FEF3C7;color:#92400E}</style>
+<style>.hfaq h4{margin:14px 0 6px;color:var(--purple);font-size:13px}.hfaq p,.hfaq li{font-size:11.5px;line-height:1.7;color:#3A3530}.hfaq ul{padding-left:18px;margin:4px 0 10px}.hfaq li{margin:3px 0}.hfaq .hsec{background:#F5F2EC;border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin:10px 0}.hfaq .htag{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;margin:0 3px}.hfaq .ht-new{background:#D1FAE5;color:#065F46}.hfaq .ht-tip{background:#EAE8F5;color:#5A4F96}.hfaq .ht-warn{background:#FAEEDA;color:#92400E}</style>
 <div class="hfaq">
 
 <p style="color:var(--text3);font-size:10px;margin-bottom:14px">${v} · Built for BeCurious tutoring operations in Kuwait</p>
@@ -8451,9 +8451,9 @@ function updateSchedWeekBanner(){
   }else{
     const past=active<cur;
     banner.style.display='block';
-    banner.style.background=past?'#FEF3CD':'#DBEAFE';
+    banner.style.background=past?'#FEF3CD':'#EAE8F5';
     banner.style.borderBottomColor=past?'#F59E0B':'#3B82F6';
-    banner.style.color=past?'#92400E':'#1E3A8A';
+    banner.style.color=past?'#92400E':'#5A4F96';
     banner.textContent=`⚠ You are editing attendance for ${active} ${past?'(past week)':'(future week)'} — every ✓ ✗ ⚠ click affects this week, not the current one. Click to return: `;
     const link=document.createElement('a');
     link.href='#';link.textContent=cur+' (current)';
@@ -8500,14 +8500,14 @@ function renderStudentCompletionReport(){
   const body=qs('rpt-body');
   body.innerHTML=`
     <div style="padding:12px 18px;display:flex;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:#F5F2EC;align-items:center">
-      <div style="font-size:11px;color:var(--text2)"><b>Week ${wk}</b>${isPast?' <span style="color:#92400E;background:#FEF3CD;padding:1px 6px;border-radius:3px;font-size:10px">past week</span>':wk===cur?'':' <span style="color:#1E3A8A;background:#DBEAFE;padding:1px 6px;border-radius:3px;font-size:10px">future week</span>'} · ${totalSched} scheduled sessions</div>
+      <div style="font-size:11px;color:var(--text2)"><b>Week ${wk}</b>${isPast?' <span style="color:#92400E;background:#FEF3CD;padding:1px 6px;border-radius:3px;font-size:10px">past week</span>':wk===cur?'':' <span style="color:#5A4F96;background:#EAE8F5;padding:1px 6px;border-radius:3px;font-size:10px">future week</span>'} · ${totalSched} scheduled sessions</div>
       <div style="display:flex;gap:10px;font-size:10px;color:var(--text2);align-items:center">
-        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#059669;margin-right:4px"></span>${totalDone} completed</span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#10B981;margin-right:4px"></span>${totalDone} completed</span>
         <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#DC2626;margin-right:4px"></span>${totalCan} cancelled</span>
         <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#D97706;margin-right:4px"></span>${totalNo} no-show</span>
       </div>
       <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
-        <button onclick="bulkMarkAllCompleted()" ${totalUn?'':'disabled'} title="${totalUn?'Mark every unmarked session this week as completed (undoable)':'Nothing to mark — no unmarked sessions'}" style="padding:5px 11px;border-radius:5px;background:${totalUn?'#059669':'#E5E0D5'};color:${totalUn?'#fff':'#9A9590'};border:none;font-size:10px;font-weight:700;cursor:${totalUn?'pointer':'not-allowed'}">✓ Mark all ${totalUn||''} as completed</button>
+        <button onclick="bulkMarkAllCompleted()" ${totalUn?'':'disabled'} title="${totalUn?'Mark every unmarked session this week as completed (undoable)':'Nothing to mark — no unmarked sessions'}" style="padding:5px 11px;border-radius:5px;background:${totalUn?'#10B981':'#E5E0D5'};color:${totalUn?'#fff':'#9A9590'};border:none;font-size:10px;font-weight:700;cursor:${totalUn?'pointer':'not-allowed'}">✓ Mark all ${totalUn||''} as completed</button>
         <button onclick="bulkResetWeek()" ${(totalDone+totalCan+totalNo)?'':'disabled'} title="Clear every attendance mark for this week (undoable)" style="padding:5px 11px;border-radius:5px;background:${(totalDone+totalCan+totalNo)?'#FEE2E2':'#EBE8E0'};color:${(totalDone+totalCan+totalNo)?'#991B1B':'#9A9590'};border:1px solid ${(totalDone+totalCan+totalNo)?'#FCA5A5':'#E5E0D5'};font-size:10px;font-weight:700;cursor:${(totalDone+totalCan+totalNo)?'pointer':'not-allowed'}">↺ Reset week</button>
         <button onclick="exportReportCSV()" style="padding:5px 10px;border-radius:5px;border:1px solid var(--border);background:#fff;font-size:10px;cursor:pointer">⬇ CSV</button>
       </div>
@@ -8528,7 +8528,7 @@ function renderStudentCompletionReport(){
       <tbody>
         ${rows.map(r=>{
           const pct=r.sched?Math.round(r.done/r.sched*100):null;
-          const col=pct==null?'#999':pct>=80?'#059669':pct>=50?'#D97706':'#DC2626';
+          const col=pct==null?'#999':pct>=80?'#10B981':pct>=50?'#D97706':'#DC2626';
           const canMark=r.unmarked>0;
           const canReset=(r.done+r.cancelled+r.noshow)>0;
           return `<tr style="border-bottom:1px solid var(--border)">
@@ -8536,13 +8536,13 @@ function renderStudentCompletionReport(){
             <td style="padding:6px 10px">${esc(r.s.t)}</td>
             <td style="padding:6px 10px">${esc(r.s.br)}</td>
             <td style="padding:6px 10px;text-align:center">${r.sched}</td>
-            <td style="padding:6px 10px;text-align:center;color:#059669;font-weight:${r.done?'700':'400'}">${r.done||'—'}</td>
+            <td style="padding:6px 10px;text-align:center;color:#10B981;font-weight:${r.done?'700':'400'}">${r.done||'—'}</td>
             <td style="padding:6px 10px;text-align:center;color:#DC2626;font-weight:${r.cancelled?'700':'400'}">${r.cancelled||'—'}</td>
             <td style="padding:6px 10px;text-align:center;color:#D97706;font-weight:${r.noshow?'700':'400'}">${r.noshow||'—'}</td>
             <td style="padding:6px 10px;text-align:center;color:var(--text3)">${r.unmarked||'—'}</td>
             <td style="padding:6px 10px;text-align:center;font-weight:600;color:${col}">${pct==null?'—':pct+'%'}</td>
             <td style="padding:4px 10px;text-align:center;white-space:nowrap">
-              <button onclick="markStudentAllDone('${r.s.id}')" ${canMark?'':'disabled'} title="Mark this student's ${r.unmarked} unmarked session${r.unmarked===1?'':'s'} this week as completed" style="padding:3px 7px;border-radius:4px;background:${canMark?'#059669':'#EBE8E0'};color:${canMark?'#fff':'#9A9590'};border:none;font-size:9px;font-weight:600;cursor:${canMark?'pointer':'not-allowed'};margin-right:3px">✓ Mark all done</button>
+              <button onclick="markStudentAllDone('${r.s.id}')" ${canMark?'':'disabled'} title="Mark this student's ${r.unmarked} unmarked session${r.unmarked===1?'':'s'} this week as completed" style="padding:3px 7px;border-radius:4px;background:${canMark?'#10B981':'#EBE8E0'};color:${canMark?'#fff':'#9A9590'};border:none;font-size:9px;font-weight:600;cursor:${canMark?'pointer':'not-allowed'};margin-right:3px">✓ Mark all done</button>
               <button onclick="resetStudentWeek('${r.s.id}')" ${canReset?'':'disabled'} title="Clear all attendance marks for this student this week" style="padding:3px 7px;border-radius:4px;background:${canReset?'#FEE2E2':'#EBE8E0'};color:${canReset?'#991B1B':'#9A9590'};border:1px solid ${canReset?'#FCA5A5':'#E5E0D5'};font-size:9px;font-weight:600;cursor:${canReset?'pointer':'not-allowed'}">↺</button>
             </td>
           </tr>`;
@@ -8727,7 +8727,7 @@ function renderTeacherWeeklyReport(){
                 }
                 const head=`<div style="padding:5px 0 2px;margin-top:4px;border-top:2px solid #EDE9FE;display:flex;align-items:center;gap:6px">
                   <span style="font-weight:800;color:var(--purple);font-size:10px">${d}</span>
-                  <span style="font-size:9px;color:#6D28D9;background:#EDE9FE;padding:1px 6px;border-radius:4px">🚗 ${esc(boardBranch)} ${ts(boardTime)}</span>
+                  <span style="font-size:9px;color:#5A4F96;background:#EAE8F5;padding:1px 6px;border-radius:4px">🚗 ${esc(boardBranch)} ${ts(boardTime)}</span>
                 </div>`;
                 const rows=list.map(x=>{
                   const addr=x.s.a||'';
@@ -9022,8 +9022,8 @@ function renderOutdoorDaysList(){
   host.innerHTML=list.map(e=>{
     const when=e.mode==='date'?esc(e.date||'—'):`Every ${esc(e.day||'—')}`;
     const tm=(e.startTime||'')+(e.endTime?' – '+e.endTime:'');
-    return `<div style="display:flex;gap:8px;padding:6px 8px;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:6px;margin-bottom:4px;font-size:12px;align-items:center">
-      <span style="background:#0D9488;color:#fff;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:700">🏞</span>
+    return `<div style="display:flex;gap:8px;padding:6px 8px;background:#D1FAE5;border:1px solid #A7F3D0;border-radius:6px;margin-bottom:4px;font-size:12px;align-items:center">
+      <span style="background:#10B981;color:#fff;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:700">🏞</span>
       <b>${when}</b>
       <span style="color:var(--text2)">${esc(e.location||'—')}</span>
       <span style="color:var(--text3)">${esc(tm)}</span>
@@ -9705,13 +9705,13 @@ function toastUndo(msg,onUndo,ms){
 
 // ===== PIPELINE / CRM ENGINE (SOP 4.6.4) =====
 const PL_STAGES=[
-  {id:'inquiry',label:'Inquiry',icon:'📨',color:'#2563EB'},
-  {id:'tour_booked',label:'Tour Booked',icon:'📅',color:'#7C3AED'},
-  {id:'toured',label:'Toured',icon:'🏫',color:'#0891B2'},
-  {id:'offer_made',label:'Offer Made',icon:'📝',color:'#D97706'},
-  {id:'enrolled',label:'Enrolled',icon:'✅',color:'#059669'},
-  {id:'retained',label:'Retained / Referred',icon:'⭐',color:'#9333EA'},
-  {id:'lost',label:'Lost',icon:'❌',color:'#DC2626'}
+  {id:'inquiry',label:'Inquiry',icon:'📨',color:'#6A5FA8'},
+  {id:'tour_booked',label:'Tour Booked',icon:'📅',color:'#5A4F96'},
+  {id:'toured',label:'Toured',icon:'🏫',color:'#4DBFAD'},
+  {id:'offer_made',label:'Offer Made',icon:'📝',color:'#E87C50'},
+  {id:'enrolled',label:'Enrolled',icon:'✅',color:'#10B981'},
+  {id:'retained',label:'Retained / Referred',icon:'⭐',color:'#BA7517'},
+  {id:'lost',label:'Lost',icon:'❌',color:'#A32D2D'}
 ];
 const PL_SOURCES=['Walk-in','WhatsApp','Instagram','Referral','Website','Phone','Other'];
 const PL_TOUR_OUTCOMES=['strong','undecided','unlikely'];
@@ -10067,7 +10067,7 @@ function openPlModal(leadId){
     if(already){
       a+='<button onclick="showStudentsTable();closePlModal();" style="background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0" title="This lead has been converted — opens the Student record">✓ Student created — open roster</button>';
     }else{
-      a+='<button onclick="plConvertToStudent(\''+lead.id+'\')" style="background:#DDD6FE;color:#5B21B6;border:1px solid #C4B5FD;font-weight:600" title="Pre-fill a Student record from this lead">→ Convert to Student</button>';
+      a+='<button onclick="plConvertToStudent(\''+lead.id+'\')" style="background:#EAE8F5;color:#5A4F96;border:1px solid #C9C4E4;font-weight:600" title="Pre-fill a Student record from this lead">→ Convert to Student</button>';
     }
   }
   a+='<button onclick="closePlModal()">Cancel</button>';
@@ -10163,7 +10163,7 @@ function plConvertToStudent(leadId){
     +'<option value="__new__">+ Add new teacher…</option>';
   ov.innerHTML='<div class="mbox" style="width:500px">'
     +'<h3>Convert lead to Student</h3>'
-    +'<div style="font-size:11px;color:var(--text3);margin-bottom:10px">Review the pre-filled fields before saving. The new student will start with status <b style="color:#0F766E">Care &amp; Continuity</b> and will appear in the schedule pool immediately.</div>'
+    +'<div style="font-size:11px;color:var(--text3);margin-bottom:10px">Review the pre-filled fields before saving. The new student will start with status <b style="color:#10B981">Care &amp; Continuity</b> and will appear in the schedule pool immediately.</div>'
     +'<div class="frow"><label>Student Name (EN)</label><input id="cv-n" value="'+esc(suggestedName)+'"></div>'
     +'<div class="frow"><label>Student Name (AR)</label><input id="cv-nAr" dir="rtl" placeholder="اسم الطالب" style="text-align:right;font-family:\'Segoe UI Arabic\',\'Arial\',\'Tahoma\',sans-serif"></div>'
     +'<div class="frow"><label>Parent Name (AR)</label><input id="cv-parAr" dir="rtl" placeholder="اسم ولي الأمر — used to match Arabic retention sheet" style="text-align:right;font-family:\'Segoe UI Arabic\',\'Arial\',\'Tahoma\',sans-serif"></div>'
@@ -10364,8 +10364,8 @@ const CS_DEFAULT_SETTINGS={
   // Section 3 will let the user edit these from the Settings panel.
   stages:[
     {id:'new',label:'New',color:'#5A5650',bg:'#EBE8E0'},
-    {id:'contacted',label:'Contacted',color:'#1E40AF',bg:'#EFF6FF'},
-    {id:'negotiation',label:'In Negotiation',color:'#6D28D9',bg:'#F3E8FF'},
+    {id:'contacted',label:'Contacted',color:'#5A4F96',bg:'#EAE8F5'},
+    {id:'negotiation',label:'In Negotiation',color:'#C2410C',bg:'#FDF0EB'},
     {id:'escalated',label:'Escalated',color:'#92400E',bg:'#FEF3CD'},
     {id:'awaiting_parent',label:'Awaiting Parent',color:'#9A3412',bg:'#FFEDD5'},
     {id:'resolved',label:'Resolved',color:'#065F46',bg:'#D1FAE5'}
@@ -10408,8 +10408,8 @@ function csInitials(name){
 function csAvatarColor(name){
   if(!name)return {bg:'#EBE8E0',fg:'#9A9590'};
   const palette=[
-    {bg:'#DBEAFE',fg:'#1E40AF'},{bg:'#D1FAE5',fg:'#065F46'},
-    {bg:'#FEF3CD',fg:'#92400E'},{bg:'#EDE9FE',fg:'#5B21B6'},
+    {bg:'#EAE8F5',fg:'#5A4F96'},{bg:'#D1FAE5',fg:'#065F46'},
+    {bg:'#FAEEDA',fg:'#92400E'},{bg:'#FDF0EB',fg:'#C2410C'},
     {bg:'#FEE2E2',fg:'#991B1B'},{bg:'#FFEDD5',fg:'#9A3412'},
     {bg:'#CFFAFE',fg:'#155E75'},{bg:'#FCE7F3',fg:'#9D174D'}
   ];
@@ -10603,14 +10603,14 @@ function renderCsDashboard(){
   h+='<div class="pl-dash">';
   h+='<div class="pl-dash-card" style="border-top:3px solid #DC2626"><h4>Open Cases</h4><div class="pl-dash-num" style="color:#DC2626">'+open.length+'</div><div class="pl-dash-sub">'+stale.length+' stale (no action &gt;'+CS_STALE_DAYS+'d)</div></div>';
   h+='<div class="pl-dash-card" style="border-top:3px solid #D97706"><h4>Money at Risk</h4><div class="pl-dash-num">'+Math.round(moneyAtRisk)+' <span style="font-size:13px;color:var(--text2)">KWD</span></div><div class="pl-dash-sub">unpaid + partial balances</div></div>';
-  h+='<div class="pl-dash-card" style="border-top:3px solid #059669"><h4>Recovered</h4><div class="pl-dash-num" style="color:#059669">'+Math.round(moneyRecovered)+' <span style="font-size:13px;color:var(--text2)">KWD</span></div><div class="pl-dash-sub">paid + partial collected</div></div>';
-  h+='<div class="pl-dash-card" style="border-top:3px solid #7C3AED"><h4>Refund Requests</h4><div class="pl-dash-num">'+refunds.length+'</div><div class="pl-dash-sub">'+lvl4.length+' at leadership level</div></div>';
+  h+='<div class="pl-dash-card" style="border-top:3px solid #10B981"><h4>Recovered</h4><div class="pl-dash-num" style="color:#10B981">'+Math.round(moneyRecovered)+' <span style="font-size:13px;color:var(--text2)">KWD</span></div><div class="pl-dash-sub">paid + partial collected</div></div>';
+  h+='<div class="pl-dash-card" style="border-top:3px solid #6A5FA8"><h4>Refund Requests</h4><div class="pl-dash-num">'+refunds.length+'</div><div class="pl-dash-sub">'+lvl4.length+' at leadership level</div></div>';
   h+='<div class="pl-dash-card" style="border-top:3px solid #991B1B"><h4>High-Risk Families</h4><div class="pl-dash-num" style="color:#991B1B">'+highrisk.length+'</div><div class="pl-dash-sub">need defense script</div></div>';
   h+='</div>';
 
   h+='<div class="pl-funnel"><h4>Open cases by parent segment</h4>';
   const maxSeg=Math.max(1,...csSegments().map(s=>segCount[s.id]||0));
-  const segColors={loyal:'#059669',hesitant:'#D97706',highrisk:'#DC2626'};
+  const segColors={loyal:'#10B981',hesitant:'#D97706',highrisk:'#DC2626'};
   csSegments().forEach(s=>{
     const cnt=segCount[s.id]||0;const pct=Math.round(cnt/maxSeg*100)||0;
     h+='<div class="pl-funnel-bar"><div class="pl-funnel-label">'+esc(s.label)+'</div>';
@@ -10621,7 +10621,7 @@ function renderCsDashboard(){
 
   h+='<div class="pl-funnel"><h4>Escalation ladder</h4>';
   const maxLvl=Math.max(1,...csLevels().map(l=>lvlCount[l.id]||0));
-  const lvlColors={1:'#059669',2:'#2563EB',3:'#D97706',4:'#DC2626'};
+  const lvlColors={1:'#10B981',2:'#6A5FA8',3:'#D97706',4:'#DC2626'};
   csLevels().forEach(l=>{
     const cnt=lvlCount[l.id]||0;const pct=Math.round(cnt/maxLvl*100)||0;
     h+='<div class="pl-funnel-bar"><div class="pl-funnel-label">L'+l.id+' &middot; '+esc(l.label)+'</div>';
@@ -11212,7 +11212,7 @@ function csRenderLinkedSummary(sid){
   if(!sid){el.innerHTML='';return;}
   const s=SS[sid];
   if(!s){el.innerHTML='<div class="cs2-linked-summary" style="border-left-color:#B94A4A;color:#9B3E3E">Linked student not found (was it deleted?)</div>';return;}
-  const stMeta=(typeof studentStatusMeta==='function'?studentStatusMeta(s.status||'active'):{label:'Care & Continuity',color:'#0F766E',bg:'#CCFBF1',border:'#99F6E4'});
+  const stMeta=(typeof studentStatusMeta==='function'?studentStatusMeta(s.status||'active'):{label:'Care & Continuity',color:'#10B981',bg:'#D1FAE5',border:'#99F6E4'});
   const ar=(v)=>v?('<span dir="rtl" style="font-family:\'Segoe UI Arabic\',\'Arial\',\'Tahoma\',sans-serif">'+esc(v)+'</span>'):'<span style="color:#BDAF9B">—</span>';
   const caseId=(typeof _csEditingId!=='undefined'&&_csEditingId)?_csEditingId:'';
   const openAttr=caseId?(' onclick="profileStackPushExternal(\'case\',\''+caseId+'\');closeCsModal();openStudentProfile(\''+sid+'\',{push:true})"'):(' onclick="openStudentProfile(\''+sid+'\')"');
@@ -11324,9 +11324,9 @@ function csInsertScript(key){
   // Highlight the chosen script button so it's obvious which one is queued
   document.querySelectorAll('[data-cs-script]').forEach(btn=>{
     const on=btn.getAttribute('data-cs-script')===key;
-    btn.style.background=on?'#7C3AED':'';
+    btn.style.background=on?'#6A5FA8':'';
     btn.style.color=on?'#fff':'';
-    btn.style.borderColor=on?'#7C3AED':'';
+    btn.style.borderColor=on?'#6A5FA8':'';
   });
   // Surface a small hint near the WhatsApp button
   const hint=document.getElementById('cs-script-hint');
@@ -11542,10 +11542,10 @@ function renderCsSettingsBody(){
   let h='';
   h+='<div style="font-size:11px;color:var(--text2);margin-bottom:10px">Add or remove options for any case dropdown. Existing cases that use a deleted option keep their value (the option just disappears from the picker for new cases).</div>';
   // Auto-tag panel — safe dry-run first, then explicit Apply
-  h+='<div style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:8px;padding:10px;margin-bottom:14px">';
+  h+='<div style="background:#D1FAE5;border:1px solid #A7F3D0;border-radius:8px;padding:10px;margin-bottom:14px">';
   h+='<div style="font-weight:700;color:#065F46;font-size:13px;margin-bottom:4px">🔍 Auto-tag Case Types</div>';
   h+='<div style="font-size:11px;color:#065F46;margin-bottom:8px">Scans every case for withdrawal / refund / complaint / teacher-concern keywords in Notes + Log and sets <b>Case Type</b> accordingly. Only touches cases where type is still "Other". Never modifies complaintReasons, stage, or any other field. Dry-run shows you before/after counts before anything is saved.</div>';
-  h+='<button type="button" class="ctx-btn" onclick="csAutoTagDryRun()" style="background:#059669;color:#fff;border-color:#059669">Run dry-run</button>';
+  h+='<button type="button" class="ctx-btn" onclick="csAutoTagDryRun()" style="background:#6A5FA8;color:#fff;border-color:#6A5FA8">Run dry-run</button>';
   h+='</div>';
   const sections=[
     {key:'types',title:'Case Types',hasId:true},
@@ -11673,7 +11673,7 @@ function csAutoTagDryRun(){
   allTypes.forEach(tid=>{
     const b=plan.before[tid]||0,a=plan.after[tid]||0,d=a-b;
     const lbl=plan.typeLabel[tid]||tid;
-    const dColor=d>0?'#059669':d<0?'#DC2626':'var(--text3)';
+    const dColor=d>0?'#10B981':d<0?'#DC2626':'var(--text3)';
     h+='<tr><td style="padding:6px;border:1px solid #FDE68A">'+esc(lbl)+' <span style="color:var(--text3);font-size:10px">('+tid+')</span></td><td style="text-align:right;padding:6px;border:1px solid #FDE68A">'+b+'</td><td style="text-align:right;padding:6px;border:1px solid #FDE68A"><b>'+a+'</b></td><td style="text-align:right;padding:6px;border:1px solid #FDE68A;color:'+dColor+';font-weight:600">'+(d>0?'+'+d:d===0?'—':d)+'</td></tr>';
   });
   h+='</tbody></table>';
@@ -11903,7 +11903,7 @@ setSyncIndicator('connecting');
   .tbl-main td.tbl-e select:focus,.tbl-main td.tbl-e input:focus{border-color:#6A5FA8;background:#fff;box-shadow:0 0 0 2px rgba(106,95,168,0.15)}
   .tbl-main td.tbl-e input[disabled]{color:#D5D0C5;cursor:not-allowed}
   .tbl-main td.tbl-sched{text-align:center;font-size:14px;font-weight:700}
-  .tbl-yes{color:#059669}
+  .tbl-yes{color:var(--green)}
   .tbl-no{color:#DC2626}
   .tbl-empty{text-align:center;padding:40px 20px;color:var(--text3);font-style:italic}
   .tbl-row-unsched{background:#FFFBEB !important}
