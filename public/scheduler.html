@@ -265,9 +265,9 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 .ap-move:hover{border-color:var(--orange);color:var(--orange)}
 /* DD */
 .dd-hdr{padding:3px 7px 0;display:flex;align-items:center;gap:4px}
-.dd-badge{background:var(--teal);color:#fff;font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px}
-.dd-km{font-size:8px;color:var(--teal)}
-.dd-sep{border-top:1px dashed var(--teal);margin:2px 7px}
+.dd-badge{background:var(--purple);color:#fff;font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px}
+.dd-km{font-size:8px;color:var(--purple)}
+.dd-sep{border-top:1px dashed var(--purple);margin:2px 7px}
 /* Legend */
 .legend{background:var(--card);border-top:1px solid var(--border);padding:4px 12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex-shrink:0}
 .leg{display:flex;align-items:center;gap:3px;font-size:9px;color:var(--text2)}
@@ -1142,7 +1142,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
       <div id="table-outer" style="display:none;padding:0;overflow:auto;background:#fff"></div>
       <div class="legend">
         <span style="font-size:9px;color:var(--text3);font-weight:500">Legend:</span>
-        <div class="leg"><div class="legdot" style="background:var(--teal)"></div>Double-drop</div>
+        <div class="leg"><div class="legdot" style="background:var(--purple)"></div>Double-drop</div>
         <div class="leg"><div class="legdot" style="background:var(--orange)"></div>Pick-up</div>
         <div class="leg"><div class="legdot" style="background:var(--amber)"></div>Far &gt;10km</div>
         <div class="leg"><div class="legdot" style="background:#34D399"></div>Active slot</div>
@@ -1512,7 +1512,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 /* Neutralize body bg and keep day tabs minimal */
 [data-active-theme="hv"] .daytabs{background:#fff;border-bottom:1px solid var(--hv2-line)}
 [data-active-theme="hv"] .dt{color:var(--hv2-muted);font-weight:500;border-bottom:2px solid transparent;background:transparent}
-[data-active-theme="hv"] .dt.on{color:var(--hv2-ink);font-weight:700;border-bottom-color:var(--hv2-teal);background:transparent}
+[data-active-theme="hv"] .dt.on{color:var(--hv2-ink);font-weight:700;border-bottom-color:var(--purple);background:transparent}
 [data-active-theme="hv"] .dt.on.sun{color:var(--hv2-err);border-bottom-color:var(--hv2-err)}
 
 /* Car column header — clean */
@@ -1593,11 +1593,11 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .hv2-dd-sub .hv2-times{gap:14px;padding:2px 0 4px}
 [data-active-theme="hv"] .hv2-dd-sub .hv2-val-time{font-size:15px;white-space:nowrap}
 [data-active-theme="hv"] .hv2-addr{color:var(--hv2-muted);font-size:12px;font-weight:500}
-[data-active-theme="hv"] .hv2-anchor{font-size:17px;font-weight:700;color:var(--hv2-teal);letter-spacing:-.01em;line-height:1.2}
+[data-active-theme="hv"] .hv2-anchor{font-size:17px;font-weight:700;color:var(--purple-dk);letter-spacing:-.01em;line-height:1.2}
 [data-active-theme="hv"] .hv2-anchor-sm{font-size:14px}
 [data-active-theme="hv"] .hv2-anchor-dd{font-size:13px;color:var(--hv2-ink)}
 /* Double-drop outer banner (clear, big label sitting above the sub-cards) */
-[data-active-theme="hv"] .hv2-dd-banner{font-size:15px;font-weight:800;letter-spacing:.06em;color:var(--hv2-teal);background:var(--hv2-teal-lt);padding:8px 10px;border-radius:8px;margin:0 0 6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+[data-active-theme="hv"] .hv2-dd-banner{font-size:15px;font-weight:800;letter-spacing:.06em;color:var(--purple-dk);background:var(--purple-lt);padding:8px 10px;border-radius:8px;margin:0 0 6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
 [data-active-theme="hv"] .hv2-dd-sub{background:#fff;border:1.5px solid var(--hv2-card-border);border-radius:8px;padding:8px 10px;margin:0}
 [data-active-theme="hv"] .hv2-dd-wrap{display:flex;flex-direction:column;gap:0}
 
@@ -1612,7 +1612,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .hv2-far{color:var(--hv2-warn);font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
 
 /* Group tag inline (when session uses group location) */
-[data-active-theme="hv"] .hv2-grp-tag{display:inline-block;margin-left:6px;font-size:9.5px;font-weight:600;color:var(--hv2-teal);background:var(--hv2-teal-lt);padding:1px 7px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
+[data-active-theme="hv"] .hv2-grp-tag{display:inline-block;margin-left:6px;font-size:9.5px;font-weight:600;color:var(--purple-dk);background:var(--purple-lt);padding:1px 7px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
 
 /* Paired / double-drop student blocks inside one card */
 [data-active-theme="hv"] .hv2-paired-item{position:relative;padding:10px;background:var(--hv2-bg);border-radius:6px;display:flex;flex-direction:column;gap:6px}
@@ -1630,7 +1630,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .hv2-grp-n{color:var(--hv2-ink);font-weight:600;flex:1;cursor:pointer}
 [data-active-theme="hv"] .hv2-grp-n:hover{color:var(--hv2-teal);text-decoration:underline}
 [data-active-theme="hv"] .hv2-grp-drop{margin-top:4px;padding:8px;border:1px dashed var(--hv2-line);border-radius:6px;text-align:center;color:var(--hv2-muted);font-size:11px;font-weight:500}
-[data-active-theme="hv"] .hv2-grp-drop.doverg{border-color:var(--hv2-teal);background:var(--hv2-teal-lt);color:var(--hv2-teal)}
+[data-active-theme="hv"] .hv2-grp-drop.doverg{border-color:var(--purple);background:var(--purple-lt);color:var(--purple-dk)}
 [data-active-theme="hv"] .hv2-grp-full{text-align:center;color:var(--hv2-warn);font-size:10.5px;padding:6px;font-weight:600}
 
 /* Warnings row */
@@ -1674,8 +1674,8 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .hv2-grp-nrow .hv2-grp-n{font-size:13px;font-weight:600;color:var(--hv2-ink);flex:1;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 [data-active-theme="hv"] .hv2-grp-nrow .hv2-grp-n:hover{color:var(--hv2-teal);text-decoration:underline}
 [data-active-theme="hv"] .hv2-grp-nrow .hv2-rm-mini{position:static;padding:0 5px;font-size:13px;flex-shrink:0}
-[data-active-theme="hv"] .hv2-grp-nrow.hv2-grp-host{background:var(--hv2-teal-lt);box-shadow:inset 2px 0 0 var(--hv2-teal)}
-[data-active-theme="hv"] .hv2-grp-nrow.hv2-grp-host .hv2-grp-n{color:var(--hv2-teal);font-weight:800}
+[data-active-theme="hv"] .hv2-grp-nrow.hv2-grp-host{background:var(--purple-lt);box-shadow:inset 2px 0 0 var(--purple)}
+[data-active-theme="hv"] .hv2-grp-nrow.hv2-grp-host .hv2-grp-n{color:var(--purple-dk);font-weight:800}
 
 /* Pickup block — consecutive pickups share ONE "↑ PICK" header, names stack below */
 [data-active-theme="hv"] .hv2-pickup-wrap{background:var(--hv2-lock-lt);padding:0 10px;border-radius:8px;margin-top:2px;margin-bottom:2px}
