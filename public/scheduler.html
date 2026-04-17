@@ -97,7 +97,7 @@ body{font-family:'Inter','SF Pro Display',system-ui,-apple-system,sans-serif;bac
 .cargrid{display:flex;gap:8px;min-height:100%;align-items:flex-start}
 .carcol{flex:1;display:flex;flex-direction:column;min-width:180px}
 /* Sticky car header — stays visible while scrolling the day view */
-.carhdr{background:#fff;color:var(--text);padding:12px 14px;border-radius:12px 12px 0 0;font-size:13px;font-weight:700;text-align:left;cursor:pointer;border:1px solid var(--border);border-bottom:2px solid var(--teal);position:sticky;top:0;z-index:5;letter-spacing:.02em}
+.carhdr{background:#fff;color:var(--text);padding:12px 14px;border-radius:12px 12px 0 0;font-size:13px;font-weight:700;text-align:left;cursor:pointer;border:1px solid var(--border);border-bottom:2px solid var(--purple);position:sticky;top:0;z-index:5;letter-spacing:.02em}
 .carhdr:hover{background:var(--bg)}
 .carhdr small{display:block;opacity:.7;font-size:10px;font-weight:500;margin-top:2px;color:var(--text3)}
 .wa-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);bottom:auto;background:var(--teal-lt);border:none;color:var(--teal);padding:5px 8px;border-radius:8px;font-size:11px;cursor:pointer;line-height:1;display:flex;align-items:center}
@@ -1516,7 +1516,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 [data-active-theme="hv"] .dt.on.sun{color:var(--hv2-err);border-bottom-color:var(--hv2-err)}
 
 /* Car column header — clean */
-[data-active-theme="hv"] .carhdr{background:var(--hv2-teal-lt);border:1px solid var(--hv2-teal);border-bottom:2px solid var(--hv2-teal);border-radius:10px 10px 0 0;box-shadow:none;padding:12px 14px;text-align:left;font-size:14px;font-weight:700;color:var(--hv2-teal)}
+[data-active-theme="hv"] .carhdr{background:var(--purple-lt);border:1px solid #C9C4E4;border-bottom:2px solid var(--purple);border-radius:10px 10px 0 0;box-shadow:none;padding:12px 14px;text-align:left;font-size:14px;font-weight:700;color:var(--purple-dk)}
 [data-active-theme="hv"] .carhdr small{color:var(--hv2-ink);opacity:.7;font-weight:500}
 [data-active-theme="hv"] .carhdr small{font-size:11px;color:var(--hv2-muted);opacity:1;font-weight:500;margin-top:3px;display:block}
 [data-active-theme="hv"] .car-cap{padding:6px 14px 10px;font-size:10.5px;color:var(--hv2-muted);font-weight:500;gap:8px;background:#fff;border-left:1px solid var(--hv2-line);border-right:1px solid var(--hv2-line)}
