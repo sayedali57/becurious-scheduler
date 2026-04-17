@@ -7075,6 +7075,13 @@ function _bcFormatTime(totalMin){
 }
 
 function renderHomeDashboard(){
+  try{ return _renderHomeDashboardInner(); }catch(e){
+    console.error('Dashboard render error:',e);
+    const el=document.getElementById('bc-left');
+    if(el)el.innerHTML='<div style="padding:40px;color:#A32D2D;font-size:14px"><b>Dashboard error:</b><br><pre style="white-space:pre-wrap;margin-top:8px">'+String(e.message||e)+'\\n'+String(e.stack||'').slice(0,500)+'</pre></div>';
+  }
+}
+function _renderHomeDashboardInner(){
   const br=_bcBranchFilter();
   const E=typeof esc==='function'?esc:(s=>(s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'));
 
