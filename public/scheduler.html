@@ -862,6 +862,22 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 .um-status-invited{background:#FEF3C7;color:#92400E}
 .um-status-active{background:#D1FAE5;color:#065F46}
 .um-status-inactive{background:#FEE2E2;color:#991B1B}
+.um-invite-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(58,53,48,.4);z-index:9999;display:flex;align-items:center;justify-content:center}
+.um-invite-modal{background:#fff;border-radius:14px;padding:28px;max-width:460px;width:90%;box-shadow:0 8px 32px rgba(58,53,48,.18)}
+.um-invite-modal h3{margin:0 0 6px;font-size:16px;color:#3A3530}
+.um-invite-modal p{font-size:12px;color:#6B6560;margin:0 0 16px;line-height:1.5}
+.um-invite-link-box{display:flex;gap:6px;align-items:center;margin-bottom:14px}
+.um-invite-link-box input{flex:1;font-size:12px;padding:8px 10px;border:1px solid #E5E0D5;border-radius:8px;background:#F8F6F1;color:#3A3530;font-family:inherit}
+.um-invite-link-box button{padding:8px 14px;border:1px solid #6A5FA8;background:#6A5FA8;color:#fff;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit}
+.um-invite-link-box button:hover{background:#5A4F96}
+.um-invite-actions{display:flex;gap:8px;flex-wrap:wrap}
+.um-invite-actions button{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid #E5E0D5}
+.um-invite-actions .primary{background:#6A5FA8;color:#fff;border-color:#6A5FA8}
+.um-invite-actions .primary:hover{background:#5A4F96}
+.um-invite-actions .secondary{background:#fff;color:#3A3530}
+.um-invite-actions .secondary:hover{background:#F0EDE5}
+.um-resend-btn{padding:2px 8px;background:#FEF3C7;color:#92400E;border:1px solid #F59E0B40;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;margin-left:4px}
+.um-resend-btn:hover{background:#FDE68A}
 .um-act-btn{padding:3px 8px;border:1px solid #D5D0C5;border-radius:4px;font-size:10px;cursor:pointer;background:#fff;font-family:inherit}
 .um-act-btn:hover{background:#F0EDE5}
 .um-act-btn.danger{border-color:#FCA5A5;color:#DC2626}
@@ -2598,9 +2614,12 @@ function umRenderTable(){
     h+='<td><span class="um-status um-status-'+u.status+'">'+u.status.charAt(0).toUpperCase()+u.status.slice(1)+'</span></td>';
     h+='<td style="white-space:nowrap">';
     if(!isSelf){
+      if(u.status==='invited'){
+        h+='<button class="um-resend-btn" onclick="umResendInvite(\''+u.id+'\')" title="Resend invite link">Resend Invite</button> ';
+      }
       if(u.status==='inactive'){
         h+='<button class="um-act-btn" onclick="umSetStatus(\''+u.id+'\',\'invited\')">Reactivate</button> ';
-      }else{
+      }else if(u.status!=='invited'){
         h+='<button class="um-act-btn danger" onclick="umSetStatus(\''+u.id+'\',\'inactive\')">Deactivate</button> ';
       }
       h+='<button class="um-act-btn danger" onclick="umDeleteUser(\''+u.id+'\')" title="Permanently delete this user">Delete</button> ';
@@ -2909,7 +2928,55 @@ async function umInviteUser(){
   umRenderTable();
   document.getElementById('um-email').value='';
   document.getElementById('um-name').value='';
-  toast('✓ '+name+' invited — share the app URL with them to sign in with Google.');
+  // Show invite modal with send options
+  umShowInviteModal(name,email);
+}
+
+function umShowInviteModal(name,email){
+  const existing=document.querySelector('.um-invite-modal-overlay');
+  if(existing)existing.remove();
+  const appUrl=window.location.origin+window.location.pathname;
+  const subject=encodeURIComponent('You\'re invited to BeCurious Scheduler');
+  const body=encodeURIComponent('Hi '+name+',\n\nYou\'ve been invited to join BeCurious Scheduler. Click the link below to sign in with your Google account:\n\n'+appUrl+'\n\nUse the Google account linked to this email ('+email+') to sign in.\n\nSee you there!\nBeCurious Team');
+  const mailtoLink='mailto:'+encodeURIComponent(email)+'?subject='+subject+'&body='+body;
+  const whatsappText=encodeURIComponent('Hi '+name+'! 👋\n\nYou\'ve been invited to BeCurious Scheduler. Open this link and sign in with your Google account ('+email+'):\n\n'+appUrl);
+  const whatsappLink='https://wa.me/?text='+whatsappText;
+
+  const overlay=document.createElement('div');
+  overlay.className='um-invite-modal-overlay';
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+  let h='<div class="um-invite-modal">';
+  h+='<h3>✓ '+esc(name)+' has been added</h3>';
+  h+='<p>Send them the invite link so they can sign in with Google. Choose how you\'d like to send it:</p>';
+  h+='<div class="um-invite-link-box">';
+  h+='<input type="text" value="'+esc(appUrl)+'" id="um-invite-url" readonly onclick="this.select()">';
+  h+='<button onclick="umCopyInviteLink()">Copy link</button>';
+  h+='</div>';
+  h+='<div class="um-invite-actions">';
+  h+='<a href="'+mailtoLink+'" target="_blank" style="text-decoration:none"><button type="button" class="primary">📧 Send via Email</button></a>';
+  h+='<a href="'+whatsappLink+'" target="_blank" style="text-decoration:none"><button type="button" class="primary" style="background:#25D366;border-color:#25D366">💬 Send via WhatsApp</button></a>';
+  h+='<button class="secondary" onclick="this.closest(\'.um-invite-modal-overlay\').remove()">Done</button>';
+  h+='</div></div>';
+  overlay.innerHTML=h;
+  document.body.appendChild(overlay);
+}
+
+function umCopyInviteLink(){
+  const input=document.getElementById('um-invite-url');
+  if(!input)return;
+  navigator.clipboard.writeText(input.value).then(()=>{
+    toast('✓ Invite link copied to clipboard');
+  }).catch(()=>{
+    input.select();
+    document.execCommand('copy');
+    toast('✓ Invite link copied');
+  });
+}
+
+function umResendInvite(uid){
+  const u=_umUsers.find(x=>x.id===uid);
+  if(!u)return;
+  umShowInviteModal(u.name,u.email);
 }
 
 // ===== BULK-SELECT STATE =====
