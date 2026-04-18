@@ -878,6 +878,49 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
 .um-invite-actions .secondary:hover{background:#F0EDE5}
 .um-resend-btn{padding:2px 8px;background:#FEF3C7;color:#92400E;border:1px solid #F59E0B40;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;margin-left:4px}
 .um-resend-btn:hover{background:#FDE68A}
+/* Messages tab — inbox layout */
+.msg-wrap{display:flex;height:calc(100vh - 120px);border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
+.msg-sidebar{width:300px;min-width:300px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg)}
+.msg-search{padding:12px;border-bottom:1px solid var(--border)}
+.msg-search input{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text1);outline:none;box-sizing:border-box;font-family:inherit}
+.msg-search input:focus{border-color:var(--accent)}
+.msg-contact-list{flex:1;overflow-y:auto}
+.msg-contact-item{display:flex;align-items:center;padding:12px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s}
+.msg-contact-item:hover{background:var(--card)}
+.msg-contact-item.active{background:var(--accent);color:#fff}
+.msg-contact-item.active .msg-ci-phone,.msg-contact-item.active .msg-ci-preview,.msg-contact-item.active .msg-ci-time{color:rgba(255,255,255,.8)}
+.msg-ci-avatar{width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:16px;margin-right:10px;flex-shrink:0}
+.msg-contact-item.active .msg-ci-avatar{background:rgba(255,255,255,.25)}
+.msg-ci-info{flex:1;min-width:0}
+.msg-ci-row{display:flex;justify-content:space-between;align-items:baseline}
+.msg-ci-name{font-weight:600;font-size:14px;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msg-contact-item.active .msg-ci-name{color:#fff}
+.msg-ci-time{font-size:11px;color:var(--text2);margin-left:6px;flex-shrink:0}
+.msg-ci-phone{font-size:12px;color:var(--text2);margin-top:1px}
+.msg-ci-preview{font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.msg-chat{flex:1;display:flex;flex-direction:column;background:var(--bg)}
+.msg-chat-header{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--card);display:flex;align-items:center;gap:10px}
+.msg-ch-avatar{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px}
+.msg-ch-name{font-weight:600;font-size:15px;color:var(--text1)}
+.msg-ch-phone{font-size:12px;color:var(--text2)}
+.msg-chat-body{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:6px}
+.msg-bubble-wrap{display:flex;flex-direction:column;max-width:70%}
+.msg-bubble-wrap.out{align-self:flex-end;align-items:flex-end}
+.msg-bubble-wrap.in{align-self:flex-start;align-items:flex-start}
+.msg-bubble{padding:8px 14px;border-radius:14px;font-size:14px;line-height:1.45;word-break:break-word;white-space:pre-wrap}
+.msg-bubble-wrap.out .msg-bubble{background:var(--accent);color:#fff;border-bottom-right-radius:4px}
+.msg-bubble-wrap.in .msg-bubble{background:var(--card);color:var(--text1);border:1px solid var(--border);border-bottom-left-radius:4px}
+.msg-bubble-time{font-size:10px;color:var(--text2);margin-top:3px;padding:0 4px}
+.msg-chat-input{padding:12px 18px;border-top:1px solid var(--border);background:var(--card);display:flex;gap:8px;align-items:flex-end}
+.msg-chat-input textarea{flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;resize:none;max-height:100px;outline:none;background:var(--bg);color:var(--text1);box-sizing:border-box}
+.msg-chat-input textarea:focus{border-color:var(--accent)}
+.msg-send-btn{padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit}
+.msg-send-btn:hover{opacity:.88}
+.msg-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:15px;text-align:center;padding:40px}
+.msg-no-token{padding:40px;text-align:center;color:var(--text2);font-size:15px;line-height:1.6}
+.msg-loading{text-align:center;padding:30px;color:var(--text2);font-size:14px}
+.msg-day-sep{text-align:center;font-size:11px;color:var(--text2);margin:12px 0 6px;font-weight:600}
+@media(max-width:700px){.msg-sidebar{width:100%;min-width:0}.msg-chat{display:none}.msg-wrap.chat-open .msg-sidebar{display:none}.msg-wrap.chat-open .msg-chat{display:flex}}
 .um-act-btn{padding:3px 8px;border:1px solid #D5D0C5;border-radius:4px;font-size:10px;cursor:pointer;background:#fff;font-family:inherit}
 .um-act-btn:hover{background:#F0EDE5}
 .um-act-btn.danger{border-color:#FCA5A5;color:#DC2626}
@@ -1213,6 +1256,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
   <button class="theme-tab" data-theme="hv" onclick="switchTheme('hv')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Schedule</button>
   <button class="theme-tab" data-theme="cs" onclick="switchTheme('cs')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>Cases<span id="cs-tab-badge" style="display:none;background:#DC2626;color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:999px;margin-left:6px"></span></button>
   <button class="theme-tab" data-theme="pl" onclick="switchTheme('pl')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Pipeline</button>
+  <button class="theme-tab" data-theme="msg" onclick="switchTheme('msg')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Messages</button>
   <div class="topnav-spacer"></div>
   <div class="topnav-shared">
     <button id="undo-btn" class="topnav-btn" onclick="undoLast()" title="Nothing to undo" disabled style="opacity:0.4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>Undo</button>
@@ -1470,6 +1514,31 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
   </div>
   <div id="pl-dashboard-outer" style="overflow-y:auto;flex:1;display:none"></div>
   <div id="pipeline-outer" style="overflow-y:auto;flex:1"></div>
+</div>
+
+<div class="theme-panel" id="theme-msg">
+  <div class="msg-wrap" id="msgWrap">
+    <div class="msg-sidebar">
+      <div class="msg-search">
+        <input type="text" id="msgSearchInput" placeholder="Search contacts…" oninput="msgSearchContacts(this.value)">
+      </div>
+      <div class="msg-contact-list" id="msgContactList"></div>
+    </div>
+    <div class="msg-chat">
+      <div id="msgChatHeader" class="msg-chat-header" style="display:none">
+        <button style="display:none;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text1);padding:0 4px" class="msg-back-btn" onclick="msgBackToList()">&#8592;</button>
+        <div class="msg-ch-avatar" id="msgChAvatar"></div>
+        <div><div class="msg-ch-name" id="msgChName"></div><div class="msg-ch-phone" id="msgChPhone"></div></div>
+      </div>
+      <div class="msg-chat-body" id="msgChatBody">
+        <div class="msg-empty" id="msgEmptyState">Select a contact to start messaging</div>
+      </div>
+      <div class="msg-chat-input" id="msgChatInput" style="display:none">
+        <textarea id="msgTextarea" rows="1" placeholder="Type a message…" onkeydown="msgInputKey(event)"></textarea>
+        <button class="msg-send-btn" onclick="msgSendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ===== SHARED HELP PAGE ===== -->
@@ -2691,7 +2760,8 @@ const PERM_SCHEMA=[
     {k:'mod_tasks',    label:'Activity module',  theme:'tasks'},
     {k:'mod_schedule', label:'Schedule module',  theme:'hv'},
     {k:'mod_cases',    label:'Cases module',     theme:'cs'},
-    {k:'mod_pipeline', label:'Pipeline module',  theme:'pl'}
+    {k:'mod_pipeline', label:'Pipeline module',  theme:'pl'},
+    {k:'mod_messages', label:'Messages module',  theme:'msg'}
   ]},
   {cat:'Activity',perms:[
     {k:'tk_view',      label:'View tasks'},
@@ -2745,6 +2815,10 @@ const PERM_SCHEMA=[
     {k:'tc_delete',       label:'Delete teachers'},
     {k:'tc_whatsapp',     label:'Send teacher WhatsApp'}
   ]},
+  {cat:'Messages',perms:[
+    {k:'msg_view',         label:'View messages'},
+    {k:'msg_send',         label:'Send messages'}
+  ]},
   {cat:'Data & Reports',perms:[
     {k:'data_export',     label:'Export data (JSON, CSV)'},
     {k:'data_import',     label:'Import data (JSON, CSV)'},
@@ -2785,8 +2859,9 @@ const ROLE_DEFAULTS={
   })(),
   coordinator:(()=>{
     const d=Object.fromEntries(ALL_PERM_KEYS.map(k=>[k,false]));
-    d.mod_tasks=true;d.mod_schedule=true;d.mod_cases=true;d.mod_pipeline=true;
+    d.mod_tasks=true;d.mod_schedule=true;d.mod_cases=true;d.mod_pipeline=true;d.mod_messages=true;
     d.tk_view=true;d.tk_create=true;d.tk_edit=true;d.tk_delete=false;d.tk_team=false;
+    d.msg_view=true;d.msg_send=true;
     d.hv_view=true;d.hv_attendance=true;d.hv_dispatch=true;
     d.cs_view=true;d.cs_create=true;d.cs_edit=true;d.cs_change_stage=true;d.cs_assign=true;
     d.pl_view=true;d.pl_create=true;d.pl_edit=true;d.pl_move_stage=true;
@@ -2798,7 +2873,7 @@ const ROLE_DEFAULTS={
 };
 
 // Map each module key to the permission-key prefix it governs
-const MODULE_PREFIX_MAP={mod_tasks:'tk_',mod_schedule:'hv_',mod_cases:'cs_',mod_pipeline:'pl_'};
+const MODULE_PREFIX_MAP={mod_tasks:'tk_',mod_schedule:'hv_',mod_cases:'cs_',mod_pipeline:'pl_',mod_messages:'msg_'};
 
 // Get effective permissions for a user (their overrides merged on top of role defaults)
 function effectivePerms(user){
@@ -7743,6 +7818,7 @@ function switchTheme(theme){
       if(modPerm&&perms[modPerm.k]===false){theme='home';}
     }
   }
+  if(_activeTheme==='msg'&&theme!=='msg'&&typeof msgStopPolling==='function'){msgStopPolling();}
   _activeTheme=theme;
   document.body.setAttribute('data-active-theme',theme);
   // Toggle theme tabs
@@ -7764,6 +7840,9 @@ function switchTheme(theme){
   }
   if(theme==='cs'){
     switchCsView(_csView||'kanban');
+  }
+  if(theme==='msg'){
+    msgRender();
   }
 }
 
@@ -13663,6 +13742,189 @@ function tblChangeTime(r,hhmm){
   const mm=(parseInt(parts[0])||0)*60+(parseInt(parts[1])||0);
   sl.fixedStart=mm;
 }
+
+// ===== MESSAGES TAB =====
+let _msgContacts=[];
+let _msgSelectedId=null;
+let _msgMessages=[];
+let _msgPollTimer=null;
+let _msgSearchQuery='';
+
+function msgRender(){
+  msgStopPolling();_msgSelectedId=null;_msgMessages=[];
+  const token=SETTINGS&&SETTINGS.respondio_token?SETTINGS.respondio_token.trim():'';
+  if(!token){
+    document.getElementById('msgContactList').innerHTML='<div class="msg-no-token">Configure your <b>Respond.io API token</b> in Settings to use Messages.</div>';
+    document.getElementById('msgChatHeader').style.display='none';
+    document.getElementById('msgChatInput').style.display='none';
+    document.getElementById('msgEmptyState').style.display='flex';
+    document.getElementById('msgEmptyState').textContent='No API token configured';
+    document.getElementById('msgWrap').classList.remove('chat-open');
+    return;
+  }
+  document.getElementById('msgContactList').innerHTML='<div class="msg-loading">Loading contacts…</div>';
+  document.getElementById('msgEmptyState').style.display='flex';
+  document.getElementById('msgEmptyState').textContent='Select a contact to start messaging';
+  document.getElementById('msgChatHeader').style.display='none';
+  document.getElementById('msgChatInput').style.display='none';
+  document.getElementById('msgSearchInput').value='';
+  _msgSearchQuery='';
+  msgLoadContacts();
+}
+
+function msgApiHeaders(){
+  return {'Authorization':'Bearer '+SETTINGS.respondio_token.trim(),'Content-Type':'application/json'};
+}
+
+function msgLoadContacts(){
+  fetch(RIO_API+'/contact',{method:'POST',headers:msgApiHeaders(),body:JSON.stringify({limit:50,cursorId:null})})
+  .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+  .then(data=>{
+    let list=data;
+    if(data&&data.data&&Array.isArray(data.data))list=data.data;
+    else if(data&&data.contacts&&Array.isArray(data.contacts))list=data.contacts;
+    if(!Array.isArray(list))list=[];
+    _msgContacts=list.map(c=>({
+      id:c.id,
+      firstName:c.firstName||c.first_name||'',
+      lastName:c.lastName||c.last_name||'',
+      phone:c.phone||(c.phones&&c.phones[0])||'',
+      email:c.email||(c.emails&&c.emails[0])||'',
+      lastMessage:c.lastMessage||c.last_message||null,
+      updatedAt:c.updatedAt||c.updated_at||c.createdAt||''
+    }));
+    _msgContacts.sort((a,b)=>{
+      const ta=a.lastMessage?(a.lastMessage.createdAt||a.lastMessage.created_at||''):a.updatedAt;
+      const tb=b.lastMessage?(b.lastMessage.createdAt||b.lastMessage.created_at||''):b.updatedAt;
+      return ta<tb?1:ta>tb?-1:0;
+    });
+    msgRenderContactList();
+  })
+  .catch(err=>{
+    console.error('msgLoadContacts:',err);
+    document.getElementById('msgContactList').innerHTML='<div class="msg-no-token">Failed to load contacts.<br><small>'+esc(err.message)+'</small></div>';
+  });
+}
+
+function msgSearchContacts(q){_msgSearchQuery=(q||'').trim().toLowerCase();msgRenderContactList();}
+
+function msgContactName(c){return((c.firstName||'')+' '+(c.lastName||'')).trim()||c.phone||c.email||'Unknown';}
+function msgContactInitial(c){return msgContactName(c).charAt(0).toUpperCase();}
+
+function msgRenderContactList(){
+  const q=_msgSearchQuery;
+  const filtered=_msgContacts.filter(c=>{
+    if(!q)return true;
+    return(msgContactName(c)+' '+c.phone+' '+c.email).toLowerCase().includes(q);
+  });
+  if(!filtered.length){document.getElementById('msgContactList').innerHTML='<div class="msg-loading">'+(q?'No contacts match':'No contacts found')+'</div>';return;}
+  let h='';
+  filtered.forEach(c=>{
+    const active=c.id===_msgSelectedId;
+    const name=esc(msgContactName(c));
+    const phone=c.phone?esc(c.phone):'';
+    let preview='';
+    if(c.lastMessage){let txt=c.lastMessage.text||c.lastMessage.body||'';if(txt.length>40)txt=txt.substring(0,40)+'…';preview=esc(txt);}
+    const ts=c.lastMessage?(c.lastMessage.createdAt||c.lastMessage.created_at||''):c.updatedAt;
+    const timeStr=ts?esc(msgShortTime(ts)):'';
+    h+='<div class="msg-contact-item'+(active?' active':'')+'" onclick="msgSelectContact('+c.id+')">'
+      +'<div class="msg-ci-avatar">'+esc(msgContactInitial(c))+'</div>'
+      +'<div class="msg-ci-info">'
+      +'<div class="msg-ci-row"><span class="msg-ci-name">'+name+'</span><span class="msg-ci-time">'+timeStr+'</span></div>'
+      +(phone?'<div class="msg-ci-phone">'+phone+'</div>':'')
+      +(preview?'<div class="msg-ci-preview">'+preview+'</div>':'')
+      +'</div></div>';
+  });
+  document.getElementById('msgContactList').innerHTML=h;
+}
+
+function msgSelectContact(contactId){
+  msgStopPolling();_msgSelectedId=contactId;_msgMessages=[];
+  msgRenderContactList();
+  const c=_msgContacts.find(x=>x.id===contactId);
+  document.getElementById('msgChatHeader').style.display='flex';
+  document.getElementById('msgChAvatar').textContent=c?msgContactInitial(c):'?';
+  document.getElementById('msgChName').textContent=c?msgContactName(c):'Unknown';
+  document.getElementById('msgChPhone').textContent=c?(c.phone||c.email||''):'';
+  document.getElementById('msgChatInput').style.display='flex';
+  document.getElementById('msgEmptyState').style.display='none';
+  document.getElementById('msgChatBody').innerHTML='<div class="msg-loading">Loading messages…</div>';
+  document.getElementById('msgWrap').classList.add('chat-open');
+  msgLoadMessages(contactId);
+  msgStartPolling();
+}
+
+function msgLoadMessages(contactId){
+  fetch(RIO_API+'/contact/id:'+contactId+'/message/list?limit=50',{method:'GET',headers:msgApiHeaders()})
+  .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+  .then(data=>{
+    if(contactId!==_msgSelectedId)return;
+    let list=data;
+    if(data&&data.data&&Array.isArray(data.data))list=data.data;
+    else if(data&&data.messages&&Array.isArray(data.messages))list=data.messages;
+    if(!Array.isArray(list))list=[];
+    _msgMessages=list.map(m=>({
+      id:m.id,
+      text:m.text||m.body||(m.message&&m.message.text)||'',
+      direction:(m.direction==='outgoing'||m.type==='outgoing'||m.sentBy==='user')?'out':'in',
+      createdAt:m.createdAt||m.created_at||m.timestamp||''
+    }));
+    _msgMessages.sort((a,b)=>a.createdAt<b.createdAt?-1:a.createdAt>b.createdAt?1:0);
+    msgRenderMessages();
+  })
+  .catch(err=>{
+    console.error('msgLoadMessages:',err);
+    if(contactId!==_msgSelectedId)return;
+    document.getElementById('msgChatBody').innerHTML='<div class="msg-loading">Failed to load messages.<br><small>'+esc(err.message)+'</small></div>';
+  });
+}
+
+function msgRenderMessages(){
+  const body=document.getElementById('msgChatBody');
+  if(!_msgMessages.length){body.innerHTML='<div class="msg-empty">No messages yet. Say hello!</div>';return;}
+  let h='',lastDay='';
+  _msgMessages.forEach(m=>{
+    const day=msgDayLabel(m.createdAt);
+    if(day!==lastDay){h+='<div class="msg-day-sep">'+esc(day)+'</div>';lastDay=day;}
+    const cls=m.direction==='out'?'out':'in';
+    h+='<div class="msg-bubble-wrap '+cls+'"><div class="msg-bubble">'+esc(m.text)+'</div><div class="msg-bubble-time">'+esc(msgFmtTime(m.createdAt))+'</div></div>';
+  });
+  body.innerHTML=h;
+  body.scrollTop=body.scrollHeight;
+}
+
+function msgSendMessage(){
+  const ta=document.getElementById('msgTextarea');
+  const text=ta.value.trim();
+  if(!text||!_msgSelectedId)return;
+  const c=_msgContacts.find(x=>x.id===_msgSelectedId);
+  const contactRef=c&&c.phone?c.phone:String(_msgSelectedId);
+  const now=new Date().toISOString();
+  _msgMessages.push({id:'local_'+Date.now(),text,direction:'out',createdAt:now});
+  msgRenderMessages();
+  ta.value='';ta.style.height='auto';
+  fetch(RIO_API+'/message',{method:'POST',headers:msgApiHeaders(),body:JSON.stringify({contactId:contactRef,message:{type:'text',text}})})
+  .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+  .then(()=>{if(c){c.lastMessage={text,createdAt:now};msgRenderContactList();}})
+  .catch(err=>{
+    console.error('msgSend:',err);
+    const last=_msgMessages[_msgMessages.length-1];
+    if(last&&String(last.id).startsWith('local_')){last.text+=' ⚠ Send failed';msgRenderMessages();}
+  });
+}
+
+function msgInputKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();msgSendMessage();}
+  const ta=e.target;setTimeout(()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,100)+'px';},0);
+}
+
+function msgStartPolling(){msgStopPolling();_msgPollTimer=setInterval(()=>{if(_msgSelectedId)msgLoadMessages(_msgSelectedId);},15000);}
+function msgStopPolling(){if(_msgPollTimer){clearInterval(_msgPollTimer);_msgPollTimer=null;}}
+function msgBackToList(){document.getElementById('msgWrap').classList.remove('chat-open');}
+
+function msgFmtTime(iso){if(!iso)return '';const d=new Date(iso);if(isNaN(d))return '';let h=d.getHours(),m=d.getMinutes(),ap=h>=12?'PM':'AM';h=h%12||12;return h+':'+(m<10?'0':'')+m+' '+ap;}
+function msgShortTime(iso){if(!iso)return '';const d=new Date(iso);if(isNaN(d))return '';const n=new Date();if(d.toDateString()===n.toDateString())return msgFmtTime(iso);return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+' '+d.getDate();}
+function msgDayLabel(iso){if(!iso)return '';const d=new Date(iso);if(isNaN(d))return '';const n=new Date();if(d.toDateString()===n.toDateString())return 'Today';const y=new Date(n);y.setDate(y.getDate()-1);if(d.toDateString()===y.toDateString())return 'Yesterday';return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();}
 
 // ===== RESPOND.IO INTEGRATION =====
 const RIO_API='https://api.respond.io/v2';
