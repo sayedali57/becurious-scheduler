@@ -2110,10 +2110,23 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
       <div class="um-invite-row" id="um-invite-row">
         <input type="email" id="um-email" placeholder="Email address">
         <input type="text" id="um-name" placeholder="Name">
+        <input type="tel" id="um-phone" placeholder="Phone (+965...)" style="min-width:130px">
         <select id="um-role"><option value="admin">Admin</option><option value="director">Director</option><option value="operations">Operations</option><option value="coordinator" selected>Coordinator</option></select>
         <select id="um-branch"></select>
         <button type="button" onclick="umInviteUser()">Send Invite</button>
       </div>
+    </div>
+
+    <div class="set-section" id="respondio-section" style="border:1px solid #6A5FA840;background:#F8F6FF">
+      <div class="set-section-title" style="color:#6A5FA8">💬 Respond.io Integration</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.5">Connect Respond.io to send WhatsApp invites and notifications automatically, and show a live chat widget on the site.</div>
+      <div class="frow2">
+        <div class="frow" style="flex:2"><label>API Token</label><input id="set-rio-token" type="password" placeholder="Paste your Respond.io API token" autocomplete="off"><small class="set-help">From Respond.io → Settings → Integrations → Developer API → Manage</small></div>
+        <div class="frow" style="min-width:100px;align-self:flex-end"><button type="button" class="btn" onclick="rioTestConnection()" style="font-size:11px;padding:6px 12px">Test connection</button></div>
+      </div>
+      <div class="frow" style="margin-top:4px"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="set-rio-chat-enabled"> Enable live chat widget on login page and for logged-in users</label></div>
+      <div class="frow" style="margin-top:2px"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="set-rio-invite-enabled" checked> Send invite messages via Respond.io WhatsApp (instead of manual email/WhatsApp)</label></div>
+      <div id="rio-test-result" style="font-size:11px;margin-top:6px;display:none"></div>
     </div>
 
     <div class="set-section" id="danger-zone-section" style="border:1px solid #f3b4b4;background:#fff5f5">
@@ -2284,7 +2297,12 @@ const DEFAULT_SETTINGS={
   outdoorDays:[],
   // Immutable completion log for outdoor days. Keyed by the specific date
   // the event actually fell on: { 'yyyy-mm-dd': { at, by, entryId } }
-  outdoorCompletions:{}
+  outdoorCompletions:{},
+  // Respond.io integration
+  respondio_token:'',
+  respondio_chat_enabled:false,
+  respondio_invite_enabled:false,
+  respondio_widget_id:'3ab72beb-3358-499b-bead-f339354c72f2'
 };
 function activeDays(){
   // Returns only the days that are currently enabled for scheduling.
@@ -2915,24 +2933,40 @@ async function permSave(){
 async function umInviteUser(){
   const email=(document.getElementById('um-email').value||'').trim();
   const name=(document.getElementById('um-name').value||'').trim();
+  const phone=(document.getElementById('um-phone').value||'').trim();
   const role=document.getElementById('um-role').value;
   const branch=document.getElementById('um-branch').value;
   if(!email||!name){alert('Email and name are required.');return;}
   if(!email.includes('@')){alert('Please enter a valid email address.');return;}
   // Check if email already exists
   if(_umUsers.some(u=>u.email===email)){alert('A user with this email already exists.');return;}
-  // Insert into app_users
-  const {data,error}=await supa.from('app_users').insert({email,name,role,branch,status:'invited'}).select().single();
+  // Insert into app_users (include phone)
+  const insertObj={email,name,role,branch,status:'invited'};
+  if(phone)insertObj.phone=phone;
+  const {data,error}=await supa.from('app_users').insert(insertObj).select().single();
   if(error){alert('Failed to add user: '+error.message);return;}
   _umUsers.push(data);
   umRenderTable();
   document.getElementById('um-email').value='';
   document.getElementById('um-name').value='';
-  // Show invite modal with send options
-  umShowInviteModal(name,email);
+  if(document.getElementById('um-phone'))document.getElementById('um-phone').value='';
+  // If Respond.io invite is enabled and phone provided, send via WhatsApp
+  if(SETTINGS.respondio_invite_enabled&&SETTINGS.respondio_token&&phone){
+    toast('Sending WhatsApp invite via Respond.io...');
+    const result=await rioSendInvite(name,phone);
+    if(result.ok){
+      toast('✓ WhatsApp invite sent to '+name);
+    }else{
+      toast('WhatsApp send failed: '+(result.error||'unknown error')+'. Use manual options below.');
+      umShowInviteModal(name,email,phone);
+    }
+  }else{
+    // Fallback: show manual invite modal
+    umShowInviteModal(name,email,phone);
+  }
 }
 
-function umShowInviteModal(name,email){
+function umShowInviteModal(name,email,phone){
   const existing=document.querySelector('.um-invite-modal-overlay');
   if(existing)existing.remove();
   const appUrl=window.location.origin+window.location.pathname;
@@ -2940,7 +2974,8 @@ function umShowInviteModal(name,email){
   const body=encodeURIComponent('Hi '+name+',\n\nYou\'ve been invited to join BeCurious Scheduler. Click the link below to sign in with your Google account:\n\n'+appUrl+'\n\nUse the Google account linked to this email ('+email+') to sign in.\n\nSee you there!\nBeCurious Team');
   const mailtoLink='mailto:'+encodeURIComponent(email)+'?subject='+subject+'&body='+body;
   const whatsappText=encodeURIComponent('Hi '+name+'! 👋\n\nYou\'ve been invited to BeCurious Scheduler. Open this link and sign in with your Google account ('+email+'):\n\n'+appUrl);
-  const whatsappLink='https://wa.me/?text='+whatsappText;
+  const cleanPhone=phone?(phone.replace(/[\s\-()]/g,'')).replace(/^\+/,''):'';
+  const whatsappLink='https://wa.me/'+(cleanPhone||'')+'?text='+whatsappText;
 
   const overlay=document.createElement('div');
   overlay.className='um-invite-modal-overlay';
@@ -2973,10 +3008,17 @@ function umCopyInviteLink(){
   });
 }
 
-function umResendInvite(uid){
+async function umResendInvite(uid){
   const u=_umUsers.find(x=>x.id===uid);
   if(!u)return;
-  umShowInviteModal(u.name,u.email);
+  // If Respond.io is enabled and phone available, send automatically
+  if(SETTINGS.respondio_invite_enabled&&SETTINGS.respondio_token&&u.phone){
+    toast('Resending WhatsApp invite...');
+    const result=await rioSendInvite(u.name,u.phone);
+    if(result.ok){toast('✓ WhatsApp invite resent to '+u.name);return;}
+    toast('Auto-send failed. Opening manual options...');
+  }
+  umShowInviteModal(u.name,u.email,u.phone||'');
 }
 
 // ===== BULK-SELECT STATE =====
@@ -9287,6 +9329,13 @@ function showSettingsModal(){
   qs('set-sunActive').checked=!!SETTINGS.sundayActive;
   qs('set-thuActive').checked=!!SETTINGS.thursdayActive;
   qs('set-autoPin').value=SETTINGS.autoSchedulePin||'';
+  // Respond.io
+  const rioToken=document.getElementById('set-rio-token');
+  if(rioToken)rioToken.value=SETTINGS.respondio_token||'';
+  const rioChatCb=document.getElementById('set-rio-chat-enabled');
+  if(rioChatCb)rioChatCb.checked=!!SETTINGS.respondio_chat_enabled;
+  const rioInvCb=document.getElementById('set-rio-invite-enabled');
+  if(rioInvCb)rioInvCb.checked=!!SETTINGS.respondio_invite_enabled;
   renderLiveTeachersList();
   renderOutdoorDaysList();
   populateLiveTeacherSelect();
@@ -9416,6 +9465,11 @@ function saveSettingsModal(){
     sundayActive:qs('set-sunActive').checked?1:0,
     thursdayActive:qs('set-thuActive').checked?1:0,
     autoSchedulePin:(qs('set-autoPin').value||'').trim(),
+    // Respond.io
+    respondio_token:(document.getElementById('set-rio-token')||{}).value||SETTINGS.respondio_token||'',
+    respondio_chat_enabled:!!(document.getElementById('set-rio-chat-enabled')||{}).checked,
+    respondio_invite_enabled:!!(document.getElementById('set-rio-invite-enabled')||{}).checked,
+    respondio_widget_id:SETTINGS.respondio_widget_id||'3ab72beb-3358-499b-bead-f339354c72f2',
   };
   // Validation: clamp to sane ranges
   if(next.sessionMin<15||next.sessionMin>180){toast('Session length must be 15–180 minutes');return;}
@@ -9434,6 +9488,7 @@ function saveSettingsModal(){
   if(typeof renderDayTabs==='function')renderDayTabs();
   closeSettingsModal();
   renderSched();renderPool();saveState();
+  rioApplyState();
   toast('Settings saved');
 }
 
@@ -13265,6 +13320,7 @@ setSyncIndicator('connecting');
   try{updateCsTabBadge();}catch(e){}
   // Apply any saved custom branding (logo + banner) and seed the undo baseline
   try{applyCustomBranding();}catch(e){}
+  try{rioApplyState();}catch(e){}
   try{initUndoBaseline();}catch(e){}
   if(_isDevDeploy){
     const badge=qs('env-badge');
@@ -13606,6 +13662,113 @@ function tblChangeTime(r,hhmm){
   if(parts.length!==2)return;
   const mm=(parseInt(parts[0])||0)*60+(parseInt(parts[1])||0);
   sl.fixedStart=mm;
+}
+
+// ===== RESPOND.IO INTEGRATION =====
+const RIO_API='https://api.respond.io/v2';
+
+// Load chat widget dynamically based on settings
+function rioLoadWidget(){
+  if(!SETTINGS.respondio_chat_enabled)return;
+  const wId=SETTINGS.respondio_widget_id||'3ab72beb-3358-499b-bead-f339354c72f2';
+  if(document.getElementById('respondio__growth_tool'))return; // already loaded
+  const s=document.createElement('script');
+  s.id='respondio__growth_tool';
+  s.src='https://cdn.respond.io/widget/widget.js?wId='+wId;
+  document.body.appendChild(s);
+}
+
+// Remove widget if disabled
+function rioRemoveWidget(){
+  const s=document.getElementById('respondio__growth_tool');
+  if(s)s.remove();
+  // Also remove the widget iframe/container if present
+  document.querySelectorAll('[id*="respondio"]').forEach(el=>{
+    if(el.id!=='respondio-section')el.remove();
+  });
+}
+
+// Test API connection
+async function rioTestConnection(){
+  const tokenEl=document.getElementById('set-rio-token');
+  const resultEl=document.getElementById('rio-test-result');
+  if(!tokenEl||!resultEl)return;
+  const token=tokenEl.value.trim();
+  if(!token){resultEl.style.display='block';resultEl.style.color='#991B1B';resultEl.textContent='Please enter an API token first.';return;}
+  resultEl.style.display='block';resultEl.style.color='#6B6560';resultEl.textContent='Testing connection...';
+  try{
+    const res=await fetch(RIO_API+'/contact?cursor=0&limit=1',{
+      method:'GET',
+      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}
+    });
+    if(res.ok){
+      resultEl.style.color='#065F46';resultEl.textContent='✓ Connected successfully to Respond.io!';
+    }else{
+      const body=await res.json().catch(()=>({}));
+      resultEl.style.color='#991B1B';resultEl.textContent='✗ Connection failed: '+(body.message||res.statusText||'HTTP '+res.status);
+    }
+  }catch(e){
+    resultEl.style.color='#991B1B';resultEl.textContent='✗ Network error — Respond.io API may not allow browser requests. Messages will be sent via a proxy.';
+  }
+}
+
+// Send WhatsApp message via Respond.io API
+async function rioSendMessage(phone,message){
+  const token=SETTINGS.respondio_token;
+  if(!token){console.warn('Respond.io token not set');return {ok:false,error:'No API token configured'};}
+  // Clean phone: ensure it starts with + and has no spaces
+  const cleanPhone=phone.replace(/[\s\-()]/g,'');
+  const phoneNum=cleanPhone.startsWith('+')?cleanPhone:'+'+cleanPhone;
+  try{
+    // Step 1: Create or find the contact by phone
+    const contactRes=await fetch(RIO_API+'/contact/phone:'+encodeURIComponent(phoneNum),{
+      method:'GET',
+      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}
+    });
+    let contactId=null;
+    if(contactRes.ok){
+      const cData=await contactRes.json();
+      contactId=cData.id||cData.data?.id;
+    }
+    if(!contactId){
+      // Create contact
+      const createRes=await fetch(RIO_API+'/contact',{
+        method:'POST',
+        headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+        body:JSON.stringify({phone:phoneNum})
+      });
+      if(createRes.ok){
+        const cData=await createRes.json();
+        contactId=cData.id||cData.data?.id;
+      }
+    }
+    if(!contactId){return {ok:false,error:'Could not find or create contact'};}
+    // Step 2: Send the message
+    const msgRes=await fetch(RIO_API+'/contact/'+contactId+'/message',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({message:{type:'text',text:{body:message}}})
+    });
+    if(msgRes.ok){return {ok:true};}
+    const err=await msgRes.json().catch(()=>({}));
+    return {ok:false,error:err.message||'Failed to send message'};
+  }catch(e){
+    return {ok:false,error:e.message||'Network error'};
+  }
+}
+
+// Send invite via Respond.io (called from invite flow)
+async function rioSendInvite(name,phone){
+  const appUrl=window.location.origin+window.location.pathname;
+  const message='Hi '+name+'! 👋\n\nYou\'ve been invited to join BeCurious Scheduler. Open this link and sign in with your Google account:\n\n'+appUrl+'\n\nSee you there!\n— BeCurious Team';
+  const result=await rioSendMessage(phone,message);
+  return result;
+}
+
+// Apply widget state after settings are loaded/saved
+function rioApplyState(){
+  if(SETTINGS.respondio_chat_enabled){rioLoadWidget();}
+  else{rioRemoveWidget();}
 }
 </script>
 </body>
