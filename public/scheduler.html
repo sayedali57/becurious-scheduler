@@ -13697,9 +13697,11 @@ async function rioTestConnection(){
   if(!token){resultEl.style.display='block';resultEl.style.color='#991B1B';resultEl.textContent='Please enter an API token first.';return;}
   resultEl.style.display='block';resultEl.style.color='#6B6560';resultEl.textContent='Testing connection...';
   try{
-    const res=await fetch(RIO_API+'/contact?cursor=0&limit=1',{
-      method:'GET',
-      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}
+    // List contacts (POST with limit:1) to verify token works
+    const res=await fetch(RIO_API+'/contact',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({limit:1,cursorId:null})
     });
     if(res.ok){
       resultEl.style.color='#065F46';resultEl.textContent='✓ Connected successfully to Respond.io!';
@@ -13708,50 +13710,65 @@ async function rioTestConnection(){
       resultEl.style.color='#991B1B';resultEl.textContent='✗ Connection failed: '+(body.message||res.statusText||'HTTP '+res.status);
     }
   }catch(e){
-    resultEl.style.color='#991B1B';resultEl.textContent='✗ Network error — Respond.io API may not allow browser requests. Messages will be sent via a proxy.';
+    resultEl.style.color='#991B1B';resultEl.textContent='✗ Network error — this may be a browser CORS restriction. The API token is still saved and will work server-side.';
   }
+}
+
+// Find a contact by phone in Respond.io
+async function rioFindContact(token,phoneNum){
+  try{
+    const res=await fetch(RIO_API+'/contact',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({limit:1,cursorId:null,filters:[{field:'phone',operator:'equal',value:phoneNum}]})
+    });
+    if(!res.ok)return null;
+    const data=await res.json();
+    const contacts=data.data||data.contacts||data;
+    if(Array.isArray(contacts)&&contacts.length>0)return contacts[0].id;
+    if(data.id)return data.id;
+    return null;
+  }catch(e){return null;}
+}
+
+// Create a contact in Respond.io
+async function rioCreateContact(token,phoneNum,firstName){
+  try{
+    const res=await fetch(RIO_API+'/contact',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify({phone:phoneNum,firstName:firstName||''})
+    });
+    if(!res.ok)return null;
+    const data=await res.json();
+    return data.id||data.data?.id||null;
+  }catch(e){return null;}
 }
 
 // Send WhatsApp message via Respond.io API
 async function rioSendMessage(phone,message){
   const token=SETTINGS.respondio_token;
   if(!token){console.warn('Respond.io token not set');return {ok:false,error:'No API token configured'};}
-  // Clean phone: ensure it starts with + and has no spaces
+  // Clean phone: ensure E.164 format
   const cleanPhone=phone.replace(/[\s\-()]/g,'');
   const phoneNum=cleanPhone.startsWith('+')?cleanPhone:'+'+cleanPhone;
   try{
-    // Step 1: Create or find the contact by phone
-    const contactRes=await fetch(RIO_API+'/contact/phone:'+encodeURIComponent(phoneNum),{
-      method:'GET',
-      headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}
-    });
-    let contactId=null;
-    if(contactRes.ok){
-      const cData=await contactRes.json();
-      contactId=cData.id||cData.data?.id;
-    }
+    // Step 1: Find contact by phone
+    let contactId=await rioFindContact(token,phoneNum);
+    // Step 2: Create if not found
     if(!contactId){
-      // Create contact
-      const createRes=await fetch(RIO_API+'/contact',{
-        method:'POST',
-        headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
-        body:JSON.stringify({phone:phoneNum})
-      });
-      if(createRes.ok){
-        const cData=await createRes.json();
-        contactId=cData.id||cData.data?.id;
-      }
+      contactId=await rioCreateContact(token,phoneNum,message.split('\n')[0]||'');
     }
-    if(!contactId){return {ok:false,error:'Could not find or create contact'};}
-    // Step 2: Send the message
+    if(!contactId){return {ok:false,error:'Could not find or create contact in Respond.io'};}
+    // Step 3: Send the message
     const msgRes=await fetch(RIO_API+'/contact/'+contactId+'/message',{
       method:'POST',
       headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
-      body:JSON.stringify({message:{type:'text',text:{body:message}}})
+      body:JSON.stringify({message:{type:'text',text:message}})
     });
     if(msgRes.ok){return {ok:true};}
     const err=await msgRes.json().catch(()=>({}));
-    return {ok:false,error:err.message||'Failed to send message'};
+    return {ok:false,error:err.message||'Failed to send (HTTP '+msgRes.status+')'};
   }catch(e){
     return {ok:false,error:e.message||'Network error'};
   }
