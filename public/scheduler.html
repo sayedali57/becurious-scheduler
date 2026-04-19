@@ -3405,7 +3405,7 @@ function weekKeyOffset(offset){
 
 // ===== HELPERS =====
 function hv(a,b,c,d){const R=6371,p=Math.PI/180,da=(c-a)*p,db=(d-b)*p;return+(2*R*Math.asin(Math.sqrt(Math.sin(da/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(db/2)**2))).toFixed(2);}
-function tm(km){return Math.max(10,Math.round(km/25*60));}
+function tm(km){if(km<=0)return 0;return Math.max(3,Math.round(km/25*60));}
 function ts(m){return`${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;}
 // Rounded time string — rounds UP to nearest SETTINGS.displayRoundMin (default 10 min).
 // Used for DISPLAY only (session start, finish, pickup time). Scheduling math uses true minutes.
@@ -4170,6 +4170,11 @@ function lastPos(d,cid,si){
       const last=SS[s.ids[s.ids.length-1]];
       if(last)return last;
     }
+    if(s.t==='g'&&s.ids&&s.ids.length){
+      // Group slot: all students at the same location — use group coords or first student
+      const first=SS[s.ids[0]];
+      if(first)return s.grp&&s.grp.la!=null?{la:s.grp.la,ln:s.grp.ln,a:s.grp.addr||first.a,isBase:false}:first;
+    }
     if(s.t==='pick'&&SS[s.id])return SS[s.id];
   }
   // Return branch as pseudo-student
@@ -4248,8 +4253,11 @@ function slotStartMin(d,cid,si){
     else if(sl_.t==='d'&&SS[sl_.ids?.[0]]){const s=SS[sl_.ids[0]];la=sl_.grp?.la??s.la;ln=sl_.grp?.ln??s.ln;}
     else if(sl_.t==='g'&&SS[sl_.ids?.[0]]){const s=SS[sl_.ids[0]];la=sl_.grp?.la??s.la;ln=sl_.grp?.ln??s.ln;}
     if(la!=null&&ln!=null){
-      const[bla,bln]=brCoords(carBranch(cid).split('/')[0]);
-      m=firstSessionTarget-tm(hv(bla,bln,la,ln));
+      // Use legTravelMin for consistency with forward calculation (includes
+      // swap detour if needed). This ensures the first session's displayed
+      // start matches firstSessionTarget exactly.
+      const travelToFirst=legTravelMin(d,cid,i,la,ln);
+      m=firstSessionTarget-travelToFirst;
     }
     break;
   }
@@ -4258,17 +4266,16 @@ function slotStartMin(d,cid,si){
     const sl_=slots[i];if(!sl_)continue;
     // If an earlier slot is pinned, reset the running clock to its pin.
     if(sl_.fixedStart!=null)m=sl_.fixedStart;
-    // Respect the ROUNDED (parent-facing) finish: if a teacher arrives early,
-    // the session still ends at roundedStart + sessionBlock, and subsequent
-    // slots plan against that — not against the early arrival.
+    // Advance running clock by ACTUAL travel + session block (not rounded).
+    // Rounding is cosmetic — it only affects what parents see on the card.
+    // Using rounded finish to plan the next slot would compound rounding
+    // errors across the day (up to 9 min lost per session).
     if(sl_.t==='s'){
       const s=SS[sl_.id];
       if(s){
         const la=sl_.grp?.la??s.la, ln=sl_.grp?.ln??s.ln;
         const travel=legTravelMin(d,cid,i,la,ln);
-        const actual=m+travel;
-        const disp=rr>1?Math.ceil(actual/rr)*rr:actual;
-        m=disp+sessionBlockMin();
+        m=m+travel+sessionBlockMin();
         continue;
       }
     } else if(sl_.t==='g'){
@@ -4276,9 +4283,7 @@ function slotStartMin(d,cid,si){
       if(first){
         const la=sl_.grp?.la??first.la, ln=sl_.grp?.ln??first.ln;
         const travel=legTravelMin(d,cid,i,la,ln);
-        const actual=m+travel;
-        const disp=rr>1?Math.ceil(actual/rr)*rr:actual;
-        m=disp+sessionBlockMin();
+        m=m+travel+sessionBlockMin();
         continue;
       }
     } else if(sl_.t==='d'){
@@ -4286,9 +4291,7 @@ function slotStartMin(d,cid,si){
       if(s1){
         const la1=sl_.grp?.la??s1.la, ln1=sl_.grp?.ln??s1.ln;
         const travel1=legTravelMin(d,cid,i,la1,ln1);
-        const actual=m+travel1;
-        const disp=rr>1?Math.ceil(actual/rr)*rr:actual;
-        m=disp+ddTotalInter(sl_)+sessionBlockMin();
+        m=m+travel1+ddTotalInter(sl_)+sessionBlockMin();
         continue;
       }
     }
@@ -4350,41 +4353,34 @@ function findDropInfo(sid){
       const sl_=slots[si];if(!sl_)continue;
       if((sl_.t==='s'&&sl_.id===sid)||(sl_.t==='d'&&sl_.ids?.includes(sid))||(sl_.t==='g'&&sl_.ids?.includes(sid))){
         const startMin=slotStartMin(d,car.id,si);
-        const rr=parseInt(SETTINGS.displayRoundMin)||10;
         const block=sessionBlockMin();
-        // readyMin = when this student is done with the session + buffer,
-        // anchored on the ROUNDED (displayed) start so early arrivals don't
-        // shift the finish earlier than the parent-facing schedule.
+        // readyMin = when the teacher is actually done. Use ACTUAL arrival
+        // (not rounded) + session block. Rounding is cosmetic — the teacher
+        // doesn't wait for the rounded clock to catch up before finishing.
         let readyMin=startMin+slotDur(sl_,d,car.id,si);
         if(sl_.t==='s'){
           const s=SS[sl_.id];
           if(s){
             const la=sl_.grp?.la??s.la, ln=sl_.grp?.ln??s.ln;
             const travel=legTravelMin(d,car.id,si,la,ln);
-            const actual=startMin+travel;
-            const disp=rr>1?Math.ceil(actual/rr)*rr:actual;
-            readyMin=disp+block;
+            readyMin=startMin+travel+block;
           }
         } else if(sl_.t==='g'){
           const first=SS[sl_.ids?.[0]];
           if(first){
             const la=sl_.grp?.la??first.la, ln=sl_.grp?.ln??first.ln;
             const travel=legTravelMin(d,car.id,si,la,ln);
-            const actual=startMin+travel;
-            const disp=rr>1?Math.ceil(actual/rr)*rr:actual;
-            readyMin=disp+block;
+            readyMin=startMin+travel+block;
           }
         } else if(sl_.t==='d'&&sl_.ids){
           const s1=SS[sl_.ids[0]];
           if(s1){
             const la1=sl_.grp?.la??s1.la, ln1=sl_.grp?.ln??s1.ln;
             const travel1=legTravelMin(d,car.id,si,la1,ln1);
-            const actual=startMin+travel1;
-            const disp=rr>1?Math.ceil(actual/rr)*rr:actual;
             const legs=ddLegs(sl_);
             const idx=sl_.ids.indexOf(sid);
             let offset=0;for(let i=0;i<idx;i++)offset+=legs[i]||0;
-            readyMin=disp+offset+block;
+            readyMin=startMin+travel1+offset+block;
           }
         }
         return{d,cid:car.id,si,startMin,readyMin};
@@ -7044,6 +7040,9 @@ function buildDispatchMessage(d,cid){
   const dateObj=_nextWeekdayDate(d);
   const dateStr=dateObj?dateObj.toLocaleDateString('en-GB',{day:'numeric',month:'long'}):'';
   const sep='━━━━━━━━━━━━━━━━━━━';
+  // Round arrival times to match card display (parent-facing times)
+  const rr=parseInt(SETTINGS.displayRoundMin)||10;
+  const roundUp=m=>rr>1?Math.ceil(m/rr)*rr:m;
 
   const lines=[];
   let num=0;
@@ -7084,7 +7083,7 @@ function buildDispatchMessage(d,cid){
         if(isMidDay){
           const detourTravel=tm(hv(prevLa,prevLn,bLa,bLn));
           const detourDep=ts(startM);
-          const detourArr=ts(startM+detourTravel);
+          const detourArr=ts(roundUp(startM+detourTravel));
           const parts=[];
           if(returnT.length)parts.push(`↓ ${returnT.join(' + ')}`);
           if(pickUpT.length)parts.push(`↑ ${pickUpT.join(' + ')}`);
@@ -7110,7 +7109,7 @@ function buildDispatchMessage(d,cid){
       const s=SS[sl_.id];if(!s)return;
       const useLa=sl_.grp?.la??s.la, useLn=sl_.grp?.ln??s.ln, useAddr=sl_.grp?.addr||s.a;
       const travelMin=tm(hv(prevLa,prevLn,useLa,useLn));
-      const arrT=ts(legDep+travelMin);
+      const arrT=ts(roundUp(legDep+travelMin));
       num++;
       const locked=sl_.locked?' 🔒':'';
       lines.push(`${num}. ${depT}  ${s.t||'teacher'} + driver → Drop at ${arrT} ${s.n}: ${useAddr}${locked}`);
@@ -7126,7 +7125,7 @@ function buildDispatchMessage(d,cid){
       const legs=ddLegs(sl_);
       let cursor=legDep+travel1;
       num++;
-      lines.push(`${num}. ${depT}  ${s1.t||'teacher'} + driver → Drop at ${ts(cursor)} ${s1.n}: ${s1.a}`);
+      lines.push(`${num}. ${depT}  ${s1.t||'teacher'} + driver → Drop at ${ts(roundUp(cursor))} ${s1.n}: ${s1.a}`);
       lines.push(`   🗺️ ${mapLink(s1.la,s1.ln)}`);
       prevLa=s1.la; prevLn=s1.ln; prevNm=s1.n;
       for(let i=1;i<students.length;i++){
@@ -7134,7 +7133,7 @@ function buildDispatchMessage(d,cid){
         const legMin=legs[i-1]||0;
         const depN=ts(cursor);
         cursor+=legMin;
-        const arrN=ts(cursor);
+        const arrN=ts(roundUp(cursor));
         num++;
         lines.push(`${num}. ${depN}  ${sN.t||'teacher'} + driver → Drop at ${arrN} ${sN.n}: ${sN.a}`);
         lines.push(`   🗺️ ${mapLink(sN.la,sN.ln)}`);
@@ -7150,7 +7149,7 @@ function buildDispatchMessage(d,cid){
       const names=ids.map(id=>SS[id]?.n).filter(Boolean).join(', ');
       const teachers=[...new Set(ids.map(id=>SS[id]?.t).filter(Boolean))].join('/');
       const travelMin=tm(hv(prevLa,prevLn,la,ln));
-      const arrT=ts(legDep+travelMin);
+      const arrT=ts(roundUp(legDep+travelMin));
       num++;
       lines.push(`${num}. ${depT}  ${teachers||'teachers'} + driver → Drop at ${arrT} group [${names}]: ${addr}`);
       lines.push(`   🗺️ ${mapLink(la,ln)}`);
@@ -7158,12 +7157,21 @@ function buildDispatchMessage(d,cid){
     }
     else if(sl_.t==='pick'){
       const s=SS[sl_.id];if(!s)return;
-      const travelMin=tm(hv(prevLa,prevLn,s.la,s.ln));
-      const arrT=ts(legDep+travelMin);
-      num++;
-      lines.push(`${num}. ${depT}  Return to ${s.n} from ${prevNm}  → Pickup ${s.t||'teacher'} at ${arrT}: ${s.a}`);
-      lines.push(`   🗺️ ${mapLink(s.la,s.ln)}`);
-      prevLa=s.la; prevLn=s.ln; prevNm=s.n;
+      const pickLa=sl_.grp?.la??s.la, pickLn=sl_.grp?.ln??s.ln;
+      const dist=hv(prevLa,prevLn,pickLa,pickLn);
+      if(dist<=0.1){
+        // Self-pickup: car is already here (same location as last drop).
+        // Teacher steps into the car — no travel, no route step needed.
+        // Just update prevNm so subsequent steps reference correctly.
+        prevNm=s.n;
+      } else {
+        const travelMin=tm(dist);
+        const arrT=ts(legDep+travelMin);
+        num++;
+        lines.push(`${num}. ${depT}  Return to ${s.n} from ${prevNm}  → Pickup ${s.t||'teacher'} at ${arrT}: ${s.a}`);
+        lines.push(`   🗺️ ${mapLink(pickLa,pickLn)}`);
+        prevLa=pickLa; prevLn=pickLn; prevNm=s.n;
+      }
     }
   });
 
@@ -7172,7 +7180,7 @@ function buildDispatchMessage(d,cid){
     const travelMin=tm(hv(prevLa,prevLn,bLa,bLn));
     // Departure = end of last slot. slotStartMin of the "next" slot index = current total time.
     const returnDep=slotStartMin(d,cid,slots.length);
-    const returnArr=ts(returnDep+travelMin);
+    const returnArr=ts(roundUp(returnDep+travelMin));
     num++;
     lines.push(`${num}. ${ts(returnDep)}  Return to BeCurious ${brKey} from ${prevNm}  → Arrive at ${returnArr}`);
     lines.push(`   🗺️ ${mapLink(bLa,bLn)}`);
