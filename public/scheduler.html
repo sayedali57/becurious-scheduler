@@ -3359,8 +3359,17 @@ async function dangerWipe(what){
       await _yieldToBrowser();
       if(typeof renderSched==='function')renderSched();
     }else if(what==='schedule'){
-      Object.keys(SCHED).forEach(d=>{const day=SCHED[d];if(!day)return;Object.keys(day).forEach(cid=>{if(Array.isArray(day[cid]))day[cid]=day[cid].map(()=>null);});});
+      let cleared=0;
+      DAYS.forEach(d=>{if(!SCHED[d])return;CARS.forEach(car=>{
+        const slots=SCHED[d][car.id];if(!Array.isArray(slots))return;
+        for(let i=0;i<slots.length;i++){if(slots[i]){cleared++;slots[i]=null;}}
+      });});
+      console.log('Clear schedule: wiped '+cleared+' slots across '+DAYS.length+' days × '+CARS.length+' cars');
       saveState();
+      // Force immediate push (skip debounce) so Supabase gets the cleared state
+      // before any other tab's real-time echo can overwrite it.
+      clearTimeout(saveTimer);
+      await pushToSupabase();
       await _yieldToBrowser();
       if(typeof renderSched==='function')renderSched();
       if(typeof renderPool==='function')renderPool();
