@@ -2046,6 +2046,8 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
       <div class="frow2">
         <div class="frow"><label>Same-teacher chaining strength</label><input id="set-chainBonus" type="number" min="0" max="500" step="10"><small class="set-help">Higher = auto-schedule tries harder to put same-teacher students back-to-back. 0 = ignore teacher, pure distance.</small></div>
         <div class="frow"><label>Teacher-car stickiness (km)</label><input id="set-stickyBonus" type="number" min="0" max="50" step="5"><small class="set-help">How strongly a teacher stays on the same car all day. Higher = fewer branch returns. 0 = off.</small></div>
+        <div class="frow"><label>Drop chain max distance (km)</label><input id="set-chainMaxKm" type="number" min="0" max="15" step="1"><small class="set-help">Max km between consecutive homes when chaining drops with different teachers (parallel sessions). 0 = chains off.</small></div>
+        <div class="frow"><label>Drop chain max travel (min)</label><input id="set-chainMaxMin" type="number" min="0" max="30" step="5"><small class="set-help">Max total inter-home driving time across a chain. Safety cap to prevent overly spread chains.</small></div>
       </div>
       <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="set-sameBranch"> Only place a student into a car for their own branch</label></div>
       <div class="frow"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="set-autoPickup"> Insert a pickup slot after every drop</label></div>
@@ -2310,6 +2312,8 @@ const DEFAULT_SETTINGS={
   teacherDefaultMax:6,  // Default per-day max for new teacher records
   chainBonusKm:100,     // How strongly auto-schedule prefers same-teacher chains (higher = stronger)
   stickyBonusKm:15,     // Teacher-car stickiness: how strongly a teacher stays on the same car all day (km equivalent)
+  chainMaxKm:5,         // Max km between consecutive homes in a drop chain (different teachers, parallel sessions)
+  chainMaxMinutes:15,   // Max total inter-home travel across a chain (safety cap)
   pickupHandoverMin:8,  // Extra minutes added to each pickup slot for the teacher to get in the car
   displayRoundMin:10,   // Round DISPLAYED session start/pickup times up to nearest N min (e.g. 12:03 → 12:10). Does not affect scheduling math — driver plans around actual travel.
   emptySlotStepMin:10,  // Minutes between time-hint labels shown on empty 'drop here' slots (starts at dayStart, stops at dayEnd)
@@ -2354,7 +2358,7 @@ function migrateSettings(obj){
   // SECURITY: never keep API tokens in client-side state
   delete SETTINGS.respondio_token;
   // Coerce numeric fields
-  ['sessionMin','bufferMin','dayStartMin','dayEndMin','maxSlotsPerCar','maxGroupSize','teacherDefaultMax','chainBonusKm','stickyBonusKm','pickupHandoverMin','displayRoundMin','emptySlotStepMin'].forEach(k=>{
+  ['sessionMin','bufferMin','dayStartMin','dayEndMin','maxSlotsPerCar','maxGroupSize','teacherDefaultMax','chainBonusKm','stickyBonusKm','chainMaxKm','chainMaxMinutes','pickupHandoverMin','displayRoundMin','emptySlotStepMin'].forEach(k=>{
     const v=parseInt(SETTINGS[k]);
     if(!isNaN(v))SETTINGS[k]=v;
     else SETTINGS[k]=DEFAULT_SETTINGS[k];
@@ -5085,7 +5089,8 @@ function renderSlot(d,cid,si){
     const students=ids.map(id=>SS[id]).filter(Boolean);
     if(students.length<2)return'';
     const n=students.length;
-    const label=n===3?'TRIPLE-DROP':'DOUBLE-DROP';
+    const uniqueTeachers=new Set(students.map(s=>s.t)).size;
+    const label=uniqueTeachers>1?`DROP CHAIN · ${n} parallel`:(n===3?'TRIPLE-DROP':'DOUBLE-DROP');
     const prev=lastPos(d,cid,si);
     const s1=students[0];
     const eff1La=sl_.grp?.la??s1.la, eff1Ln=sl_.grp?.ln??s1.ln;
@@ -5784,7 +5789,8 @@ function placePickup(sid,d,cid,si){
 function tryPair(sid1,sid2,d,cid,si){
   const s1=SS[sid1],s2=SS[sid2];if(!s1||!s2)return;
   const dist=hv(s1.la,s1.ln,s2.la,s2.ln);
-  if(dist>3.5){toast(`${dist.toFixed(1)}km apart — too far to double-drop (max 3.5km)`);return;}
+  const chainLim=parseFloat(SETTINGS.chainMaxKm)||5;
+  if(dist>chainLim*1.5){toast(`${dist.toFixed(1)}km apart — too far to drop-chain (max ${(chainLim*1.5).toFixed(0)}km)`);return;}
   // Warn if same teacher + different address — teacher can't be in two homes at once
   if(s1.t===s2.t&&dist>0.05){
     if(!confirm(`⚠ Same teacher (${s1.t}) at different addresses (${dist.toFixed(1)}km apart).\n\nA teacher can't do two sessions in two homes at the same time.\nOnly pair same-teacher students if they're at the SAME house.\n\nContinue anyway?`))return;
@@ -5806,11 +5812,13 @@ function tryExtendPair(newSid,d,cid,si){
   const newS=SS[newSid];if(!newS)return;
   const lastS=SS[sl_.ids[sl_.ids.length-1]];if(!lastS)return;
   const hopKm=hv(lastS.la,lastS.ln,newS.la,newS.ln);
-  if(hopKm>3.5){toast(`${hopKm.toFixed(1)}km from ${lastS.n} — too far to add (max 3.5km per leg)`);return;}
+  const chainLim=(parseFloat(SETTINGS.chainMaxKm)||5)*1.5;
+  if(hopKm>chainLim){toast(`${hopKm.toFixed(1)}km from ${lastS.n} — too far to add (max ${chainLim.toFixed(1)}km per leg)`);return;}
   if(!_clearDragSrc(newSid))rmFromSched(newSid,{onlyDay:d});
   sl_.ids.push(newSid);
   ddRecomputeMetrics(sl_);
-  toast(`Triple-drop! ${SS[sl_.ids[0]].t} + ${SS[sl_.ids[1]].t} + ${newS.t} · total ${sl_.km.toFixed(1)}km`);
+  const uT=new Set(sl_.ids.map(id=>SS[id]?.t)).size;
+  toast(`Drop chain · ${sl_.ids.length} ${uT>1?'parallel':'same teacher'} · total ${sl_.km.toFixed(1)}km`);
   advance(d,cid,si);renderSched();renderPool();saveState();
 }
 
@@ -7222,6 +7230,9 @@ function buildDispatchMessage(d,cid){
         lines.push(`   🗺️ ${mapLink(sN.la,sN.ln)}`);
         prevLa=sN.la; prevLn=sN.ln; prevNm=sN.n;
       }
+      // Annotate parallel sessions in dispatch
+      const ddTeachers=new Set(students.map(s=>s.t));
+      if(ddTeachers.size>1)lines.push(`   ⏱ Parallel sessions — ${ddTeachers.size} teachers teaching simultaneously`);
     }
     else if(sl_.t==='g'){
       const ids=sl_.ids||[];
@@ -8580,7 +8591,8 @@ function buildCSV(){
       if(sl_.t==='d'){
         const ids=sl_.ids||[];const legs=ddLegs(sl_);
         const total=ids.length;
-        const label=total===3?'TRIPLE-DROP':'DOUBLE-DROP';
+        const _uT=new Set(ids.map(id=>SS[id]?.t).filter(Boolean)).size;
+        const label=_uT>1?`DROP CHAIN · ${total} parallel`:(total===3?'TRIPLE-DROP':'DOUBLE-DROP');
         let offset=0;
         ids.forEach((sid,idx)=>{
           const s=SS[sid];if(!s)return;
@@ -9391,6 +9403,8 @@ function showSettingsModal(){
   qs('set-teacherMax').value=SETTINGS.teacherDefaultMax;
   qs('set-chainBonus').value=SETTINGS.chainBonusKm;
   qs('set-stickyBonus').value=SETTINGS.stickyBonusKm;
+  qs('set-chainMaxKm').value=SETTINGS.chainMaxKm||5;
+  qs('set-chainMaxMin').value=SETTINGS.chainMaxMinutes||15;
   qs('set-sameBranch').checked=!!SETTINGS.sameBranchOnly;
   qs('set-autoPickup').checked=!!SETTINGS.autoPickup;
   qs('set-preventDouble').checked=!!SETTINGS.preventSameDayDouble;
@@ -9523,6 +9537,8 @@ function saveSettingsModal(){
     teacherDefaultMax:parseInt(qs('set-teacherMax').value)||6,
     chainBonusKm:parseInt(qs('set-chainBonus').value)||100,
     stickyBonusKm:parseInt(qs('set-stickyBonus').value)||15,
+    chainMaxKm:parseInt(qs('set-chainMaxKm').value)||5,
+    chainMaxMinutes:parseInt(qs('set-chainMaxMin').value)||15,
     sameBranchOnly:qs('set-sameBranch').checked?1:0,
     autoPickup:qs('set-autoPickup').checked?1:0,
     preventSameDayDouble:qs('set-preventDouble').checked?1:0,
@@ -9961,40 +9977,64 @@ function runAutoSchedule(){
           // Look for another pool student nearby to create a double-drop.
           // RULE: same teacher can only double-drop at the SAME house (≤0.05km)
           // because one teacher can't be in two homes simultaneously.
-          // Different teachers can double-drop up to 0.5km apart — the car
-          // drops teacher A at house 1, drives to house 2, drops teacher B,
-          // and both sessions run in parallel.
-          const nearSibling=Object.keys(remain).find(sid2=>{
-            if(sid2===pickSid||remain[sid2]<=0)return false;
-            const s2=SS[sid2];if(!s2)return false;
-            if(isRejectedDay(sid2,day))return false;
-            if(preventDouble&&onDay[day].has(sid2))return false;
-            if(!isSpreadOk(sid2,day))return false;
-            if(!carServesBranch(car,s2))return false;
-            if(!teacherCanTake(s2.t,day))return false;
-            if(teacherBusyAtTime(s2.t,day,car.id,si))return false;
-            const dist=hv(pickS.la,pickS.ln,s2.la,s2.ln);
-            const sameTeacher=s2.t===pickS.t;
-            // Same teacher → must be same house (≤50m); different teachers → up to 300m
-            return sameTeacher ? dist<=0.05 : dist<=0.3;
-          });
-          if(nearSibling){
-            const s2=SS[nearSibling];
-            const sl_={t:'d',ids:[pickSid,nearSibling]};
-            ddRecomputeMetrics(sl_);
-            // Day-end cutoff check for the double-drop: drop 2 arrives after
-            // travel-to-pickS + inter-drop travel, and both sessions end
-            // sessionLen later. Skip the pairing if that would run past cutoff.
+          // ── DROP CHAIN: parallel sessions with different teachers ──
+          // The driver drops Teacher A at House 1, drives to House 2 and drops
+          // Teacher B, etc. All sessions run in parallel. The car is free when
+          // the LAST teacher finishes (not after each one sequentially).
+          // This roughly doubles car capacity.
+          const chainLimKm=parseFloat(SETTINGS.chainMaxKm)||5;
+          const chainLimMin=parseInt(SETTINGS.chainMaxMinutes)||15;
+          const chainIds=[pickSid];
+          const chainTeachers=new Set([pickS.t]);
+          let chainAnchor=pickS; // last student in chain (for distance check)
+          // Find chain partners: different teacher, within chainMaxKm of last drop
+          function findChainPartner(){
+            return Object.keys(remain).find(sid2=>{
+              if(chainIds.includes(sid2)||remain[sid2]<=0)return false;
+              const s2=SS[sid2];if(!s2)return false;
+              // Same teacher can't be in two places — must be different teacher
+              if(chainTeachers.has(s2.t))return false;
+              if(isRejectedDay(sid2,day))return false;
+              if(preventDouble&&onDay[day].has(sid2))return false;
+              if(!isSpreadOk(sid2,day))return false;
+              if(!carServesBranch(car,s2))return false;
+              if(!teacherCanTake(s2.t,day))return false;
+              if(teacherBusyAtTime(s2.t,day,car.id,si))return false;
+              const dist=hv(chainAnchor.la,chainAnchor.ln,s2.la,s2.ln);
+              return dist<=chainLimKm;
+            });
+          }
+          // Build chain: up to 3 students total (existing triple-drop cap)
+          while(chainIds.length<3){
+            const partner=findChainPartner();
+            if(!partner)break;
+            const ps=SS[partner];
+            // Check total inter-travel wouldn't exceed cap
+            const testSlot={t:'d',ids:[...chainIds,partner]};
+            ddRecomputeMetrics(testSlot);
+            const totalInter=ddTotalInter(testSlot)||0;
+            const totalInterMin=totalInter; // ddTotalInter returns minutes
+            if(totalInterMin>chainLimMin)break;
+            // Day-end check
             const _travelToPick=tm(hv(pos.la,pos.ln,pickS.la,pickS.ln));
-            const _ddEnd=slotStart+_travelToPick+(ddTotalInter(sl_)||0)+sessionLen;
-            if(_ddEnd<=endCutoff){
-              slots[si]=sl_;
-              remain[nearSibling]--;
-              onDay[day].add(nearSibling);
-              teacherDayCount[day][s2.t]=(teacherDayCount[day][s2.t]||0)+1;
+            const _ddEnd=slotStart+_travelToPick+totalInter+sessionLen;
+            if(_ddEnd>endCutoff)break;
+            chainIds.push(partner);
+            chainTeachers.add(ps.t);
+            chainAnchor=ps;
+          }
+          // If we found partners, create a drop chain
+          if(chainIds.length>1){
+            const sl_={t:'d',ids:chainIds};
+            ddRecomputeMetrics(sl_);
+            slots[si]=sl_;
+            for(let ci=1;ci<chainIds.length;ci++){
+              const cid_=chainIds[ci];const cs_=SS[cid_];
+              remain[cid_]--;
+              onDay[day].add(cid_);
+              teacherDayCount[day][cs_.t]=(teacherDayCount[day][cs_.t]||0)+1;
               placed++;
-              // Record affinity for sibling's teacher too
-              if(!teacherCarAffinity[day][s2.t])teacherCarAffinity[day][s2.t]=car.id;
+              if(!teacherCarAffinity[day][cs_.t])teacherCarAffinity[day][cs_.t]=car.id;
             }
           }
         }
@@ -10024,7 +10064,7 @@ function runAutoSchedule(){
             if(psi>=0){const pmin=slotStartMin(day,car.id,psi);if(pmin>=dropEndMin&&pmin<=endCutoff){slots[psi]={t:'pick',id:anchor,grp:{la:gC.la,ln:gC.ln,addr:gAddr}};si=psi;}}
           } else {
             const allIds=curSlot.t==='s'?[curSlot.id]
-              :curSlot.t==='d'?(curSlot.ids||[])
+              :curSlot.t==='d'?[...(curSlot.ids||[])].reverse()
               :[pickSid];
             for(const pid of allIds){
               const psi=slots.findIndex((x,k)=>k>si&&!x);
