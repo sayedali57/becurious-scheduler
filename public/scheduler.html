@@ -235,21 +235,30 @@ body.compact-slots .slot.pickup-slot{opacity:.85}
 .wk-bar{display:flex;align-items:center;gap:6px;padding:0 8px 8px}
 .wk-bar select{padding:4px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px}
 .wk-legend{display:flex;gap:8px;flex-wrap:wrap;padding:6px 10px;font-size:9px;color:var(--text3)}
-/* ── Day View (timeline grid) ── */
-.dv-wrap{padding:8px 12px;min-width:700px}
-.dv-bar{display:flex;align-items:center;gap:8px;padding:4px 0 10px;flex-wrap:wrap}
-.dv-bar select,.dv-bar input{padding:4px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px}
-.dv-grid{display:grid;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fff}
-.dv-hdr{position:sticky;top:0;z-index:2;font-weight:700;font-size:12px;text-align:center;padding:10px 6px;color:#fff;border-bottom:2px solid rgba(0,0,0,.1)}
-.dv-time{position:sticky;left:0;z-index:1;font-size:10px;font-weight:600;color:var(--text3);padding:2px 8px;text-align:right;background:#FAFAF8;border-right:1px solid var(--border);white-space:nowrap;min-width:54px}
-.dv-time.dv-hour{color:var(--text1);font-weight:700;font-size:11px;background:#F5F3EF}
-.dv-cell{position:relative;border-right:1px solid #F0EDE5;border-bottom:1px solid #F5F3EF;min-height:22px}
+/* ── Day View (single-day teacher timeline) ── */
+.dv-wrap{padding:0 12px 12px;overflow-x:auto}
+.dv-toolbar{display:flex;align-items:center;gap:8px;padding:10px 0;flex-wrap:wrap;position:sticky;top:0;background:#fff;z-index:5}
+.dv-toolbar select{padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:#fff}
+.dv-day-tabs{display:flex;gap:2px}
+.dv-day-tab{padding:6px 14px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:var(--text2);transition:all .15s}
+.dv-day-tab:hover{background:#F5F3EF}
+.dv-day-tab.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+.dv-timeline{display:grid;min-width:600px;position:relative}
+.dv-col-hdr{position:sticky;top:48px;z-index:4;text-align:center;padding:8px 4px;font-size:11px;font-weight:700;background:#FAFAF8;border-bottom:2px solid var(--border);border-right:1px solid #F0EDE5}
+.dv-col-hdr .dv-ch-name{color:var(--text1)}
+.dv-col-hdr .dv-ch-count{font-size:9px;font-weight:500;color:var(--text3);margin-top:1px}
+.dv-time-label{position:sticky;left:0;z-index:3;font-size:10px;font-weight:600;color:var(--text3);padding:0 8px;text-align:right;background:#FAFAF8;border-right:1px solid var(--border);display:flex;align-items:flex-start;justify-content:flex-end}
+.dv-time-label.dv-hour{color:var(--text1);font-weight:700;font-size:11px;background:#F5F3EF}
+.dv-cell{position:relative;border-right:1px solid #F5F3EF;border-bottom:1px solid #F5F3EF;min-height:20px}
 .dv-cell.dv-hour-line{border-bottom:1px solid #E5E0D5}
-.dv-block{position:absolute;left:2px;right:2px;border-radius:5px;padding:3px 6px;font-size:10px;line-height:1.3;overflow:hidden;cursor:default;z-index:1;border-left:3px solid rgba(0,0,0,.15);box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.dv-block .dv-b-name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dv-block .dv-b-area{font-size:9px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dv-block .dv-b-teacher{font-size:8px;font-weight:600;opacity:.7}
-.dv-block.dv-evt{border-left:4px solid rgba(255,255,255,.4);text-align:center;font-weight:700;display:flex;align-items:center;justify-content:center}
+.dv-session{position:absolute;left:3px;right:3px;border-radius:6px;padding:6px 8px;font-size:11px;line-height:1.35;overflow:hidden;cursor:default;z-index:1;border-left:4px solid;box-shadow:0 1px 4px rgba(0,0,0,.08);transition:box-shadow .15s}
+.dv-session:hover{box-shadow:0 2px 8px rgba(0,0,0,.15);z-index:2}
+.dv-session .dv-s-student{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dv-session .dv-s-area{font-size:10px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.dv-session .dv-s-meta{font-size:9px;opacity:.6;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dv-session .dv-s-time{font-size:9px;font-weight:600;opacity:.5}
+.dv-event-banner{position:absolute;left:0;right:0;border-radius:6px;padding:6px 10px;font-size:11px;font-weight:700;color:#fff;z-index:0;opacity:.2;display:flex;align-items:center;justify-content:center;pointer-events:none;text-transform:uppercase;letter-spacing:.5px}
+.dv-empty-msg{grid-column:1/-1;padding:40px;text-align:center;color:var(--text3);font-size:13px}
 .wk-filter-btn{display:flex;align-items:center;gap:3px;cursor:pointer;padding:3px 8px;border-radius:6px;border:1px solid #E5E0D5;background:#fff;transition:all .15s;user-select:none}
 .wk-filter-btn:hover{border-color:#C5C0E0;background:#EAE8F5}
 .wk-filter-btn.active{border-color:#6A5FA8;background:#EAE8F5;font-weight:600;color:var(--text)}
@@ -7483,157 +7492,179 @@ function switchView(view){
   if(view==='dayview')renderDayView();
 }
 
-// ========== DAY VIEW — weekly timeline grid ==========
+// ========== DAY VIEW — single-day teacher timeline ==========
+let _dvDay=null; // current day code (auto-picks first active day)
 let _dvBranch='All';
 function renderDayView(){
   const el=qs('dayview-outer');if(!el)return;
   const AD=activeDays();
+  if(!_dvDay||!AD.includes(_dvDay))_dvDay=AD[0]||'Mon';
+  const day=_dvDay;
   const dayStart=parseInt(SETTINGS.dayStartMin)||600;
   const dayEnd=parseInt(SETTINGS.dayEndMin)||1020;
-  const step=10; // 10-min rows
-  const sessionLen=(parseInt(SETTINGS.sessionMin)||60);
-  const rowH=22; // px per 10-min row
+  const step=30; // 30-min rows
+  const sessionLen=parseInt(SETTINGS.sessionMin)||60;
+  const rowH=48; // px per 30-min row — taller for readability
   const dayColors={Sun:'#6A5FA8',Mon:'#4DBFAD',Tue:'#10B981',Wed:'#D97706',Thu:'#DC2626'};
   const dayFull={Sun:'Sunday',Mon:'Monday',Tue:'Tuesday',Wed:'Wednesday',Thu:'Thursday'};
 
-  // Build time slots array
+  // Build time slots
   const times=[];
   for(let m=dayStart;m<=dayEnd;m+=step)times.push(m);
-  const totalRows=times.length;
 
-  // Collect all blocks per day: {startMin, endMin, label, area, teacher, color, type}
-  const dayBlocks={};
-  AD.forEach(day=>{
-    const blocks=[];
-    // Scheduled sessions
-    CARS.forEach(car=>{
-      if(_dvBranch!=='All'&&!(car.branch||'').split('/').includes(_dvBranch))return;
-      const slots=SCHED[day]?.[car.id]||[];
-      slots.forEach((sl_,si)=>{
-        if(!sl_)return;
-        if(sl_.t==='pick')return; // skip pickups for cleaner view
-        const sm=slotStartMin(day,car.id,si);
-        const ids=sl_.t==='s'?[sl_.id]:sl_.t==='d'||sl_.t==='g'?(sl_.ids||[]):[];
-        ids.forEach((sid,idx)=>{
-          const s=SS[sid];if(!s)return;
-          const tColor=TC[s.t]||'#5A5650';
-          const dropStart=sm+(sl_.t==='d'&&idx>0?(sl_.inter||5)*idx:0);
-          blocks.push({
-            startMin:dropStart,
-            endMin:dropStart+sessionLen,
-            label:s.n||sid,
-            area:(s.address||'').split(',')[0]||s.br||'',
-            teacher:s.t||'',
-            color:tColor,
-            bg:tColor+'18',
-            type:sl_.t==='g'?'group':sl_.t==='d'?'chain':'session',
-            car:car.label||car.id
-          });
+  // Collect sessions grouped by teacher for this day
+  const teacherSessions={}; // { teacherName: [{startMin, endMin, student, area, car, type, color}] }
+  CARS.forEach(car=>{
+    if(_dvBranch!=='All'&&!(car.branch||'').split('/').includes(_dvBranch))return;
+    const slots=SCHED[day]?.[car.id]||[];
+    slots.forEach((sl_,si)=>{
+      if(!sl_)return;
+      if(sl_.t==='pick')return;
+      const sm=slotStartMin(day,car.id,si);
+      const ids=sl_.t==='s'?[sl_.id]:sl_.t==='d'||sl_.t==='g'?(sl_.ids||[]):[];
+      ids.forEach((sid,idx)=>{
+        const s=SS[sid];if(!s)return;
+        const teacher=s.t||'Unknown';
+        if(!teacherSessions[teacher])teacherSessions[teacher]=[];
+        const dropStart=sm+(sl_.t==='d'&&idx>0?Math.min(sl_.inter||5,10)*idx:0);
+        teacherSessions[teacher].push({
+          startMin:dropStart,
+          endMin:dropStart+sessionLen,
+          student:s.n||sid,
+          area:(s.address||'').split(',')[0]||s.br||'',
+          car:car.label||car.id,
+          type:sl_.t==='g'?'GRP':sl_.t==='d'?'CHAIN':'',
+          color:TC[teacher]||'#5A5650'
         });
       });
     });
-    // Events
-    const evts=eventsForDay(day);
-    evts.forEach(evt=>{
-      const eStart=evt.startTime?parseTimeToMin(evt.startTime):dayStart;
-      const eEnd=evt.endTime?parseTimeToMin(evt.endTime):(eStart+120);
-      blocks.push({
-        startMin:eStart, endMin:eEnd,
-        label:evt.name||'Event',
-        area:evt.location||'',
-        teacher:(evt.teachers||[]).join(', ')||'All',
-        color:evt.color||'#6A5FA8',
-        bg:(evt.color||'#6A5FA8')+'30',
-        type:'event', isEvent:true
-      });
-    });
-    dayBlocks[day]=blocks;
   });
 
-  // Filter bar
+  // Sort teachers by session count (busiest first), then alphabetical
+  const teachers=Object.keys(teacherSessions).sort((a,b)=>{
+    const diff=teacherSessions[b].length-teacherSessions[a].length;
+    return diff||a.localeCompare(b);
+  });
+
+  // Events for this day
+  const dayEvents=eventsForDay(day);
+  // Teachers occupied by events (show column but with event block)
+  dayEvents.forEach(evt=>{
+    if(evt.schoolWide)return;
+    (evt.teachers||[]).forEach(t=>{
+      if(!teacherSessions[t])teacherSessions[t]=[];
+      if(!teachers.includes(t))teachers.push(t);
+    });
+  });
+
+  const colCount=teachers.length;
   const branches=[...new Set(Object.values(SS).map(s=>s.br).filter(Boolean))].sort();
+
+  // Format time helper
+  function fmtTime(m){
+    const hr=Math.floor(m/60),mn=m%60;
+    const ampm=hr>=12?'PM':'AM';
+    const hr12=hr>12?hr-12:hr===0?12:hr;
+    return `${hr12}:${String(mn).padStart(2,'0')} ${ampm}`;
+  }
+
   let h=`<div class="dv-wrap">`;
-  h+=`<div class="dv-bar">
-    <span style="font-weight:600;font-size:12px;color:var(--text)">📅 Day View — Timeline</span>
+
+  // Toolbar: day tabs + branch filter
+  h+=`<div class="dv-toolbar">
+    <div class="dv-day-tabs">`;
+  AD.forEach(d=>{
+    const active=d===day?' active':'';
+    const col=dayColors[d]||'#5A5650';
+    const cnt=Object.values(SCHED[d]||{}).reduce((s,slots)=>s+(Array.isArray(slots)?slots.filter(x=>x&&x.t!=='pick').length:0),0);
+    h+=`<button class="dv-day-tab${active}" style="${d===day?'background:'+col+';border-color:'+col:''}" onclick="_dvDay='${d}';renderDayView()">${dayFull[d]||d} <span style="font-size:10px;opacity:.7">(${cnt})</span></button>`;
+  });
+  h+=`</div>
     <select onchange="_dvBranch=this.value;renderDayView()">
-      <option${_dvBranch==='All'?' selected':''}>All</option>
+      <option${_dvBranch==='All'?' selected':''}>All branches</option>
       ${branches.map(b=>`<option${b===_dvBranch?' selected':''}>${esc(b)}</option>`).join('')}
     </select>
+    <div style="flex:1"></div>
+    <span style="font-size:12px;color:var(--text3)">${colCount} teacher${colCount===1?'':'s'} active</span>
   </div>`;
 
-  // Grid: cols = time label + one per day
-  const cols=AD.length;
-  h+=`<div class="dv-grid" style="grid-template-columns:56px repeat(${cols},1fr)">`;
-
-  // Header row
-  h+=`<div class="dv-hdr" style="background:#5A5650">Time</div>`;
-  AD.forEach(day=>{
-    const col=dayColors[day]||'#5A5650';
-    const bc=dayBlocks[day]||[];
-    const sessionCount=bc.filter(b=>!b.isEvent).length;
-    h+=`<div class="dv-hdr" style="background:${col}">${dayFull[day]||day}<br><span style="font-weight:400;font-size:10px;opacity:.8">${sessionCount} session${sessionCount===1?'':'s'}</span></div>`;
+  // School-wide event banner
+  const swEvts=dayEvents.filter(e=>e.schoolWide);
+  swEvts.forEach(evt=>{
+    h+=`<div style="background:${evt.color||'#10B981'};color:#fff;padding:12px 18px;border-radius:8px;margin-bottom:8px;font-weight:700;display:flex;align-items:center;gap:10px">
+      <span style="font-size:18px">${evt.type==='outdoor'?'\uD83C\uDFDE\uFE0F':'\uD83C\uDFAF'}</span>
+      <div><div>${esc(evt.name||'Event')}</div><div style="font-weight:400;font-size:12px;opacity:.8">${esc(evt.location||'')} ${evt.startTime||''}${evt.endTime?' – '+evt.endTime:''} · All scheduling paused</div></div>
+    </div>`;
   });
 
-  // Pre-compute layout columns per day (handle overlapping sessions)
-  const dayLayout={};
-  AD.forEach(day=>{
-    const bc=(dayBlocks[day]||[]).filter(b=>!b.isEvent).sort((a,b)=>a.startMin-b.startMin);
-    const evts=(dayBlocks[day]||[]).filter(b=>b.isEvent);
-    // Assign columns to overlapping blocks
-    const cols_=[];// each col is an array of blocks that don't overlap
-    bc.forEach(block=>{
-      let placed=false;
-      for(let c=0;c<cols_.length;c++){
-        const last=cols_[c][cols_[c].length-1];
-        if(last.endMin<=block.startMin){cols_[c].push(block);block._col=c;placed=true;break;}
-      }
-      if(!placed){block._col=cols_.length;cols_.push([block]);}
-    });
-    const totalCols=Math.max(1,cols_.length);
-    bc.forEach(b=>{b._totalCols=totalCols;});
-    dayLayout[day]={blocks:bc,events:evts,totalCols};
+  if(!colCount&&!swEvts.length){
+    h+=`<div class="dv-empty-msg">No sessions scheduled for ${dayFull[day]||day}.</div>`;
+    h+=`</div>`;
+    el.innerHTML=h;
+    return;
+  }
+
+  if(swEvts.length){
+    h+=`</div>`;
+    el.innerHTML=h;
+    return; // school-wide event — no schedule grid needed
+  }
+
+  // Grid: time col + one col per teacher
+  const colTemplate=`60px repeat(${colCount},minmax(110px,1fr))`;
+  h+=`<div class="dv-timeline" style="grid-template-columns:${colTemplate}">`;
+
+  // Header row: time + teacher names
+  h+=`<div class="dv-col-hdr" style="background:#F5F3EF;border-bottom:2px solid var(--border)"></div>`;
+  teachers.forEach(t=>{
+    const col=TC[t]||'#5A5650';
+    const cnt=(teacherSessions[t]||[]).length;
+    const isEvtTeacher=dayEvents.some(e=>!e.schoolWide&&(e.teachers||[]).includes(t));
+    h+=`<div class="dv-col-hdr">
+      <div class="dv-ch-name" style="color:${col}">${esc(t)}</div>
+      <div class="dv-ch-count">${cnt} session${cnt===1?'':'s'}${isEvtTeacher?' · \u26A0 Event':''}
+      </div>
+    </div>`;
   });
 
   // Time rows
   times.forEach((m,ri)=>{
     const isHour=m%60===0;
-    const hr=Math.floor(m/60);
-    const mn=m%60;
-    const ampm=hr>=12?'PM':'AM';
-    const hr12=hr>12?hr-12:hr===0?12:hr;
-    const timeLabel=`${hr12}:${String(mn).padStart(2,'0')} ${ampm}`;
-    h+=`<div class="dv-time${isHour?' dv-hour':''}">${timeLabel}</div>`;
-    AD.forEach(day=>{
-      h+=`<div class="dv-cell${isHour?' dv-hour-line':''}" data-day="${day}" data-min="${m}" style="height:${rowH}px">`;
-      const layout=dayLayout[day]||{blocks:[],events:[],totalCols:1};
-      // Render session blocks that START in this row
-      layout.blocks.forEach(block=>{
-        const blockRow=Math.floor((block.startMin-dayStart)/step);
-        if(blockRow!==ri)return;
-        const spanRows=Math.max(1,Math.ceil((block.endMin-block.startMin)/step));
-        const heightPx=spanRows*rowH-2;
-        const colW=100/layout.totalCols;
-        const leftPct=block._col*colW;
-        const typeTag=block.type==='group'?'<span style="font-size:8px;background:rgba(0,0,0,.1);padding:1px 4px;border-radius:3px;margin-left:3px">GRP</span>':block.type==='chain'?'<span style="font-size:8px;background:rgba(0,0,0,.1);padding:1px 4px;border-radius:3px;margin-left:3px">CHAIN</span>':'';
-        h+=`<div class="dv-block" style="top:0;height:${heightPx}px;left:${leftPct}%;width:${colW-1}%;background:${block.bg};border-left-color:${block.color}" title="${esc(block.teacher)} — ${esc(block.label)} — ${esc(block.area)} — ${esc(block.car)}">
-          <div class="dv-b-name" style="color:${block.color}">${esc(block.label)}${typeTag}</div>
-          ${heightPx>30?`<div class="dv-b-area">${esc(block.area)}</div>`:''}
-          ${heightPx>45?`<div class="dv-b-teacher">${esc(block.teacher)} · ${esc(block.car)}</div>`:''}
-        </div>`;
+    h+=`<div class="dv-time-label${isHour?' dv-hour':''}" style="height:${rowH}px">${fmtTime(m)}</div>`;
+    teachers.forEach(t=>{
+      h+=`<div class="dv-cell${isHour?' dv-hour-line':''}" style="height:${rowH}px">`;
+      // Check for event blocking this teacher
+      const tEvts=dayEvents.filter(e=>!e.schoolWide&&(e.teachers||[]).includes(t));
+      tEvts.forEach(evt=>{
+        const eStart=evt.startTime?parseTimeToMin(evt.startTime):dayStart;
+        const eEnd=evt.endTime?parseTimeToMin(evt.endTime):(eStart+120);
+        const evtRow=Math.floor((eStart-dayStart)/step);
+        if(evtRow===ri){
+          const spanRows=Math.max(1,Math.ceil((eEnd-eStart)/step));
+          const hPx=spanRows*rowH-4;
+          h+=`<div class="dv-event-banner" style="top:1px;height:${hPx}px;background:${evt.color||'#DC2626'}">${esc(evt.name||'Event')}</div>`;
+        }
       });
-      // Render events that START in this row
-      layout.events.forEach(evt=>{
-        const blockRow=Math.floor((evt.startMin-dayStart)/step);
-        if(blockRow!==ri)return;
-        const spanRows=Math.max(1,Math.ceil((evt.endMin-evt.startMin)/step));
-        const heightPx=spanRows*rowH-2;
-        h+=`<div class="dv-block dv-evt" style="top:0;height:${heightPx}px;left:0;width:99%;background:${evt.color};color:#fff;opacity:.85;z-index:0">${esc(evt.label)}</div>`;
+      // Sessions for this teacher starting in this row
+      const sessions=(teacherSessions[t]||[]);
+      sessions.forEach(sess=>{
+        const sessRow=Math.floor((sess.startMin-dayStart)/step);
+        if(sessRow!==ri)return;
+        const spanRows=Math.max(1,Math.round((sess.endMin-sess.startMin)/step));
+        const hPx=spanRows*rowH-6;
+        const typeTag=sess.type?`<span style="font-size:8px;background:${sess.color}20;color:${sess.color};padding:1px 5px;border-radius:3px;font-weight:700">${sess.type}</span>`:'';
+        h+=`<div class="dv-session" style="top:2px;height:${hPx}px;background:${sess.color}12;border-left-color:${sess.color}" title="${esc(sess.student)} — ${esc(sess.area)} — ${esc(sess.car)} — ${fmtTime(sess.startMin)}–${fmtTime(sess.endMin)}">
+          <div class="dv-s-student" style="color:${sess.color}">${esc(sess.student)} ${typeTag}</div>
+          <div class="dv-s-area">${esc(sess.area)}</div>
+          <div class="dv-s-meta">${esc(sess.car)}</div>
+          <div class="dv-s-time">${fmtTime(sess.startMin)} – ${fmtTime(sess.endMin)}</div>
+        </div>`;
       });
       h+=`</div>`;
     });
   });
 
-  h+=`</div></div>`; // close dv-grid, dv-wrap
+  h+=`</div></div>`; // close dv-timeline, dv-wrap
   el.innerHTML=h;
 }
 
