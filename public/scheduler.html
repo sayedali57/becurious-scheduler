@@ -1309,6 +1309,7 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
     <div style="flex:1"></div>
     <button class="ctx-btn" id="warn-toolbar-btn" onclick="showWarningsPanel()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg><span id="warn-toolbar-count">Warnings</span></button>
     <button class="ctx-btn" onclick="showReportsModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>Reports</button>
+    <button class="ctx-btn" onclick="openEventModal()" style="background:#6A5FA8;color:#fff;border-color:#6A5FA8"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M12 14v4"/><path d="M10 16h4"/></svg>Create Event</button>
     <div class="sub-tabs">
       <button class="sub-tab active" id="vt-daily" onclick="switchView('daily')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Visual</button>
       <button class="sub-tab" id="vt-table" onclick="switchView('table')" title="Flat table view of all placements"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>Table</button>
@@ -2006,6 +2007,87 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
   </div>
 </div>
 
+<!-- EVENT MODAL -->
+<div class="modal" id="eventmodal" style="display:none;align-items:flex-start;padding:20px">
+  <div class="mbox" style="width:520px;max-height:90vh;overflow:auto">
+    <div class="mhdr"><b id="evt-modal-title">Create Event</b><button class="mclose" onclick="closeEventModal()">&times;</button></div>
+    <div style="padding:18px;display:flex;flex-direction:column;gap:14px">
+      <input type="hidden" id="evt-edit-id">
+
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px;display:block">Event Name</label>
+        <input id="evt-name" type="text" placeholder="e.g. Live Day, Outdoor Day, Field Trip" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+      </div>
+
+      <div style="display:flex;gap:12px">
+        <div style="flex:1">
+          <label style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px;display:block">Start Time</label>
+          <input id="evt-start" type="time" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+        </div>
+        <div style="flex:1">
+          <label style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px;display:block">End Time</label>
+          <input id="evt-end" type="time" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px;display:block">Location <span style="font-weight:400;color:var(--text3)">(optional)</span></label>
+        <input id="evt-location" type="text" placeholder="e.g. Al Shaheed Park" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+      </div>
+
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:block">Teachers Occupied</label>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="evt-school-wide" onchange="toggleEvtSchoolWide()"> <b>School-wide</b> <span style="color:var(--text3)">(blocks ALL scheduling)</span></label>
+        </div>
+        <div id="evt-teachers-wrap" style="display:flex;flex-wrap:wrap;gap:6px;max-height:140px;overflow:auto;padding:8px;background:var(--bg2);border-radius:6px;border:1px solid var(--border)">
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:block">Days</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap" id="evt-days-wrap">
+          <label style="font-size:12px;display:flex;align-items:center;gap:3px"><input type="checkbox" class="evt-day-cb" value="Sun">Sun</label>
+          <label style="font-size:12px;display:flex;align-items:center;gap:3px"><input type="checkbox" class="evt-day-cb" value="Mon">Mon</label>
+          <label style="font-size:12px;display:flex;align-items:center;gap:3px"><input type="checkbox" class="evt-day-cb" value="Tue">Tue</label>
+          <label style="font-size:12px;display:flex;align-items:center;gap:3px"><input type="checkbox" class="evt-day-cb" value="Wed">Wed</label>
+          <label style="font-size:12px;display:flex;align-items:center;gap:3px"><input type="checkbox" class="evt-day-cb" value="Thu">Thu</label>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:block">Frequency</label>
+        <div style="display:flex;gap:12px">
+          <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="radio" name="evt-freq" value="weekly" checked onchange="toggleEvtFreq()"> Weekly (repeats every week)</label>
+          <label style="font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="radio" name="evt-freq" value="once" onchange="toggleEvtFreq()"> Once (specific date)</label>
+        </div>
+        <div id="evt-date-wrap" style="display:none;margin-top:8px">
+          <input id="evt-date" type="date" style="padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:block">Color</label>
+        <div style="display:flex;gap:6px" id="evt-color-wrap">
+          <label style="cursor:pointer"><input type="radio" name="evt-color" value="#DC2626" checked style="display:none"><span class="evt-color-dot" style="display:inline-block;width:24px;height:24px;border-radius:50%;background:#DC2626;border:3px solid #DC2626"></span></label>
+          <label style="cursor:pointer"><input type="radio" name="evt-color" value="#10B981" style="display:none"><span class="evt-color-dot" style="display:inline-block;width:24px;height:24px;border-radius:50%;background:#10B981;border:3px solid transparent"></span></label>
+          <label style="cursor:pointer"><input type="radio" name="evt-color" value="#6A5FA8" style="display:none"><span class="evt-color-dot" style="display:inline-block;width:24px;height:24px;border-radius:50%;background:#6A5FA8;border:3px solid transparent"></span></label>
+          <label style="cursor:pointer"><input type="radio" name="evt-color" value="#D97706" style="display:none"><span class="evt-color-dot" style="display:inline-block;width:24px;height:24px;border-radius:50%;background:#D97706;border:3px solid transparent"></span></label>
+          <label style="cursor:pointer"><input type="radio" name="evt-color" value="#2563EB" style="display:none"><span class="evt-color-dot" style="display:inline-block;width:24px;height:24px;border-radius:50%;background:#2563EB;border:3px solid transparent"></span></label>
+          <label style="cursor:pointer"><input type="radio" name="evt-color" value="#E87C50" style="display:none"><span class="evt-color-dot" style="display:inline-block;width:24px;height:24px;border-radius:50%;background:#E87C50;border:3px solid transparent"></span></label>
+        </div>
+      </div>
+
+      <button type="button" class="btn" style="background:#6A5FA8;color:#fff;padding:10px 20px;font-size:14px;font-weight:600;border-radius:8px;margin-top:4px" onclick="saveEvent()">Save Event</button>
+    </div>
+
+    <div style="border-top:1px solid var(--border);padding:14px 18px">
+      <div style="font-size:13px;font-weight:700;color:var(--text1);margin-bottom:8px">Active Events</div>
+      <div id="evt-list"></div>
+    </div>
+  </div>
+</div>
+
 <!-- SETTINGS -->
 <div class="modal" id="settingsmodal" style="display:none;align-items:flex-start;padding:20px">
   <div class="mbox" style="width:560px;max-height:90vh;overflow:auto">
@@ -2072,41 +2154,13 @@ body.has-banner .ctx-title{background:rgba(255,255,255,.85);padding:4px 10px;bor
     </div>
 
     <div class="set-section">
-      <div class="set-section-title">🎥 Live Session Days (per teacher)</div>
-      <div style="font-size:11px;color:var(--text2);margin-bottom:8px">On the selected day(s) each week, this teacher is teaching a live class — their regular home visits pause automatically and the day view shows a red LIVE banner with a Mark Complete button.</div>
-      <div id="set-live-list"></div>
-      <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-        <select id="set-live-teacher" style="padding:5px 8px;font-size:12px"></select>
-        <input id="set-live-class" type="text" placeholder="Class name (e.g. 'Year 5 English')" style="padding:5px 8px;font-size:12px;flex:1;min-width:180px">
-        <label style="font-size:11px;display:flex;align-items:center;gap:3px"><input type="checkbox" class="set-live-day" value="Sun">Sun</label>
-        <label style="font-size:11px;display:flex;align-items:center;gap:3px"><input type="checkbox" class="set-live-day" value="Mon">Mon</label>
-        <label style="font-size:11px;display:flex;align-items:center;gap:3px"><input type="checkbox" class="set-live-day" value="Tue">Tue</label>
-        <label style="font-size:11px;display:flex;align-items:center;gap:3px"><input type="checkbox" class="set-live-day" value="Wed">Wed</label>
-        <label style="font-size:11px;display:flex;align-items:center;gap:3px"><input type="checkbox" class="set-live-day" value="Thu">Thu</label>
-        <button type="button" class="btn" onclick="saveLiveTeacher()">Save teacher</button>
-      </div>
+      <div class="set-section-title">📅 Events (Live Days, Outdoor Days, Custom)</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:8px">Events block teachers or the whole school on specific days. Use the <b>Create Event</b> button on the Schedule toolbar to add, edit, or delete events.</div>
+      <div id="set-events-summary"></div>
+      <button type="button" class="btn" onclick="closeSettingsModal();openEventModal()">📅 Open Events Manager</button>
     </div>
-
-    <div class="set-section">
-      <div class="set-section-title">🏞️ Outdoor Days (school-wide)</div>
-      <div style="font-size:11px;color:var(--text2);margin-bottom:8px">School outings when no home visits run. Can be a one-off date or a recurring weekday. On the day, all cars dim and a teal banner appears with a Mark Complete button — attendance is logged to every active (Care &amp; Continuity) student.</div>
-      <div id="set-outdoor-list"></div>
-      <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-        <select id="set-outdoor-mode" style="padding:5px 8px;font-size:12px" onchange="toggleOutdoorMode()">
-          <option value="date">One-off date</option>
-          <option value="recurring">Recurring weekday</option>
-        </select>
-        <input id="set-outdoor-date" type="date" style="padding:5px 8px;font-size:12px">
-        <select id="set-outdoor-day" style="padding:5px 8px;font-size:12px;display:none">
-          <option value="Sun">Sun</option><option value="Mon">Mon</option>
-          <option value="Tue">Tue</option><option value="Wed">Wed</option><option value="Thu">Thu</option>
-        </select>
-        <input id="set-outdoor-loc" type="text" placeholder="Location" style="padding:5px 8px;font-size:12px;flex:1;min-width:140px">
-        <input id="set-outdoor-start" type="time" style="padding:5px 8px;font-size:12px">
-        <input id="set-outdoor-end" type="time" style="padding:5px 8px;font-size:12px">
-        <button type="button" class="btn" onclick="addOutdoorDay()">Add</button>
-      </div>
-    </div>
+    <!-- Hidden legacy elements so old JS references don't crash -->
+    <div style="display:none"><div id="set-live-list"></div><select id="set-live-teacher"></select><input id="set-live-class"><div id="set-outdoor-list"></div><select id="set-outdoor-mode"></select><input id="set-outdoor-date"><select id="set-outdoor-day"></select><input id="set-outdoor-loc"><input id="set-outdoor-start"><input id="set-outdoor-end"></div>
 
     <div class="set-section" id="um-section" style="display:none;border:1px solid #6A5FA840;background:#FAF5FF">
       <div class="set-section-title" style="color:#6A5FA8">👥 User Management</div>
@@ -2323,12 +2377,18 @@ const DEFAULT_SETTINGS={
   sundayActive:0,       // 1 = Sunday is a real scheduling day (not just the admin screen)
   thursdayActive:1,     // 1 = Thursday is a scheduling day; 0 hides the Thursday tab entirely
   autoSchedulePin:'',   // If non-empty, user must type this PIN before auto-schedule runs
-  // Outdoor Days — school-wide events where no home visits run. Each entry:
-  //   { id, mode:'recurring'|'date', day:'Mon', date:'yyyy-mm-dd',
-  //     location, startTime:'HH:MM', endTime:'HH:MM' }
+  // ── Unified Events (replaces separate liveDays + outdoorDays) ──
+  // Each event: { id, name, type:'live'|'outdoor'|'custom',
+  //   frequency:'weekly'|'once', days:['Mon','Wed'], date:'yyyy-mm-dd',
+  //   startTime:'HH:MM', endTime:'HH:MM', location:'',
+  //   teachers:['Varti','Siba'],  // which teachers are occupied
+  //   schoolWide:false,           // true = blocks ALL scheduling (like old outdoor day)
+  //   color:'#DC2626' }
+  events:[],
+  // Completion log for events. Keyed by event-id + date: { 'evtId__yyyy-mm-dd': { at, by } }
+  eventCompletions:{},
+  // Legacy (kept for backward compat during migration — do not use directly)
   outdoorDays:[],
-  // Immutable completion log for outdoor days. Keyed by the specific date
-  // the event actually fell on: { 'yyyy-mm-dd': { at, by, entryId } }
   outdoorCompletions:{},
   // Respond.io integration (token stored server-side only — never in client state)
   respondio_chat_enabled:false,
@@ -2369,13 +2429,61 @@ function migrateSettings(obj){
   });
   // PIN is a string
   SETTINGS.autoSchedulePin=(SETTINGS.autoSchedulePin==null?'':String(SETTINGS.autoSchedulePin)).trim();
-  // Outdoor Days: arrays/objects on old saved states may be missing
+  // Events: arrays/objects on old saved states may be missing
+  if(!Array.isArray(SETTINGS.events))SETTINGS.events=[];
+  if(!SETTINGS.eventCompletions||typeof SETTINGS.eventCompletions!=='object')SETTINGS.eventCompletions={};
+  // Legacy outdoor arrays (kept for migration)
   if(!Array.isArray(SETTINGS.outdoorDays))SETTINGS.outdoorDays=[];
   if(!SETTINGS.outdoorCompletions||typeof SETTINGS.outdoorCompletions!=='object')SETTINGS.outdoorCompletions={};
+  // ── Auto-migrate old outdoor days → events ──
+  if(SETTINGS.outdoorDays.length&&!SETTINGS._outdoorMigrated){
+    SETTINGS.outdoorDays.forEach(od=>{
+      if(!od)return;
+      SETTINGS.events.push({
+        id:od.id||('evt'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),
+        name:od.location?`Outdoor · ${od.location}`:'Outdoor Day',
+        type:'outdoor', schoolWide:true,
+        frequency:od.mode==='recurring'?'weekly':'once',
+        days:od.mode==='recurring'&&od.day?[od.day]:[],
+        date:od.date||'', location:od.location||'',
+        startTime:od.startTime||'', endTime:od.endTime||'',
+        teachers:[], color:'#10B981'
+      });
+    });
+    // Migrate completion log keys
+    Object.entries(SETTINGS.outdoorCompletions||{}).forEach(([dateKey,val])=>{
+      // Find which migrated event this completion belongs to
+      const srcEntry=SETTINGS.outdoorDays.find(e=>e&&e.id===val.sourceId);
+      const evtId=srcEntry?srcEntry.id:'';
+      if(evtId)SETTINGS.eventCompletions[evtId+'__'+dateKey]=val;
+    });
+    SETTINGS._outdoorMigrated=true;
+  }
+  // ── Auto-migrate old teacher liveDays → events ──
+  if(!SETTINGS._liveMigrated&&typeof TEACHERS==='object'){
+    let migrated=0;
+    Object.entries(TEACHERS).forEach(([name,t])=>{
+      if(!t||!Array.isArray(t.liveDays)||!t.liveDays.length)return;
+      SETTINGS.events.push({
+        id:'evt'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)+(migrated++),
+        name:t.liveClass?`Live · ${t.liveClass}`:`Live Day — ${name}`,
+        type:'live', schoolWide:false,
+        frequency:'weekly', days:[...t.liveDays], date:'',
+        location:'', startTime:'', endTime:'',
+        teachers:[name], color:'#DC2626'
+      });
+      // Migrate completion log
+      Object.entries(t.liveCompletions||{}).forEach(([dateKey,val])=>{
+        const evtId=SETTINGS.events[SETTINGS.events.length-1].id;
+        SETTINGS.eventCompletions[evtId+'__'+dateKey]=val;
+      });
+    });
+    if(migrated)SETTINGS._liveMigrated=true;
+  }
   applySettings();
 }
 
-// ===== Live Sessions + Outdoor Days helpers =====
+// ===== Events + Legacy Live/Outdoor helpers =====
 // Convert a DAYS code ('Sun'...'Thu') + ISO week key ('YYYY-Www') to a yyyy-mm-dd date string.
 function dateForDayInWeek(dayCode,weekKey){
   try{
@@ -2392,34 +2500,51 @@ function dateForDayInWeek(dayCode,weekKey){
     return d.toISOString().slice(0,10);
   }catch(e){return '';}
 }
-function outdoorEntryFor(dayCode,weekKey){
-  // Returns the outdoor day entry active for this day/week, or null.
+// ── Event query helpers (unified system) ──
+function eventsForDay(dayCode,weekKey){
+  // Returns all events active on this day code / week.
   const wk=weekKey||activeWeekKey();
   const date=dateForDayInWeek(dayCode,wk);
-  const list=Array.isArray(SETTINGS.outdoorDays)?SETTINGS.outdoorDays:[];
-  for(const e of list){
-    if(!e)continue;
-    if(e.mode==='date'&&e.date===date)return e;
-    if(e.mode==='recurring'&&e.day===dayCode)return e;
-  }
-  return null;
+  const list=Array.isArray(SETTINGS.events)?SETTINGS.events:[];
+  return list.filter(e=>{
+    if(!e)return false;
+    if(e.frequency==='once')return e.date===date;
+    // weekly
+    return Array.isArray(e.days)&&e.days.includes(dayCode);
+  });
 }
-function isOutdoorDay(dayCode,weekKey){return !!outdoorEntryFor(dayCode,weekKey);}
+function schoolWideEventsForDay(dayCode,weekKey){
+  return eventsForDay(dayCode,weekKey).filter(e=>e.schoolWide);
+}
+function teacherEventsForDay(teacherName,dayCode,weekKey){
+  return eventsForDay(dayCode,weekKey).filter(e=>
+    !e.schoolWide&&Array.isArray(e.teachers)&&e.teachers.includes(teacherName));
+}
+function isTeacherBusyEvent(teacherName,dayCode,weekKey){
+  return teacherEventsForDay(teacherName,dayCode,weekKey).length>0;
+}
+function eventCompletionKey(evt,dayCode,weekKey){
+  const date=dateForDayInWeek(dayCode,weekKey||activeWeekKey());
+  return evt.id+'__'+date;
+}
+// ── Backward-compat wrappers (old code still calls these) ──
+function outdoorEntryFor(dayCode,weekKey){
+  const sw=schoolWideEventsForDay(dayCode,weekKey);
+  return sw.length?sw[0]:null;
+}
+function isOutdoorDay(dayCode,weekKey){return schoolWideEventsForDay(dayCode,weekKey).length>0;}
 function outdoorCompletionKey(entry,dayCode,weekKey){
-  return dateForDayInWeek(dayCode,weekKey||activeWeekKey());
+  return eventCompletionKey(entry,dayCode,weekKey);
 }
 function isLiveDayForTeacher(teacherName,dayCode){
-  const t=TEACHERS&&TEACHERS[teacherName];if(!t)return false;
-  const ld=Array.isArray(t.liveDays)?t.liveDays:[];
-  return ld.includes(dayCode);
+  return isTeacherBusyEvent(teacherName,dayCode);
 }
 function liveTeachersFor(dayCode){
-  const out=[];
-  for(const name in (TEACHERS||{})){
-    const t=TEACHERS[name];if(!t)continue;
-    if(Array.isArray(t.liveDays)&&t.liveDays.includes(dayCode))out.push(name);
-  }
-  return out;
+  const out=new Set();
+  eventsForDay(dayCode).forEach(e=>{
+    if(!e.schoolWide&&Array.isArray(e.teachers))e.teachers.forEach(t=>out.add(t));
+  });
+  return [...out];
 }
 function appendStudentLog(sid,entry){
   const s=SS&&SS[sid];if(!s)return;
@@ -3239,52 +3364,43 @@ async function dupDeleteCase(id){
 }
 
 // ===== Live Sessions + Outdoor Days completion handlers =====
-function markLiveComplete(teacherName,dayCode,dateKey){
-  const t=TEACHERS[teacherName];if(!t){alert('Teacher not found.');return;}
-  const cls=t.liveClass||'class';
-  const d=dateKey||dateForDayInWeek(dayCode,activeWeekKey());
-  if(!d){alert('Could not determine the date for this live session.');return;}
-  if(t.liveCompletions&&t.liveCompletions[d]){alert('This live session is already marked complete.');return;}
-  if(!confirm(`Mark ${teacherName}'s live session for ${cls} on ${d} as complete? A log entry will be added to every student in ${cls}. This cannot be undone.`))return;
-  const entryId='L'+Date.now().toString(36);
+// ── Unified event completion ──
+function markEventComplete(evtId,dayCode){
+  const evt=(SETTINGS.events||[]).find(e=>e&&e.id===evtId);
+  if(!evt){alert('Event not found.');return;}
+  const d=dateForDayInWeek(dayCode,activeWeekKey());
+  if(!d){alert('Could not determine date.');return;}
+  const ck=eventCompletionKey(evt,dayCode);
+  SETTINGS.eventCompletions=SETTINGS.eventCompletions||{};
+  if(SETTINGS.eventCompletions[ck]){alert('Already marked complete.');return;}
+  const teachers=(evt.teachers||[]).join(', ')||'all teachers';
+  if(!confirm(`Mark "${evt.name}" on ${d} as complete?\n\nTeachers: ${teachers}\nA log entry will be added to affected students. This cannot be undone.`))return;
+  const entryId='E'+Date.now().toString(36);
   const by=(typeof getUserName==='function'?getUserName():'')||'';
-  t.liveCompletions=t.liveCompletions||{};
-  t.liveCompletions[d]={at:new Date().toISOString(),by,entryId,class:cls};
-  // Log to every student assigned to this teacher (treated as "her class")
-  let logged=0;
-  Object.values(SS).forEach(s=>{
-    if(!s||s.t!==teacherName)return;
-    appendStudentLog(s.id,{type:'live-session',entryId,by,text:`Live session completed — ${teacherName} ${cls} ${d}`});
-    logged++;
-  });
-  saveState();
-  if(typeof renderSched==='function')renderSched();
-  alert(`Live session marked complete. ${logged} student log entr${logged===1?'y':'ies'} added.`);
-}
-function markOutdoorComplete(dayCode,dateKey){
-  const entry=outdoorEntryFor(dayCode,activeWeekKey());
-  if(!entry){alert('No outdoor day is configured for today.');return;}
-  const d=dateKey||dateForDayInWeek(dayCode,activeWeekKey());
-  if(!d){alert('Could not determine the date.');return;}
-  SETTINGS.outdoorCompletions=SETTINGS.outdoorCompletions||{};
-  if(SETTINGS.outdoorCompletions[d]){alert('This outdoor day is already marked complete.');return;}
-  const loc=entry.location||'';
-  if(!confirm(`Mark outdoor day (${loc||'no location'}) on ${d} complete? A log entry will be added to every ACTIVE (Care & Continuity) student. This cannot be undone.`))return;
-  const entryId='O'+Date.now().toString(36);
-  const by=(typeof getUserName==='function'?getUserName():'')||'';
-  SETTINGS.outdoorCompletions[d]={at:new Date().toISOString(),by,entryId,location:loc,sourceId:entry.id};
-  // Log to every active student (status === 'active' in Care & Continuity)
+  SETTINGS.eventCompletions[ck]={at:new Date().toISOString(),by,entryId,evtName:evt.name};
+  // Log to relevant students
   let logged=0;
   Object.values(SS).forEach(s=>{
     if(!s)return;
     const st=(s.status||'active').toLowerCase();
-    if(st!=='active')return; // skip inactive/exited
-    appendStudentLog(s.id,{type:'outdoor-day',entryId,by,text:`Outdoor session attended — ${d} ${loc}`.trim()});
-    logged++;
+    if(st!=='active')return;
+    if(evt.schoolWide||(Array.isArray(evt.teachers)&&evt.teachers.includes(s.t))){
+      appendStudentLog(s.id,{type:'event',entryId,by,text:`${evt.name} — ${d}`.trim()});
+      logged++;
+    }
   });
   saveState();
   if(typeof renderSched==='function')renderSched();
-  alert(`Outdoor day marked complete. ${logged} student log entr${logged===1?'y':'ies'} added.`);
+  alert(`Event marked complete. ${logged} student log entr${logged===1?'y':'ies'} added.`);
+}
+// Legacy wrappers so old banner onclick still works
+function markLiveComplete(teacherName,dayCode,dateKey){
+  const evts=teacherEventsForDay(teacherName,dayCode);
+  if(evts.length)markEventComplete(evts[0].id,dayCode);
+}
+function markOutdoorComplete(dayCode,dateKey){
+  const evts=schoolWideEventsForDay(dayCode);
+  if(evts.length)markEventComplete(evts[0].id,dayCode);
 }
 
 // Mass-delete / reset helpers — password-gated. `what` is one of:
@@ -4711,42 +4827,30 @@ function renderCars(){
     return;
   }
   grid.innerHTML='';
-  // ——— Outdoor Day + Live Session banners for the current day ———
+  // ——— Event banners for the current day ———
   const _wk=activeWeekKey();
-  const _outEntry=outdoorEntryFor(d,_wk);
-  const _outIsOn=!!_outEntry;
-  const _outDate=_outEntry?dateForDayInWeek(d,_wk):'';
-  const _outDone=_outEntry&&SETTINGS.outdoorCompletions&&SETTINGS.outdoorCompletions[_outDate];
-  const _liveTeachers=liveTeachersFor(d);
+  const _dayEvents=eventsForDay(d,_wk);
+  const _hasSchoolWide=_dayEvents.some(e=>e.schoolWide);
   const _bannerHost=grid.parentElement;
   // Remove any previous banners so re-renders don't stack
   (_bannerHost.querySelectorAll&&_bannerHost.querySelectorAll('.sched-banner'))?.forEach(b=>b.remove());
-  if(_outIsOn){
-    const bar=document.createElement('div');bar.className='sched-banner outdoor-banner';
-    bar.style.cssText='background:linear-gradient(90deg,#10B981,#4DBFAD);color:#fff;padding:14px 18px;border-radius:10px;margin:8px 12px 12px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:0 3px 10px rgba(13,148,136,.25)';
-    const loc=esc(_outEntry.location||'Location TBD');
-    const tm=(_outEntry.startTime||'')+(_outEntry.endTime?' – '+_outEntry.endTime:'');
-    const doneTag=_outDone?` <span style="background:rgba(255,255,255,.22);padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600">✓ Completed ${new Date(_outDone.at).toLocaleDateString('en-GB')}</span>`:'';
-    const btn=_outDone?'':`<button onclick="markOutdoorComplete('${d}','${_outDate}')" style="margin-left:auto;background:#fff;color:#10B981;border:none;padding:8px 16px;border-radius:8px;font-weight:700;cursor:pointer">Mark Complete</button>`;
-    bar.innerHTML=`<span style="font-size:22px">🏞️</span><div><div style="font-weight:700;font-size:16px">Outdoor Day — ${loc}${doneTag}</div><div style="opacity:.9;font-size:13px">${esc(tm)||''}${_outDate?' · '+_outDate:''} · All cars paused for school event</div></div>${btn}`;
+  _dayEvents.forEach(evt=>{
+    const bar=document.createElement('div');bar.className='sched-banner';
+    const col=evt.color||'#6A5FA8';
+    bar.style.cssText=`background:linear-gradient(90deg,${col},${col}CC);color:#fff;padding:12px 18px;border-radius:10px;margin:6px 12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 3px 10px ${col}40`;
+    const tmStr=(evt.startTime||'')+(evt.endTime?' – '+evt.endTime:'');
+    const dateStr=dateForDayInWeek(d,_wk);
+    const ck=eventCompletionKey(evt,d,_wk);
+    const done=SETTINGS.eventCompletions&&SETTINGS.eventCompletions[ck];
+    const doneTag=done?` <span style="background:rgba(255,255,255,.22);padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600">\u2713 Completed ${new Date(done.at).toLocaleDateString('en-GB')}</span>`:'';
+    const btn=done?'':`<button onclick="markEventComplete('${evt.id}','${d}')" style="margin-left:auto;background:#fff;color:${col};border:none;padding:7px 14px;border-radius:8px;font-weight:700;cursor:pointer">Mark Complete</button>`;
+    const who=evt.schoolWide?'All cars paused':(evt.teachers||[]).map(t=>esc(t)).join(', ')+' occupied';
+    const locStr=evt.location?` — ${esc(evt.location)}`:'';
+    bar.innerHTML=`<span style="background:#fff;color:${col};padding:3px 9px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.5px">${esc(evt.name||'EVENT')}</span><div><div style="font-weight:700">${esc(evt.name||'Event')}${locStr}${doneTag}</div><div style="opacity:.9;font-size:12px">${esc(tmStr)}${dateStr?' · '+dateStr:''} · ${who}</div></div>${btn}`;
     _bannerHost.insertBefore(bar,grid);
-  }
-  if(_liveTeachers.length){
-    _liveTeachers.forEach(tn=>{
-      const t=TEACHERS[tn];if(!t)return;
-      const key=dateForDayInWeek(d,_wk);
-      const done=t.liveCompletions&&t.liveCompletions[key];
-      const bar=document.createElement('div');bar.className='sched-banner live-banner';
-      bar.style.cssText='background:linear-gradient(90deg,#DC2626,#EF4444);color:#fff;padding:12px 18px;border-radius:10px;margin:6px 12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 3px 10px rgba(220,38,38,.25)';
-      const cls=esc(t.liveClass||'class');
-      const doneTag=done?` <span style="background:rgba(255,255,255,.22);padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600">✓ Completed ${new Date(done.at).toLocaleDateString('en-GB')}</span>`:'';
-      const btn=done?'':`<button onclick="markLiveComplete('${tn.replace(/'/g,"\\'")}','${d}','${key}')" style="margin-left:auto;background:#fff;color:#DC2626;border:none;padding:7px 14px;border-radius:8px;font-weight:700;cursor:pointer">Mark Complete</button>`;
-      bar.innerHTML=`<span style="background:#fff;color:#DC2626;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.5px">● LIVE</span><div><div style="font-weight:700">${esc(tn)} — ${cls}${doneTag}</div><div style="opacity:.9;font-size:12px">Teaching live today — regular sessions paused</div></div>${btn}`;
-      _bannerHost.insertBefore(bar,grid);
-    });
-  }
-  // If outdoor, dim cars + pause slot rendering content with an overlay
-  if(_outIsOn){grid.style.opacity='.45';grid.style.pointerEvents='none';}
+  });
+  // If school-wide event, dim cars
+  if(_hasSchoolWide){grid.style.opacity='.45';grid.style.pointerEvents='none';}
   else{grid.style.opacity='';grid.style.pointerEvents='';}
   const carsOrdered=SETTINGS.sameBranchOnly?[...CARS].sort((a,b)=>(a.branch||'').localeCompare(b.branch||'')):CARS;
   carsOrdered.forEach(car=>{
@@ -4919,8 +5023,10 @@ function renderSlot(d,cid,si){
     if(sl_.t==='s'){slT=SS[sl_.id]?.t||'';}
     else if(sl_.t==='d'||sl_.t==='g'){slT=SS[(sl_.ids||[])[0]]?.t||'';}
     else if(sl_.t==='pick'){slT=SS[sl_.id]?.t||'';}
-    if(slT&&isLiveDayForTeacher(slT,d)){
-      return `<div class="slot-wrap"><div class="slot slot-live-paused" style="opacity:.35;border:1px dashed #DC2626;background:#FEF2F2;color:#991B1B;padding:10px;text-align:center;font-size:12px;border-radius:8px">⏸ ${esc(slT)} is live-teaching today</div></div>`;
+    if(slT&&isTeacherBusyEvent(slT,d)){
+      const _tevts=teacherEventsForDay(slT,d);
+      const _evtName=_tevts.length?_tevts[0].name:'event';
+      return `<div class="slot-wrap"><div class="slot slot-live-paused" style="opacity:.35;border:1px dashed ${esc(_tevts[0]?.color||'#DC2626')};background:#FEF2F2;color:#991B1B;padding:10px;text-align:center;font-size:12px;border-radius:8px">\u23f8 ${esc(slT)} — ${esc(_evtName)}</div></div>`;
     }
   }
   const startMin=slotStartMin(d,cid,si);
@@ -9414,6 +9520,18 @@ function showSettingsModal(){
   // Respond.io (only widget toggle — token is server-side)
   const rioChatCb=document.getElementById('set-rio-chat-enabled');
   if(rioChatCb)rioChatCb.checked=!!SETTINGS.respondio_chat_enabled;
+  // Render events summary in settings
+  const evtHost=qs('set-events-summary');
+  if(evtHost){
+    const evts=Array.isArray(SETTINGS.events)?SETTINGS.events:[];
+    if(!evts.length)evtHost.innerHTML='<div style="font-size:11px;color:var(--text3);font-style:italic;margin-bottom:6px">No events configured.</div>';
+    else evtHost.innerHTML=evts.map(e=>{
+      const who=e.schoolWide?'All':(e.teachers||[]).join(', ');
+      const when=e.frequency==='once'?e.date||'—':(e.days||[]).join(', ');
+      return `<div style="display:flex;gap:6px;padding:5px 8px;background:#fff;border:1px solid var(--border);border-radius:6px;margin-bottom:3px;font-size:11px;align-items:center"><span style="width:8px;height:8px;border-radius:50%;background:${esc(e.color||'#6A5FA8')};flex-shrink:0"></span><b>${esc(e.name||'—')}</b><span style="color:var(--text3)">${esc(when)}</span><span style="color:var(--text3)">${esc(who)}</span></div>`;
+    }).join('');
+  }
+  // Legacy stubs
   renderLiveTeachersList();
   renderOutdoorDaysList();
   populateLiveTeacherSelect();
@@ -9510,6 +9628,157 @@ function removeOutdoorDay(id){
   SETTINGS.outdoorDays=(SETTINGS.outdoorDays||[]).filter(e=>e.id!==id);
   saveState();renderOutdoorDaysList();
 }
+// ========== EVENT MODAL ==========
+function openEventModal(editId){
+  const modal=qs('eventmodal');
+  modal.style.display='flex';
+  // Populate teacher checkboxes
+  const wrap=qs('evt-teachers-wrap');
+  const tNames=Object.keys(TEACHERS||{}).sort();
+  wrap.innerHTML=tNames.map(n=>`<label style="font-size:12px;display:flex;align-items:center;gap:4px;padding:4px 8px;background:#fff;border:1px solid var(--border);border-radius:6px;cursor:pointer"><input type="checkbox" class="evt-teacher-cb" value="${esc(n)}">${esc(n)}</label>`).join('');
+  // Reset form
+  qs('evt-edit-id').value='';
+  qs('evt-name').value='';
+  qs('evt-start').value='';
+  qs('evt-end').value='';
+  qs('evt-location').value='';
+  qs('evt-school-wide').checked=false;
+  toggleEvtSchoolWide();
+  document.querySelectorAll('.evt-day-cb').forEach(cb=>cb.checked=false);
+  document.querySelector('input[name="evt-freq"][value="weekly"]').checked=true;
+  toggleEvtFreq();
+  qs('evt-date').value='';
+  // Reset color
+  document.querySelectorAll('#evt-color-wrap input[name="evt-color"]').forEach((r,i)=>{
+    r.checked=i===0;
+    r.parentElement.querySelector('.evt-color-dot').style.borderColor=i===0?r.value:'transparent';
+  });
+  // Color dot click handler
+  document.querySelectorAll('#evt-color-wrap label').forEach(lbl=>{
+    lbl.onclick=()=>{
+      document.querySelectorAll('#evt-color-wrap .evt-color-dot').forEach(d=>d.style.borderColor='transparent');
+      const r=lbl.querySelector('input');r.checked=true;
+      lbl.querySelector('.evt-color-dot').style.borderColor=r.value;
+    };
+  });
+  qs('evt-modal-title').textContent='Create Event';
+  // If editing, pre-fill
+  if(editId){
+    const evt=(SETTINGS.events||[]).find(e=>e&&e.id===editId);
+    if(evt){
+      qs('evt-edit-id').value=evt.id;
+      qs('evt-modal-title').textContent='Edit Event';
+      qs('evt-name').value=evt.name||'';
+      qs('evt-start').value=evt.startTime||'';
+      qs('evt-end').value=evt.endTime||'';
+      qs('evt-location').value=evt.location||'';
+      qs('evt-school-wide').checked=!!evt.schoolWide;
+      toggleEvtSchoolWide();
+      (evt.teachers||[]).forEach(t=>{
+        const cb=wrap.querySelector(`input[value="${t}"]`);
+        if(cb)cb.checked=true;
+      });
+      (evt.days||[]).forEach(d=>{
+        const cb=document.querySelector(`.evt-day-cb[value="${d}"]`);
+        if(cb)cb.checked=true;
+      });
+      const freq=evt.frequency||'weekly';
+      document.querySelector(`input[name="evt-freq"][value="${freq}"]`).checked=true;
+      toggleEvtFreq();
+      if(evt.date)qs('evt-date').value=evt.date;
+      // Color
+      const colR=document.querySelector(`#evt-color-wrap input[value="${evt.color||'#DC2626'}"]`);
+      if(colR){
+        document.querySelectorAll('#evt-color-wrap input[name="evt-color"]').forEach(r=>{r.checked=false;r.parentElement.querySelector('.evt-color-dot').style.borderColor='transparent';});
+        colR.checked=true;colR.parentElement.querySelector('.evt-color-dot').style.borderColor=colR.value;
+      }
+    }
+  }
+  renderEventList();
+}
+function closeEventModal(){qs('eventmodal').style.display='none';}
+function toggleEvtSchoolWide(){
+  const sw=qs('evt-school-wide').checked;
+  qs('evt-teachers-wrap').style.opacity=sw?'.4':'1';
+  qs('evt-teachers-wrap').style.pointerEvents=sw?'none':'auto';
+}
+function toggleEvtFreq(){
+  const freq=document.querySelector('input[name="evt-freq"]:checked')?.value||'weekly';
+  qs('evt-date-wrap').style.display=freq==='once'?'block':'none';
+  // For "once", hide day checkboxes (date determines the day)
+  qs('evt-days-wrap').style.display=freq==='weekly'?'flex':'none';
+}
+function saveEvent(){
+  const name=qs('evt-name').value.trim();
+  if(!name){alert('Enter an event name.');return;}
+  const startTime=qs('evt-start').value;
+  const endTime=qs('evt-end').value;
+  const location=qs('evt-location').value.trim();
+  const schoolWide=qs('evt-school-wide').checked;
+  const teachers=schoolWide?[]:[...document.querySelectorAll('.evt-teacher-cb:checked')].map(cb=>cb.value);
+  if(!schoolWide&&!teachers.length){alert('Pick at least one teacher, or check "School-wide".');return;}
+  const freq=document.querySelector('input[name="evt-freq"]:checked')?.value||'weekly';
+  const days=freq==='weekly'?[...document.querySelectorAll('.evt-day-cb:checked')].map(cb=>cb.value):[];
+  const date=freq==='once'?qs('evt-date').value:'';
+  if(freq==='weekly'&&!days.length){alert('Pick at least one day.');return;}
+  if(freq==='once'&&!date){alert('Pick a date.');return;}
+  const color=document.querySelector('input[name="evt-color"]:checked')?.value||'#DC2626';
+  const editId=qs('evt-edit-id').value;
+  if(!Array.isArray(SETTINGS.events))SETTINGS.events=[];
+  if(editId){
+    // Update existing
+    const idx=SETTINGS.events.findIndex(e=>e&&e.id===editId);
+    if(idx>=0){
+      SETTINGS.events[idx]={...SETTINGS.events[idx],name,startTime,endTime,location,schoolWide,teachers,frequency:freq,days,date,color};
+    }
+    toast('Event updated');
+  }else{
+    // Create new
+    const id='evt'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    SETTINGS.events.push({id,name,type:'custom',schoolWide,frequency:freq,days,date,startTime,endTime,location,teachers,color});
+    toast('Event created');
+  }
+  saveState();
+  renderEventList();
+  if(typeof renderSched==='function')renderSched();
+  // Reset form for next entry
+  qs('evt-edit-id').value='';
+  qs('evt-modal-title').textContent='Create Event';
+  qs('evt-name').value='';
+  qs('evt-start').value='';qs('evt-end').value='';qs('evt-location').value='';
+  qs('evt-school-wide').checked=false;toggleEvtSchoolWide();
+  document.querySelectorAll('.evt-day-cb').forEach(cb=>cb.checked=false);
+  document.querySelectorAll('.evt-teacher-cb').forEach(cb=>cb.checked=false);
+}
+function renderEventList(){
+  const host=qs('evt-list');if(!host)return;
+  const list=Array.isArray(SETTINGS.events)?SETTINGS.events:[];
+  if(!list.length){host.innerHTML='<div style="font-size:12px;color:var(--text3);font-style:italic;padding:8px 0">No events yet. Create one above.</div>';return;}
+  host.innerHTML=list.map(e=>{
+    const when=e.frequency==='once'?esc(e.date||'—'):(e.days||[]).join(', ')||'—';
+    const tm=(e.startTime||'')+(e.endTime?' – '+e.endTime:'');
+    const who=e.schoolWide?'All (school-wide)':(e.teachers||[]).join(', ')||'—';
+    return `<div style="display:flex;gap:8px;padding:8px 10px;background:#fff;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:12px;align-items:center">
+      <span style="width:10px;height:10px;border-radius:50%;background:${esc(e.color||'#6A5FA8')};flex-shrink:0"></span>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;color:var(--text1)">${esc(e.name||'Untitled')}</div>
+        <div style="color:var(--text3);font-size:11px;margin-top:2px">${esc(when)} · ${esc(tm)} · ${esc(who)}</div>
+      </div>
+      <button type="button" class="btn" style="padding:3px 8px;font-size:11px" onclick="openEventModal('${e.id}')">Edit</button>
+      <button type="button" class="btn" style="padding:3px 8px;font-size:11px;color:#DC2626;border-color:#FECACA" onclick="deleteEvent('${e.id}')">Delete</button>
+    </div>`;
+  }).join('');
+}
+function deleteEvent(id){
+  const evt=(SETTINGS.events||[]).find(e=>e&&e.id===id);
+  if(!evt)return;
+  if(!confirm(`Delete event "${evt.name}"? Past completion log entries on student records stay put.`))return;
+  SETTINGS.events=SETTINGS.events.filter(e=>e.id!==id);
+  saveState();renderEventList();
+  if(typeof renderSched==='function')renderSched();
+  toast('Event deleted');
+}
+
 function closeSettingsModal(){qs('settingsmodal').style.display='none';}
 function resetSettings(){
   if(!confirm('Restore every setting to its default?'))return;
@@ -9767,8 +10036,8 @@ function runAutoSchedule(){
     const t=TEACHERS[tname];
     if(t&&!t.active)return false;
     if(t&&t.days&&!t.days[day])return false;
-    // Skip teachers on their live-session day — they're occupied with live class
-    if(t&&Array.isArray(t.liveDays)&&t.liveDays.includes(day))return false;
+    // Skip teachers occupied by an event (live day, outdoor, custom)
+    if(isTeacherBusyEvent(tname,day))return false;
     const max=(t&&t.maxPerDay)||(SETTINGS.teacherDefaultMax||6);
     const used=teacherDayCount[day][tname]||0;
     return used<max;
