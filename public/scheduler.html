@@ -3469,7 +3469,7 @@ function validateCoords(s){
   return{ok:dist<5,dist,expected:{la:eLa,ln:eLn,area:k},reason:dist>=5?'too far from area center ('+dist.toFixed(1)+'km)':'ok'};
 }
 function hv(a,b,c,d){const R=6371,p=Math.PI/180,da=(c-a)*p,db=(d-b)*p;return+(2*R*Math.asin(Math.sqrt(Math.sin(da/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(db/2)**2))).toFixed(2);}
-function tm(km){if(km<=0)return 0;return Math.max(3,Math.round(km*1.4/50*60));}
+function tm(km){if(km<=0)return 0;return Math.max(5,Math.round(km*1.3/45*60));}
 function ts(m){return`${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;}
 // Rounded time string — rounds UP to nearest SETTINGS.displayRoundMin (default 10 min).
 // Used for DISPLAY only (session start, finish, pickup time). Scheduling math uses true minutes.
