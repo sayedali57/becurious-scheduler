@@ -2257,6 +2257,37 @@ document.addEventListener('click',function(e){const m=document.getElementById('m
 
 // ===== CONSTANTS =====
 const BP={Shuhada:[29.268183,48.028021],Salam:[29.297841,48.013465],Salwa:[29.295034,48.069593]};
+// Kuwait area center coordinates — used for coordinate validation and
+// distance-from-area checks. Keys are lowercase normalised area names.
+const AREA_COORDS={
+  shuhada:[29.268183,48.028021],salam:[29.297841,48.013465],salwa:[29.295034,48.069593],
+  alsalam:[29.297841,48.013465],alsurra:[29.330,48.000],surra:[29.330,48.000],
+  huteen:[29.283023,48.019294],hitteen:[29.283023,48.019294],hiteen:[29.283023,48.019294],heteen:[29.283023,48.019294],
+  alsideeq:[29.296981,47.996979],alsiddeeq:[29.296981,47.996979],sideeq:[29.296981,47.996979],
+  kifan:[29.339550,47.959917],kaifan:[29.339550,47.959917],
+  zahra:[29.278,47.996],zahraa:[29.278,47.996],alzahra:[29.278,47.996],alzahraa:[29.278,47.996],
+  bayan:[29.317,48.033],jabriya:[29.300,48.033],
+  mishref:[29.291,48.069],rumaithiya:[29.310,48.060],
+  rawdha:[29.329,47.999],alrawdha:[29.329,47.999],
+  qortouba:[29.314472,47.986196],qortuba:[29.314472,47.986196],
+  ardiya:[29.296,47.908],alardeya:[29.296,47.908],alardia:[29.296,47.908],
+  adan:[29.228,48.066],aladan:[29.228,48.066],aladaan:[29.228,48.066],aladdan:[29.228,48.066],
+  sabahalsalem:[29.254,48.054],sabahalsalam:[29.254,48.054],
+  sabahalnasser:[29.270770,47.885948],
+  abdullahmubarak:[29.240757,47.904424],abdullahalmubarak:[29.240757,47.904424],
+  sulaibkhat:[29.314756,47.844432],sulaibikhat:[29.314756,47.844432],
+  andalus:[29.302694,47.883400],alandalus:[29.302694,47.883400],
+  alqayrwan:[29.303342,47.798775],qayrwan:[29.303342,47.798775],
+  almasayel:[29.236856,48.090131],masayel:[29.236856,48.090131],almassayel:[29.236856,48.090131],
+  aboftera:[29.196358,48.101260],bofteera:[29.196358,48.101260],boftera:[29.196358,48.101260],abuftera:[29.196358,48.101260],abofteira:[29.196358,48.101260],
+  alqreen:[29.202938,48.080324],qurain:[29.202938,48.080324],alqurain:[29.202938,48.080324],
+  mubarakalkabir:[29.188432,48.081696],mubarakalkabeer:[29.188432,48.081696],
+  albedaa:[29.315939,48.089442],bedaa:[29.315939,48.089442],
+  ahmadi:[29.101029,48.064563],nahmadi:[29.101029,48.064563],
+  alqusoor:[29.216074,48.076216],alqussor:[29.216074,48.076216],alqosoor:[29.216074,48.076216],qusoor:[29.216074,48.076216],
+  mangaf:[29.104,48.123],almangaf:[29.104,48.123],
+  funaitees:[29.219,48.104],alfunaitees:[29.219,48.104],
+};
 const TC={'Varti':'#6A5FA8','Safaa':'#4DBFAD','Nilma':'#10B981','Farah':'#E87C50','Maritel':'#C2410C','Siba':'#5A4F96','Fatma':'#D97706','Mariya':'#8B6FB0','Wafaa':'#065F46','Hadeel':'#10B981','Ann':'#DC2626','Nargis':'#6A5FA8','Soha':'#B45309','Saira/Aswini':'#78350F','Mehjabeen':'#A32D2D','Mehjabeen/Manju':'#5A4F96','Khadija':'#4DBFAD','Mariam':'#BA7517','Sharifa':'#92400E','Maliha':'#3A3530','Sofia':'#A32D2D'};
 const RAW=[['s1','Deeme alknadiri','Shuhada','Varti',29.268171,48.03091,'Shuhada, B4, St417, H33'],['s2','Dhari alkandari','Shuhada','Safaa',29.238145,48.053435,'Aladan, B2, St20, H4'],['s3','Abdulaziz Alsabti','Shuhada','Nilma',29.277549,47.998353,'Zahra, B5, St507, H16'],['s4','Haya AlOsaimi','Shuhada','Nilma',29.284271,48.001844,'Zahra, B20, St218, H18'],['s5','Ahmad Fathallah','Shuhada','Nilma',29.273805,48.034902,'Shuhada, B2, St205, H30'],['s6','Riyadh Alsaleh','Shuhada','Nilma',29.258834,48.06685,'Sabah Alsalem, B4, St5, H2'],['s7','Faisal Almeer','Shuhada','Nilma',29.308455,48.016416,'Alsurra, B2, St13, H4'],['s8','Jumanah Kareemi','Shuhada','Farah',29.233393,48.057133,'Aladan, B2, St42, H22'],['s9','Elaf alabdulelah','Shuhada','Farah',29.20406,48.063561,'Alqurain, B3, St8, H50'],['s10','Mona Alkandari','Shuhada','Farah',29.103605,48.069772,'N.Ahmadi, B15, St11, H5'],['s11','Ali alqoud','Shuhada','Farah',29.288286,48.070924,'Mishref, B1, St6, H32'],['s12','Mariam Bo Abbas','Shuhada','Farah',29.251472,48.052584,'Sabah Alsalem, B10, St1, H36'],['s13','Yaqoub Alhelal','Shuhada','Maritel',29.282841,47.993845,'Huteen, B3, St305, H22'],['s14','Hashim Algharaballi','Shuhada','Maritel',29.269133,48.025974,'Shuhada, B4, St410, H162'],['s15','Abdulmohsen Albassam','Shuhada','Maritel',29.286147,48.061443,'Mishref, B2, St3, H11'],['s16','Omar albaloul','Shuhada','Maritel',29.282697,48.024805,'Huteen, B3, St10, H44'],['s17','Mariam Al jumaie','Shuhada','Maritel',29.30068,47.887253,'AlAndalus, B3, St105, H52'],['s18','Ghaliah Boareki','Shuhada','Siba',29.279562,48.016506,'Huteen, B4, St415, HA8'],['s19','Hamad Fahad','Shuhada','Siba',29.242323,48.056733,'Sabah Alsalem, B13, St2, H21'],['s20','Fay Alrashed','Shuhada','Siba',29.199257,48.066797,'AlQurain, B3, St34, H41'],['s21','Saeed Almeer','Shuhada','Siba',29.308455,48.016416,'Alsurra, B2, St13, H4'],['s22','Fatimah Almahmeed','Shuhada','Fatma',29.310042,48.059533,'Rumaithiya, B1, St10, H15'],['s23','Khaled Abul','Shuhada','Fatma',29.277782,48.038307,'Abdullah Mubarak, B3, St311, H30'],['s24','Yousef Hussain','Shuhada','Fatma',29.250717,48.079723,'Sabah Alsalem, B7, St1, H26'],['s25','Sarah salem','Shuhada','Fatma',29.271061,47.878396,'Sabah Alnasser, B1, St102, H14'],['s26','Fatima Alsaffar','Shuhada','Mariya',29.270632,48.029082,'Shuhada, B4, St414, H1'],['s27','Mohammad Alali','Shuhada','Mariya',29.26662,48.02322,'Shuhada, B3, St306, H66'],['s28','Yousef Alhashash','Shuhada','Mariya',29.233181,48.054958,'Aladan, B2, St35, H10'],['s29','Ahmed Alsaqer','Shuhada','Mariya',29.269811,48.067818,'Mishref, B5, St15, H12'],['s30','Abdullah AlKhashti','Shuhada','Mariya',29.239612,47.916652,'Abdullah Almubarak, B2, St203, H2'],['s31','Turki alnami','Shuhada','Mariya',29.272517,48.02512,'Shuhada, B5, St512, H37'],['s32','Dalia Bouqamaz','Shuhada','Mariya',29.283217,47.991817,'Zahraa, B3, St301, H14'],['s33','Omar Fahad','Shuhada','Wafaa',29.242323,48.056733,'Sabah Alsalem, B13, St2, H21'],['s34','Khaled alkandari','Shuhada','Wafaa',29.103605,48.069772,'N.Ahmadi, B15, St11, H5'],['s35','Joudi altahous','Salam','Hadeel',29.282301,48.029976,'Hiteen, B3, St11, H99'],['s36','Moudhi almanee','Salam','Hadeel',29.270021,47.994088,'Alzahraa, B8, St810, H12'],['s37','Deema alqataan','Salam','Ann',29.286605,48.067622,'Mishref, B1, St50, H2B'],['s38','Abdalkareem alawadhai','Salam','Ann',29.292142,48.001628,'Alsideeq, B3, St305, H15'],['s39','Shaikha Almotawa','Salam','Ann',29.299692,48.019934,'Alsalam, B2, St211, H72'],['s40','Yousef Alrayes','Salam','Ann',29.301208,48.00294,'Alsalam, B1, St113, H12'],['s41','Abdulmohsen Alwuhaib','Salam','Ann',29.33677,47.964828,'Kifan, B1, Alquds St, H49A'],['s42','Dhai alshami','Salam','Ann',29.290442,48.006513,'Alsalam, B7, St717, H1'],['s43','Abdalmohsen ahmad','Salam','Ann',29.231194,48.084124,'Aladdan, B7, St9, H12'],['s44','Zaid alqassar','Salam','Ann',29.301951,48.041589,'Bayan, B3, St2, H5'],['s45','Alia albaker','Salam','Ann',29.291962,48.023897,'Salam, B5, St519, H10'],['s46','Yousef alrudaini','Salam','Nargis',29.293657,48.014559,'Alsalam, B4, St411, H7'],['s47','Bader Al Ali','Salam','Soha',29.292123,48.01024,'Alsalam, B6, St611, H37'],['s48','Zaina Alrukhayes','Salam','Soha',29.292554,48.021254,'Alsalam, B5, St507, H19'],['s49','Jassim almansouri','Salam','Soha',29.291189,47.890544,'Alardeya, B4, St4, H46'],['s50','Soud alhuwaidi','Salam','Saira/Aswini',29.29337,48.00731,'Alsalam, B7, St714, H3'],['s51','Omar shamsaldeen','Salam','Saira/Aswini',29.307967,48.042629,'Bayan, B2, St3, H25A'],['s52','Hamad alfoudri','Salam','Saira/Aswini',29.29179,48.015429,'Alsalam, B6, St603, H9'],['s53','Dhayi al shareifi','Salam','Saira/Aswini',29.291183,48.025481,'Alsalam, B5, St512, H23'],['s54','Dalal alsabah','Salam','Mehjabeen',29.307077,47.995242,'Qortouba, B2, St1, H35'],['s55','Yaqoub Alshatti','Salam','Mehjabeen',29.206705,48.099997,'Aboftera, B4, St242, H390'],['s56','Abdallah alhashmi','Salam','Mehjabeen/Manju',29.316523,47.853691,'Sulaibkhat, B2, St102, H4B'],['s57','Alzain al shamroukh','Salam','Mehjabeen/Manju',29.28501,48.021473,'Heteen, B1, St119, H28'],['s58','Abdulaziz alsaleem','Salam','Mehjabeen/Manju',29.211743,48.05994,'Alqusoor, B7, St25, H25'],['s59','Abdulmohsen Altahous','Salam','Mehjabeen/Manju',29.282301,48.029976,'Hiteen, B3, St11, H99'],['s60','Waleed algarabaili','Salam','Khadija',29.336969,47.965856,'Kifan, B1, St16, H46'],['s61','Abdalrahman alroudhan','Salam','Khadija',29.299736,48.006709,'Alsalam, B1, St129, H11'],['s62','Hamad alawadhi','Salam','Khadija',29.292142,48.001628,'Alsideeq, B3, St305, H15'],['s63','Fatima Alomeri','Salam','Mariam',29.285832,48.015943,'Hitteen, B2, St209, H12'],['s64','Fay Mohammad Alqoud','Salam','Mariam',29.235195,48.085796,'Almasayel, B5, St512, H95'],['s65','Danah al fozan','Salam','Mariam',29.336305,47.997013,'Alrawdha, B4, H40'],['s66','Nour alhajri','Salam','Sharifa',29.206954,48.068747,'Alqreen, B3, St4, H54'],['s67','Zaina al fahad','Salam','Sharifa',29.301567,48.002748,'Salam, B1, St112, H36'],['s68','Yousef Albaghli','Salam','Sharifa',29.302696,48.020289,'Alsalam, B2, St214, H49'],['s69','Hamad Alnaham','Salam','Maliha',29.294908,48.02159,'Alsalam, B2, St203, H19'],['s70','Rasha Algheith','Salam','Maliha',29.289509,48.016182,'Alsalam, B6, St606, H14'],['s71','Sayed behbahani','Salam','Maliha',29.20113,48.10021,'Boftera, B2, St132, H4'],['s72','Bader Alkhabbaz','Salam','Maliha',29.233227,48.077179,'Aladdan, B6, St10, H25'],['s73','Maryam alsaleem','Salam','Maliha',29.211743,48.05994,'Alqusoor, B7, St25, H25'],['s74','Jouri Alsbaei','Salam','Maliha',29.288865,47.993801,'Alsideeq, B6, St602, H15'],['s75','Layan Alawadhi','Salwa','Sofia',29.296988,48.069798,'Salwa, B6, St7, H8'],['s76','Jaber Almarri','Salwa','Sofia',29.29015,48.052485,'Bayan, B12, St1, H28'],['s77','Bader Aldarmi','Salwa','Sofia',29.307314,47.791623,'Alqayrwan, B3, St317, H21'],['s78','Rana Alhailaa','Salwa','Sofia',29.29664,48.072534,'Salwa, B6, St8, H23'],['s79','Mubarak Alshemri','Salwa','Sofia',29.237897,48.083171,'Aladdan, B7, St16, H14']];
 // DAYS is the FULL set of days the data structures support. Sunday is always
@@ -3404,8 +3435,41 @@ function weekKeyOffset(offset){
 }
 
 // ===== HELPERS =====
+// Normalise an address string to an AREA_COORDS key.
+// Strips "al"/"al-" prefix variations, block/st/house suffixes, lowercases.
+function areaKey(addr){
+  if(!addr)return'';
+  let a=addr.split(',')[0].split(/\bblock\b|\bB\d|\bSt\b|\bst\b|\bH\d/i)[0].trim().toLowerCase()
+    .replace(/[\s\-_.]+/g,'').replace(/^al/,'');
+  // Try exact match first, then with 'al' prefix
+  if(AREA_COORDS[a])return a;
+  if(AREA_COORDS['al'+a])return'al'+a;
+  // Try common patterns
+  if(a.startsWith('n.')&&AREA_COORDS['n'+a.slice(2)])return'n'+a.slice(2);
+  if(a==='sabahalsalem'||a==='sabahalsalam')return'sabahalsalem';
+  if(a==='sabahalnasser')return'sabahalnasser';
+  if(a.includes('abdullah')&&a.includes('mubarak'))return'abdullahmubarak';
+  if(a.includes('mubarak')&&a.includes('kabir'))return'mubarakalkabir';
+  if(a.includes('mubarak')&&a.includes('kabeer'))return'mubarakalkabeer';
+  // Fallback: try each AREA_COORDS key as substring
+  for(const k of Object.keys(AREA_COORDS)){if(a.includes(k)||k.includes(a))return k;}
+  return'';
+}
+// Validate a student's coordinates against their address area.
+// Returns {ok,dist,expected} where dist is km from area center.
+function validateCoords(s){
+  if(!s||!s.la||!s.ln)return{ok:false,dist:null,expected:null,reason:'no coordinates'};
+  if(s.la>90||s.la<-90)return{ok:false,dist:null,expected:null,reason:'latitude out of range ('+s.la+')'};
+  if(s.ln>180||s.ln<-180)return{ok:false,dist:null,expected:null,reason:'longitude out of range'};
+  const k=areaKey(s.a);
+  if(!k)return{ok:true,dist:null,expected:null,reason:'area not in lookup'};
+  const[eLa,eLn]=AREA_COORDS[k];
+  const dist=+hv(s.la,s.ln,eLa,eLn);
+  // >5 km from area center is suspicious for Kuwait residential areas
+  return{ok:dist<5,dist,expected:{la:eLa,ln:eLn,area:k},reason:dist>=5?'too far from area center ('+dist.toFixed(1)+'km)':'ok'};
+}
 function hv(a,b,c,d){const R=6371,p=Math.PI/180,da=(c-a)*p,db=(d-b)*p;return+(2*R*Math.asin(Math.sqrt(Math.sin(da/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(db/2)**2))).toFixed(2);}
-function tm(km){if(km<=0)return 0;return Math.max(3,Math.round(km/25*60));}
+function tm(km){if(km<=0)return 0;return Math.max(3,Math.round(km*1.4/50*60));}
 function ts(m){return`${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;}
 // Rounded time string — rounds UP to nearest SETTINGS.displayRoundMin (default 10 min).
 // Used for DISPLAY only (session start, finish, pickup time). Scheduling math uses true minutes.
