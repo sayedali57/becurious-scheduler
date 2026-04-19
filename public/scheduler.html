@@ -3471,7 +3471,7 @@ function validateCoords(s){
   return{ok:dist<5,dist,expected:{la:eLa,ln:eLn,area:k},reason:dist>=5?'too far from area center ('+dist.toFixed(1)+'km)':'ok'};
 }
 function hv(a,b,c,d){const R=6371,p=Math.PI/180,da=(c-a)*p,db=(d-b)*p;return+(2*R*Math.asin(Math.sqrt(Math.sin(da/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(db/2)**2))).toFixed(2);}
-function tm(km){if(km<=0)return 0;return Math.max(5,Math.round(km*1.3/45*60));}
+function tm(km){if(km<=0)return 0;return Math.max(5,Math.round(km*1.3/35*60));}
 function ts(m){return`${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;}
 // Rounded time string — rounds UP to nearest SETTINGS.displayRoundMin (default 10 min).
 // Used for DISPLAY only (session start, finish, pickup time). Scheduling math uses true minutes.
@@ -9966,8 +9966,8 @@ function runAutoSchedule(){
             if(teacherBusyAtTime(s2.t,day,car.id,si))return false;
             const dist=hv(pickS.la,pickS.ln,s2.la,s2.ln);
             const sameTeacher=s2.t===pickS.t;
-            // Same teacher → must be same house (≤50m); different teachers → up to 500m
-            return sameTeacher ? dist<=0.05 : dist<=0.5;
+            // Same teacher → must be same house (≤50m); different teachers → up to 300m
+            return sameTeacher ? dist<=0.05 : dist<=0.3;
           });
           if(nearSibling){
             const s2=SS[nearSibling];
@@ -10012,14 +10012,14 @@ function runAutoSchedule(){
             const gC=resolveGroupCoords(SS[anchor]);
             const gAddr=SS[anchor]?.a||'';
             const psi=slots.findIndex((x,k)=>k>si&&!x);
-            if(psi>=0){const pmin=slotStartMin(day,car.id,psi);if(pmin>=dropEndMin){slots[psi]={t:'pick',id:anchor,grp:{la:gC.la,ln:gC.ln,addr:gAddr}};si=psi;}}
+            if(psi>=0){const pmin=slotStartMin(day,car.id,psi);if(pmin>=dropEndMin&&pmin<=endCutoff){slots[psi]={t:'pick',id:anchor,grp:{la:gC.la,ln:gC.ln,addr:gAddr}};si=psi;}}
           } else {
             const allIds=curSlot.t==='s'?[curSlot.id]
               :curSlot.t==='d'?(curSlot.ids||[])
               :[pickSid];
             for(const pid of allIds){
               const psi=slots.findIndex((x,k)=>k>si&&!x);
-              if(psi>=0){const pmin=slotStartMin(day,car.id,psi);if(pmin>=dropEndMin){slots[psi]={t:'pick',id:pid};si=psi;}}
+              if(psi>=0){const pmin=slotStartMin(day,car.id,psi);if(pmin>=dropEndMin&&pmin<=endCutoff){slots[psi]={t:'pick',id:pid};si=psi;}}
             }
           }
         }
@@ -10072,6 +10072,8 @@ function runAutoSchedule(){
             const smin=slotStartMin(day,car.id,si);
             // NEVER place a pickup before the teacher's session ends
             if(smin<readyMin)continue;
+            // Respect dayEndMin — don't schedule pickups past the day cutoff
+            if(smin>endCutoff)continue;
             const timeDiff=smin-readyMin;
             const score=timeDiff
               +(info&&info.cid===car.id?0:20); // bonus for same car
