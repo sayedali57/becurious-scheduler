@@ -4328,20 +4328,24 @@ function slotStartMin(d,cid,si){
     break;
   }
   const rr=parseInt(SETTINGS.displayRoundMin)||10;
+  const sesOnly=parseInt(SETTINGS.sessionMin)||60;
   for(let i=0;i<si;i++){
     const sl_=slots[i];if(!sl_)continue;
     // If an earlier slot is pinned, reset the running clock to its pin.
     if(sl_.fixedStart!=null)m=sl_.fixedStart;
-    // Advance running clock by ACTUAL travel + session block (not rounded).
-    // Rounding is cosmetic — it only affects what parents see on the card.
-    // Using rounded finish to plan the next slot would compound rounding
-    // errors across the day (up to 9 min lost per session).
+    // Advance running clock by ACTUAL travel + session block. Then also
+    // ensure clock >= display finish so the NEXT slot's rounded display start
+    // can never appear before THIS slot's display finish. Without this guard,
+    // rounding the start UP by a few minutes pushes the displayed finish
+    // past what the actual clock accounts for, causing visual overlaps.
     if(sl_.t==='s'){
       const s=SS[sl_.id];
       if(s){
         const la=sl_.grp?.la??s.la, ln=sl_.grp?.ln??s.ln;
         const travel=legTravelMin(d,cid,i,la,ln);
-        m=m+travel+sessionBlockMin();
+        const actualArr=m+travel;
+        const dispStart=rr>1?Math.ceil(actualArr/rr)*rr:actualArr;
+        m=Math.max(m+travel+sessionBlockMin(), dispStart+sesOnly);
         continue;
       }
     } else if(sl_.t==='g'){
@@ -4349,7 +4353,9 @@ function slotStartMin(d,cid,si){
       if(first){
         const la=sl_.grp?.la??first.la, ln=sl_.grp?.ln??first.ln;
         const travel=legTravelMin(d,cid,i,la,ln);
-        m=m+travel+sessionBlockMin();
+        const actualArr=m+travel;
+        const dispStart=rr>1?Math.ceil(actualArr/rr)*rr:actualArr;
+        m=Math.max(m+travel+sessionBlockMin(), dispStart+sesOnly);
         continue;
       }
     } else if(sl_.t==='d'){
@@ -4357,7 +4363,9 @@ function slotStartMin(d,cid,si){
       if(s1){
         const la1=sl_.grp?.la??s1.la, ln1=sl_.grp?.ln??s1.ln;
         const travel1=legTravelMin(d,cid,i,la1,ln1);
-        m=m+travel1+ddTotalInter(sl_)+sessionBlockMin();
+        const actualArr=m+travel1;
+        const dispStart=rr>1?Math.ceil(actualArr/rr)*rr:actualArr;
+        m=Math.max(m+travel1+ddTotalInter(sl_)+sessionBlockMin(), dispStart+sesOnly);
         continue;
       }
     }
