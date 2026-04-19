@@ -3359,7 +3359,7 @@ async function dangerWipe(what){
       await _yieldToBrowser();
       if(typeof renderSched==='function')renderSched();
     }else if(what==='schedule'){
-      Object.keys(SCHED).forEach(d=>{SCHED[d]=(SCHED[d]||[]).map(car=>(car||[]).map(()=>null));});
+      Object.keys(SCHED).forEach(d=>{const day=SCHED[d];if(!day)return;Object.keys(day).forEach(cid=>{if(Array.isArray(day[cid]))day[cid]=day[cid].map(()=>null);});});
       saveState();
       await _yieldToBrowser();
       if(typeof renderSched==='function')renderSched();
